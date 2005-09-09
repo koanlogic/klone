@@ -95,7 +95,7 @@ first release:
 - testing strings url enc/decoding
 
 1.0:
-- const char cvsid[] = "$Id: README,v 1.1 2005/09/09 15:25:43 tat Exp $";
+- const char cvsid[] = "$Id: README,v 1.1.1.1 2005/09/09 15:25:43 tat Exp $";
 - copyright info
 - easy authentication method.
     embedded user/pwd, file based user/pwd, write password into the server 

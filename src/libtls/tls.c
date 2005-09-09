@@ -1,4 +1,4 @@
-/* $Id: tls.c,v 1.1 2005/09/09 15:26:15 tat Exp $ */
+/* $Id: tls.c,v 1.1.1.1 2005/09/09 15:26:15 tat Exp $ */
 
 #include <sys/types.h>
 #include <sys/time.h>

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2005/09/09 15:26:13 tat Exp $
+# $Id: Makefile,v 1.1.1.1 2005/09/09 15:26:13 tat Exp $
 
 # default CFLAGS
 include ../Makefile.conf

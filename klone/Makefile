@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2005/09/09 15:26:13 tat Exp $
+# $Id: Makefile,v 1.1.1.1 2005/09/09 15:26:13 tat Exp $
 include ../Makefile.conf
 
 INCS = addr.h backend.h broker.h cgi.h codec.h codgzip.h config.h debug.h \

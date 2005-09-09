@@ -1,4 +1,4 @@
-/* $Id: tls.h,v 1.1 2005/09/09 15:26:13 tat Exp $ */
+/* $Id: tls.h,v 1.1.1.1 2005/09/09 15:26:13 tat Exp $ */
 
 #ifndef _KLONE_TLS_H_
 #define _KLONE_TLS_H_
