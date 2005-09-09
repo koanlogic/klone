@@ -1,0 +1,76 @@
+#!/bin/sh
+
+MAKL_DIR=/Users/tat/work/KL/makl
+
+export makl_debug=1
+export makl_conf_h=`pwd`/conf.h
+
+. ${MAKL_DIR}/cf/makl.init
+
+# Custom functions
+os_detect () {
+    rsname=`uname -rs | tr [A-Z] [a-z] | sed -e 's/ //'`
+    
+    case ${rsname} in
+
+        *-*-mingw*)
+            makl_set_var_h      "OS_WIN"
+            makl_set_var_h      "CONFIG_SERVER_MODEL" "CONFIG_SERVER_THREAD"
+            makl_add_var_mk     "LIBS"      "-lwsock32 -L/c/WINDOWS" 
+            makl_add_var_mk     "CFLAGS"    "-DOS_WIN" 
+        ;;
+
+        *)
+            makl_set_var_h      "OS_UNIX"
+            makl_set_var_h      "CONFIG_SERVER_MODEL" "CONFIG_SERVER_FORK"
+            makl_add_var_mk     "CFLAGS"    "-DOS_UNIX" 
+
+            # library dependenciwes
+            makl_require        "lib"       "pthread"
+            makl_require        "lib"       "ssl"
+        ;;
+    esac
+}
+
+# Handlers
+_makl_enable_debug () {
+    makl_add_var_mk     "CFLAGS"    "-g"
+}
+_makl_enable_profile () {
+    makl_add_var_mk     "CFLAGS"    "-pg -a"
+}
+_makl_enable_sub_fs () {
+    makl_add_var_h      "ENABLE_SUP_FS" 
+}
+
+# Custom arguments
+makl_args_def   "enable_debug"      "" ""   "enables debugging"
+makl_args_def   "enable_profile"    "" ""   "enables profiling"
+makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
+
+# General settings
+os_detect
+makl_set                "__debug__" 
+makl_set                "__prog__"  "klone"
+makl_add_var_mk         "CFLAGS"    "-W -Wall -Wpointer-arith -Wno-uninitialized"\
+" -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wshadow"
+
+# Binary dependencies
+makl_feature_x          "doxygen"
+
+# Library dependencies
+makl_optional           "1"     "lib"       "z"
+
+# Function dependencies
+makl_checktype          "pid_t"     "<sys/types.h>" 
+makl_checkfunc          "getpid"
+makl_checkfunc          "unlink"
+makl_checkfunc          "strtok_r"
+makl_checkfunc          "syslog"
+makl_func_strerror_r
+
+# Handle command-line arguments
+makl_args_handle "$@"
+
+
+. ${MAKL_DIR}/cf/makl.term

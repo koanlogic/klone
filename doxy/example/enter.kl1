@@ -1,0 +1,7 @@
+<!-- enter.kl1 -->
+<%@ include "header.kl1" %>
+
+<p>Congratulations you have logged in (unauthenticated).
+
+<%@ include "debug.kl1" %>
+<%@ include "footer.kl1" %>

@@ -1,0 +1,22 @@
+<!-- colour.kl1 -->
+<%@ include "header.kl1" %>
+<%!
+    #include <string.h>
+%>
+
+<%
+    vars_t *args = request_get_args(request);
+    const char *colour = vars_get_value(args, "colour");
+
+    if (colour && strlen(colour))
+        response_set_cookie(response, "colour", colour, time(NULL), NULL, NULL, 0);
+%>
+
+<p>What is your favourite colour?
+<form action="colour.kl1" method="post">
+colour: <input type="text" name="colour"><br>
+<input type="submit" value="login"><br>
+</form>
+
+<%@ include "debug.kl1" %>
+<%@ include "footer.kl1" %>

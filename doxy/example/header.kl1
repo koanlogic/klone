@@ -1,0 +1,12 @@
+<!-- header.kl1 -->
+<html>
+<head>
+<title>
+Hello title
+</title>
+</head>
+<body>
+<div align="center">
+Hello <b>header</b>
+</div>
+<hr>

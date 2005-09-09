@@ -1,0 +1,17 @@
+/*!
+\page misc Compilation, Setup and Integration
+\par
+\subpage misc1
+\par
+\subpage misc2
+*/
+
+/*!
+\page misc1 Getting Started
+Download and setup KLone environment.
+*/
+
+/*!
+\page misc2 Build Your Application
+Compile, link and build the final end-user application.
+*/

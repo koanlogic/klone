@@ -1,0 +1,22 @@
+<!-- index.kl1 -->
+<%@ include "header.kl1" %>
+<%! 
+    #include <tute/funcs.h>
+%>
+
+<p>Hello <b>body</b>, look how time flies:
+<i>
+<%
+    funcs_print_ctime(response_io(response));
+%>
+</i>
+<h1>Hello heading h1</h1>
+<h2>Hello heading h2</h2>
+<h3>Hello heading h3</h3>
+<h4>Hello heading h4</h4>
+
+
+<p>go to <a href="login.kl1">login</a> page
+<p>go to <a href="colour.kl1">colour</a> page
+
+<%@ include "footer.kl1" %>

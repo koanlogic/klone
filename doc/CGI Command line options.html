@@ -1,0 +1,42 @@
+<TITLE>CGI Command line options</TITLE>
+<H1><IMG alt="" SRC="/images/CGIlogo.gif"> CGI Command line options</H1>
+<HR> <P>
+
+<H2>Specification</H2>
+
+The command line is only used in the case of an ISINDEX query. It is
+not used in the case of an HTML form or any as yet undefined query
+type. The server should search the query information (the <CODE>QUERY_STRING</CODE> environment variable) for a non-encoded
+= character to determine if the command line is to be used, if it
+finds one, the command line is not to be used. This trusts the clients
+to encode the = sign in ISINDEX queries, a practice which was
+considered safe at the time of the design of this specification. <P>
+
+For example, use the <A HREF="/cgi-bin/finger">finger script</A> and the ISINDEX interface to look up "httpd".  You will see that the script will call itself with <CODE>/cgi-bin/finger?httpd</CODE> and will actually execute "finger httpd" on the command line and output the results to you.
+<P>
+If the server does find a "=" in the <CODE>QUERY_STRING</CODE>, then the command line will not be used, and no decoding will be performed.  The query then remains intact for processing by an appropriate FORM submission decoder.
+
+Again, as an example, use <A HREF="/cgi-bin/finger?httpd=name">this hyperlink</A> to submit <CODE>"httpd=name"</CODE> to the finger script.  Since this <CODE>QUERY_STRING</CODE> contained an unencoded "=", nothing was decoded, the script didn't know it was being submitted a valid query, and just gave you the default finger form.
+<P>
+If the server finds that it cannot send the string due to internal
+limitations (such as exec() or /bin/sh command line restrictions) the
+server should include NO command line information and provide the
+non-decoded query information in the environment
+variable <A HREF="env.html#query"><CODE>QUERY_STRING</CODE></A>. <P>
+<HR>
+<H2>Examples</H2>
+
+Examples of the command line usage are much better <A
+HREF="examples.html">demonstrated</A> than explained. For these
+examples, pay close attention to the script output which says what
+argc and argv are. <P>
+
+<HR>
+
+<A HREF="interface.html"><IMG alt="[Back]" SRC="/images/back.gif">Return to the
+interface specification</A> <P>
+
+CGI - Common Gateway Interface
+<ADDRESS><A HREF="mailtocgi.html">cgi@ncsa.uiuc.edu</A></ADDRESS>
+
+

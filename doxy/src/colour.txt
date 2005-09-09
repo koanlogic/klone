@@ -1,0 +1,9 @@
+/*!
+<b>An example of how to extend a simple interactive application to use cookies</b>
+\example colour.kl1
+
+
+
+*/
+
+

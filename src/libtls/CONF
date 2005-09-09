@@ -1,0 +1,95 @@
+_________
+cert_file       PEM-encoded certificate file for the server and optionally 
+                also to the corresponding RSA or DSA Private Key file for it 
+                (contained in the same file).  The certificate must be 
+                configured with the Common Name matching the fully qualified 
+                domain name of the server (FIXME: check RFC).
+                This parameter is mandatory.
+
+default:        none
+syntax:         server.httpsd.cert_file     /path/to/server_cert.pem
+
+
+________
+key_file        PEM-encoded private key file for the server. If the private 
+                key is not combined with the certificate in the 'cert_file', 
+                use this additional directive to point to the file with the 
+                stand-alone private key.  When 'cert_file' is used and the 
+                file contains both the certificate and the private key this 
+                directive need not be used.  But we strongly discourage this 
+                practice.  Instead we recommend you to separate the certificate
+                and the private key.  
+
+default:        none
+syntax:         server.httpsd.key_file     /path/to/server_key.pem
+
+
+______________
+certchain_file  optional all-in-one file where you can assemble the 
+                certificates of Certification Authorities (CA) which form 
+                the certificate chain of the server certificate.  This starts 
+                with the issuing CA certificate of of the server certificate 
+                and can range up to the root CA certificate.  Such a file is 
+                simply the concatenation of the various PEM-encoded CA 
+                Certificate files, usually in certificate chain order.
+                This is intended for instance for the Verisign Global-ID 
+                situation where one _has_ to send the intermediate CA of 
+                Verisign with the GID while one wants to avoid that under 
+                client authentication all clients issued by this CA are 
+                accepted (which would happen when one references the CA 
+                cert via 'ca_file'.
+
+default:        none
+syntax:         server.httpsd.certchain_file    /path/to/ca_bundle_server.pem
+
+
+_______
+ca_file         all-in-one file where you can assemble the certificates 
+                of Certification Authorities (CA) for all certificates 
+                expected from clients.  These are used for Client 
+                authentication.  Such a file is simply the concatenation 
+                of the various PEM-encoded certificate files, in order of 
+                preference.  It is mandatory when verify_client is 
+                "required".
+
+default:        none
+syntax:         server.httpsd.ca_file   /path/to/ca_bundle_client.pem
+    
+
+_______
+dh_file         PEM-encoded file containing Diffie-Hellman parameters to be 
+                used on session data negotiation phase.  When missing a 
+                default set of 1024-bit DH parameters is used.  Note that
+                RSA ephemeral parameters are always created automatically.
+
+default:        none
+syntax:         server.httpsd.dh_file     /path/to/dh_params.pem
+
+
+____________
+verify_depth    This directive sets how deeply openssl should verify before 
+                deciding that the clients don't have a valid certificate.  
+                The depth actually is the maximum number of intermediate 
+                certificate issuers, i.e. the number of CA certificates which 
+                are max allowed to be followed while verifying the client 
+                certificate.  A depth of 0 means that self-signed client 
+                certificates are accepted only, the default depth of 1 means 
+                the client certificate can be self-signed or has to be signed 
+                by a CA which is directly known to the server (i.e. the CA's 
+                certificate is under 'ca_file'), etc. 
+
+default:        1
+syntax:         server.httpsd.verify_depth  10
+
+                    
+_____________
+verify_client   This directive sets the certificate verification level for 
+                the Client authentication.  The following values are available:
+                * "no"       -> no client certificate is required at all 
+                * "optional" -> the client may present a valid certificate
+                * "required" -> the client has to present a valid certificate.
+                Note: "optional" makes sense only in testing scenarios.
+                
+default:        "no"
+syntax:         server.httpsd.verify_depth  required
+

@@ -1,0 +1,38 @@
+<HTML><HEAD>
+<TITLE>CGI: Common Gateway Interface</TITLE>
+</HEAD><BODY>
+<H1><IMG SRC="/images/CGIlogo.gif" ALT="CGI"> Common Gateway Interface</H1>
+<HR>
+<H2>Overview</H2>
+<HR>
+The Common Gateway Interface (CGI) is a standard for interfacing external 
+applications with information servers, such as HTTP or Web servers.
+  A plain HTML document that the Web daemon <STRONG>retrieves</STRONG> is <STRONG>static</STRONG>, which means it exists in a constant state:  a text file that doesn't change.  A CGI program, on the other hand, is <STRONG>executed</STRONG> in real-time, so that it can output <STRONG>dynamic</STRONG> information.<P>
+For example, let's say that you wanted to &quot;hook up&quot; your Unix database to the World Wide Web, to allow people from all over the world to query it.  Basically, you need to create a CGI program that the Web daemon will execute to transmit information to the database engine, and receive the results back again and display them to the client.  This is an example of a <EM>gateway</EM>, and this is where CGI, currently version 1.1, got its origins.
+<P>
+The database example is a simple idea, but most of the time rather difficult to implement.  There really is no limit as to what you can hook up to the Web. The only thing you need to remember is that whatever your CGI program does, it should not take too long to process.  Otherwise, the user will just be staring at their browser waiting for something to happen.
+<HR>
+<H2>Specifics</H2>
+<HR>
+Since a CGI program is executable, it is basically the equivalent of letting the world run a program on your system, which isn't the safest thing to do.  Therefore, there are some security precautions that need to be implemented when it comes to using CGI programs.  Probably the one that will affect the typical Web user the most is the fact that CGI programs need to reside in a special directory, so that the Web server knows to execute the program rather than just display it to the browser.  This directory is usually under direct control of the webmaster, prohibiting the average user from creating CGI programs.  There are other ways to allow access to CGI scripts, but it is up to your webmaster to set these up for you.  At this point, you may want to contact them about the feasibility of allowing CGI access.
+<P>
+If you have a version of the NCSA HTTPd server distribution, you will see a
+directory called <CODE>/cgi-bin</CODE>.  This is the special directory mentioned above where all of your CGI programs currently reside.  A CGI program can be written in any language that allows it to be executed on the system, such as:
+<UL>
+<LI> C/C++
+<LI> Fortran
+<LI> PERL
+<LI> TCL
+<LI> Any Unix shell
+<LI> Visual Basic
+<LI> AppleScript
+</UL>
+It just depends what you have available on your system.  If you use a <EM>programming language</EM> like C or Fortran, you know that you must compile the program before it will run.  If you look in the <CODE>/cgi-src</CODE> directory that came with the server distribution, you will find the source code for some of the CGI programs in the <CODE>/cgi-bin</CODE> directory.  If, however, you use one of the <EM>scripting languages</EM> instead, such as PERL, TCL, or a Unix shell, the script itself only needs to reside in the <CODE>/cgi-bin</CODE> directory, since there is no associated source code.  Many people prefer to write CGI scripts instead of programs, since they are easier to debug, modify, and maintain than a typical compiled program.
+<HR>
+
+<A HREF="overview.html"><IMG ALT="[Back]" SRC="/images/back.gif">Return to the o
+verview</A> <P>
+
+CGI - Common Gateway Interface<BR>
+<ADDRESS><A HREF="mailtocgi.html">cgi@ncsa.uiuc.edu</A></ADDRESS>
+</BODY></HTML>

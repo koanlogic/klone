@@ -1,0 +1,127 @@
+cos'e'
+------
+
+cxh e' una framework che permette di integrare all'interno di un'unico eseguibile un server HTTP, la sua configurazione, i contenuti (statici o dinamici) del sito e/o dell'applicazione web che si intende distribuire (come software o a corredo di un prodotto hardware), altri file di utilita' dell'applicativo stesso non necessariamente accessibili via web.
+
+Oltre al file system embedded, di cui cxh si avvale per l'integrazione dei contenuti statici (pagine HTML, immagini, video, file binari in genere che cxh comprime per risparmiare risorse), e' possibile sviluppare pagine web dinamiche interpolando codice in linguaggio C/C++ e testo HTML in modo del tutto simile a quanto si fa con PHP, ASP, JSP, ecc.
+
+L'utilizzo del linguaggio C/C++, oltre a permettere di interfacciarsi senza filtri e senza limitazioni proprie dei linguaggi di scripting utilizzati altrove, garantisce di potersi avvalere delle funzionalita' di basso livello del sistema ospite e delle centinaia di librerie disponibili per questo particolare linguaggio. 
+
+Le pagine dinamiche cosi' costruite vengono compilate dal cxh in codice nativo ed eseguite (quando richiesto dai client web) con performace proprie di un eseguibile in codice macchina [n.d.r. eh lo so che fa schifo ma non mi viene niente di meglio :)].
+Inoltre la distribuzione del codice compilato non obbliga lo sviluppatore alla condivisione del codice sorgente ne' tantomeno ne permette la facile modifica dove non espressamente previsto.
+
+Particolare attenzione e' stata posta sulla facilita' d'uso del prodotto, ottenuta tramite la quasi totale automazione del processo di sviluppo, e sulla semplificazione delle interfacce di programmazione in uso nelle pagine dinamiche. A tal fine cxh include classi che rendono facile ed intuitiva la gestione di Cookies, sessioni server-side, Form, MIME header, ecc.
+
+Nel caso in cui cxh debba essere usato in affiancamento ad un server HTTP pre-esistente e' possibile, senza alcuna modifica ne' in fase di sviluppo ne' in quella di compilazione e configurazione, utilizzare cxh come CGI configurando in modo opportuno il web server; in alternativa e' possibile l'utilizzo, sempre senza alcuna modifica, in modalita' INETD [n.d.r. questo in realta' e' ancora nel TODO].
+
+
+
+use cases
+---------
+
++ sistemi embedded:
+    cxh puo' essere usato per la configurazione di questi sistemi oppure per
+    esternalizzare qualche risorsa interna. Per. es. router, firewall, telefoni
+    IP, PBX e qualsiasi apparato di rete che necessita di interfacciarsi con
+    l'esterno.
+    vantaggi: non c'e' bisogno di file system, usa poche risorse (come gli
+              altri web server embedded), permette di sviluppare pagine
+              dinamiche molto performanti in codice nativo (a differenza di 
+              altri web server), ci si puo' avvalere dell'aiuto di librerie 
+              esterne di cui esiste un'iterfaccia C/C++.  
+              il ciclo di sviluppo e' facile e veloce, non paragonabile alla 
+              difficolta' di creazione di uno o piu' CGI. 
+
++ applicazioni web
+    A differenza di altri strumenti simili con cxh si possono sviluppare
+    applicazioni web compilate, di cui quindi non e' necessario distribuire
+    il codice sorgente [n.d.r. e la cosa secondo me crea un vantaggio 
+    commerciale non indifferente...].  Avendo a disposizione centinaia di 
+    librerie C/C++ la vastita' e varieta' di scelta e' enorme.
+
++ demo/presentazioni con interfaccia web (download o CD/DVD)
+    e' possibile distribuire contenuti HTML e pagine dinamiche in un unico
+    package scaricabile dalla rete o salvato su CD/DVD eseguendo il quale
+    viene lanciato il server ed il client web per la fruizione dei contenuti.
+    Il tutto multi-piattaforma e con massime performance.
+
+
+come funziona
+-------------
+[n.d.r. TODO] 
+
+sintassi *.cxh
+--------------
++ <%@ cxh_directive [args...] %>
+
+    Lista direttive:
+    - "include" filename:
+        include il file "filename" nel file *.cxh corrente
+
++ <%! out of scope code %>
+    codice con scope globale nel file generato (cioe' non all'interno della
+    funzione che esegue e stampa i contenuti della pagina).
+
++ <% code %>
+    "code" e' il codice C da eseguire
+
++ <%= char_expr %>
+    equivalente a io_printf(out, "%s", char_expr);
+
++ <%=fmt arg %> [n.d.r. TODO]
+    "fmt" e' il formato dell'espressione (printf-style: d,u,s,c,ecc.); 
+    "arg" e' l'argomento che deve essere di tipo corrispondente al formato usato
+
+
+
+[ n.d.r. l'ho fatta al volo sul treno e non l'ho provata quindi potrebbero esserci schifezze ]
+---------[ example.cxh ]-----------
+<%!
+    #include <sys/time.h>
+    #include <time.h>
+%>
+<html>
+<head>
+<title>example page - 
+ version: <%= version() %>
+ </title>
+</head>
+<body>
+
+<%@ include "barra_bottoni.cxh" %>
+
+<%!
+    static char* version()
+    {
+        return "0.0.0.1";
+    }
+%>
+
+<%
+    time_t now;
+    
+    now = time(0);
+%>
+current timestamp: <%= ctime(&now) %> <p>
+current UID: <%=u getuid() %> <p>
+current GID: <%=u getgid() %> <p>
+
+scrivo 0-99:
+<%
+
+    int i;
+    for(i = 0; i < 100; ++i)
+    {
+        io_printf("i: %u <p>\n", i);
+    }
+
+%>
+
+
+<%@ include "copyright.cxh" %>
+
+</body>
+</html>
+-----------------------------------
+
+

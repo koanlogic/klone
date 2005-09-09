@@ -1,0 +1,153 @@
+/*!
+\page app Appendix
+\section app1 References
+\par 
+This paragraph identifies the list of applicable and referenced 
+documents.
+
+\htmlonly
+
+<TABLE ALIGN=center CELLSPACING=0 CELLPADDING=0 BORDER=0>
+<TR BGCOLOR="#000000">
+<TD>
+  <TABLE CELLSPACING=1 CELLPADDING=10 BORDER=0>
+  <TR BGCOLOR="#4040c0">
+  <TD ><b><font size=+1 color="#ffffff"> Applicable and Referenced Documents </font></b></TD>
+  </TR>
+  <TR BGCOLOR="#ffffff"> 
+      <TD> <A NAME="rfc">IETF RFC3161 (2001) Internet X.509: "Public Key Infrastructure: Time-Stamp Protocol (TSP)"</A></TD>
+  </TR>
+  <TR BGCOLOR="#ffffff"> 
+      <TD> <A NAME="cms">IETF RFC2630 (1999): "Cryptographic Message Syntax"</A></TD>
+  </TR>
+  <TR BGCOLOR="#ffffff"> 
+      <TD> <A NAME="rfc2634">IETF RFC2634 (1999): "Enhanced Security Services for S/MIME"</A></TD>
+  </TR>  
+  <TR BGCOLOR="#ffffff"> 
+      <TD> <A NAME="iso">ISO/IEC 18014 (1999): "IT - Security techniques - Time Stamping services"</A></TD>
+  </TR>    
+  </TABLE>
+</TD>
+</TR>
+</TABLE>
+\endhtmlonly
+
+<hr>
+\section app2 Glossary
+\par 
+This document is aimed at an audience of professional persons, 
+proficient with PKI applications and related terminology:
+for this reason, an extensive glossary of the terms used 
+within this manual is not provided.
+
+<hr>
+\section app3 Acronyms
+\par 
+The following table summarises the full list of the acronyms and
+abbreviations used throughout the document.
+
+\htmlonly
+<TABLE ALIGN=center CELLSPACING=0 CELLPADDING=0 BORDER=0>
+<TR BGCOLOR="#000000">
+<TD>
+  <TABLE CELLSPACING=1 CELLPADDING=10 BORDER=0>
+  <TR BGCOLOR="#4040c0">
+  <TD ><b><font size=+1 color="#ffffff">  Acronyms	 </font></b></TD>
+  <TD ><b><font size=+1 color="#ffffff">  Description	 </font></b></TD>
+  </TR>
+  <TR BGCOLOR="#ffffff">
+      <TD> API </TD>  
+      <TD> Application Program Interface </TD>
+  </TR>
+  <TR BGCOLOR="#ffffff">
+      <TD> ASN.1 </TD>  
+      <TD> Abstract Syntax Notation One </TD>
+  </TR>
+  <TR BGCOLOR="#ffffff">
+      <TD> CA </TD>  
+      <TD> Certification Authority </TD>
+  </TR>  
+  <TR BGCOLOR="#ffffff">
+      <TD> CMS </TD>  
+      <TD> Cryptographic Message Syntax </TD>
+  </TR>  
+  <TR BGCOLOR="#ffffff">
+      <TD> FTP </TD>  
+      <TD> File Transfer Protocol </TD>
+  </TR>    
+  <TR BGCOLOR="#ffffff">
+      <TD> HTTP </TD>  
+      <TD> HyperText Transport Protocol </TD>
+  </TR> 
+  <TR BGCOLOR="#ffffff">
+      <TD> HTTPS </TD>  
+      <TD> HyperText Transport Protocol Secure</TD>
+  </TR>   
+  <TR BGCOLOR="#ffffff">
+      <TD> NIST </TD>  
+      <TD> National Institute of Standards and Technology </TD>
+  </TR>
+  <TR BGCOLOR="#ffffff">
+      <TD> OS </TD>  
+      <TD> Operating System </TD>
+  </TR> 
+  <TR BGCOLOR="#ffffff">
+      <TD> PEM </TD>  
+      <TD> Privacy Enhanced Mail </TD>
+  </TR>   
+  <TR BGCOLOR="#ffffff">
+      <TD> PKIX </TD>  
+      <TD> Public Key Infrastructure (X.509)</TD>
+  </TR>
+  <TR BGCOLOR="#ffffff">
+      <TD> PDU </TD>  
+      <TD> Protocol Data Unit </TD>
+  </TR> 
+  <TR BGCOLOR="#ffffff">
+      <TD> RFC </TD>  
+      <TD> Request For Comments </TD>
+  </TR>   
+  <TR BGCOLOR="#ffffff">
+      <TD> SBP </TD>  
+      <TD> Socket Based Protocol </TD>
+  </TR> 
+  <TR BGCOLOR="#ffffff">
+      <TD> SMTP </TD>  
+      <TD> Simple Mail Transfer Protocol </TD>
+  </TR> 
+  <TR BGCOLOR="#ffffff">
+      <TD> SSL </TD>  
+      <TD> Secure Socket Layer </TD>
+  </TR>    
+  <TR BGCOLOR="#ffffff">
+      <TD> TCP </TD>  
+      <TD> Transmission Control Protocol </TD>
+  </TR>  
+  <TR BGCOLOR="#ffffff">
+      <TD> TSA </TD>  
+      <TD> Time Stamping Authority </TD>
+  </TR>
+  <TR BGCOLOR="#ffffff">
+      <TD> TSP </TD>  
+      <TD> Time Stamping Protocol </TD>
+  </TR>
+  <TR BGCOLOR="#ffffff">
+      <TD> TTP </TD>  
+      <TD> Trusted Third Party </TD>
+  </TR>    
+  <TR BGCOLOR="#ffffff">
+      <TD> UML </TD>  
+      <TD> Unified Modeling Language </TD>
+  </TR>  
+  <TR BGCOLOR="#ffffff">
+      <TD> UTC </TD>  
+      <TD> Coordinated Universal Time </TD>
+  </TR>  
+  </TABLE>
+</TD>
+</TR>
+</TABLE>
+\endhtmlonly
+
+
+*/

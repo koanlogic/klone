@@ -1,0 +1,128 @@
+cxh e' composto da tre componenti:
+
+1) cxh/src/tools/cxh:
+    converte file opachi e script cxh in file C compilabili
+
+2) cxh/src/tools/cxh-site:
+    genera i file register.c, autogen.dsp e autogen.mk che servono 
+    a registrare la lista di script cxh da includere nell'eseguibile 
+    (register.c) ed a istruire il 'make' su come trasformare/compilare
+    i file (*.cxh e tutti gli altri opachi) del file system embedded.
+
+3) cxh/src/server/server:
+    il server
+
+
+_______________________________________________________________________________
+1 - SERVER
+
+
+il processo server prende come input un oggetto config_t che racchiude al suo interno una struttura di configurazione ad albero (di tipo nome=valore).
+
+l'entry point di configurazione del server e' la chiave server.list che deve includere la lista di backend che si vogliono istanziare (per es. http, tftp o anche due http su due porte differenti).
+
+ogni elemento all'interno della lista deve avere un proprio albero di configurazione che deve includere necessariamente il tipo di server/protocollo richiesto (http, smtp, ftp), l'IP su cui fare il bind, la porta e, se necessario, altre impostazioni protocol-specific.
+
+esempio:
+
+--------------
+server.list web0 web1
+
+server.web0.type            http
+server.web0.addr.type       IPv4
+server.web0.addr.port       80
+server.web0.dir_root        /web0/www
+server.web0.server_sig      web0 http server
+
+server.web1.type            http
+server.web1.addr.type       IPv4
+server.web1.addr.port       8080
+server.web1.dir_root        /web1/www
+server.web1.server_sig      web1 http server
+==============
+
+ogni protocollo supportato (il server.*.type) deve avere il suo backend (backend_t) che lo implementa e che esporta al server un'interfaccia comune (3 puntatori a funzione: init, serve, term). 
+
+a runtime il server (server_t) non fa altro che accettare le connessioni provenienti dall'esterno e istradarle al backend che ha richiesto il binding su quel ip:porta. fatto cio' e' responsabilita' del backend stesso gestire in modo opportuno (come da protocollo) la connessione.
+
+per ora l'unico backend implementato e' quello HTTP.
+
+_______________________________________________________________________________
+1.1 - BACKEND: HTTP
+
+a fronte di una nuova connessione il server passa (dopo una fork()) al backend http il file descriptor del nuovo socket e si rimette in attesa di nuove connessioni.
+
+l'oggetto http_t, non visibile dal server ma raggiungibile tramite l'interfaccia di backend, usa il nuovo descriptor per costruirci intorno un io_t (oggetto di I/O su differenti 'device', fd, memoria, ecc.) che passa poi ai nuovi oggetti request_t e response_t che esportano rispettivamente le interfacce (semplificate piu' possibile) per accedere all'header di richiesta del client e per manipolare l'output del server (header HTTP di risposta e contenuti).
+
+in base alla configurazione del server http e' possibile instradare la richiesta a diversi supplier (supplier_t) che rappresentano una sorgente astratta di contenuti associati ad una URL (ogni supplier si puo' pensare come un hash con URL come chiavi e le pagine web come contenuto).
+
+[n.d.r. la parte di configurazione non e' ancora implementata, per ora il primo supplier che sa evadere la richiesta viene utilizzato]
+
+l'oggetto che instrada le richieste verso il giusto supplier si chiama broker (broker_t) e si occupa di interrogare i supplier e trovare quello capace di evadere la richiesta del client.
+
+i supplier implementati sono:
+
+- SUP_FS (file system)
+supplier che usa come sorgente di dati il file system. suo unico compito e' quello di verificare l'esistenza del file richiesto in fase di interrogazione da parte del broker (fs_is_valid_uri), aggiungere il Content-Length all'header di risposta (response_set_content_length) [n.d.r. TODO]  e di scrivere in output il contenuto del file.
+
+- SUP_EMB (file system embedded)
+il sup_emb gestisce due tipi di risorse: i file dati embedded (embfile_t, file opachi ma classificati tramite mapping estensione_file->MIME-type) e gli script cxh (embpage_t, *.cxh).
+
+la lista di risorse disponibili viene costruita durante la fase di compilazione (seguendo il makefile generato da cxh-site) ed e' contenuta in un oggetto di tipo emblist_t che esporta, tramite le funzioni emb_*, le sue risorse embedded (embfile_t e embpage_t).
+
+a fronte di una richiesta la emb_lookup() ritorna (se l'url e' valida) la risorsa richiesta che viene gestita nel seguente modo (in base al tipo di risorsa):
+
++ embfile_t:
+    dopo aver impostato l'header in modo opportuno (Content-Type, 
+    Content-Length) viene scritto in output il contenuto del file
+    embedded (void*);
+
++ embpage_t:
+    si impostano l'header con parametri di default (per ora solo 
+    'Content-Type: text/html'), si crea una sessione o si carica quella
+    propria del client connesso e si esegue la funzione generata dal parsing
+    e successiva traduzione della pagine cxh corrispondente.
+
+
+_______________________________________________________________________________
+2 - sottosistema I/O 
+
+il sottosistema di I/O e' accessibile tramite la classe io_t. utilizzando tale oggetto e' possibile fare operazioni di I/O su diversi device mantenendo un'interfaccia comune. per far cio' ogni io_t e' associato ad un oggetto che implementa le primitive di basso livello (read, write, seek, free) utilizzate dalle funzioni di alto livello dell'oggetto io_t (vedi cxh/io.h).
+
+gli IO device attualmente implementati sono:
+
++ io_fd_t:
+    IO device associato ad un file descriptor (legge e scrive su un FD)
+
++ io_mem_t:
+    IO device che legge e/o scrive su un blocco di memoria 
+    [n.d.r. fixme: non fa realloc su buffer pieno]
+
++ io_ssl_t:
+    IO device associato ad un socket SSL
+
+l'io_t oltre che esportare un'interfaccia comune a tutti i device di I/O implementa anche le funzionalita' di buffering (in lettura e scrittura) e di filtering (vedi codec_t). 
+
+nel caso in cui uno o piu' codec [n.d.r. la chain e' ancora da fare] siano collegati ad un io_t tutti i dati in transito su quel device verranno trasformati dal/dai codec in modo trasparente al chiamante delle funzioni di lettura/scrittura. questo permette di nascondere totalmente al fruitore dell'oggetto di I/O le eventuali codifiche applicate ai dati in input ed in output (e mantenere quindi la stessa interfaccia per stream di diverso tipo).
+
+per esempio un config_t puo' caricare in modo trasparente un file di configurazione compresso, criptato, da disco o da memoria utilizzando la stessa funzione config_load(...) dopo che il chiamante ha inizializzato l'oggetto io_t in modo opportuno.
+
+_______________________________________________________________________________
+2.1 codec
+
+un codec e' un oggetto deputato alla codifica (inteso come trasformazione) dei dati in transito su un io_t. per ogni read o write fatta su un io_t i codec collegati ad esso hanno la possibilita' di generare/modificare/eliminare i dati ritornati al chiamante. 
+
+
+i codec attualmente implementati sono:
+
++ codec_gzip_t:
+    comprime o decomprime i dati in transito sullo stream di IO 
+
++ response_filter_t
+    codec degenere che serve solamente a bufferizzare i dati in uscita per
+    posticipare il piu' possibile (cioe' fino al riempimento del buffer) 
+    l'invio dell'header HTTP (cosa utile nel caso si vogliano utilizzare 
+    tutte quelle funzioni che modificano l'header HTTP).
+
+
+

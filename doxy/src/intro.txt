@@ -1,0 +1,76 @@
+/*!
+\page intro Introduction
+
+\section intro1 Document Overview
+\par
+The present document constitutes Version 1.0 of the Developer's
+Guide for KLone, developed by <a href="http://www.koanlogic.com">KoanLogic S.r.l.</a>.
+It describes how to develop an end-user application based on the KLone
+framework.
+\par
+KLone runs under POSIX compliant systems, but is designed to be highly 
+portable to other operating systems.
+
+<hr>
+\section intro2 KLone API Overview
+\par
+The KLone library is described in detail in the 
+<a href="modules.html">KLone API</a> section, where
+the functions are grouped in software modules according to their 
+purpose. From an object-oriented point of view, each module represents
+a <em>class</em>. The library contains all the functions or <em>methods</em>
+that allow:
+\par
+<ul>
+<li> TBD (<a href="group__request.html">HTTP Request Manipulation</a>);
+
+</ul>
+
+\par
+For each software module mentioned above, the function documentation does not 
+include the description of the internal data structures, which are irrelevant
+for the end-user. The library includes all the functions that make data
+manipulation transparent to the programmer, hence enforcing the information
+hiding criteria as a design approach.
+All the provided functions are documented
+from the application programmer's point of view, specifying the function 
+prototypes, the required input parameters, and the returned codes.
+
+<hr>
+\section intro3 Typographical Conventions
+\par
+The KLone Developer's Guide uses the following set of typographical conventions.
+
+\htmlonly
+<TABLE ALIGN=center CELLSPACING=0 CELLPADDING=0 BORDER=0>
+<TR BGCOLOR="#000000">
+<TD>
+  <TABLE CELLSPACING=1 CELLPADDING=10 BORDER=0>
+  <TR BGCOLOR="#4040c0">
+  <TD ><b><font size=+1 color="#ffffff">  Convention	 </font></b></TD>
+  <TD ><b><font size=+1 color="#ffffff">  Usage	 </font></b></TD>
+  </TR>
+  <TR BGCOLOR="#ffffff">
+      <TD> <b>Bold type</b> </TD>  
+      <TD> The bold font is used for prototypes of API functions </TD>
+  </TR>  
+  <TR BGCOLOR="#ffffff">
+      <TD> <tt>Courier type</tt> </TD>  
+      <TD> The typewriter font is used for OS commands, data structures, code fragments and examples </TD>
+  </TR>
+  <TR BGCOLOR="#ffffff">
+      <TD> <em>Italic type</em> </TD>  
+      <TD> The italic font is used for input parameters and to emphasise specific technical terms, special entities and concepts </TD>
+  </TR>
+  <TR BGCOLOR="#ffffff">
+      <TD> <a href="#Underlined text">Underlined text</a> </TD>  
+      <TD> The underlined text is used to state references to external
+      documentation or those within the present guide </TD>
+  </TR>      
+  </TABLE>
+</TD>
+</TR>
+</TABLE>
+\endhtmlonly
+*/
+

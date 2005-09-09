@@ -1,0 +1,98 @@
+    - fixme: request_parse_ims
+    - config param: server user/group owner
+    - config param: server working directory
+    - enable fork in server_serve
+    - SERVER_MODE_{FORK,THREAD,SEQ}
+    - If-Modified-Since ([304] Not Modified)
+
+todo:
+    - merge cxh + cxh-site
+    - block signals during startup
+    - io_printf: aggiungere %e o %q per stampare stringhe dopo averle 
+        html-encoded
+    - per-backend default config values (httpd, httpsd, etc.)
+    - session abstraction interface (per poter salvare i dati delle sessioni 
+      non solo su file: DB, socket, ecc.)
+    - cxh-site must bail out on not existent included file
+    - src/tool/cxh: fix #LINE numbering
+    - HTTPS support (ready?)
+    - estendere se necessario classe string_t 
+    - funzioni per base64 encoding/decoding
+    - funzioni per URL
+    - basic (and digest?) authentication (RFC2617)
+    - security audit
+        + ../../../../../../etc/passwd (se emb_fs e' abilitato)
+        + buffer overflow, dos
+
+1.x
+    - HTTP/1.1 support (RFC2616)
+    - file upload support (RFC1867)
+    - funzione u_sendmail() o simili (drop-in nella spool o SMTP)
+    - virtual host support (rfc2616.txt)
+
+framework di sviluppo/porting:
+    - supporto (nel configure) delle librerie che pensiamo possano essere 
+      utilizzate piu' di frequente:
+        [b]zlib, sqlite, regex, libGD, libjpeg, libpng, expat, ecc.
+    - C++ support
+    - parametro cxh-site per aggiungere/rimuovere un solo file 
+      (per ora bisogna rifare l'import in toto)
+    - mini moduli utili per il porting?
+        + gestione time/date
+        + gestione directory
+        + gestione file
+    - porting:
+        + win32
+        + *bsd
+        + uClinux
+        + altro (qnx?)
+    - fine-grained compiling: modularizzare le funzionalita' 
+      per poterle escludere in fase di compilazione (con #ifdef)
+    - optimization type:
+        + memory-efficient compiling 
+            use gzip for content compression
+            small io_t buffers
+        + high performance compiling:
+            use no compression
+            big io_t buffers
+    - altro per semplificare il lavoro allo sviluppatore finale?
+
+
+configurazione (server.conf):
+    - dimensioni del buffer del response_filter_t
+    - session expiring (default e configurabile)
+    - scheduled pages retrival
+      per eseguire degli script *.cxh ogni N minuti/ore
+    - max script running time (kill after N seconds)
+    - configurazione logging 
+        + log mode (syslog/file/memory/none)
+        + log errori 
+        + log d'accesso
+        + log rotation?
+
+documentazione:
+    - documentare il codice (doxygen)
+        + API per i clienti
+        + tutto il resto per noi
+    - sito sezione cxh:
+        + what is cxh
+        + features
+            + content embedding
+            + C/C++ dynamic HTML pages
+            + intellectual property
+        + portability
+        + license
+        + support (free [mailing list] e commercial)
+        + bug report
+        + pricing
+        + download?
+        + online demo (qui c'e' da inventarsi qualcosa da presentare)
+        + faq
+        + API reference
+        + tutorial
+
+altro:
+    - mailing list e/o forum
+    - nome prodotto
+    - logo prodotto
+

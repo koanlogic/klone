@@ -1,0 +1,39 @@
+<!-- login.kl1 -->
+<%@ include "header.kl1" %>
+<%! 
+    #include <string.h>
+%>
+
+<p>
+<font color="red">
+<%
+    const char *username = NULL, *password = NULL;
+    vars_t *args = request_get_args(request);   /* get list of arguments */
+
+    switch (vars_get_valuei(args, "action")) {
+        case 1:
+            username = vars_get_value(args, "username");
+            password = vars_get_value(args, "password");
+
+            if (username && strlen(username) && 
+                password && strlen(password)) {
+                /* authenticate here */
+                session_set(session, "username", username);
+                response_redirect(response, "/enter.kl1");
+            } else {
+                io_printf(out, "Bad (username, password)");
+            }
+            break;
+    }
+%>
+</font>
+
+<form action="login.kl1" method="post">
+username: <input type="text" name="username"><br>
+password: <input type="password" name="password"><br>
+<input type="submit" value="login"><br>
+<input type="hidden" value="1" name="action">
+</form>
+
+<%@ include "debug.kl1" %>
+<%@ include "footer.kl1" %>

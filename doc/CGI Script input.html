@@ -1,0 +1,34 @@
+<TITLE>CGI Script input</TITLE>
+<H1><IMG ALT="" SRC="/images/CGIlogo.gif"> CGI Script Input</H1>
+<HR>
+
+<H2>Specification</H2>
+
+For requests which have information attached after the header, such as
+HTTP POST or PUT, the information will be sent to the script on stdin.
+<P>
+
+The server will send <A HREF="env.html#cl">CONTENT_LENGTH</A> bytes on
+this file descriptor. Remember that it will give the <A
+HREF="env.html#ct">CONTENT_TYPE</A> of the data as well. The server is
+in no way obligated to send end-of-file after the script reads
+<CODE>CONTENT_LENGTH</CODE> bytes. <P>
+<HR>
+<H2>Example</H2>
+
+Let's take a form with METHOD="POST" as an example. Let's say the form
+results are 7 bytes encoded, and look like <CODE>a=b&amp;b=c</CODE>.
+<P>
+
+In this case, the server will set CONTENT_LENGTH to 7 and CONTENT_TYPE
+to application/x-www-form-urlencoded. The first byte on the script's
+standard input will be "a", followed by the rest of the encoded string.<P>
+
+<HR>
+
+<A HREF="interface.html"><IMG ALT="[Back]" SRC="/images/back.gif">Return to the
+interface specification</A> <P>
+
+CGI - Common Gateway Interface
+<ADDRESS><A HREF="mailtocgi.html">cgi@ncsa.uiuc.edu</A></ADDRESS>
+

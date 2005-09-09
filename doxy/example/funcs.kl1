@@ -1,0 +1,26 @@
+<!-- funcs.kl1 -->
+<%!
+    #include <sys/time.h>
+    #include <time.h>
+
+    #include <tute/funcs.h>
+
+
+    /* Print the current date to 'io'. */
+    int funcs_print_ctime(io_t *io)
+    {
+        time_t now = time(0);
+        io_printf(io, "%s", ctime(&now));
+
+        return 0;
+    }
+
+    /* Callback to print a variable 'v' to 'io'. */
+    int funcs_cb_print_var(var_t *v, void *io)
+    {
+        io_t *outio = (io_t *) io;
+        io_printf(outio, "%s=%s <br>", var_get_name(v), var_get_value(v));
+
+        return 0;
+    }
+%>

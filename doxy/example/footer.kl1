@@ -1,0 +1,8 @@
+<!-- footer.kl1 -->
+<hr>
+<div align="right">
+Hello <b>footer</b><br>
+Click <a href="/index.kl1">here</a> to go back to home.
+</div>
+</body>
+</html>

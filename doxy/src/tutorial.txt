@@ -1,0 +1,342 @@
+/*!
+\page tut KLone Tutorial
+
+\section tut1 Webpage Creation
+\par
+This section will guide you through some examples, which provide enough
+knowledge to get a website up and running as quickly as possible. The only
+prerequisite for this tutorial is a basic knowledge of C and HTML. Do not be let
+down by the bareness of the output - a touch of CSS can really put life into
+your KLone website, but this beyond the scope of this tutorial. 
+Probably the best reference for any web-related questions is the
+<a href="http://www.w3.org">World Wide Web Consortium</a> website.
+
+\par
+An overview of the functionality is provided through examples in the following
+subsections. For more detail on functions and parameters please refer to 
+<a href="modules.html">KLone API</a>.
+
+\subsection tut2 Basics
+\par
+First of all, lets create a plain static HTML page. Start by editing a file
+called <a href="index_8kl1-example.html">index.kl1</a> within the configured 
+<em>www</em> directory (in <tt>etc/server.conf</tt>):
+
+\code
+    <!-- index.kl1 -->
+
+    <html>
+
+    <head>
+    <title>
+    Hello title
+    </title>
+    </head>
+
+    <body>
+    Hello <b>body</b>
+    <h1>Hello heading h1</h1>
+    <h2>Hello heading h2</h2>
+    <h3>Hello heading h3</h3>
+    <h4>Hello heading h4</h4>
+    </body>
+
+    </html>
+\endcode
+
+\par
+Check that this test page works by following the 
+<a href="misc.html">compilation procedure</a> and running the server. Open a web 
+browser and enter <em>http://host:port</em>, where <em>port</em> is defined in 
+<tt>etc/server.conf</tt>, and <em>host</em> is the hostname or IP address 
+(<tt>localhost</tt> if running the application locally).
+
+\par
+As with most other dynamic webpage generation languages, code segments are
+enclosed within percentage symbol tags. The difference for declarations is that
+the percentage sign in the opening tag is followed by and exclamation mark and
+for inclusions it is followed by an <em>\@</em> symbol.
+
+\par
+As an example of inclusion, the user may wish to define a common header and
+footer for all pages. In such way only the body needs to be defined for each
+page - it can be done by moving everything before the body into 
+<a href="header_8kl1-example.html">header.kl1</a> and everything after into 
+<a href="footer_8kl1-example.html">footer.kl1</a>.
+
+\par
+Then you simply need to include the footer and header files at the beginning and
+end of each file, as follows:
+
+\code
+    <!-- index.kl1 -->
+    <%@ include "header.kl1" %>
+    <p>Hello <b>body</b>
+    <h1>Hello heading h1</h1>
+    <h2>Hello heading h2</h2>
+    <h3>Hello heading h3</h3>
+    <h4>Hello heading h4</h4>
+    <%@ include "footer.kl1" %>
+\endcode
+
+\subsection tut3 Dynamicity
+\par
+The following example introduces some basic dynamicity: the current date/time is
+printed. The following declaration can be inserted at the top of 
+<a href="index_8kl1-example.html">index.kl1</a> (or better, as described in 
+\ref tut4, in a separate <a href="funcs_8kl1-example.html">funcs.kl1</a> file):
+
+\code
+    <%!
+        #include <sys/time.h>
+        #include <time.h>
+
+        /* Print the current date to 'io'. */
+        int funcs_print_ctime(io_t *io)
+        {
+            time_t now = time(0);
+            io_printf(io, "%s", ctime(&now));
+                
+            return 0;
+        };
+    %>
+\endcode
+
+\par
+We then call the function from within the HTML body:
+
+\code
+    <p>Hello <b>body</b>, look how time flies:
+    <i>
+    <%
+        funcs_print_ctime(response_io(response));
+    %>
+    </i>
+\endcode
+
+\par
+In a similar manner to the example above, you may choose to link your website to
+your own C libraries or access any low-level system function, variable or
+device.
+
+\subsection tut4 Function Linking
+\par
+The simplest way to build your own libraries is to create a KLone file containing
+the declarations. In our example, such file is 
+<a href="funcs_8kl1-example.html">funcs.kl1</a>.
+The corresponding header files should be placed relative to
+the <tt>kl12/site</tt> directory. Create a subdirectory <tt>tute</tt> and place 
+the header to <tt>funcs_print_ctime()</tt> in a file called <tt>funcs.h</tt>:
+
+\code
+    #ifndef KL1_TUTE_FUNCS_H
+    #define KL1_TUTE_FUNCS_H
+
+    #include <kl1/io.h>
+    #include <kl1/vars.h>
+
+    int funcs_print_ctime(io_t *io);
+
+    #endif
+\endcode
+
+\par
+Now include the header where needed (in our example, at the top of
+<a href="index_8kl1-example.html">index.kl1</a> file) as follows:
+
+\code
+    <%! 
+        #include <tute/funcs.h>
+    %>
+\endcode
+
+\subsection tut5 External Libraries (Advanced)
+\par
+It may be sometimes necessary to link to your own independent libraries or 
+external ones. Before attempting this you will require some knowledge of 
+<a href="http://inti.sourceforge.net/tutorial/libinti/autotoolsproject.html">Autotools</a>.
+
+\par
+As an example, we apply this to the previous <tt>funcs_print_ctime()</tt> 
+declaration.
+The base directory for code generation is <tt>kl1/site</tt>. Create a 
+subdirectory called <tt>tute</tt> and move into it. Split the declaration into
+a header file <tt>funcs.h</tt> and a source file <tt>funcs.c</tt>. Hence remove 
+the previous declaration in <tt>embfs/www/index.kl1</tt>. Then create a simple 
+<tt>Makefile.am</tt>:
+
+\code
+    INCLUDES=-I$(top_srcdir)
+    lib_LTLIBRARIES=libtute.la
+
+    libtute_la_INCLUDES=funcs.h
+    libtute_la_SOURCES=funcs.c
+\endcode 
+
+\par
+Now we link to our new library from the base site Makefile
+<tt>kl1/site/Makefile.am</tt>, by appending <tt>-Itute</tt> to the 
+<tt>INCLUDES</tt> directive and <tt>-Ltute -ltute</tt> to 
+<tt>libsite_la_LIBADD</tt>. 
+Add a line <tt>SUBDIRS=tute</tt> to enter the new subdirectory automatically. 
+Next add <tt>site/tute/Makefile</tt> to the <tt>AC_OUTPUT</tt> macro
+in <tt>kl1/configure.in</tt> and include <tt>funcs.h</tt> from 
+<a href="index_8kl1-example.html">index.kl1</a>.
+
+\par
+After reconfiguring and recompiling, the function should be linked appropriately.
+
+\subsection tut6 Forms
+\par
+KLone provides a simple interface for handling request variables. We create a new
+file <a href="login_8kl1-example.html">login.kl1</a>. 
+Given a typical login form as follows:
+
+\code 
+    <form action="login.kl1" method="post">
+    username: <input type="text" name="username"><br>
+    password: <input type="password" name="password"><br>
+    <input type="submit" value="login"><br>
+    <input type="hidden" value="1" name="action">
+    </form>
+\endcode 
+
+\par
+The parameters can be retrieved using the <tt>request</tt> and <tt>vars</tt>
+interfaces:
+
+\code 
+    <%
+        char *username = NULL, *password = NULL;
+        vars_t *args = request_get_args(request);   /* get list of arguments */
+     
+        switch (vars_get_valuei(args, "action")) {
+            case 1:
+                username = vars_get_value(args, "username");
+                password = vars_get_value(args, "password");
+              
+                if (username && strlen(username) &&
+                    password && strlen(password)) 
+                    io_printf(out, "Do something with (username, password): "\
+                            "(%s,%s)", username, password);
+                else
+                    io_printf(out, "Bad (username, password)");
+              break;
+        }
+    %>
+\endcode 
+
+\par
+String values can be retrieved singularly with vars_get_value(). 
+If the value is an integer, the variable can be converted automatically by using
+vars_get_valuei().
+
+\par
+Alternatively, a callback can be called on each variable using vars_foreach(). 
+Create a new file <a href="debug_8kl1-example.html">debug.kl1</a> for internal 
+state debugging:
+
+\code 
+    <!-- debug.kl1 -->
+    <%@ include "funcs.kl1" %>
+
+    <hr>
+
+    <h4>Request Arguments</h4>
+    <% 
+        vars_foreach(request_get_args(request), funcs_cb_print_var,
+            response_io(response));
+    %>
+\endcode 
+
+\par
+where <tt>funcs_cb_print_var</tt> is an extra utility function added to 
+<a href="funcs_8kl1-example.html">funcs.kl1</a>.
+
+\subsection tut7 Redirection
+\par
+In the <a href="login_8kl1-example.html">login.kl1</a> example, a next step may be 
+to redirect to another page on successful login. The <tt>response</tt> interface 
+handles this:
+
+\code 
+    if (username && strlen(username) &&
+        password && strlen(password)) {
+        /* authenticate here */
+        response_redirect(response, "/enter.kl1");  
+    } else {
+        io_printf(out, "Bad (username, password)");
+    }
+\endcode 
+
+\par
+where <a href="enter_8kl1-example.html">enter.kl1</a> is a simple page for
+successful login.
+
+\subsection tut8 Sessions
+\par
+Sessions are objects which can be used to store the state of a session
+server-side. Simple functions are provided to set/get {name, value} pairs.
+
+\par
+For example, we can extend the previous <a href="login_8kl1-example.html">login.kl1</a>
+example to save the username entered at prompt:
+
+\code 
+    if (username && strlen(username) &&
+        password && strlen(password)) {
+        /* authenticate here */
+        session_set(session, "username", username);
+        response_redirect(response, "/enter.kl1");
+    }
+\endcode 
+
+\par
+We add the following lines to <a href="debug_8kl1-example.html">debug.kl1</a>
+to print out all session variables:
+
+\code 
+    <h4>Session Variables</h4>
+    <% 
+        vars_foreach(session_get_vars(session), funcs_cb_print_var,
+            response_io(response));
+    %>
+\endcode 
+
+\par
+To access the variable value specifically use 
+\link ::session_get session_get(session,"username")\endlink.
+
+\subsection tut9 Cookies
+\par
+KLone sessions are implemented by means of cookies and should always be used for
+keeping track of session-scoped variables. However, there may be reasons why
+direct access to cookies is required (eg. if one needs persistent information to be
+stored on the client for a longer period of time).
+
+\par
+We create a new <a href="colour_8kl1-example.html">colour.kl1</a> KLone file with 
+a form which asks the user to enter his/her favourite colour and saves the value 
+in a cookie.
+
+\par
+Add the following lines to <a href="debug_8kl1-example.html">debug.kl1</a> to print
+out all cookies:
+
+\code
+    <h4>Cookies</h4>
+    <% 
+        vars_foreach(request_get_cookies(request), funcs_cb_print_var,
+            response_io(response));
+    %>
+\endcode
+
+\par
+And we notice that the previously chosen colour is always stored in the cookie.
+
+\par
+To access the value corresponding to a specific cookie use 
+\link ::request_get_cookie request_get_cookie(request, "colour")\endlink.
+
+
+*/

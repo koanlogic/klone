@@ -1,0 +1,187 @@
+<HTML><HEAD>
+<TITLE>The Common Gateway Interface</TITLE>
+</HEAD><BODY>
+<H1><IMG ALT="" SRC="/images/CGIlogo.gif"> The Common Gateway Interface</H1>
+
+After reading this document, you should have an overall idea of what
+a CGI program needs to do to function.
+
+
+<HR>
+<H2>How do I get information from the server?</H2>
+
+Each time a client requests the <A
+HREF="http://www.ncsa.uiuc.edu/demoweb/url-primer.html">URL</A>
+corresponding to your CGI program, the server will execute it in real-time.
+The output of your program will go more or less directly to
+the client.  <P>
+
+A common misconception about CGI is that you can send command-line
+options and arguments to your program, such as
+<PRE>
+     command% <B>myprog -qa blorf</B>
+</PRE>
+CGI uses the command line for other purposes and thus this is not directly
+possible. Instead, CGI uses environment variables to send your program
+its parameters. The two major environment variables you will use for
+this purpose are: <P>
+
+<UL>
+<LI> <CODE>QUERY_STRING</CODE> <P>
+
+    QUERY_STRING is defined as anything which follows the first ? in
+    the URL. This information could be
+    added either by an ISINDEX document, or by an <A
+    HREF="http://www.ncsa.uiuc.edu/SDG/Software/Mosaic/Docs/fill-out-forms/overview.html">HTML
+    form (with the GET action)</A>. It could also be manually embedded
+    in an HTML anchor which references your gateway. This string will
+    usually be an information query, i.e. what the user wants to
+    search for in the archie databases, or perhaps the encoded results
+    of your feedback GET form. <P>
+
+    This string is encoded in the standard <A
+    HREF="http://www.ncsa.uiuc.edu/demoweb/url-primer.html">URL</A>
+    format of changing spaces to +, and encoding special characters
+    with <CODE>%xx</CODE> hexadecimal encoding. You will need to decode it in order
+    to use it. <P>
+
+    If your gateway is not decoding results from a FORM, you will also
+    get the query string decoded for you onto the command line. This
+    means that each word of the query string will be in a different
+    section of ARGV. For example, the query string "forms rule" would
+    be given to your program with argv[1]="forms" and
+    argv[2]="rule". If you choose to use this, you do not need to do
+    any processing on the data before using it.<P>
+
+<LI> <CODE>PATH_INFO</CODE> <P>
+
+    CGI allows for extra information to be embedded in the URL for
+    your gateway which can be used to transmit extra context-specific
+    information to the scripts. This information is usually made
+    available as "extra" information after the path of your gateway in
+    the URL. This information is not encoded by the server in any
+    way. <P>
+
+    The most useful example of <CODE>PATH_INFO</CODE> is transmitting
+    file locations to the CGI program. 
+    To illustrate this, let's say I have a CGI program on my server
+    called <CODE>/cgi-bin/foobar</CODE> that can process files
+    residing in the DocumentRoot of the server.
+    I need to be able to tell foobar which file to process.
+    By including extra path information to the end of the URL, foobar
+    will know the location of the document relative to the DocumentRoot via
+    the <CODE>PATH_INFO</CODE> environment variable, or the actual path
+    to the document via the <CODE>PATH_TRANSLATED</CODE> environment variable
+    which the server generates for you.
+    <P>
+   
+</UL>
+<HR>
+
+<H2>How do I send my document back to the client?</H2>
+
+I have found that the most common error in beginners' CGI programs is
+not properly formatting the output so the server can understand
+it. <P>
+
+CGI programs can return a myriad of document types. They can send back
+an image to the client, and HTML document, a plaintext document, or
+perhaps even an audio clip. They can also
+return references to other documents. The client must know what kind
+of document you're sending it so it can present it accordingly. In
+order for the client to know this, your CGI program must tell the
+server what type of document it is returning. <P>
+
+In order to tell the server what kind of document you are sending
+back, whether it be a <B>full document</B> or a <B>reference</B> to one, CGI requires
+you to place a short header on your output. This header is ASCII text,
+consisting of lines separated by either linefeeds or carriage returns (or both)
+followed by a single blank line.  The output body then follows in whatever
+native format.<P>
+
+<UL>
+<LI> A <STRONG>full document</STRONG> with a corresponding MIME type <P>
+
+    In this case, you must tell the server what kind of document you
+    will be outputting via a MIME type.  Common
+    MIME types are things such as <CODE>text/html</CODE> for HTML, and
+    <CODE>text/plain</CODE> for straight ASCII text. <P>
+
+    For example, to send back HTML to the client, your output should read:<P>
+<PRE>
+        Content-type: text/html
+
+        &lt;HTML&gt;&lt;HEAD&gt;
+        &lt;TITLE&gt;output of HTML from CGI script&lt;/TITLE&gt;
+        &lt;/HEAD&gt;&lt;BODY&gt;
+        &lt;H1&gt;Sample output&lt;/H1&gt;
+        What do you think of &lt;STRONG&gt;this?&lt;/STRONG&gt;
+        &lt;/BODY&gt;&lt;/HTML&gt;
+</PRE>
+       
+<LI> A <B>reference</B> to another document <P>
+
+    Instead of outputting the document, you can just tell the browser
+    where to get the new one, or have the server automatically output
+    the new one for you.<P>
+
+    For example, say you want to reference a file on your Gopher
+    server. In this case, you should know the full URL of what you
+    want to reference and output something like: <P>
+<PRE>
+        Content-type: text/html
+        Location: gopher://httprules.foobar.org/0
+
+   &lt;HTML&gt;&lt;HEAD&gt;
+   &lt;TITLE&gt;Sorry...it moved&lt;/TITLE&gt;
+   &lt;/HEAD&gt;&lt;BODY&gt;
+   &lt;H1&gt;Go to gopher instead&lt;/H1&gt;
+   Now available at
+   &lt;A HREF="gopher://httprules.foobar.org/0"&gt;a new location&lt;/A&gt;
+   on our gopher server.
+   &lt;/BODY&gt;&lt;/HTML&gt;
+</PRE>
+    However, today's browsers are smart enough to automatically
+    throw you to the new document, without ever seeing the above
+    since.  If you get lazy and don't want to output the above HTML,
+    NCSA HTTPd will output a default one for you to support older
+    browsers.
+    <P>
+    If you want to reference another file (not protected by
+    access authentication) on your own server, you
+    don't have to do nearly as much work. Just
+    output a partial (virtual) URL, such as the following: <P>
+<PRE>
+        Location: /dir1/dir2/myfile.html
+
+</PRE>
+    The server will act as if the client had not
+    requested your script, but instead requested
+    <CODE>http://yourserver/dir1/dir2/myfile.html</CODE>. It will take
+    care of most everything, such as looking up the file type
+    and sending the appropriate headers.  Just be sure that you 
+    output the second blank line.
+    <P>
+    If you do want to reference a document that is protected
+    by access authentication, you will need to have a full URL
+    in the <CODE>Location:</CODE>, since the client and the server
+    need to re-transact to establish that you access to the referenced
+    document.
+
+</UL>
+
+Advanced usage: If you would like to output headers such as Expires or
+Content-encoding, you can if your server is compatible with
+CGI/1.1. Just output them along with Location or Content-type and they
+will be sent back to the client.<p>
+
+
+<HR>
+
+<A HREF="overview.html"><IMG ALT="[Back]" SRC="/images/back.gif">Return to the overview</A> <P>
+
+
+
+CGI - Common Gateway Interface
+<ADDRESS><A HREF="mailtocgi.html">cgi@ncsa.uiuc.edu</A></ADDRESS>
+</BODY></HTML>
