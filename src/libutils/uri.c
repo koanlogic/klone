@@ -131,7 +131,7 @@ int uri_parse(const char *s, uri_t **pu)
         goto err;
 
     /* save path */
-    if(*p && (uri->path = strdup(p)) == NULL)
+    if(*p && (uri->path = u_strdup(p)) == NULL)
         goto err;
 
     *pu = uri;
