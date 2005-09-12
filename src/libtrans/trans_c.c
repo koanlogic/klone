@@ -289,25 +289,6 @@ static int cb_html_block(parser_t* p, void *arg, const char* buf, size_t sz)
     return 0;
 }
 
-#if 0
-static int cb_html_block(parser_t* p, void *arg, const char* buf, size_t sz)
-{
-    enum { BUFSZ = 128 };
-    lang_c_ctx_t *ctx = (lang_c_ctx_t*)arg;
-    char code[BUFSZ];
-
-    dbg_err_if(string_append(ctx->html_str, buf, sz));
-
-    snprintf(code, BUFSZ, "\nio_zcat(out, klone_html_in, %u);\n", sz);
-
-    dbg_err_if(push_code_block(ctx, p, code, strlen(code)));
-
-    return 0;
-err:
-    return ~0;
-}
-#endif
-
 static int cb_code_block(parser_t* p, int cmd, void *arg, const char* buf, 
     size_t sz)
 {

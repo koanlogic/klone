@@ -333,21 +333,6 @@ var_t* vars_get(vars_t *vs, const char *var_name)
     return vars_get_ith(vs, var_name, 0);
 }
 
-#if 0
-var_t* vars_get(vars_t *vs, const char *var_name)
-{
-    var_t *v;
-
-    TAILQ_FOREACH(v, &vs->list, np)
-    {
-        if(strcmp(v->name, var_name) == 0)
-            return v;
-    }
-
-    return NULL;
-}
-#endif
-
 /**
  * \brief   One line description
  *

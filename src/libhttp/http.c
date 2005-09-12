@@ -170,8 +170,8 @@ static void http_resolv_request(http_t *h, request_t *rq)
 
 static int http_set_index_request(http_t *h, request_t *rq)
 {
-    static const char *indexes[] = { "/index.klone", "/index.html", 
-        "/index.htm", NULL };
+    static const char *indexes[] = { "/index.klone", "/index.kl1",
+        "/index.html", "/index.htm", NULL };
     const char **pg, *idx_page, *uri;;
     char resolved[PATH_MAX];
 
@@ -192,8 +192,10 @@ static int http_set_index_request(http_t *h, request_t *rq)
                 break;
             }
         }
+        if(*pg == NULL) /* no index found, set index.html (will return 404 ) */
+            dbg_if(request_set_filename(rq, "/index.html"));
     } else
-        request_set_filename(rq, idx_page);
+        dbg_if(request_set_filename(rq, idx_page));
 
     http_resolv_request(h, rq);
 
@@ -270,14 +272,12 @@ static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
     /* refresh the status code */
     status = response_get_status(rs);
 
-#if 0
     /* print default error page */
     dbg_err_if(io_printf(response_io(rs), 
         "<html><head><title>%d %s</title></head>\n"
         "<body><h1>%s</h1><p>URL: %s</body></html>", 
         status, http_get_status_desc(status), 
         http_get_status_desc(status), request_get_uri(rq)));
-#endif
 
     return 0;
 err:

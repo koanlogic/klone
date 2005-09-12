@@ -116,10 +116,8 @@ err:
 
 static int response_print_status(response_t *rs)
 {
-#if 0
     io_printf(rs->io, "HTTP/1.0 %d %s\r\n", rs->status, 
         http_get_status_desc(rs->status));
-#endif
 
     return 0;
 }

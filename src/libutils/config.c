@@ -212,44 +212,6 @@ err:
     return ~0;
 }
 
-#if 0
-static int config_do_set_key(config_t *c, const char *key, const char *val, 
-    int overwrite)
-{
-    config_t *child = NULL;
-    char *p, *child_key;
-    int i;
-
-    if((p = strchr(key, '.')) == NULL)
-    {
-        child = config_get_child(c, key);
-        if(child == NULL || !overwrite)
-        {   /* there's no such child, add a new child */
-            dbg_err_if(config_add_child(c, key, &child));
-        } 
-        if(child->value)
-        {
-            u_free(child->value);
-            child->value = NULL;
-        } 
-        child->value = (val ? u_strdup(val) : NULL);
-        dbg_err_if(val && child->value == NULL);
-        if(child->value)
-            u_trim(child->value);   /* remove leading and trailing spaces */
-    } else {
-        child_key = u_strndup(key, p-key);
-        dbg_err_if(child_key == NULL);
-        if((child = config_get_child(c, child_key)) == NULL)
-            dbg_err_if(config_add_child(c, child_key, &child));
-        u_free(child_key);
-        return config_set_key(child, ++p, val);
-    }
-    return 0;
-err:
-    return ~0;
-}
-#endif
-
 int config_add_key(config_t *c, const char *key, const char *val)
 {
     return config_do_set_key(c, key, val, 0 /* don't overwrite */);
