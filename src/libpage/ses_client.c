@@ -14,6 +14,22 @@
 #include <klone/debug.h>
 #include <klone/ses_prv.h>
 
+/*
+    cookies:
+        kl1_mtime = time_t
+        kl1_sesN = data cookies (b64(encrypted session data))
+        kl1_mac  = HMAC hash (kl1_ses0..kl1_sesN + kl1_mtime)
+
+    FIXME HMAC deve essere della roba criptata o di quella in chiaro?
+
+    struct session_client_s
+    {
+        time_t mtime;
+        char data[]; // encrypted + base64
+        HMAC mac;        // base64
+    };
+ */
+
 static int session_calc_maxsize(var_t *v, size_t *psz)
 {
     const char *value = NULL;
@@ -53,9 +69,9 @@ static int session_client_save(session_t *ss)
 
     io_free(io);
 
-    /* TODO encrypt buf and store it in cookies */
-    /* TODO store mtime in cookies */
-    /* TODO calc MAC hash and store it in a cookie */
+    /* TODO [compress |] encrypt | b64 buf and store it into cookies */
+    /* TODO store mtime in a cookies */
+    /* TODO calc MAC hash of the data buf + mtime and store it in a cookie */
 
     u_free(buf);
 

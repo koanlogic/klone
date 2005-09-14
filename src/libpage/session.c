@@ -12,6 +12,7 @@
 #include <klone/str.h>
 #include <klone/debug.h>
 #include <klone/ses_prv.h>
+#include "conf.h"
 
 enum { DEFAULT_SESSION_EXPIRATION = 60*20 }; /* 20 minutes */
 static const char SID_NAME[] = "klone_sid";
@@ -350,6 +351,11 @@ int session_create(config_t *config, request_t *rq, response_t *rs,
     } else if(session_driver && strcasecmp(session_driver, "file") == 0) {
         /* store sessions in the file system */
         dbg_err_if(session_file_create(config, rq, rs, &ss));
+    #ifdef HAVE_LIBSSL
+    } else if(session_driver && strcasecmp(session_driver, "client") == 0) {
+        /* client-side sessions */
+        dbg_err_if(session_client_create(config, rq, rs, &ss));
+    #endif
     } else
         warn_err_if("bad or missing session driver");
 
