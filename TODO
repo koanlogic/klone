@@ -1,9 +1,68 @@
-    - fixme: request_parse_ims
+
+changelog: 
+    - deflate raw encoding used instead of zlib format
+    - msg_* and warn_* added
+    - idle connection timeout
+    - timer_* added
+    - u_sig_block, u_sig_unblock
+    - in-memory sessions (just when SERVER_CONFIG_SERIAL)
+    - config: bracket indenting parser support
+    - config: comments after value string
+
+todo
+    - server model cleanup
+
+------------------
+win32:
+    - #ifdef around fork() stuff
+    - SIGCHLD on win32?? otherwise detach in some other way
+    - use CGI interface as a workaround to missing fork() 
+      (see apache::mod_cgi.c)
+
+*nix:
+    - logging
+        + syslog logging (access, error, etc. [apache default format])
+        + in-memory server-side logging (w/ circular buffer)
+
+    - static pages encryption
+
+    - session:
+        + client-side session data (zip>encrypt>HMAC>b64e>cookie_1..N)?
+        + in-memory session for fork-based server
+          (io_create("mem://localhost/path/cxhd_sess_MD5", ...);
+        + session.compress  yes|no
+        + session.memory.max_count   10
+        + session.memory.mem_limit   10k
+        + session_file access locking
+
+    - config
+        + variables
+
+    - uClibc 
+
+    - thread-based server (so ses_mem will work easily)
+
+    - io manager on tcp
+        + io_create("file://host:port/path/file.ext", ...);
+        + io_create("mem://host:port/path/file.ext", ...);
+
+    - more request_ and response_ helper funcs (see jsp docs)
+    - global BUFSZ size
+    - change "server" name
+    - move msg_ comments to dbg_
+    - file upload support (RFC1867)
+    - set proper idle_timeout (what about long POST requests?? see apache.)
+      should timeout be reset on every read?
+
+    - http/1.0: Basic Auth rfc1945:11
+    - Pragma: no-cache for *.cxh pages? see php
+    - Expires: 1/1/1970 for *.cxh pages? see php
+    - Server field must use token/version
     - config param: server user/group owner
     - config param: server working directory
-    - enable fork in server_serve
-    - SERVER_MODE_{FORK,THREAD,SEQ}
-    - If-Modified-Since ([304] Not Modified)
+    - SERVER_MODE_{FORK,THREAD,SEQ} 
+    - max script running time (kill after N seconds)
+
 
 todo:
     - merge cxh + cxh-site
@@ -11,10 +70,7 @@ todo:
     - io_printf: aggiungere %e o %q per stampare stringhe dopo averle 
         html-encoded
     - per-backend default config values (httpd, httpsd, etc.)
-    - session abstraction interface (per poter salvare i dati delle sessioni 
-      non solo su file: DB, socket, ecc.)
     - cxh-site must bail out on not existent included file
-    - src/tool/cxh: fix #LINE numbering
     - HTTPS support (ready?)
     - estendere se necessario classe string_t 
     - funzioni per base64 encoding/decoding
@@ -26,7 +82,6 @@ todo:
 
 1.x
     - HTTP/1.1 support (RFC2616)
-    - file upload support (RFC1867)
     - funzione u_sendmail() o simili (drop-in nella spool o SMTP)
     - virtual host support (rfc2616.txt)
 
@@ -60,10 +115,8 @@ framework di sviluppo/porting:
 
 configurazione (server.conf):
     - dimensioni del buffer del response_filter_t
-    - session expiring (default e configurabile)
     - scheduled pages retrival
       per eseguire degli script *.cxh ogni N minuti/ore
-    - max script running time (kill after N seconds)
     - configurazione logging 
         + log mode (syslog/file/memory/none)
         + log errori 
