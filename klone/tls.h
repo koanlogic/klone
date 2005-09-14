@@ -1,8 +1,9 @@
-/* $Id: tls.h,v 1.1 2005/09/09 15:26:13 tat Exp $ */
+/* $Id: tls.h,v 1.2 2005/09/14 20:18:31 tat Exp $ */
 
 #ifndef _KLONE_TLS_H_
 #define _KLONE_TLS_H_
 
+#include "conf.h"
 #ifdef HAVE_OPENSSL
 #include <openssl/ssl.h>
 
