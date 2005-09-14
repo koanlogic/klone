@@ -17,20 +17,22 @@ os_detect () {
             makl_set_var_h      "OS_WIN"
             makl_set_var_h      "CONFIG_SERVER_MODEL" "CONFIG_SERVER_THREAD"
             makl_add_var_mk     "LIBS"      "-lwsock32 -L/c/WINDOWS" 
-            makl_add_var_mk     "CFLAGS"    "-DOS_WIN" 
         ;;
 
         *)
             makl_set_var_h      "OS_UNIX"
             makl_set_var_h      "CONFIG_SERVER_MODEL" "CONFIG_SERVER_FORK"
-            makl_add_var_mk     "CFLAGS"    "-DOS_UNIX" 
 
             # library dependenciwes
             makl_require        "lib"       "pthread"
             makl_require        "lib"       "ssl"
+            # define HAVE_OPENSSL if HAVE_LIBSSL is defined
+            [ -n `makl_get "HAVE_LIBSSL"` ] && makl_set_var "HAVE_OPENSSL"
         ;;
     esac
 }
+
+makl_add_var_mk "CFLAGS" "-DHAVE_CONF_H" 
 
 # Handlers
 _makl_enable_debug () {

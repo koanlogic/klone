@@ -1,8 +1,12 @@
-# $Id: Makefile,v 1.1 2005/09/09 15:26:15 tat Exp $
+# $Id: Makefile,v 1.2 2005/09/14 20:30:35 tat Exp $
 include ../../Makefile.conf
 
 LIB = tls
-SRCS = tls_glue.c tls_dh_autogen.c tls.c
+SRCS = 
+
+ifdef HAVE_LIBSSL
+SRCS += tls.c tls_dh_autogen.c tls_glue.c
+endif
 
 include lib.mk
 

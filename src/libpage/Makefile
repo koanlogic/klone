@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2005/09/09 15:26:14 tat Exp $
+# $Id: Makefile,v 1.2 2005/09/14 20:30:35 tat Exp $
 include ../../Makefile.conf
 
 LIB = page
@@ -14,5 +14,9 @@ SRCS =          \
     session.c   \
     var.c       \
     vars.c  
+
+ifdef HAVE_LIBSSL
+SRCS += ses_client.c
+endif
 
 include lib.mk
