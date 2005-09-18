@@ -1,7 +1,5 @@
 #!/bin/sh
 
-#MAKL_DIR=../makl
-
 [ -z "${MAKL_DIR}" ] && export MAKL_DIR=`pwd`/makl
 export makl_debug=1
 export makl_conf_h=`pwd`/conf.h
