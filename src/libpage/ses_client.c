@@ -38,7 +38,8 @@
 enum { HMAC_KEY_SIZE = 128 };
 static int g_module_ready;          /* >0 if module_init has been called*/
 static char g_key[HMAC_KEY_SIZE];   /* HMAC secret key                  */
-static HMAC_CTX *g_hmac_ctx;        /* HMAC context                     */
+static HMAC_CTX gs_hmac_ctx;        /* HMAC context                     */ 
+static HMAC_CTX *g_hmac_ctx = &gs_hmac_ctx; /* HMAC context ptr         */ 
 
 
 
@@ -64,7 +65,7 @@ static int session_client_save(session_t *ss)
     io_t *io = NULL;
     size_t sz = 0;
     char *buf = NULL, mtimes[MTIMES_SZ];
-    char bhmac[EVP_MAX_MD_SIZE], hmac[EVP_MAX_MD_SIZE*3];
+    char bhmac[EVP_MAX_MD_SIZE], hmac[1000 + (EVP_MAX_MD_SIZE*3)];
     int bhmac_len;
 
     session_remove(ss);
@@ -73,7 +74,8 @@ static int session_client_save(session_t *ss)
     vars_foreach(ss->vars, (vars_cb_t)session_calc_maxsize, &sz);
 
     /* alloc a block to save the session */
-    buf = u_malloc(sz);
+    // buf = u_malloc(sz + 1);
+    buf = u_calloc(sz + 1); // FIXME use malloc here
     dbg_err_if(buf == NULL);
 
     /* create a big-enough in-memory io object */
@@ -86,6 +88,7 @@ static int session_client_save(session_t *ss)
     /* TODO [encrypt |] b64 buf and store it into cookies */
 
     buf[sz] = 0; // FIXME be sure that is zero-term
+
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_DATA, buf, 0, NULL, 
         NULL, 0));
 
@@ -100,6 +103,7 @@ static int session_client_save(session_t *ss)
     HMAC_Final(g_hmac_ctx, bhmac, &bhmac_len);
 
     dbg_err_if(u_urlncpy(hmac, bhmac, bhmac_len, URLCPY_ENCODE));
+    dbg("hmac: [%s]", hmac);
 
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_HMAC, hmac, 0, NULL, 
         NULL, 0));
@@ -122,6 +126,7 @@ static int session_client_load(session_t *ss)
     char *data = NULL;
     size_t size;
 
+    dbg_err("not impl");
     /* TODO decrypt cookies */
     /* TODO verify MAC hash */
     /* TODO gen an io_t from decrypted (and verified) data and load from it */
@@ -190,6 +195,9 @@ static int module_init(config_t *config)
     HMAC_CTX_init(g_hmac_ctx);
     /* let it store key and algo */
     // TODO gen key
+    int i;
+    for(i = 0; i < HMAC_KEY_SIZE; ++i)
+            g_key[i] = i;
     HMAC_Init_ex(g_hmac_ctx, g_key, HMAC_KEY_SIZE, md, NULL);
 
     return 0;
