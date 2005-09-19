@@ -357,7 +357,7 @@ int session_create(config_t *config, request_t *rq, response_t *rs,
         dbg_err_if(session_client_create(config, rq, rs, &ss));
     #endif
     } else
-        warn_err_if("bad or missing session driver");
+        warn_err("config error: bad or missing session driver");
 
     /* may fail if session does not exist */
     session_load(ss);

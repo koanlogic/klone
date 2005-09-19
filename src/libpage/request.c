@@ -64,7 +64,7 @@ struct request_s
 int request_is_encoding_accepted(request_t *rq, const char *encoding)
 {
     char *pp, *tok, *src, *buf = NULL;
-    const char *accept_encoding, *p;
+    const char *accept_encoding;
     int rc = 0;
 
     accept_encoding = header_get_field_value(rq->header, "Accept-Encoding");
@@ -284,7 +284,6 @@ const char *request_get_path_info(request_t *rq)
 static int request_parse_ims(request_t *rq)
 {
     const char *ims;
-    time_t t;
 
     rq->if_modified_since = 0;
 
