@@ -41,8 +41,7 @@ string_t* vars_get_value_s(vars_t *vs, const char *name)
 {
     var_t *v = NULL;
 
-    if((v = vars_get(vs, name)) == NULL)
-        return NULL;
+    dbg_err_if((v = vars_get(vs, name)) == NULL);
 
     return var_get_value_s(v);
 err:

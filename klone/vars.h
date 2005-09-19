@@ -6,6 +6,8 @@
 struct vars_s;
 typedef struct vars_s vars_t;
 
+typedef int (*vars_cb_t)(var_t*, void*);
+
 int vars_create(vars_t ** pvs);
 int vars_free(vars_t *vs);
 
