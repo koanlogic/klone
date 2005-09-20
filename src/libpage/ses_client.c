@@ -13,23 +13,8 @@
 #include <klone/str.h>
 #include <klone/debug.h>
 #include <klone/ses_prv.h>
+#include <klone/codgzip.h>
 #include <openssl/hmac.h>
-
-/*
-    cookies:
-        kl1_mtime = time_t
-        kl1_sesN = data cookies (b64(encrypted session data))
-        kl1_mac  = HMAC hash (kl1_ses0..kl1_sesN + kl1_mtime)
-
-    FIXME HMAC deve essere della roba criptata o di quella in chiaro?
-
-    struct session_client_s
-    {
-        time_t mtime;
-        char data[]; // encrypted + base64
-        HMAC mac;        // base64
-    };
- */
 
 #define KL1_CLISES_DATA     "KL1_CLISES_DATA"
 #define KL1_CLISES_MTIME    "KL1_CLISES_MTIME"
@@ -40,8 +25,7 @@ static int g_module_ready;          /* >0 if module_init has been called*/
 static char g_key[HMAC_KEY_SIZE];   /* HMAC secret key                  */
 static HMAC_CTX gs_hmac_ctx;        /* HMAC context                     */ 
 static HMAC_CTX *g_hmac_ctx = &gs_hmac_ctx; /* HMAC context ptr         */ 
-
-
+static int g_compress;              /* >0 if compression is requested   */
 
 static int session_calc_maxsize(var_t *v, size_t *psz)
 {
@@ -63,10 +47,13 @@ static int session_client_save(session_t *ss)
 {
     enum { MTIMES_SZ = 32 };
     io_t *io = NULL;
+    codec_gzip_t *zip = NULL;
     size_t sz = 0;
+    ssize_t blen;
     char *buf = NULL, mtimes[MTIMES_SZ];
     char bhmac[EVP_MAX_MD_SIZE], hmac[1000 + (EVP_MAX_MD_SIZE*3)];
     int bhmac_len;
+    char ebuf[COOKIE_MAX_SIZE];
 
     //session_remove(ss);
 
@@ -74,26 +61,36 @@ static int session_client_save(session_t *ss)
     vars_foreach(ss->vars, (vars_cb_t)session_calc_maxsize, &sz);
 
     /* alloc a block to save the session */
-    buf = u_malloc(sz + 1);
-    //buf = u_calloc(sz + 1); // FIXME use malloc here
+    buf = u_calloc(sz + 16);
     dbg_err_if(buf == NULL);
 
     /* create a big-enough in-memory io object */
     dbg_err_if(io_mem_create(buf, sz, 0, &io));
 
-    /* TODO set gzip codec if requested */
+    if(g_compress)
+    {
+        dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &zip));
+        dbg_err_if(io_set_codec(io, (codec_t*)zip));
+        zip = NULL; /* io_t owns it after io_set_codec */
+    }
 
     vars_foreach(ss->vars, session_prv_save_var, io);
 
-    /* zero-term the buffer */
-    io_write(io, "", 1); 
+    /* get real buffer size (not the size of underlaying buffer) */
+    blen = io_tell(io);
 
     io_free(io); /* flush and close (session data stored in buf) */
     io = NULL;
 
-    /* TODO [encrypt |] b64 buf and store it into cookies */
+    /* TODO encrypt buf if requested  */
 
-    dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_DATA, buf, 0, NULL, 
+    /* url-encode the buffer */
+    warn_err_ifm(blen > COOKIE_MAX_SIZE, 
+                "session data too big for client-side sessions");
+
+    dbg_err_if(u_urlncpy(ebuf, buf, blen, URLCPY_ENCODE));
+
+    dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_DATA, ebuf, 0, NULL, 
         NULL, 0));
 
     dbg_err_if(u_snprintf(mtimes, MTIMES_SZ, "%lu", ss->mtime));
@@ -178,7 +175,7 @@ err:
 
 static int module_init(config_t *config)
 {
-    const char *algo;
+    const char *algo, *compress, *encrypt;
     const EVP_MD *md;      /* HMAC hash algorithm              */
     
     algo = config_get_subkey_value(config, "hash_function");
@@ -194,6 +191,22 @@ static int module_init(config_t *config)
             warn_err("config error: bad hash_function");
     } else
         md = EVP_md5(); /* default */
+
+    compress = config_get_subkey_value(config, "compress");
+    if(compress)
+    {
+        if(strcasecmp(compress, "yes") == 0)
+            g_compress = 1;
+        else if(strcasecmp(compress, "no") == 0)
+            g_compress = 0;
+        else
+            warn_err("config error: bad compress value");
+    }
+    encrypt = config_get_subkey_value(config, "encrypt");
+    if(encrypt)
+    {
+
+    }
 
     /* initialize OpenSSL HMAC stuff */
     HMAC_CTX_init(g_hmac_ctx);
