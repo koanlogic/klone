@@ -487,7 +487,7 @@ int request_set_uri(request_t *rq, const char *uri,
     dbg_err_if(cp == NULL);
 
     /* copy decoded url */
-    u_urlncpy(cp, rq->uri, uri_len + 1, URLCPY_DECODE);
+    u_urlncpy(cp, rq->uri, uri_len, URLCPY_DECODE);
 
     if((p = strchr(cp, '?')) != NULL)
         *p++ = 0; /* remove query string from the uri copy */

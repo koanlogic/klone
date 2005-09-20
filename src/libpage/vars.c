@@ -217,10 +217,10 @@ int vars_add_urlvar(vars_t *vs, const char *cstr)
     *eq = 0;
 
     /* url-decode var name */
-    dbg_err_if(u_urlncpy(name, str, NAMESZ, URLCPY_DECODE));
+    dbg_err_if(u_urlncpy(name, str, strlen(str), URLCPY_DECODE));
 
     /* url-decode var value */
-    dbg_err_if(u_urlncpy(value, eq+1, VALSZ, URLCPY_DECODE));
+    dbg_err_if(u_urlncpy(value, eq+1, strlen(eq+1), URLCPY_DECODE));
 
     /* dbg("name: [%s]  value: [%s]", name, value); */
 

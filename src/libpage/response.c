@@ -74,7 +74,7 @@ int response_set_cookie(response_t *rs, const char *name, const char *value,
         dbg_err_if(u_snprintf(buf, BUFSZ, "%s=", name));
 
         /* encoded value */
-        dbg_err_if(u_urlncpy(buf + strlen(buf), value, BUFSZ - strlen(buf), 
+        dbg_err_if(u_urlncpy(buf + strlen(buf), value, strlen(value), 
             URLCPY_ENCODE));
 
         /* expiration date */

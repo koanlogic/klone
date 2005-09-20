@@ -315,8 +315,8 @@ int session_prv_save_var(var_t *v, io_t *out)
         dbg_err_if(nbuf == NULL);
 
         /* encode name & value */
-        dbg_err_if(u_urlncpy(vbuf, value, vsz, URLCPY_ENCODE));
-        dbg_err_if(u_urlncpy(nbuf, name, nsz, URLCPY_ENCODE));
+        dbg_err_if(u_urlncpy(vbuf, value, strlen(value), URLCPY_ENCODE));
+        dbg_err_if(u_urlncpy(nbuf, name, strlen(name), URLCPY_ENCODE));
 
         io_printf(out, "%s=%s\n", nbuf, vbuf);
 
