@@ -21,7 +21,7 @@ static ssize_t gzip_flush(codec_gzip_t *iz, char *dst, size_t *dcount)
 {
     char c = 0;
 
-    /* can't set it to NULL even if zlib must not use it (avail_int == 0) */
+    /* can't set it to NULL even if zlib must not use it (avail_in == 0) */
     iz->zstr.next_in = 0xDEADBEEF;
     iz->zstr.avail_in = 0;
 
@@ -48,7 +48,7 @@ static ssize_t gzip_flush(codec_gzip_t *iz, char *dst, size_t *dcount)
 
     *dcount = *dcount - iz->zstr.avail_out;   /* written */
 
-    return iz->err == Z_STREAM_END ? 
+    return iz->err == Z_STREAM_END && *dcount == 0 ? 
         0 /* all done           */: 
         1 /* call flush() again */;
 err:
