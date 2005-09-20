@@ -201,6 +201,7 @@ int u_sqlncpy(char *d, const char *s, size_t bufsz, int flags)
     return 0;
 }
 
+#if 0
 static int u_urlncpy_encode(char *d, const char *s, size_t bufsz)
 {
     const char hexc[] = "0123456789ABCDEF";
@@ -231,16 +232,40 @@ static int u_urlncpy_encode(char *d, const char *s, size_t bufsz)
 err:
     return ~0;
 }
+#endif
 
-static int u_urlncpy_decode(char *d, const char *s, size_t bufsz)
+static int u_urlncpy_encode(char *d, const char *s, size_t slen)
 {
-    size_t l = bufsz; 
+    const char hexc[] = "0123456789ABCDEF";
+    size_t l = slen; 
+    int c;
+
+    for(; l && *s; --l)
+    {
+        c = *s++;
+        if(c == ' ') {
+            *d++ = '+';
+        } else if(isalnum(c) || c == '_' || c == '-' || c == '.') {
+            *d++ = c;
+        } else {
+            *d++ = '%';                                        
+            *d++ = hexc[(c >> 4) & 0xF];             
+            *d++ = hexc[c & 0xF];  
+        }
+    }
+    *d = 0;
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int u_urlncpy_decode(char *d, const char *s, size_t slen)
+{
+    size_t l = slen; 
     short c;
 
-    dbg_err_if(l < 2);
-    --l; /* save a char for \0 */
-
-    for(; *s && l; --l)
+    for(; l && *s; --l)
     {
         c = *s++;
         if(c == '%')
@@ -264,17 +289,18 @@ err:
 
 }
 
-int u_urlncpy(char *d, const char *s, size_t bufsz, int flags)
+/* d must be at least slen+1 size long */
+int u_urlncpy(char *d, const char *s, size_t slen, int flags)
 {
     switch(flags)
     {
     case URLCPY_ENCODE:
-        return u_urlncpy_encode(d, s, bufsz);
+        return u_urlncpy_encode(d, s, slen);
     case URLCPY_DECODE:
-        return u_urlncpy_decode(d, s, bufsz);
+        return u_urlncpy_decode(d, s, slen);
     default:
-        strncpy(d, s, bufsz);
-        d[bufsz-1] = 0;
+        strncpy(d, s, slen);
+        d[slen] = 0; /* zero-term the string */
     }
 
     return 0;
