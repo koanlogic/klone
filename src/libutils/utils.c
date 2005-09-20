@@ -133,22 +133,18 @@ static short htoi(unsigned char c)
 }
 
 
-static int u_sqlncpy_encode(char *d, const char *s, size_t bufsz)
+static int u_sqlncpy_encode(char *d, const char *s, size_t slen)
 {
-    size_t l = bufsz; 
     int c;
 
-    dbg_err_if(l < 2);
-    --l; /* save a char for \0 */
-
-    for(; *s && l; --l)
+    for(; slen; --slen)
     {
         c = *d++ = *s++;
         if(c == '\'') 
         {
-            dbg_err_if(l < 2);
+            dbg_err_if(slen < 2);
             *d++ = '\'';
-            --l;
+            --slen;
         } 
     }
     *d = 0;
@@ -158,15 +154,11 @@ err:
     return ~0;
 }
 
-static int u_sqlncpy_decode(char *d, const char *s, size_t bufsz)
+static int u_sqlncpy_decode(char *d, const char *s, size_t slen)
 {
-    size_t l = bufsz; 
     int c, last = 0;
 
-    dbg_err_if(l < 2);
-    --l; /* save a char for \0 */
-
-    for(; *s && l; --l)
+    for(; slen; --slen)
     {
         c = *s++;
         if(c == '\'' && last == c) 
@@ -185,62 +177,28 @@ err:
     return ~0;
 }
 
-int u_sqlncpy(char *d, const char *s, size_t bufsz, int flags)
+int u_sqlncpy(char *d, const char *s, size_t slen, int flags)
 {
     switch(flags)
     {
     case SQLCPY_ENCODE:
-        return u_sqlncpy_encode(d, s, bufsz);
+        return u_sqlncpy_encode(d, s, slen);
     case SQLCPY_DECODE:
-        return u_sqlncpy_decode(d, s, bufsz);
+        return u_sqlncpy_decode(d, s, slen);
     default:
-        strncpy(d, s, bufsz);
-        d[bufsz-1] = 0;
+        strncpy(d, s, slen);
+        d[slen] = 0;
     }
 
     return 0;
 }
-
-#if 0
-static int u_urlncpy_encode(char *d, const char *s, size_t bufsz)
-{
-    const char hexc[] = "0123456789ABCDEF";
-    size_t l = bufsz; 
-    int c;
-
-    dbg_err_if(l < 2);
-    --l; /* save a char for \0 */
-
-    for(; *s && l; --l)
-    {
-        c = *s++;
-        if(c == ' ') {
-            *d++ = '+';
-        } else if(isalnum(c) || c == '_' || c == '-' || c == '.') {
-            *d++ = c;
-        } else {
-            dbg_err_if(l < 3);
-            l -= 2;
-            *d++ = '%';                                        
-            *d++ = hexc[(c >> 4) & 0xF];             
-            *d++ = hexc[c & 0xF];  
-        }
-    }
-    *d = 0;
-
-    return 0;
-err:
-    return ~0;
-}
-#endif
 
 static int u_urlncpy_encode(char *d, const char *s, size_t slen)
 {
     const char hexc[] = "0123456789ABCDEF";
-    size_t l = slen; 
     int c;
 
-    for(; l && *s; --l)
+    for(; slen; --slen)
     {
         c = *s++;
         if(c == ' ') {
@@ -262,19 +220,19 @@ err:
 
 static int u_urlncpy_decode(char *d, const char *s, size_t slen)
 {
-    size_t l = slen; 
     short c;
 
-    for(; l && *s; --l)
+    for(; slen; --slen)
     {
         c = *s++;
         if(c == '%')
         {
-            dbg_err_if(l < 2 || !isxdigit(s[0]) || !isxdigit(s[1]));
+            dbg_err_if(slen < 2 || !isxdigit(s[0]) || !isxdigit(s[1]));
             c = htoi(s[0]) << 4 | htoi(s[1]);
             dbg_err_if(c == 0);
             *d++ = (char)c;
             s += 2;
+            slen -= 2;
         } else if(c == '+') {
             *d++ = ' ';
         } else {
@@ -306,35 +264,31 @@ int u_urlncpy(char *d, const char *s, size_t slen, int flags)
     return 0;
 }
 
-static int u_htmlncpy_encode(char *d, const char *s, size_t bufsz)
+static int u_htmlncpy_encode(char *d, const char *s, size_t slen)
 {
-    size_t l = bufsz; 
-    int c;
     struct html_entities_s *p;
     const char *map[256];
     size_t elen;
+    int c;
 
     /* build the map table (could be static but it wouldn't be thread-safe) */
     memset(map, 0, sizeof(map));
     for(p = entities; p->s_char; ++p)
         map[p->s_char] = p->entity;
 
-    dbg_err_if(l < 2);
-    --l; /* save a char for \0 */
-
-    for(; *s && l; )
+    while(slen)
     {
         c = *s++;
         if(map[c] == NULL)
         {
             *d++ = c;   /* this char doesn't need encoding */
-            --l;
+            --slen;
         } else {
             elen = strlen(map[c]);
-            if(l < elen)
+            if(slen < elen)
                 break; /* there's not enough space to fit the entity */
-            strncpy(d, map[c], l); /* append the entity */
-            l -= elen;
+            strncpy(d, map[c], slen); /* append the entity */
+            slen -= elen;
             d += elen;
         }
     }
@@ -369,22 +323,21 @@ err:
     return ~0;
 }
 
-int u_htmlncpy(char *d, const char *s, size_t bufsz, int flags)
+int u_htmlncpy(char *d, const char *s, size_t slen, int flags)
 {
     switch(flags)
     {
     case HTMLCPY_ENCODE:
-        return u_htmlncpy_encode(d, s, bufsz);
+        return u_htmlncpy_encode(d, s, slen);
     case HTMLCPY_DECODE:
-        return u_htmlncpy_decode(d, s, bufsz);
+        return u_htmlncpy_decode(d, s, slen);
     default:
-        strncpy(d, s, bufsz);
-        d[bufsz-1] = 0;
+        strncpy(d, s, slen);
+        d[slen] = 0; /* zero-term */
     }
 
     return 0;
 }
-
 
 /* case insensitive strstr */
 char *u_stristr(const char *string, const char *sub)

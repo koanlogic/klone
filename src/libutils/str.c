@@ -34,7 +34,7 @@ int string_sql_encode(string_t *s)
     buf = u_malloc(bufsz);
     dbg_err_if(buf == NULL);
 
-    dbg_err_if(u_sqlncpy(buf, string_c(s), bufsz, SQLCPY_ENCODE));
+    dbg_err_if(u_sqlncpy(buf, string_c(s), string_len(s), SQLCPY_ENCODE));
 
     dbg_err_if(string_set(s, buf, strlen(buf)));
 
@@ -59,7 +59,7 @@ int string_sql_decode(string_t *s)
     buf = u_malloc(bufsz);
     dbg_err_if(buf == NULL);
 
-    dbg_err_if(u_sqlncpy(buf, string_c(s), bufsz, SQLCPY_DECODE));
+    dbg_err_if(u_sqlncpy(buf, string_c(s), string_len(s), SQLCPY_DECODE));
 
     dbg_err_if(string_set(s, buf, strlen(buf)));
 
@@ -117,7 +117,7 @@ int string_html_encode(string_t *s)
     buf = u_malloc(bufsz);
     dbg_err_if(buf == NULL);
 
-    dbg_err_if(u_htmlncpy(buf, string_c(s), bufsz, HTMLCPY_ENCODE));
+    dbg_err_if(u_htmlncpy(buf, string_c(s), string_len(s), HTMLCPY_ENCODE));
 
     dbg_err_if(string_set(s, buf, strlen(buf)));
 
@@ -151,7 +151,7 @@ int string_html_decode(string_t *s)
     buf = u_malloc(bufsz);
     dbg_err_if(buf == NULL);
 
-    dbg_err_if(u_htmlncpy(buf, string_c(s), bufsz, HTMLCPY_DECODE));
+    dbg_err_if(u_htmlncpy(buf, string_c(s), string_len(s), HTMLCPY_DECODE));
 
     dbg_err_if(string_set(s, buf, strlen(buf)));
 
@@ -186,7 +186,7 @@ int string_url_encode(string_t *s)
     buf = u_malloc(bufsz);
     dbg_err_if(buf == NULL);
 
-    dbg_err_if(u_urlncpy(buf, string_c(s), bufsz, URLCPY_ENCODE));
+    dbg_err_if(u_urlncpy(buf, string_c(s), string_len(s), URLCPY_ENCODE));
 
     dbg_err_if(string_set(s, buf, strlen(buf)));
 
@@ -220,7 +220,7 @@ int string_url_decode(string_t *s)
     buf = u_malloc(bufsz);
     dbg_err_if(buf == NULL);
 
-    dbg_err_if(u_urlncpy(buf, string_c(s), bufsz, URLCPY_DECODE));
+    dbg_err_if(u_urlncpy(buf, string_c(s), string_len(s), URLCPY_DECODE));
 
     dbg_err_if(string_set(s, buf, strlen(buf)));
 

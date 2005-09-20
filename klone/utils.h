@@ -57,13 +57,13 @@ char* u_strnrchr(const char *s, char c, size_t len);
 char *u_stristr(const char *string, const char *sub);
 
 enum { URLCPY_VERBATIM, URLCPY_ENCODE, URLCPY_DECODE };
-int u_urlncpy(char *dst, const char *src, size_t ssz, int flags);
+int u_urlncpy(char *dst, const char *src, size_t slen, int flags);
 
 enum { HTMLCPY_VERBATIM, HTMLCPY_ENCODE, HTMLCPY_DECODE };
-int u_htmlncpy(char *dst, const char *src, size_t ssz, int flags);
+int u_htmlncpy(char *dst, const char *src, size_t slen, int flags);
 
 enum { SQLCPY_VERBATIM, SQLCPY_ENCODE, SQLCPY_DECODE };
-int u_sqlncpy(char *dst, const char *src, size_t ssz, int flags);
+int u_sqlncpy(char *dst, const char *src, size_t slen, int flags);
 
 
 int u_printf_ccstr(io_t *o, const char *buf, size_t sz);
