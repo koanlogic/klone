@@ -68,14 +68,14 @@ static int session_client_save(session_t *ss)
     char bhmac[EVP_MAX_MD_SIZE], hmac[1000 + (EVP_MAX_MD_SIZE*3)];
     int bhmac_len;
 
-    session_remove(ss);
+    //session_remove(ss);
 
     /* calc the maximum session data size (exact calc requires url encoding) */
     vars_foreach(ss->vars, (vars_cb_t)session_calc_maxsize, &sz);
 
     /* alloc a block to save the session */
-    // buf = u_malloc(sz + 1);
-    buf = u_calloc(sz + 1); // FIXME use malloc here
+    buf = u_malloc(sz + 1);
+    //buf = u_calloc(sz + 1); // FIXME use malloc here
     dbg_err_if(buf == NULL);
 
     /* create a big-enough in-memory io object */
@@ -85,9 +85,13 @@ static int session_client_save(session_t *ss)
 
     vars_foreach(ss->vars, session_prv_save_var, io);
 
-    /* TODO [encrypt |] b64 buf and store it into cookies */
+    /* zero-term the buffer */
+    io_write(io, "", 1); 
 
-    buf[sz] = 0; // FIXME be sure that is zero-term
+    io_free(io); /* flush and close (session data stored in buf) */
+    io = NULL;
+
+    /* TODO [encrypt |] b64 buf and store it into cookies */
 
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_DATA, buf, 0, NULL, 
         NULL, 0));
@@ -96,19 +100,19 @@ static int session_client_save(session_t *ss)
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_MTIME, mtimes, 0, NULL, 
         NULL, 0));
 
-    /* TODO calc MAC hash of the data buf + mtime and store it in a cookie */
+    /* calc HMAC hash of the data buf + mtime */
     HMAC_Init_ex(g_hmac_ctx, NULL, 0, NULL, NULL); /* reuse stored key and md */
     HMAC_Update(g_hmac_ctx, buf, strlen(buf));
     HMAC_Update(g_hmac_ctx, mtimes, strlen(mtimes));
     HMAC_Final(g_hmac_ctx, bhmac, &bhmac_len);
 
+    /* encode the hash */
     dbg_err_if(u_urlncpy(hmac, bhmac, bhmac_len, URLCPY_ENCODE));
-    dbg("hmac: [%s]", hmac);
 
+    /* store the hash in a cookie */
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_HMAC, hmac, 0, NULL, 
         NULL, 0));
 
-    io_free(io); /* session data stored in buf */
     u_free(buf);
 
     return 0;
