@@ -132,7 +132,6 @@ err:
  * \param off    absolute offset to move to
  *
  * \return the given offset on success, -1 on error
- *
  */
 ssize_t io_seek(io_t *io, size_t off)
 {
@@ -140,6 +139,26 @@ ssize_t io_seek(io_t *io, size_t off)
 
     if(io->seek)
         return io->seek(io, off);
+err:
+    return -1;
+}
+
+/**
+ * \brief  Return the current file position
+ *
+ * Return the current file position. There's a unique read and write position
+ * offset.
+ *
+ * \param io     the IO object
+ *
+ * \return the given offset on success, -1 on error
+ */
+ssize_t io_tell(io_t *io)
+{
+    dbg_err_if(io_flush(io));
+
+    if(io->tell)
+        return io->tell(io);
 err:
     return -1;
 }
@@ -426,6 +445,8 @@ ssize_t io_flush(io_t *io)
     {
         c = io->write(io, io->wbuf + off, io->wcount);
         dbg_err_if(c < 0);
+        if(c == 0)
+            break;
     
         io->wcount -= c;
         off += c;

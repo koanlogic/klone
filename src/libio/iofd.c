@@ -18,6 +18,8 @@ typedef struct io_fd_s
 static ssize_t io_fd_read(io_fd_t *io, char *buf, size_t size);
 static ssize_t io_fd_write(io_fd_t *io, const char *buf, size_t size);
 static ssize_t io_fd_seek(io_fd_t *io, size_t off);
+static ssize_t io_fd_tell(io_fd_t *io);
+static ssize_t io_fd_size(io_fd_t *io);
 static int io_fd_term(io_fd_t *io);
 
 static ssize_t io_fd_read(io_fd_t *ifd, char *buf, size_t size)
@@ -59,9 +61,15 @@ err:
     return -1;
 }
 
+
 static ssize_t io_fd_seek(io_fd_t *ifd, size_t off)
 {
     return lseek(ifd->fd, off, SEEK_SET);
+}
+
+static ssize_t io_fd_tell(io_fd_t *ifd)
+{
+    return lseek(ifd->fd, 0, SEEK_CUR);
 }
 
 static int io_fd_term(io_fd_t *ifd)

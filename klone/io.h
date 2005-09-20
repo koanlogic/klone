@@ -43,6 +43,7 @@ ssize_t io_read(io_t *io, char* buf, size_t size);
 ssize_t io_write(io_t *io, const char* buf, size_t size);
 ssize_t io_flush(io_t *io);
 ssize_t io_seek(io_t *io, size_t off);
+ssize_t io_tell(io_t *io);
 ssize_t io_copy(io_t *out, io_t *in, size_t size);
 ssize_t io_pipe(io_t *out, io_t *in);
 

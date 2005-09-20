@@ -17,7 +17,13 @@ typedef struct
 static ssize_t io_mem_read(io_mem_t *io, char *buf, size_t size);
 static ssize_t io_mem_write(io_mem_t *io, const char *buf, size_t size);
 static ssize_t io_mem_seek(io_mem_t *io, size_t off);
+static ssize_t io_mem_tell(io_mem_t *im);
 static int io_mem_term(io_mem_t *io);
+
+static ssize_t io_mem_tell(io_mem_t *im)
+{
+    return im->off;
+}
 
 static ssize_t io_mem_seek(io_mem_t *im, size_t off)
 {
@@ -26,7 +32,7 @@ static ssize_t io_mem_seek(io_mem_t *im, size_t off)
 
     im->off = off;
 
-    return im->off;
+    return off;
 }
 
 static ssize_t io_mem_read(io_mem_t *im, char *buf, size_t size)
@@ -81,12 +87,13 @@ int io_mem_create(char *buf, size_t size, int flags, io_t **pio)
 
     im->buf = buf;
     im->size = size;
-    im->off = 0;
     im->flags = flags;
+    im->off = 0;
 
     im->io.read     = (io_read_op) io_mem_read;
     im->io.write    = (io_write_op) io_mem_write;
     im->io.seek     = (io_seek_op) io_mem_seek;
+    im->io.tell     = (io_tell_op) io_mem_tell;
     im->io.term     = (io_term_op) io_mem_term; 
 
     *pio = (io_t*)im;

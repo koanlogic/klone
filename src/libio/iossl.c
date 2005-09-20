@@ -20,7 +20,6 @@ typedef struct io_ssl_s
 
 static ssize_t io_ssl_read(io_ssl_t *io, char *buf, size_t size);
 static ssize_t io_ssl_write(io_ssl_t *io, const char *buf, size_t size);
-static ssize_t io_ssl_seek(io_ssl_t *io, size_t off);
 static int io_ssl_term(io_ssl_t *io);
 
 static ssize_t io_ssl_read(io_ssl_t *io_ssl, char *buf, size_t size)
@@ -52,11 +51,6 @@ again:
 
     return c;
 err:
-    return -1;
-}
-
-static ssize_t io_ssl_seek(io_ssl_t *io_ssl, size_t off)
-{
     return -1;
 }
 
@@ -95,8 +89,8 @@ int io_ssl_create(int fd, int flags, SSL_CTX *ssl_ctx, io_t **pio)
 
     io_ssl->io.read     = (io_read_op) io_ssl_read;
     io_ssl->io.write    = (io_write_op) io_ssl_write;
-    io_ssl->io.seek     = (io_seek_op) io_ssl_seek;
     io_ssl->io.term     = (io_term_op) io_ssl_term; 
+    io_ssl->io.size     = NULL;
     
     /* start a SSL connection */
     dbg_err_if(SSL_accept(io_ssl->ssl) <= 0);

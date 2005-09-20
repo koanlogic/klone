@@ -12,6 +12,7 @@ int io_prv_create(size_t dev_sz, io_t **pio);
 typedef ssize_t (*io_read_op) (io_t*, char*, size_t);
 typedef ssize_t (*io_write_op) (io_t*, const char*, size_t);
 typedef ssize_t (*io_seek_op) (io_t*, size_t);
+typedef ssize_t (*io_tell_op) (io_t*);
 typedef int (*io_term_op) (io_t*);
 
 struct io_s
@@ -28,8 +29,8 @@ struct io_s
     io_read_op read;
     io_write_op write;
     io_seek_op seek;
+    io_tell_op tell;
     io_term_op term;
-
 
     /* input buffer */
 
