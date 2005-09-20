@@ -110,6 +110,16 @@ extern const char *WARN_LABEL;
         } while(0)                  
 #endif  
 
+/* cmsg_ macros 
+   (console: print to stderr) */
+#define cmsg(args...)                   \
+    do { fprintf(stderr, args); fprintf(stderr, "\n"); } while(0)
+#define cmsg_err(args...)               do { cmsg(args); goto err; } while(0)
+#define cmsg_err_if(expr)     \
+    do { if( (expr) ) { cmsg("%s", #expr); goto err; } } while(0)
+#define cmsg_err_ifm(expr, args...)     \
+    do { if( (expr) ) { cmsg(args); goto err; } } while(0)
+
 /* warn_ macros */
 #define warn(args...)                   msg(WARN_LABEL, args)
 #define warn_err(args...)               msg_err(WARN_LABEL, args)
