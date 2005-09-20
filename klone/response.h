@@ -24,6 +24,8 @@ enum {
     HTTP_STATUS_SERVICE_UNAVAILABLE       = 503
 };
 
+enum { COOKIE_MAX_SIZE = 4096 };
+
 struct response_s;
 typedef struct response_s response_t;
 
