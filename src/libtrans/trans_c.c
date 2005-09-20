@@ -161,7 +161,7 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
     head = &ctx->code_blocks;
     for(node = head->tqh_first; node != NULL; node = node->np.tqe_next)
     {
-        io_printf(p->out, "#line %d \"%s\"\n", node->code_line, node->file_in);
+        io_printf(p->out, "\n#line %d \"%s\"\n", node->code_line, node->file_in);
         io_write(p->out, node->buf, node->sz);
     }
 
