@@ -133,30 +133,34 @@ static short htoi(unsigned char c)
 }
 
 
-static int u_sqlncpy_encode(char *d, const char *s, size_t slen)
+static ssize_t u_sqlncpy_encode(char *d, const char *s, size_t slen)
 {
+    ssize_t wr = 0;
     int c;
 
     for(; slen; --slen)
     {
         c = *d++ = *s++;
+        wr++;
         if(c == '\'') 
         {
             dbg_err_if(slen < 2);
             *d++ = '\'';
+            wr++;
             --slen;
         } 
     }
     *d = 0;
 
-    return 0;
+    return ++wr;
 err:
-    return ~0;
+    return -1;
 }
 
-static int u_sqlncpy_decode(char *d, const char *s, size_t slen)
+static ssize_t u_sqlncpy_decode(char *d, const char *s, size_t slen)
 {
     int c, last = 0;
+    ssize_t wr = 0;
 
     for(; slen; --slen)
     {
@@ -168,16 +172,17 @@ static int u_sqlncpy_decode(char *d, const char *s, size_t slen)
         } else {
             *d++ = c;
             last = c;
+            wr++;
         }
     }
     *d = 0;
 
-    return 0;
+    return ++wr;
 err:
-    return ~0;
+    return -1;
 }
 
-int u_sqlncpy(char *d, const char *s, size_t slen, int flags)
+ssize_t u_sqlncpy(char *d, const char *s, size_t slen, int flags)
 {
     switch(flags)
     {
@@ -188,14 +193,16 @@ int u_sqlncpy(char *d, const char *s, size_t slen, int flags)
     default:
         strncpy(d, s, slen);
         d[slen] = 0;
+        return slen + 1;
     }
 
-    return 0;
+    return -1;
 }
 
-static int u_urlncpy_encode(char *d, const char *s, size_t slen)
+static ssize_t u_urlncpy_encode(char *d, const char *s, size_t slen)
 {
     const char hexc[] = "0123456789ABCDEF";
+    ssize_t wr = 0;
     int c;
 
     for(; slen; --slen)
@@ -203,33 +210,37 @@ static int u_urlncpy_encode(char *d, const char *s, size_t slen)
         c = *s++;
         if(c == ' ') {
             *d++ = '+';
+            wr++;
         } else if(isalnum(c) || c == '_' || c == '-' || c == '.') {
             *d++ = c;
+            wr++;
         } else {
             *d++ = '%';                                        
             *d++ = hexc[(c >> 4) & 0xF];             
             *d++ = hexc[c & 0xF];  
+            wr += 3;
         }
     }
     *d = 0;
 
-    return 0;
+    return ++wr;
 err:
-    return ~0;
+    return -1;
 }
 
-static int u_urlncpy_decode(char *d, const char *s, size_t slen)
+static ssize_t u_urlncpy_decode(char *d, const char *s, size_t slen)
 {
     short c;
+    ssize_t wr = 0;
 
-    for(; slen; --slen)
+    for(; slen; --slen, ++wr)
     {
         c = *s++;
         if(c == '%')
         {
             dbg_err_if(slen < 2 || !isxdigit(s[0]) || !isxdigit(s[1]));
             c = htoi(s[0]) << 4 | htoi(s[1]);
-            dbg_err_if(c == 0);
+            //dbg_err_if(c == 0);
             *d++ = (char)c;
             s += 2;
             slen -= 2;
@@ -241,14 +252,14 @@ static int u_urlncpy_decode(char *d, const char *s, size_t slen)
     }
     *d = 0;
 
-    return 0;
+    return ++wr;
 err:
-    return ~0;
+    return -1;
 
 }
 
 /* d must be at least slen+1 size long */
-int u_urlncpy(char *d, const char *s, size_t slen, int flags)
+ssize_t u_urlncpy(char *d, const char *s, size_t slen, int flags)
 {
     switch(flags)
     {
@@ -259,17 +270,19 @@ int u_urlncpy(char *d, const char *s, size_t slen, int flags)
     default:
         strncpy(d, s, slen);
         d[slen] = 0; /* zero-term the string */
+        return slen + 1;
     }
 
-    return 0;
+    return -1;
 }
 
-static int u_htmlncpy_encode(char *d, const char *s, size_t slen)
+static ssize_t u_htmlncpy_encode(char *d, const char *s, size_t slen)
 {
     struct html_entities_s *p;
     const char *map[256];
     size_t elen;
     int c;
+    ssize_t wr = 0;
 
     /* build the map table (could be static but it wouldn't be thread-safe) */
     memset(map, 0, sizeof(map));
@@ -282,6 +295,7 @@ static int u_htmlncpy_encode(char *d, const char *s, size_t slen)
         if(map[c] == NULL)
         {
             *d++ = c;   /* this char doesn't need encoding */
+            wr++;
             --slen;
         } else {
             elen = strlen(map[c]);
@@ -290,23 +304,23 @@ static int u_htmlncpy_encode(char *d, const char *s, size_t slen)
             strncpy(d, map[c], slen); /* append the entity */
             slen -= elen;
             d += elen;
+            wr += elen;
         }
     }
     *d = 0;
 
-    return 0;
+    return ++wr;
 err:
-    return ~0;
+    return -1;
 }
 
-static int u_htmlncpy_decode(char *d, const char *s, size_t bufsz)
+static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
 {
     struct html_entities_s *p;
     char *found, *after;
 
-    dbg_err_if(bufsz < strlen(s) + 1);
-
-    strncpy(d, s, bufsz);
+    strncpy(d, s, slen);
+    d[slen] = 0;
 
     for(p = entities; p->s_char; ++p)
     {
@@ -318,9 +332,9 @@ static int u_htmlncpy_decode(char *d, const char *s, size_t bufsz)
         }
     }
 
-    return 0;
+    return 1 + strlen(d);
 err:
-    return ~0;
+    return -1;
 }
 
 int u_htmlncpy(char *d, const char *s, size_t slen, int flags)
@@ -334,9 +348,10 @@ int u_htmlncpy(char *d, const char *s, size_t slen, int flags)
     default:
         strncpy(d, s, slen);
         d[slen] = 0; /* zero-term */
+        return slen + 1;
     }
 
-    return 0;
+    return -1;
 }
 
 /* case insensitive strstr */

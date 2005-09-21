@@ -76,6 +76,9 @@ static ssize_t gzip_transform(codec_gzip_t *iz, char *dst, size_t *dcount,
     consumed = src_sz - iz->zstr.avail_in;  /* consumed */
     *dcount = *dcount - iz->zstr.avail_out; /* written */
 
+    //if(consumed == 0 && *dcount == 0)
+     //   dbg("gzip_trans: consumed && written == 0");
+
     return consumed; /* # of consumed input bytes */
 err:
     dbg("%s", zError(iz->err));

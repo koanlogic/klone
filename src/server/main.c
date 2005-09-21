@@ -80,6 +80,8 @@ int app_init()
     if(ctx->debug)
         config_print(ctx->config, 0);
 
+    dbg_err_if(modules_init(ctx));
+
     return 0;
 err:
     if(io)
@@ -90,6 +92,8 @@ err:
 
 int app_term()
 {
+    modules_term(ctx);
+
     if(ctx && ctx->config)
     {
         config_free(ctx->config);

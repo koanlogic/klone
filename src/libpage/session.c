@@ -315,8 +315,8 @@ int session_prv_save_var(var_t *v, io_t *out)
         dbg_err_if(nbuf == NULL);
 
         /* encode name & value */
-        dbg_err_if(u_urlncpy(vbuf, value, strlen(value), URLCPY_ENCODE));
-        dbg_err_if(u_urlncpy(nbuf, name, strlen(name), URLCPY_ENCODE));
+        dbg_err_if(u_urlncpy(vbuf, value, strlen(value), URLCPY_ENCODE) <= 0);
+        dbg_err_if(u_urlncpy(nbuf, name, strlen(name), URLCPY_ENCODE) <= 0);
 
         io_printf(out, "%s=%s\n", nbuf, vbuf);
 
@@ -367,8 +367,11 @@ int session_create(config_t *config, request_t *rq, response_t *rs,
     if(!config_get_subkey(config, "max_age", &c))
         max_age = MAX(atoi(config_get_value(c))*60, 60); /* min value: 1 min */
 
-    if(session_age(ss) > max_age)
+    dbg_ifb(session_age(ss) > max_age)
+    {
         session_clean(ss); /* remove all session variables */
+        session_remove(ss); /* remove all session variables */
+    }
 
     *pss = ss;
 
@@ -378,6 +381,17 @@ err:
         session_free(ss);
     return ~0;
 }
+
+int session_module_init(void)
+{
+    return 0;
+}
+
+int session_module_term(void)
+{
+    return 0;
+}
+
 
 
 /**
