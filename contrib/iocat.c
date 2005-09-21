@@ -101,7 +101,7 @@ int main(int argc, char **argv)
         dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &fi));
      
     if(fi)
-        dbg_err_if(io_set_codec(in, fi));
+        dbg_err_if(io_set_codec(out, fi));
 
     while((c = io_pipe(out, in)) > 0)
          ;
