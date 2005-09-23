@@ -6,6 +6,9 @@ export makl_conf_h=`pwd`/conf.h
 
 . ${MAKL_DIR}/cf/makl.init
 
+# Preprocess arguments
+makl_args_init "$@"
+
 # Custom functions
 os_detect () {
     rsname=`uname -rs | tr [A-Z] [a-z] | sed -e 's/ //'`
@@ -22,16 +25,13 @@ os_detect () {
             makl_set_var_h      "OS_UNIX"
             makl_set_var_h      "CONFIG_SERVER_MODEL" "CONFIG_SERVER_FORK" 1
 
-            # library dependenciwes
+            # library dependencies
             makl_require        "lib"       "pthread"
             makl_require        "lib"       "ssl"
-            # define HAVE_OPENSSL if HAVE_LIBSSL is defined
-            [ -n `makl_get "HAVE_LIBSSL"` ] && makl_set_var "HAVE_OPENSSL"
         ;;
     esac
 }
 
-makl_add_var_mk "CFLAGS" "-DHAVE_CONF_H" 
 
 # Handlers
 _makl_enable_debug () {
@@ -55,6 +55,7 @@ makl_set                "__debug__"
 makl_set                "__prog__"  "klone"
 makl_add_var_mk         "CFLAGS"    "-W -Wall -Wpointer-arith -Wno-uninitialized"\
 " -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wshadow"
+makl_add_var_mk         "CFLAGS"    "-DHAVE_CONF_H"
 
 # Binary dependencies
 makl_feature_x          "doxygen"
@@ -73,5 +74,6 @@ makl_func_strerror_r
 # Handle command-line arguments
 makl_args_handle "$@"
 
+[ -z `makl_get_var_mk "HAVE_LIBSSL"` ] || makl_set_var "HAVE_OPENSSL"
 
 . ${MAKL_DIR}/cf/makl.term
