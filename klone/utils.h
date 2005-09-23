@@ -59,6 +59,9 @@ char *u_stristr(const char *string, const char *sub);
 enum { URLCPY_VERBATIM, URLCPY_ENCODE, URLCPY_DECODE };
 ssize_t u_urlncpy(char *dst, const char *src, size_t slen, int flags);
 
+enum { HEXCPY_VERBATIM, HEXCPY_ENCODE, HEXCPY_DECODE };
+ssize_t u_hexncpy(char *dst, const char *src, size_t slen, int flags);
+
 enum { HTMLCPY_VERBATIM, HTMLCPY_ENCODE, HTMLCPY_DECODE };
 ssize_t u_htmlncpy(char *dst, const char *src, size_t slen, int flags);
 

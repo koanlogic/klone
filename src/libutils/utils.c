@@ -116,7 +116,7 @@ int u_foreach_dir_item(const char *path, unsigned int mask,
 
     return 0;
 err:
-    return RET_ERR_FAILURE;
+    return ~0;
 }
 
 /* hex char to int */
@@ -267,6 +267,67 @@ ssize_t u_urlncpy(char *d, const char *s, size_t slen, int flags)
         return u_urlncpy_encode(d, s, slen);
     case URLCPY_DECODE:
         return u_urlncpy_decode(d, s, slen);
+    default:
+        strncpy(d, s, slen);
+        d[slen] = 0; /* zero-term the string */
+        return slen + 1;
+    }
+
+    return -1;
+}
+
+static int u_hex2ch(char c)
+{
+    if(c >= 'a' && c <= 'z') 
+        return c - 'a' + 10;
+    else if(c >= 'A' && c <= 'Z')
+        return c - 'A' + 10;
+    else if(c >= '0' && c <= '9') 
+        return c - '0';
+    else
+        return -1; /* error */
+}
+
+static ssize_t u_hexncpy_decode(char *d, const char *s, size_t slen)
+{
+	size_t c, i, t;
+
+    /* slen must be multiple of 2 */
+    dbg_err_if((slen % 2) != 0);
+
+	for(i = 0, t = 0; i < slen; ++t, i += 2)
+        d[t] = (u_hex2ch(s[i]) << 4) | u_hex2ch(s[i+1]); 
+
+    d[t] = 0; /* zero-term */
+
+    return ++t;
+err:
+    return -1;
+}
+
+static ssize_t u_hexncpy_encode(char *d, const char *s, size_t slen)
+{
+	size_t c, i, t;
+
+	for(i = 0, t = 0; i < slen; ++i, t += 2)
+	{
+		c = s[i];
+        d[t]   = u_tochex((c >> 4) & 0x0F);
+        d[t+1] = u_tochex(c & 0x0F);
+	}
+    d[t] = 0; /* zero-term */
+
+    return ++t;
+}
+
+ssize_t u_hexncpy(char *d, const char *s, size_t slen, int flags)
+{
+    switch(flags)
+    {
+    case HEXCPY_ENCODE:
+        return u_hexncpy_encode(d, s, slen);
+    case HEXCPY_DECODE:
+        return u_hexncpy_decode(d, s, slen);
     default:
         strncpy(d, s, slen);
         d[slen] = 0; /* zero-term the string */
@@ -631,6 +692,7 @@ void u_tohex(char *hex, const char *src, size_t sz)
         hex[t]   = u_tochex((c >> 4) & 0x0F);
         hex[t+1] = u_tochex(c & 0x0F);
 	}
+    hex[t] = 0; /* zero-term */
 }
 
 int u_md5(char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ])
