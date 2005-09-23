@@ -69,8 +69,8 @@ extern const char *WARN_LABEL;
  */
 #define msg_err_if(label, expr) do { msg_ifb(label, expr) goto err; } while(0)
 
-#define msg_err_ifm(label, expr, text) \
-    do { if( (expr) ) { msg(label, text); goto err; } } while(0)
+#define msg_err_ifm(label, expr, args...) \
+    do { if( (expr) ) { msg(label, args); goto err; } } while(0)
 
 #define msg_err_sif(label, expr) \
     do { msg_ifb(label, expr) { msg_strerror(label, errno); goto err; } } while(0)
@@ -127,7 +127,7 @@ extern const char *WARN_LABEL;
 #define warn_if(expr)                   msg_if(WARN_LABEL, expr) 
 #define warn_return_if(expr, err)       msg_return_if(WARN_LABEL, expr, err)
 #define warn_err_if(expr)               msg_err_if(WARN_LABEL, expr)
-#define warn_err_ifm(expr, msg)         msg_err_ifm(WARN_LABEL, expr, msg)
+#define warn_err_ifm(expr, args...)     msg_err_ifm(WARN_LABEL, expr, args)
 #define warn_goto_if(expr, gt)          msg_goto_if(WARN_LABEL, expr, gt)
 #define warn_strerror(errno)            msg_strerror(WARN_LABEL, errno)
 
@@ -141,7 +141,7 @@ extern const char *WARN_LABEL;
     #define dbg_return_sif(expr, err)   msg_return_sif(DEBUG_LABEL, expr, err)
     #define dbg_err_if(expr)            msg_err_if(DEBUG_LABEL, expr)
     #define dbg_err_sif(expr)           msg_err_sif(DEBUG_LABEL, expr)
-    #define dbg_err_ifm(expr, msg)      msg_err_ifm(DEBUG_LABEL, expr, msg)
+    #define dbg_err_ifm(expr, args...)  msg_err_ifm(DEBUG_LABEL, expr, args)
     #define dbg_goto_if(expr, gt)       msg_goto_if(DEBUG_LABEL, expr, gt)
     #define dbg_strerror(errno)         msg_strerror(DEBUG_LABEL, errno)
     /* simple debugging timing macros */
@@ -166,7 +166,7 @@ extern const char *WARN_LABEL;
     #define dbg_return_if(expr, err)    do { if( (expr) ) return err; } while(0)
     #define dbg_err_if(expr)            do { if( (expr)) goto err; } while(0)
     #define dbg_err_sif(expr)           do { if( (expr)) goto err; } while(0)
-    #define dbg_err_ifm(expr, msg)      do { if( (expr)) goto err; } while(0)
+    #define dbg_err_ifm(expr, args...)  do { if( (expr)) goto err; } while(0)
     #define dbg_goto_if(expr, gt)       do { if((expr)) goto gt; } while(0)
     #define dbg_strerror(errno)         dbg_nop()
     #define TIMER_ON
