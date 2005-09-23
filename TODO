@@ -1,3 +1,15 @@
+    remove broker stuff
+
+    u_hexncpy() x HMAC_DATA
+
+    session id nell'HMAC
+
+    clises g_key
+
+    makl_set_var in conf.h di tipo int (non "int")
+
+    documentare che le clisession funzionano solo settando le variabili prima
+    che l'header HTTP venga inviato...
 
 changelog: 
     - deflate raw encoding used instead of zlib format
@@ -130,16 +142,22 @@ documentazione:
     - sito sezione cxh:
         + what is cxh
         + features
-            + content embedding
-            + C/C++ dynamic HTML pages
-            + intellectual property
+            = embedded static content (any file)
+            = embedded C/C++ dynamic HTML pages
+            = static content compression and encryption
+            = server-side and client-side sessions
+            = easy C script programming interfaces
+            = ROMable binary
+            = intellectual property protection
+            = portable
+            = ...
         + portability
         + license
         + support (free [mailing list] e commercial)
         + bug report
         + pricing
-        + download?
-        + online demo (qui c'e' da inventarsi qualcosa da presentare)
+        + download 
+        + online demo?
         + faq
         + API reference
         + tutorial

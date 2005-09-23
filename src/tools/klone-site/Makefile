@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2005/09/14 20:30:35 tat Exp $
+# $Id: Makefile,v 1.3 2005/09/23 16:08:58 tat Exp $
 include ../../../Makefile.conf
 
 PROG = klone-site
@@ -12,6 +12,7 @@ LDADD += ../../libtrans/libtrans.a  \
          ../../libpage/libpage.a    \
          ../../libutils/libutils.a  \
          ../../libemb/libemb.a      \
+         ../../libtls/libtls.a      \
          ../../libhttp/libhttp.a    \
          ../../../site/libsite.a
 

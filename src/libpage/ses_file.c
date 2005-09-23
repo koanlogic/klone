@@ -66,7 +66,7 @@ static int session_file_remove(session_t *ss)
     return 0;
 }
 
-int session_file_create(config_t *config, request_t *rq, response_t *rs, 
+int session_file_create(session_opt_t *so, request_t *rq, response_t *rs, 
         session_t **pss)
 {
     session_t *ss = NULL;
@@ -80,28 +80,17 @@ int session_file_create(config_t *config, request_t *rq, response_t *rs,
     ss->save = session_file_save;
     ss->remove = session_file_remove;
     ss->term = session_file_term;
-
-    if((session_path = config_get_subkey_value(config, "file.path")) == NULL)
-    {
-    #ifdef OS_WIN
-        char path[MAX_PATH];
-        GetTempPath(MAX_PATH, path);
-        session_path = path;
-    #else
-        session_path = "/tmp";
-    #endif
-    }
+    ss->so = so;
 
     dbg_err_if(session_prv_init(ss, rq, rs));
 
     dbg_err_if(u_path_snprintf(ss->filename, PATH_MAX, "%s/klone_sess_%s", 
-        session_path, ss->id));
+        so->path, ss->id));
 
     if(stat(ss->filename, &st))
         ss->mtime = time(0); /* file not found or err */
     else
         ss->mtime = st.st_mtime;
-
 
     *pss = ss;
 
@@ -112,3 +101,25 @@ err:
     return ~0;
 
 }
+
+int session_file_module_term(session_opt_t *so)
+{
+    return 0;
+}
+
+int session_file_module_init(config_t *config, session_opt_t *so)
+{
+    const char *v;
+
+    if((v = config_get_subkey_value(config, "file.path")) == NULL)
+    {
+    #ifdef OS_WIN
+        GetTempPath(PATH_MAX, so->path);
+    #else
+        strcpy(so->path, "/tmp");
+    #endif
+    }
+
+    return 0;
+}
+

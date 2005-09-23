@@ -1,9 +1,9 @@
-# $Id: Makefile,v 1.2 2005/09/14 20:30:35 tat Exp $
+# $Id: Makefile,v 1.3 2005/09/23 16:08:58 tat Exp $
 
 include ../../Makefile.conf
 
 PROG = server
-SRCS = server.c main.c entry.c
+SRCS = server.c main.c entry.c modules_init.c modules_term.c
 
 CFLAGS += ${LIBSSL_CFLAGS} ${LIBZ_CFLAGS}
 LDFLAGS += ${LIBSSL_LDADD} ${LIBZ_LDADD}

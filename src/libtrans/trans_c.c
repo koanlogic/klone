@@ -81,7 +81,7 @@ static int push_code_block(lang_c_ctx_t *ctx, parser_t *p,
 err:
     if(node)
         free_code_block(node);
-    return RET_ERR_FAILURE;
+    return ~0;
 }
 
 static void print_header(parser_t *p, lang_c_ctx_t *ctx)
@@ -311,7 +311,7 @@ static int cb_code_block(parser_t* p, int cmd, void *arg, const char* buf,
 	}
     return 0;
 err:
-    return RET_ERR_FAILURE;
+    return ~0;
 }
 
 /* translate a opaque file to a C unsigned char array */
@@ -345,7 +345,7 @@ int translate_opaque_to_c(io_t *in, io_t *out, trans_info_t *ti)
 
     return 0;
 err:
-    return RET_ERR_FAILURE;
+    return ~0;
 }
 
 int translate_script_to_c(io_t *in, io_t *out, trans_info_t *ti)
@@ -392,5 +392,5 @@ err:
     free_code_blocks(&ctx);
     if(p)
         parser_free(p);
-    return RET_ERR_FAILURE;
+    return ~0;
 }

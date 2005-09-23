@@ -4,6 +4,6 @@
 #include <klone/os.h>
 #include "conf.h"
 
-enum return_e { RET_ERR_NONE, RET_ERR_FAILURE };
+#define KLONE_VERSION "1.0"
 
 #endif

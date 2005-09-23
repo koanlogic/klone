@@ -29,5 +29,5 @@ int run_page(const char *fqn, request_t *rq, response_t *rs)
 err:
     if(d)
         do_free(d);
-    return RET_ERR_FAILURE;
+    return 1;
 }

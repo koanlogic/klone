@@ -152,7 +152,7 @@ err:
     return ~0;
 }
 
-int session_mem_create(config_t *config, request_t *rq, response_t *rs, 
+int session_mem_create(session_opt_t *so, request_t *rq, response_t *rs, 
         session_t **pss)
 {
     session_t *ss = NULL;
@@ -165,6 +165,7 @@ int session_mem_create(config_t *config, request_t *rq, response_t *rs,
     ss->remove = session_mem_remove;
     ss->term = session_mem_term;
     ss->mtime = time(0);
+    ss->so = so;
 
     dbg_err_if(session_prv_init(ss, rq, rs));
 

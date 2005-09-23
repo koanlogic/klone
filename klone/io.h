@@ -4,6 +4,10 @@
 #include <sys/types.h>
 #include <klone/codec.h>
 
+#ifdef HAVE_CONFIG_H
+#include "conf.h"
+#endif
+
 #ifdef HAVE_OPENSSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>

@@ -14,8 +14,81 @@
 #include <klone/ses_prv.h>
 #include "conf.h"
 
+#ifdef HAVE_OPENSSL
+#include <openssl/hmac.h>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
+#endif
+
 enum { DEFAULT_SESSION_EXPIRATION = 60*20 }; /* 20 minutes */
 static const char SID_NAME[] = "klone_sid";
+
+
+int session_module_term(session_opt_t *so)
+{
+    dbg(__FUNCTION__);
+
+    if(so)
+        u_free(so);
+
+    return 0;
+}
+
+int session_module_init(config_t *config, session_opt_t **pso)
+{
+    session_opt_t *so = NULL;
+    config_t *c;
+    const char *v;
+    int max_age;
+
+    dbg(__FUNCTION__);
+
+    so = u_calloc(sizeof(session_opt_t));
+    dbg_err_if(so == NULL);
+
+    /* defaults values */
+    so->type = SESSION_TYPE_FILE;
+    so->max_age = DEFAULT_SESSION_EXPIRATION;
+
+    if(config_get_subkey(config, "session", &c))
+    {
+        /* no 'session' subsection, defaults will be used */
+        *pso = so;
+        return 0; 
+    }
+
+    /* set session type */
+    if((v = config_get_subkey_value(c, "type")) != NULL)
+    {
+        if(!strcasecmp(v, "memory")) {
+            so->type = SESSION_TYPE_MEMORY;
+        } else if(!strcasecmp(v, "file")) {
+            so->type = SESSION_TYPE_FILE;
+        #ifdef HAVE_OPENSSL
+        } else if(!strcasecmp(v, "client")) {
+            so->type = SESSION_TYPE_CLIENT;
+        #endif
+        } else
+            warn_err("config error: bad session type");
+    }
+
+    /* set max_age */
+    if((v = config_get_subkey_value(c, "max_age")) != NULL)
+        max_age = MAX(atoi(v) * 60, 60); /* min value: 1 min */
+
+    /* per-type configuration init */
+    if(so->type == SESSION_TYPE_CLIENT)
+        dbg_err_if(session_client_module_init(c, so));
+
+    *pso = so;
+
+    return 0;
+err:
+    if(so)
+        u_free(so);
+    return ~0;
+}
+
 
 /** 
  *  \ingroup Chttp
@@ -229,7 +302,6 @@ err:
 int session_age(session_t *ss)
 {
     time_t now;
-    struct stat st;
 
     now = time(0);
 
@@ -334,40 +406,32 @@ err:
     return ~0;
 }
 
-int session_create(config_t *config, request_t *rq, response_t *rs, 
+int session_create(session_opt_t *so, request_t *rq, response_t *rs, 
     session_t **pss)
 {
-    const char *session_driver = NULL;
-    config_t *c = NULL;
     session_t *ss = NULL;
-    int max_age;
 
-    dbg_err_if(config == NULL || rq == NULL || rs == NULL || pss == NULL);
+    dbg_err_if(so == NULL || rq == NULL || rs == NULL || pss == NULL);
 
-    session_driver = config_get_subkey_value(config, "driver");
-    if(session_driver && strcasecmp(session_driver, "memory") == 0)
-    {   /* store sessions in memory */
-        dbg_err_if(session_mem_create(config, rq, rs, &ss));
-    } else if(session_driver && strcasecmp(session_driver, "file") == 0) {
-        /* store sessions in the file system */
-        dbg_err_if(session_file_create(config, rq, rs, &ss));
-    #ifdef HAVE_LIBSSL
-    } else if(session_driver && strcasecmp(session_driver, "client") == 0) {
-        /* client-side sessions */
-        dbg_err_if(session_client_create(config, rq, rs, &ss));
-    #endif
-    } else
-        warn_err("config error: bad or missing session driver");
+    switch(so->type)
+    {
+    case SESSION_TYPE_FILE:
+        dbg_err_if(session_file_create(so, rq, rs, &ss));
+        break;
+    case SESSION_TYPE_MEMORY:
+        dbg_err_if(session_mem_create(so, rq, rs, &ss));
+        break;
+    case SESSION_TYPE_CLIENT:
+        dbg_err_if(session_client_create(so, rq, rs, &ss));
+        break;
+    default:
+        warn_err("bad session type");
+    }
 
     /* may fail if session does not exist */
     session_load(ss);
 
-    /* check if the session has expired */
-    max_age = DEFAULT_SESSION_EXPIRATION;
-    if(!config_get_subkey(config, "max_age", &c))
-        max_age = MAX(atoi(config_get_value(c))*60, 60); /* min value: 1 min */
-
-    dbg_ifb(session_age(ss) > max_age)
+    dbg_ifb(session_age(ss) > so->max_age)
     {
         session_clean(ss); /* remove all session variables */
         session_remove(ss); /* remove all session variables */
@@ -381,17 +445,6 @@ err:
         session_free(ss);
     return ~0;
 }
-
-int session_module_init(void)
-{
-    return 0;
-}
-
-int session_module_term(void)
-{
-    return 0;
-}
-
 
 
 /**

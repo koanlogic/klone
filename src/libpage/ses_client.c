@@ -16,16 +16,11 @@
 #include <klone/codgzip.h>
 #include <openssl/hmac.h>
 #include <openssl/evp.h>
+#include <openssl/rand.h>
 
 #define KL1_CLISES_DATA     "KL1_CLISES_DATA"
 #define KL1_CLISES_MTIME    "KL1_CLISES_MTIME"
 #define KL1_CLISES_HMAC     "KL1_CLISES_HMAC"
-
-enum { HMAC_KEY_SIZE = 128 };
-static char g_key[HMAC_KEY_SIZE];   /* HMAC secret key                  */
-static HMAC_CTX gs_hmac_ctx;        /* HMAC context                     */ 
-static HMAC_CTX *g_hmac_ctx = &gs_hmac_ctx; /* HMAC context ptr         */ 
-static int g_compress;              /* >0 if compression is requested   */
 
 static int session_calc_maxsize(var_t *v, size_t *psz)
 {
@@ -54,6 +49,7 @@ static int session_client_save(session_t *ss)
     char bhmac[EVP_MAX_MD_SIZE], hmac[1000 + (EVP_MAX_MD_SIZE*3)];
     int bhmac_len;
     char ebuf[COOKIE_MAX_SIZE];
+    session_opt_t *so = ss->so;
 
     if(vars_count(ss->vars) == 0)
         return 0; /* nothing to save */
@@ -68,7 +64,7 @@ static int session_client_save(session_t *ss)
     /* create a big-enough in-memory io object */
     dbg_err_if(io_mem_create(buf, sz, 0, &io));
 
-    if(g_compress)
+    if(so->compress)
     {
         dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &zip));
         dbg_err_if(io_set_codec(io, (codec_t*)zip));
@@ -88,11 +84,11 @@ static int session_client_save(session_t *ss)
 
     /* TODO encrypt buf if requested  */
 
-    /* url-encode the buffer */
+    /* hex-encode the buffer */
     warn_err_ifm(blen > COOKIE_MAX_SIZE, 
                 "session data too big for client-side sessions");
 
-    dbg_err_if(u_urlncpy(ebuf, buf, blen, URLCPY_ENCODE) <= 0);
+    dbg_err_if(u_hexncpy(ebuf, buf, blen, URLCPY_ENCODE) <= 0);
 
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_DATA, ebuf, 0, NULL, 
         NULL, 0));
@@ -102,14 +98,15 @@ static int session_client_save(session_t *ss)
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_MTIME, mtime, 0, NULL, 
         NULL, 0));
 
-    /* calc HMAC hash of the data buf + mtime */
-    HMAC_Init_ex(g_hmac_ctx, NULL, 0, NULL, NULL); /* reuse stored key and md */
-    HMAC_Update(g_hmac_ctx, ebuf, strlen(ebuf));
-    HMAC_Update(g_hmac_ctx, mtime, strlen(mtime));
-    HMAC_Final(g_hmac_ctx, bhmac, &bhmac_len);
+    /* calc HMAC hash of the data buf + mtime (reuse stored key and md) */
+    HMAC_Init_ex(&so->hmac_ctx, NULL, 0, NULL, NULL); 
+    HMAC_Update(&so->hmac_ctx, ebuf, strlen(ebuf));
+    HMAC_Update(&so->hmac_ctx, ss->id, strlen(ss->id));
+    HMAC_Update(&so->hmac_ctx, mtime, strlen(mtime));
+    HMAC_Final(&so->hmac_ctx, bhmac, &bhmac_len);
 
-    /* encode the hash */
-    dbg_err_if(u_urlncpy(hmac, bhmac, bhmac_len, URLCPY_ENCODE) <= 0);
+    /* encode tso->he hash */
+    dbg_err_if(u_hexncpy(hmac, bhmac, bhmac_len, URLCPY_ENCODE) <= 0);
 
     /* store the hash in a cookie */
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_HMAC, hmac, 0, NULL, 
@@ -129,12 +126,13 @@ err:
 static int session_client_load(session_t *ss)
 {
     io_t *io = NULL;
-    char *cli_ebuf, *cli_hmac, *cli_mtime;
+    const char *cli_ebuf, *cli_hmac, *cli_mtime;
     char bhmac[EVP_MAX_MD_SIZE], hmac[1 + (EVP_MAX_MD_SIZE*3)],
         buf[COOKIE_MAX_SIZE]; 
     codec_gzip_t *zip = NULL;
     int bhmac_len;
     ssize_t c;
+    session_opt_t *so = ss->so;
 
     /* extract session data, mtime and hmac from cookies */
     cli_ebuf = request_get_cookie(ss->rq, KL1_CLISES_DATA);
@@ -143,20 +141,21 @@ static int session_client_load(session_t *ss)
 
     dbg_err_if(cli_ebuf == NULL || cli_mtime == NULL || cli_hmac == NULL);
 
-    /* calc HMAC hash of the data buf + mtime */
-    HMAC_Init_ex(g_hmac_ctx, NULL, 0, NULL, NULL); /* reuse stored key and md */
-    HMAC_Update(g_hmac_ctx, cli_ebuf, strlen(cli_ebuf));
-    HMAC_Update(g_hmac_ctx, cli_mtime, strlen(cli_mtime));
-    HMAC_Final(g_hmac_ctx, bhmac, &bhmac_len);
+    /* calc HMAC hash of the data buf + mtime (reuse stored key and md) */
+    HMAC_Init_ex(&so->hmac_ctx, NULL, 0, NULL, NULL); 
+    HMAC_Update(&so->hmac_ctx, cli_ebuf, strlen(cli_ebuf));
+    HMAC_Update(&so->hmac_ctx, ss->id, strlen(ss->id));
+    HMAC_Update(&so->hmac_ctx, cli_mtime, strlen(cli_mtime));
+    HMAC_Final(&so->hmac_ctx, bhmac, &bhmac_len);
 
     /* encode the hash */
-    dbg_err_if(u_urlncpy(hmac, bhmac, bhmac_len, URLCPY_ENCODE) <= 0);
+    dbg_err_if(u_hexncpy(hmac, bhmac, bhmac_len, URLCPY_ENCODE) <= 0);
 
     /* compare HMACs */
     if(strcmp(hmac, cli_hmac))
     {
         session_remove(ss); /* remove all bad stale data */
-        warn_err("HMAC don't matching, rejecting session data");
+        warn_err("HMAC don't match, rejecting session data");
     }
 
     /* hash ckeched not decode/uncompress/decrypt session data */
@@ -166,14 +165,16 @@ static int session_client_load(session_t *ss)
 
     dbg_err_if(strlen(cli_ebuf) > COOKIE_MAX_SIZE);
 
-    /* url decode session data */
-    dbg_err_if((c = u_urlncpy(buf, cli_ebuf, strlen(cli_ebuf), 
+    /* hex decode session data */
+    dbg_err_if((c = u_hexncpy(buf, cli_ebuf, strlen(cli_ebuf), 
         URLCPY_DECODE)) <= 0);
+
+    c--; /* ignore last '\0' that hexncpy adds */
 
     /* create an in-memory io object to read from */
     dbg_err_if(io_mem_create(buf, c, 0, &io));
 
-    if(g_compress)
+    if(so->compress)
     {
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &zip));
         dbg_err_if(io_set_codec(io, (codec_t*)zip));
@@ -194,8 +195,6 @@ err:
 
 static int session_client_term(session_t *ss)
 {
-    /* nothing to do */
-    ss = ss;
     return 0;
 }
 
@@ -214,7 +213,7 @@ err:
     return ~0;
 }
 
-int session_client_create(config_t *config, request_t *rq, response_t *rs, 
+int session_client_create(session_opt_t *so, request_t *rq, response_t *rs, 
         session_t **pss)
 {
     session_t *ss = NULL;
@@ -227,6 +226,7 @@ int session_client_create(config_t *config, request_t *rq, response_t *rs,
     ss->remove = session_client_remove;
     ss->term = session_client_term;
     ss->mtime = time(0);
+    ss->so = so;
 
     dbg_err_if(session_prv_init(ss, rq, rs));
 
@@ -242,55 +242,57 @@ err:
 }
 
 /* this function will be called once by the server during startup */
-int session_client_module_init(config_t *config)
+int session_client_module_init(config_t *config, session_opt_t *so)
 {
-    const char *algo, *compress, *crypt;
-    const EVP_MD *md;      /* HMAC hash algorithm              */
-    config_t *sk;
+    config_t *c;
+    const char *v;
 
-    config_get_subkey(config, "server.httpd.session", &sk); // FIXME
-    config = sk;
+    dbg(__FUNCTION__);
 
-    algo = config_get_subkey_value(config, "hash_function");
-    if(algo)
+    /* defaults */
+    so->compress = 0;
+    so->encrypt = 0;
+    so->hash = EVP_sha1(); 
+    so->cipher = NULL;
+
+    dbg_err_if(config_get_subkey(config, "client", &c));
+
+    if((v = config_get_subkey_value(c, "hash_function")) != NULL)
     {
-        if(strcasecmp(algo, "md5") == 0)
-            md = EVP_md5();
-        else if(strcasecmp(algo, "sha1") == 0)
-            md = EVP_sha1();
-        else if(strcasecmp(algo, "ripemd160") == 0)
-            md = EVP_ripemd160();
+        if(!strcasecmp(v, "md5"))
+            so->hash = EVP_md5();
+        else if(!strcasecmp(v, "sha1"))
+            so->hash = EVP_sha1();
+        else if(!strcasecmp(v, "ripemd160"))
+            so->hash = EVP_ripemd160();
         else
             warn_err("config error: bad hash_function");
-    } else
-        md = EVP_md5(); /* default */
+    } 
 
-    compress = config_get_subkey_value(config, "compress");
-    if(compress)
+    if((v = config_get_subkey_value(c, "compress")) != NULL)
     {
-        if(strcasecmp(compress, "yes") == 0)
-            g_compress = 1;
-        else if(strcasecmp(compress, "no") == 0)
-            g_compress = 0;
+        if(!strcasecmp(v, "yes"))
+            so->compress = 1;
+        else if(!strcasecmp(v, "no"))
+            so->compress = 0;
         else
             warn_err("config error: bad compress value");
     }
-    crypt = config_get_subkey_value(config, "encrypt");
-    if(crypt)
-    {
 
+    if((v = config_get_subkey_value(c, "encrypt")) != NULL)
+    {
+        ; // TODO
     }
 
     /* initialize OpenSSL HMAC stuff */
-    HMAC_CTX_init(g_hmac_ctx);
+    HMAC_CTX_init(&so->hmac_ctx);
 
-    // TODO gen key
-    int i;
-    for(i = 0; i < HMAC_KEY_SIZE; ++i)
-            g_key[i] = i;
+    /* gen HMAC key */
+    dbg_err_if(!RAND_bytes(so->hmac_key, HMAC_KEY_SIZE));
+    dbg_err_if(!RAND_bytes(so->cipher_key, CIPHER_KEY_SIZE));
 
     /* init HMAC with our key and chose hash algorithm */
-    HMAC_Init_ex(g_hmac_ctx, g_key, HMAC_KEY_SIZE, md, NULL);
+    HMAC_Init_ex(&so->hmac_ctx, so->hmac_key, HMAC_KEY_SIZE, so->hash, NULL);
 
     return 0;
 err:

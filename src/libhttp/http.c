@@ -8,12 +8,14 @@
 #include <klone/broker.h>
 #include <klone/str.h>
 #include <klone/request.h>
+#include <klone/ses_prv.h>
 #include <klone/response.h>
 #include <klone/backend.h>
 #include <klone/io.h>
 #include <klone/config.h>
 #include <klone/timer.h>
 #include <klone/tls.h>
+#include <klone/ses_prv.h>
 #include "conf.h"
 
 #ifdef HAVE_OPENSSL
@@ -22,6 +24,23 @@
 #endif 
 
 enum { HTTP_DEFAULT_IDLE_TIMEOUT = 10 };
+
+struct http_s 
+{
+    config_t *config;       /* server config                                 */
+    broker_t *broker;       /* pages broker                                  */
+    int ssl;                /* >0 when SSL is enabled                        */
+#ifdef HAVE_OPENSSL
+    SSL_CTX* ssl_ctx;       /* OpenSSL context                               */
+#endif
+    /* toplevel configuration options */
+    const char *server_sig; /* server signature                              */
+    const char *dir_root;   /* base html directory                           */
+    const char *index;      /* user-provided index page                      */
+    int idle_timeout;       /* max # of secs the server wait for the request */
+    /* session options struct                        */
+    session_opt_t *sess_opt;
+};
 
 struct http_status_map_s
 {
@@ -53,19 +72,17 @@ struct http_status_map_s
 /* in cgi.c */
 int cgi_set_request(request_t *rq);
 
-struct http_s 
+session_opt_t *http_get_session_opt(http_t* http)
 {
-    config_t *config;       /* server config                                 */
-    broker_t *broker;       /* pages broker                                  */
-    int ssl;                /* >0 when SSL is enabled                        */
-#ifdef HAVE_OPENSSL
-    SSL_CTX* ssl_ctx;       /* OpenSSL context                               */
-#endif
-    int idle_timeout;       /* max # of secs the server wait for the request */
-};
+    dbg_return_if(!http, NULL);
+
+    return http->sess_opt;
+}
 
 config_t *http_get_config(http_t* http)
 {
+    dbg_return_if(!http, NULL);
+
     return http->config;
 }
 
@@ -86,15 +103,14 @@ int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
     static const char *WP = " \t";
     config_t *config;
     int i;
-    const char *value, *dir_root;
+    const char *value;
     char *src, *res, *v = NULL,*pp = NULL;
 
     /* for each dir_alias config item */
     for(i = 0; !config_get_subkey_nth(h->config, "dir_alias", i, &config); ++i)
     {
-        value = config_get_value(config);
-        if(!value)
-            continue;
+        if((value = config_get_value(config)) == NULL)
+            continue; /* empty key */
 
         /* otherwise strtok_r will modify it */
         v = u_strdup(value);
@@ -124,10 +140,7 @@ int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
     }
 
     /* prepend dir_root */
-    if((dir_root = config_get_subkey_value(h->config, "dir_root")) == NULL)
-        dir_root = "";
-            
-    dbg_err_if(u_path_snprintf(dst, sz, "%s/%s", dir_root, filename));
+    dbg_err_if(u_path_snprintf(dst, sz, "%s/%s", h->dir_root, filename));
 
     return 0;
 err:
@@ -172,13 +185,13 @@ static int http_set_index_request(http_t *h, request_t *rq)
 {
     static const char *indexes[] = { "/index.klone", "/index.kl1",
         "/index.html", "/index.htm", NULL };
-    const char **pg, *idx_page, *uri;;
+    const char **pg;
     char resolved[PATH_MAX];
 
     /* user provided index page list (FIXME add list support) */
-    if((idx_page = config_get_subkey_value(h->config, "index")) == NULL)
+    if(h->index == NULL)
     {   
-        /* try to find an index page between default index uri */
+        /* try to find an index page between default index uris */
         for(pg = indexes; *pg; ++pg)
         {
             resolved[0] = 0;  /* for valgrind's happyness */
@@ -195,7 +208,7 @@ static int http_set_index_request(http_t *h, request_t *rq)
         if(*pg == NULL) /* no index found, set index.html (will return 404 ) */
             dbg_if(request_set_filename(rq, "/index.html"));
     } else
-        dbg_if(request_set_filename(rq, idx_page));
+        dbg_if(request_set_filename(rq, h->index));
 
     http_resolv_request(h, rq);
 
@@ -204,16 +217,10 @@ static int http_set_index_request(http_t *h, request_t *rq)
 
 static int http_add_default_header(http_t *h, response_t *rs)
 {
-    config_t *config;
-    const char *v, *server_sig = "klone/1.0";
     time_t now;
 
     /* set server signature */
-    config = h->config;
-    if(config && ( v = config_get_subkey_value(config, "server_sig")) != NULL)
-        server_sig = v;
-
-    dbg_err_if(response_set_field(rs, "Server", server_sig));
+    dbg_err_if(response_set_field(rs, "Server", h->server_sig));
 
     now = time(NULL);
     dbg_err_if(response_set_date(rs, now));
@@ -227,9 +234,9 @@ err:
 static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
 {
     enum { BUFSZ = 64 };
-    int  status, rc;
     const char *err_page;
     char buf[BUFSZ];
+    int  status;
 
     /* add default header fields */
     dbg_err_if(http_add_default_header(h, rs));
@@ -399,6 +406,38 @@ err:
     return ~0;
 }
 
+static int http_set_config_opt(http_t *http)
+{
+    config_t *c = http->config;
+    const char *v;
+
+    /* defaults */
+    http->idle_timeout = HTTP_DEFAULT_IDLE_TIMEOUT;
+    http->server_sig = "klone/" KLONE_VERSION;
+    http->dir_root = "";
+    http->index = NULL;
+
+    /* idle_timeout */
+    if((v = config_get_subkey_value(c, "idle_timeout")) != NULL)
+        http->idle_timeout = MAX(1, atoi(v));
+
+    /* server signature */
+    if((v = config_get_subkey_value(c, "server_sig")) != NULL)
+        http->server_sig = v;
+
+    /* html dir root */
+    if((v = config_get_subkey_value(c, "dir_root")) != NULL)
+        http->dir_root = v;
+
+    if((v = config_get_subkey_value(c, "index")) != NULL)
+        http->index = v;
+
+    return 0;
+err:
+    return ~0;
+}
+
+
 static int http_create(config_t *config, http_t **ph)
 {
     http_t *h = NULL;
@@ -414,6 +453,9 @@ static int http_create(config_t *config, http_t **ph)
 
     h->config = config;
     h->broker = broker;
+
+    /* set http struct config opt reading from http->config */
+    dbg_err_if(http_set_config_opt(h));
 
     *ph = h;
 
@@ -443,24 +485,25 @@ int http_backend_term(struct backend_s *be)
 {
     http_t *http = (http_t*)be->arg;
 
+    dbg_err_if(session_module_term(http->sess_opt));
+
     http_free(http);
 
     return 0;
+err:
+    return ~0;
 }
 
 int http_backend_init(struct backend_s *be)
 {
     http_t *http;
     broker_t *broker;
-    const char *it;
 
     dbg_err_if(http_create(be->config, &http));
 
-    http->idle_timeout = HTTP_DEFAULT_IDLE_TIMEOUT;
-    if((it = config_get_subkey_value(http->config, "idle_timeout")) != NULL)
-        http->idle_timeout = MAX(1, atoi(it));
-
     be->arg = http;
+
+    dbg_err_if(session_module_init(http->config, &http->sess_opt));
 
     return 0;
 err:
@@ -489,6 +532,8 @@ int https_backend_init(struct backend_s *be)
     dbg_err_if (tls_load_ctx_args(http_get_config(https), &cargs));
     dbg_err_if (!(https->ssl_ctx = tls_init_ctx(cargs)));
 
+    dbg_err_if(session_module_init(https->config, &https->sess_opt));
+
     return 0;
 err:
     return ~0;
@@ -498,20 +543,24 @@ int https_backend_term(struct backend_s *be)
 {
     http_t *https = (http_t*)be->arg;
 
+    dbg_err_if(session_module_term(https->sess_opt));
+
     SSL_CTX_free(https->ssl_ctx);
 
     return http_backend_term(be); 
+err:
+    return ~0;
 }
 
 /* same http functions but different '_init' */
-backend_t https =
+backend_t be_https =
     BACKEND_STATIC_INITIALIZER( "https", 
         https_backend_init, 
         http_backend_serve, 
         https_backend_term );
 #endif
 
-backend_t http =
+backend_t be_http =
     BACKEND_STATIC_INITIALIZER( "http", 
         http_backend_init, 
         http_backend_serve, 

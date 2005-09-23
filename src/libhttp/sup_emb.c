@@ -6,9 +6,11 @@
 #include <klone/io.h>
 #include <klone/debug.h>
 #include <klone/page.h>
+#include <klone/http.h>
 #include <klone/utils.h>
 #include <klone/emb.h>
 #include <klone/codgzip.h>
+#include <klone/ses_prv.h>
 
 static int supemb_is_valid_uri(const char* uri, size_t len, time_t *mtime)
 {
@@ -82,16 +84,15 @@ err:
 static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
 {
     session_t *ss = NULL;
-    config_t *c = NULL, *config = NULL;
     http_t *http = NULL;
+    session_opt_t *so;
 
-    /* get the config object */
-    dbg_err_if((http = request_get_http(rq)) == NULL || 
-               (config = http_get_config(http)) == NULL);
+    /* get session options */
+    dbg_err_if((http = request_get_http(rq)) == NULL);
+    dbg_err_if((so = http_get_session_opt(http)) == NULL);
 
     /* create/get the session */
-    dbg_err_if(config_get_subkey(config, "session", &c));
-    dbg_err_if(session_create(c, rq, rs, &ss));
+    dbg_err_if(session_create(so, rq, rs, &ss));
 
     /* set some default values */
     dbg_err_if(response_set_content_type(rs, "text/html"));

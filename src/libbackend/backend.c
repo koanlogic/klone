@@ -5,16 +5,16 @@
 #include <klone/config.h>
 #include "conf.h"
 
-extern backend_t http;
+extern backend_t be_http;
 
 #ifdef HAVE_OPENSSL
-extern backend_t https;
+extern backend_t be_https;
 #endif
 
 backend_t *backend_list[] = { 
-    &http, 
+    &be_http, 
     #ifdef HAVE_OPENSSL
-    &https, 
+    &be_https, 
     #endif
     0 };
 

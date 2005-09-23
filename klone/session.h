@@ -8,7 +8,6 @@
 struct session_s;
 typedef struct session_s session_t;
 
-int session_create(config_t *, request_t*, response_t*, session_t**);
 int session_free(session_t*);
 int session_remove(session_t*);
 int session_clean(session_t*);

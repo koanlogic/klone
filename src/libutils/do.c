@@ -27,7 +27,7 @@ err:
         dbg(dlerror());
         do_free(d);
     }
-    return RET_ERR_FAILURE;
+    return ~0/
 
 }
 
@@ -54,13 +54,13 @@ int do_sym(do_t *d, const char *sym, void **pptr)
     return 0;
 err:
     dbg(dlerror());
-    return RET_ERR_FAILURE;
+    return ~0;
 }
 
 #else
 int do_load(const char *fqn, do_t **pd)
 {
-    return RET_ERR_FAILURE;
+    return ~0;
 }
 
 void do_free(do_t *d)
@@ -69,7 +69,7 @@ void do_free(do_t *d)
 
 int do_sym(do_t *d, const char *sym, void **pptr)
 {
-    return RET_ERR_FAILURE;
+    return ~0;
 }
 
 #endif

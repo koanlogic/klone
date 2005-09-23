@@ -428,7 +428,8 @@ int server_create(config_t *config, int model, server_t **ps)
         dbg_err_if(s->nserver == SERVER_MAX_BACKENDS);
 
         /* get config tree of this backend */
-        dbg_err_if(config_get_subkey(server_key, name, &bekey));
+        warn_err_ifm(config_get_subkey(server_key, name, &bekey),
+            "missing [%s] backend configuration", name);
 
         type = config_get_subkey_value(bekey, "type");
         dbg_err_if(type == NULL);

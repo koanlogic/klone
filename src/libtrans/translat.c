@@ -131,7 +131,7 @@ static int cb_pre_code_block(parser_t* p, int cmd, void *arg, const char* buf,
     }
     return 0;
 err:
-    return RET_ERR_FAILURE;
+    return ~0;
 }
 
 static int preprocess(io_t *in, io_t *out)

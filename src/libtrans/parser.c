@@ -185,7 +185,7 @@ int parser_run(parser_t *p)
 
     return 0;
 err:
-    return RET_ERR_FAILURE;
+    return ~0;
 }
 
 void parser_set_cb_code(parser_t *p, parser_cb_code_t cb)
@@ -240,7 +240,7 @@ int parser_create(parser_t **pt)
 err:
     if(p)
         parser_free(p);
-    return RET_ERR_FAILURE;
+    return ~0;
 
 }
 
