@@ -28,7 +28,14 @@ enum {
 };
 
 /* hmac and cipher key size */
-enum { HMAC_KEY_SIZE = 64, CIPHER_KEY_SIZE = 64 };
+enum { 
+    HMAC_KEY_SIZE = 64, 
+    #ifdef HAVE_OPENSSL
+    CIPHER_KEY_SIZE = EVP_MAX_KEY_LENGTH, CIPHER_IV_SIZE = EVP_MAX_IV_LENGTH
+    #else
+    CIPHER_KEY_SIZE = 64, CIPHER_IV_SIZE = 64
+    #endif
+ };
 
 /* session runtime parameters */
 typedef struct session_opt_s
@@ -41,9 +48,12 @@ typedef struct session_opt_s
 #ifdef HAVE_OPENSSL
     HMAC_CTX hmac_ctx;  /* openssl HMAC context                      */
     const EVP_MD *hash; /* client-side session HMAC hash algorithm   */
-    const void *cipher; /* encryption cipher algorithm               */
+    const EVP_CIPHER *cipher; /* encryption cipher algorithm         */
     char hmac_key[HMAC_KEY_SIZE]; /* session HMAC secret key         */
-    char cipher_key[CIPHER_KEY_SIZE];  /*cipher secret key           */
+    char cipher_key[CIPHER_KEY_SIZE];   /* cipher secret key         */
+    char cipher_iv[CIPHER_IV_SIZE];     /* cipher Init Vector        */
+    EVP_CIPHER_CTX cipher_enc_ctx;      /* encrypt context           */
+    EVP_CIPHER_CTX cipher_dec_ctx;      /* decrypt context           */
 #endif
     char path[PATH_MAX + 1]; /* session save path                    */
 } session_opt_t;

@@ -26,8 +26,6 @@ static const char SID_NAME[] = "klone_sid";
 
 int session_module_term(session_opt_t *so)
 {
-    dbg(__FUNCTION__);
-
     if(so)
         u_free(so);
 
@@ -40,8 +38,6 @@ int session_module_init(config_t *config, session_opt_t **pso)
     config_t *c;
     const char *v;
     int max_age;
-
-    dbg(__FUNCTION__);
 
     so = u_calloc(sizeof(session_opt_t));
     dbg_err_if(so == NULL);
