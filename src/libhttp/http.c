@@ -441,18 +441,15 @@ err:
 static int http_create(config_t *config, http_t **ph)
 {
     http_t *h = NULL;
-    broker_t *broker = NULL;
 
     dbg_err_if(!config || !ph);
 
     h = u_calloc(sizeof(http_t));
     dbg_err_if(h == NULL);
 
-    /* init page broker (and page suppliers) */
-    dbg_err_if(broker_create(&broker));
-
     h->config = config;
-    h->broker = broker;
+    /* init page broker (and page suppliers) */
+    dbg_err_if(broker_create(&h->broker));
 
     /* set http struct config opt reading from http->config */
     dbg_err_if(http_set_config_opt(h));
@@ -462,11 +459,7 @@ static int http_create(config_t *config, http_t **ph)
     return 0;
 err:
     if(h)
-    {
-        if(h->broker)
-            broker_free(h->broker);
         http_free(h);
-    }
     return ~0;
 }
 
@@ -485,6 +478,9 @@ int http_backend_term(struct backend_s *be)
 {
     http_t *http = (http_t*)be->arg;
 
+    if(http == NULL)
+        return 0;
+
     dbg_err_if(session_module_term(http->sess_opt));
 
     http_free(http);
@@ -496,8 +492,8 @@ err:
 
 int http_backend_init(struct backend_s *be)
 {
-    http_t *http;
-    broker_t *broker;
+    http_t *http = NULL;
+    broker_t *broker = NULL;
 
     dbg_err_if(http_create(be->config, &http));
 
@@ -542,6 +538,9 @@ err:
 int https_backend_term(struct backend_s *be)
 {
     http_t *https = (http_t*)be->arg;
+
+    if(https == NULL)
+        return 0;
 
     dbg_err_if(session_module_term(https->sess_opt));
 

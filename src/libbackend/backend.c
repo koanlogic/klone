@@ -34,7 +34,7 @@ int backend_create(const char *proto, config_t *config, backend_t **pbe)
             memcpy(be, *pp, sizeof(backend_t));
             be->config = config;
             if(be->cb_init)
-                be->cb_init(be);
+                dbg_err_if(be->cb_init(be));
             *pbe = be;
             return 0;
         }
@@ -45,7 +45,7 @@ int backend_create(const char *proto, config_t *config, backend_t **pbe)
     return 0;
 err:
     if(be)
-        backend_free(be);
+        u_free(be);
     return ~0;
 }
 

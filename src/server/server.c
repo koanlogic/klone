@@ -376,8 +376,8 @@ err:
 int server_create(config_t *config, int model, server_t **ps)
 {
     server_t *s = NULL;
-    config_t *server_key = NULL, *bekey;
-    backend_t *be;
+    config_t *server_key = NULL, *bekey = NULL;
+    backend_t *be = NULL;
     const char *list, *type;
     char *n = NULL, *name = NULL;
     int i;
