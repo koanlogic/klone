@@ -1,15 +1,16 @@
+    parent<->child communication for:
+        - logging
+        - saving in memory sessions
+        - shared decryption key setup (child(set_key.kl1)->parent)
+
+    incremental nonce nella sessione?
+
     remove broker stuff
-
-    u_hexncpy() x HMAC_DATA
-
-    session id nell'HMAC
-
-    clises g_key
 
     makl_set_var in conf.h di tipo int (non "int")
 
     documentare che le clisession funzionano solo settando le variabili prima
-    che l'header HTTP venga inviato...
+    che l'header HTTP venga inviato (vedi rsfilter)...
 
 changelog: 
     - deflate raw encoding used instead of zlib format
