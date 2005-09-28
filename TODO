@@ -1,16 +1,12 @@
-    parent<->child communication for:
+    - parent<->child communication for:
         - logging
         - saving in memory sessions
         - shared decryption key setup (child(set_key.kl1)->parent)
 
-    incremental nonce nella sessione?
+    - remove broker stuff
 
-    remove broker stuff
-
-    makl_set_var in conf.h di tipo int (non "int")
-
-    documentare che le clisession funzionano solo settando le variabili prima
-    che l'header HTTP venga inviato (vedi rsfilter)...
+    - documentare che le clisession funzionano solo settando le variabili prima
+      che l'header HTTP venga inviato (vedi rsfilter)...
 
 changelog: 
     - deflate raw encoding used instead of zlib format
@@ -40,7 +36,7 @@ win32:
     - static pages encryption
 
     - session:
-        + client-side session data (zip>encrypt>HMAC>b64e>cookie_1..N)?
+        + client-side session: multi cookie data for large (>4095b) sessions
         + in-memory session for fork-based server
           (io_create("mem://localhost/path/cxhd_sess_MD5", ...);
         + session.compress  yes|no
