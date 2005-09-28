@@ -26,7 +26,7 @@ context_t  *ctx = &c; /* exported */
 static void usage()
 {
     fprintf(stderr, 
-        "Usage: server [-f config_file] [-d]                    \n"
+        "Usage: kloned [-f config_file] [-d]                    \n"
         "          -d                    turn on debugging      \n"
         "          -F                    run in foreground      \n"
         #ifdef OS_WIN

@@ -56,7 +56,7 @@ int app_init()
     dbg_err_if(config_create(&ctx->config));
 
     /* get the io associated to the embedded configuration file (if any) */
-    dbg_if(u_emb_open("/etc/server.conf", &io));
+    dbg_if(u_emb_open("/etc/kloned.conf", &io));
 
     /* load the embedded config */
     if(io)

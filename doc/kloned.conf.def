@@ -1,0 +1,48 @@
+my_cert   kloned-cert.pem
+dir_root  /www
+
+server
+{
+    list                  httpd httpsd
+
+    ### HTTP web server config ###
+    httpd
+    {
+        type            http            # http or https
+        addr.type       IPv4            
+        addr.port       4567
+        dir_root        ${dir_root}
+        idle_timeout    10
+        session
+        {
+            max_age     10 
+            type file           # memory | file | client
+
+            # client-side session config values
+            client.hash_function    sha1
+            client.encrypt          yes
+            client.compress         no
+
+            # in-memory sessions config values
+            memory.mem_limit        100 
+            memory.max_count        100
+
+            # file sessions config values
+            file.path               /tmp
+        }
+    }
+
+    ### HTTP/S web server config ###
+    httpsd
+    {
+        type            https
+        addr.type       IPv4
+        addr.port       4443
+        dir_root        ${dir_root}
+        certchain_file  ${my_cert}
+    }
+}
+
+
+
+

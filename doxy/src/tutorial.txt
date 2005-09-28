@@ -20,7 +20,7 @@ subsections. For more detail on functions and parameters please refer to
 \par
 First of all, lets create a plain static HTML page. Start by editing a file
 called <a href="index_8kl1-example.html">index.kl1</a> within the configured 
-<em>www</em> directory (in <tt>etc/server.conf</tt>):
+<em>www</em> directory (in <tt>etc/kloned.conf</tt>):
 
 \code
     <!-- index.kl1 -->
@@ -48,7 +48,7 @@ called <a href="index_8kl1-example.html">index.kl1</a> within the configured
 Check that this test page works by following the 
 <a href="misc.html">compilation procedure</a> and running the server. Open a web 
 browser and enter <em>http://host:port</em>, where <em>port</em> is defined in 
-<tt>etc/server.conf</tt>, and <em>host</em> is the hostname or IP address 
+<tt>etc/kloned.conf</tt>, and <em>host</em> is the hostname or IP address 
 (<tt>localhost</tt> if running the application locally).
 
 \par
