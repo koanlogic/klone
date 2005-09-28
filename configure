@@ -50,12 +50,14 @@ makl_args_def   "enable_profile"    "" ""   "enables profiling"
 makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
 
 # General settings
+makl_pkg_name           "klone"
+makl_pkg_version
+
 os_detect
-makl_set                "__debug__" 
-makl_set                "__prog__"  "klone"
-makl_add_var_mk         "CFLAGS"    "-W -Wall -Wpointer-arith -Wno-uninitialized"\
-" -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wshadow"
-makl_add_var_mk         "CFLAGS"    "-DHAVE_CONF_H"
+
+makl_add_var_mk     "CFLAGS"    "-W -Wall -Wpointer-arith -Wno-uninitialized" \
+                                "-Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wshadow" \
+                                "-DHAVE_CONF_H"
 
 # Binary dependencies
 makl_feature_x          "doxygen"
