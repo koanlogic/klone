@@ -1,1 +1,102 @@
-.\" $Id: klone.1,v 1.1 2005/09/20 08:27:22 tho Exp $
+.\" $Id: klone.1,v 1.2 2005/09/28 19:53:41 tho Exp $
+.TH "KLONE" "1" "09/28/2005" "KoanLogic Srl" "KoanLogic Srl"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "NAME"
+klone \- KLone swiss army knife
+.SH "SYNOPSIS"
+.HP 6
+\fBklone\fR [\fB\ klone_opts\ \fR] [\fB\ cmd\ \fR] [\fB\ cmd_opts\ \fR] [\fB\ cmd_args\ \fR]
+.SH "DESCRIPTION"
+.PP
+\fBklone\fR
+performs two different tasks depending on the argument supplied to the
+\fB\-c\fR
+switch: import a site directory tree into the KLone building environment, or translate static and dynamic pages into C files.
+.PP
+The translation phase is rarely seen by the user since it is hidden in the Makefile of the site building directory, i.e.
+\fI${KLONE_SRC_DIR}/site\fR. Generally, the developer gets an embedded version of his/her site by providing the following command sequence:
+.sp
+.nf
+    $ cd ${KLONE_SRC_DIR}/site
+    $ ../src/tools/klone/klone \-c import ${SITE_BASE_DIR}
+    $ make
+.fi
+.sp
+The latter
+\fBmake\fR
+invocation calls
+\fB'klone \-c translate'\fR
+over the imported files to perform the needed translation and registering (pre\-linking).
+.PP
+The subsequent phase, by which the embedded site is linked to the
+\fBkloned\fR
+server skeleton, does not involve
+\fBklone\fR
+anymore. Anyway it is given here for reference:
+.sp
+.nf
+    $ cd ${KLONE_SRC_DIR}
+    $ make
+.fi
+.sp
+.PP
+Altro ?
+.SH "OPTIONS"
+.TP
+\-h
+Display a brief help and exit.
+.TP
+\-v
+Enable verbose mode.
+.TP
+\-V
+Print klone version and exit.
+.SH "COMMANDS"
+.HP 6
+\fBklone\fR \fB\ \-c\ translate\ \fR [\fB\ \-i\ infile\ \fR] [\fB\ \-o\ outfile\ \fR] [\fB\ \-u\ uri\ \fR]
+.PP
+Translate the active (\fI.klone\fR) or static page
+\fIinfile\fR
+into the C file
+\fIoutfile\fR. If
+\fB\-u\fR
+is given, the URI
+\fIuri\fR
+is associated to the translated file. Standard input and output are used respectively if no
+\fIinfile\fR
+or
+\fIoutfile\fR
+are given.
+.HP 6
+\fBklone\fR \fB\ \-c\ import\ \fR [\fB\ \-b\ uri\ \fR] \fB\ dir\ \fR
+.PP
+Import the site tree starting at
+\fIdir\fR
+into the KLone building environment. The command output comprises two makefiles (\fIautogen.mk\fR
+and
+\fIautogen.dps\fR) and the
+\fIregister.c\fR
+file which will gather the imported and translated site files. The latter file is the glue by which the embedded site can afterwards be linked to the HTTP/S server.
+.SH "DIAGNOSTICS"
+.PP
+The
+\fBklone\fR
+utility exits with
+\fBEXIT_SUCCESS\fR
+on success, and with
+\fBEXIT_FAILURE\fR
+if an error occurs.
+.SH "SEE ALSO"
+.PP
+\fBkloned\fR(8),
+\fBkloned.conf\fR(5).
+.SH "BUGS"
+.PP
+If you find one, please email it to
+<klone\-bugs@koanlogic.com>
+.SH "AUTHOR"
+.PP
+KoanLogic Srl (http://www.koanlogic.com).

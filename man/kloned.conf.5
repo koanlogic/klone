@@ -1,1 +1,170 @@
-.\" $Id: kloned.conf.5,v 1.1 2005/09/20 08:27:22 tho Exp $
+.\" $Id: kloned.conf.5,v 1.2 2005/09/28 19:53:41 tho Exp $
+.TH "KLONED.CONF" "5" "09/28/2005" "KoanLogic Srl" "KoanLogic Srl"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "NAME"
+kloned.conf \- The configuration file for the kloned daemon
+.SH "SYNOPSIS"
+.PP
+\fIkloned.conf\fR
+is the configuration file for the
+\fBkloned\fR(8)
+daemon, i.e. it contains its runtime configuration information. The complete description of the file format and possibile parameters therein, is provided for reference in the following sections.
+.SH "FILE FORMAT"
+.PP
+The file consists of sections and parameters. A section begins with the name of the section, is followed by a '{' and continues until the corresponding '}' is found. Sections can contain subsections or parameter assignements of the form:
+\fIname \fR\fIvalue\fR.
+.PP
+The file is line\-based \- that is, each newline\-terminated line represents either a comment, a section name or a parameter.
+.PP
+Section and parameter names are case sensitive.
+.PP
+Leading, trailing and internal whitespace in section and parameter names is irrelevant. Leading and trailing whitespace in a parameter value is discarded. Internal whitespace within a parameter value is retained verbatim.
+.PP
+Any line beginning with a hash ('#') character is ignored, as well as lines containing only whitespace.
+.PP
+Any line ending in a '\\' is continued on the next line in the customary UNIX fashion.
+.PP
+The value following the equals sign in parameters must be either a string (no quotes needed) or a boolean, which may be given as yes/no, 0/1 or true/false. Case is not significant in boolean values, but is preserved in string values.
+.PP
+It is also possible to use variable substitution which allows you to define a symbol name to be replaced by an arbitrary text string, with the classic bottom\-up scoping.
+.SH "NAMES AND VALUES"
+.PP
+Basically, you have an activation record for each running
+\fBkloned\fR(8)
+instance: each instance implements an access method to the embedded data. The two access methods currently implemented are HTTP and HTTPS.
+.PP
+For the sake of simplicity, the available options are grouped into three categories: those of general applicability (GENERAL), those which trim the per\-session behaviour of the
+\fBkloned\fR(8)
+server (SESSION), and those specific to HTTP over SSL/TLS sessions (SSL/TLS).
+.SS "GENERAL"
+.TP
+\fBtype\fR
+The access method used by this
+\fBkloned\fR(8)
+instance: at present
+\fIHTTP\fR
+or
+\fIHTTPS\fR. This parameter is
+\fImandatory\fR.
+.TP
+\fBaddr.type\fR
+The protocol family (IPv4, IPv6, UNIX) of the interface socket. At present
+\fIIPv4\fR
+is the only value supported. The default value ...
+.TP
+\fBaddr.port\fR
+The TCP port at which this instance is accepting connections. The default value is the standard HTTP server port, 80.
+.TP
+\fBdir_root\fR
+The top level directory under which this server's instance keeps the site data. The default value is
+\fI/\fR.
+.TP
+\fBerror.404\fR
+Path of the file which will be displayed on a 'file not found' event. The default value is ...
+.TP
+\fBserver_sig\fR
+Set the server signature string. The default value is
+klone/1.0
+.TP
+\fBidle_timeout\fR
+Set the maximum number of seconds the server waits for an HTTP request. The default value is 10 seconds.
+.SS "SESSION"
+.PP
+The session variables are gathered into an ad hoc
+\fBsession\fR
+subsection of an HTTP or HTTPS activation record.
+.TP
+\fBdriver\fR
+Specify where to store session data:
+\fImemory\fR
+for the host volatile memory,
+\fIfile\fR
+for the host file system,
+\fIclient\fR
+for storing data on the client. This parameter is
+\fImandatory\fR.
+.TP
+\fBmax_age\fR
+Specify the session life\-time in seconds. The default value is 60*20 seconds (20 minutes).
+.TP
+\fBmemory.mem_limit\fR
+TODO
+.TP
+\fBmemory.max_count\fR
+TODO
+.TP
+\fBfile.path\fR
+Specify where to store session data when the
+\fIfile\fR
+driver is in use. The default value depends on the host platform: on
+UNIX(TM)
+it is
+\fI/tmp\fR, on
+Windows(TM)
+a system auto\-generated path.
+.SS "SSL/TLS"
+.TP
+\fBcert_file\fR
+PEM\-encoded certificate file for the server and optionally also its corresponding RSA or DSA Private Key file (contained in the same file). The certificate should be configured with the Common Name matching the fully qualified domain name of the server. This parameter is
+\fImandatory\fR.
+.TP
+\fBkey_file\fR
+PEM\-encoded private key file for the server. If the private key is not combined with the certificate in the
+\fBcert_file\fR, use this additional directive to point to the file with the stand\-alone private key. When
+\fBcert_file\fR
+is used and the file contains both the certificate and the private key this directive need not be used. However, such practice is strongly discouraged. Instead the certificate should be separated from the private key. By default the value of
+\fBcert_file\fR
+is used.
+.TP
+\fBcertchain_file\fR
+Optional all\-in\-one file where you can assemble the certificates of Certification Authorities (CA) which form the certificate chain of the server certificate. This starts with the issuing CA certificate of the server certificate and can range up to the root CA certificate. Such a file is simply the concatenation of the various PEM\-encoded CA Certificate files, usually in certificate chain order. This is intended for instance for the Verisign Global\-ID situation where one
+\fIhas\fR
+to send the intermediate CA of Verisign with the GID while one wants to avoid that under client authentication all clients issued by this CA are accepted, which would happen when one references the CA cert via
+\fBca_file\fR.
+.TP
+\fBca_file\fR
+All\-in\-one file where you can assemble the certificates of Certification Authorities (CA) for all certificates expected from clients. These are used for Client authentication. Such a file is simply the concatenation of the various PEM\-encoded certificate files, in order of preference. It is mandatory when
+\fBverify_mode\fR
+is
+\fIrequired\fR.
+.TP
+\fBdh_file\fR
+PEM\-encoded file containing Diffie\-Hellman parameters to be used on session data negotiation phase. When missing a default set of 1024\-bit DH parameters is used. Note that RSA ephemeral parameters are always created automatically.
+.TP
+\fBverify_depth\fR
+This directive sets how deeply openssl should verify before deciding that the clients don't have a valid certificate. The depth actually is the maximum number of intermediate certificate issuers, i.e. the max number of CA certificates which are allowed to be followed while verifying the client certificate. A depth of 0 means that only self\-signed client certificates are accepted, the default depth of 1 means the client certificate can be self\-signed or has to be signed by a CA which is directly known to the server, i.e. the CA's certificate is under
+\fBca_file\fR, etc.
+.TP
+\fBverify_mode\fR
+This directive sets the certificate verification level for the Client authentication. The following values are available:
+.RS
+.TP
+\fBNO\fR
+no client certificate is required at all
+.TP
+\fBOPTIONAL\fR
+the client may present a valid certificate
+.TP
+\fBREQUIRED\fR
+the client has to present a valid certificate
+.RE
+.IP
+.sp
+Note that optional makes sense only in testing scenarios. The default value is
+\fBNO\fR.
+.SH "SEE ALSO"
+.PP
+\fBklone\fR(1),
+\fBkloned\fR(8).
+.PP
+The standard
+KLone
+software distribution contains a complete and carefully annotated
+\fIkloned\-sample.conf\fR
+file which can be used as a reference.
+.SH "AUTHOR"
+.PP
+KoanLogic Srl (http://www.koanlogic.com).
