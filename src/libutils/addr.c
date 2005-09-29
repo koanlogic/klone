@@ -1,5 +1,8 @@
+#include "conf.h"
 #include <stdlib.h>
+#ifdef HAVE_STDINT
 #include <stdint.h>
+#endif /* HAVE_STDINT */
 #include <klone/addr.h>
 #include <klone/debug.h>
 #include <klone/server.h>

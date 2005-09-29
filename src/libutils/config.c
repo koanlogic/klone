@@ -226,7 +226,7 @@ int config_load(config_t *c, io_t *io, int overwrite)
 {
     enum { MAX_NEST_LEV = 20 };
     string_t *line = NULL, *key = NULL, *lastkey = NULL, 
-             *sticky = NULL, *value = NULL;;
+             *sticky = NULL, *value = NULL;
     const char *ln, *p, *pv;
     size_t len;
     int level = 0, lineno = 1;

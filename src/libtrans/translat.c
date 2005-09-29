@@ -172,6 +172,8 @@ int translate(trans_info_t *pti)
     /* should choose the right translator based on file extensions or config */
     if(is_a_script(pti->file_in))
     {
+        char tname[PATH_MAX];
+
         /* get a temporary io_t */
         dbg_err_if(u_tmpfile_open(&tmp));
 
@@ -184,12 +186,10 @@ int translate(trans_info_t *pti)
         /* translate it */
         dbg_err_if(translate_script_to_c(tmp, out, pti));
 
-        /* free the tmp io and remove the tmp file */
-        char tname[PATH_MAX];
-
         /* get the filename of the temporary io_t */
         dbg_err_if(io_get_name(tmp, tname, PATH_MAX));
 
+        /* free the tmp io */
         io_free(tmp);
 
         /* remove the tmp file */

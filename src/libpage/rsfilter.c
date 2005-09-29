@@ -41,6 +41,8 @@ static ssize_t rf_transform(response_filter_t *rf,
         char *dst, size_t *dcount, 
         const char *src, size_t src_sz)
 {
+    size_t max;
+
     if(rf->state == RFS_BUFFERING)
     {
         if(rf->off + src_sz < RFBUFSZ)
@@ -69,7 +71,7 @@ static ssize_t rf_transform(response_filter_t *rf,
     }
 
     /* copyout the next data block */
-    size_t max = MIN(*dcount, src_sz);
+    max = MIN(*dcount, src_sz);
     memcpy(dst, src, max);
     *dcount = max;
     return max;

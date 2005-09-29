@@ -86,8 +86,8 @@ err:
 
 static void print_header(parser_t *p, lang_c_ctx_t *ctx)
 {
-    (void)ctx;
     const char *file;
+    (void)ctx;
 
     io_printf(p->out, "#include <klone/emb.h>\n");
 
