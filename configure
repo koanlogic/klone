@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.9 2005/09/29 15:35:03 tho Exp $
+# $Id: configure,v 1.10 2005/09/29 17:07:36 tho Exp $
 
 export makl_debug=1
 
@@ -40,17 +40,18 @@ case `makl_os_name` in
 
     *-*-mingw*)
         makl_set_var_h      "OS_WIN"
-        makl_set_var_h      "CONFIG_SERVER_MODEL" "CONFIG_SERVER_THREAD" 1
         makl_add_var_mk     "LIBS"      "-lwsock32 -L/c/WINDOWS" 
+        ;;
+
+    freebsd4*)
+        makl_set_var_h      "OS_UNIX"
+        makl_add_var_mk     "CFLAGS" "-pthread"
+        makl_require        "lib" "crypto"
         ;;
 
     *)
         makl_set_var_h      "OS_UNIX"
-        makl_set_var_h      "CONFIG_SERVER_MODEL" "CONFIG_SERVER_FORK" 1
-
-        # library dependencies
         makl_require        "lib"       "pthread"
-        makl_require        "lib"       "ssl"
         makl_require        "lib"       "crypto"
         ;;
 esac
@@ -78,14 +79,24 @@ makl_func_strerror_r
 makl_args_handle "$@"
 
 # Set HAVE_OPENSSL, OPENSSL_CFLAGS and OPENSSL_LDFLAGS
-if  [ -n `makl_get_var_mk "HAVE_LIBSSL"` ] && \
-    [ -n `makl_get_var_mk "HAVE_LIBCRYPTO"` ]; then
+if [ -n `makl_get_var_mk "HAVE_LIBCRYPTO"` ]; then
 
     makl_set_var "HAVE_OPENSSL"
     makl_set_var_mk "OPENSSL_LDFLAGS" \
-        "`makl_get_var_mk LIBSSL_LDFLAGS` `makl_get_var_mk LIBCRYPTO_LDFLAGS`"
+        "-lssl `makl_get_var_mk LIBCRYPTO_LDFLAGS`"
     makl_set_var_mk "OPENSSL_CFLAGS" \
-        "`makl_get_var_mk LIBSSL_CFLAGS` `makl_get_var_mk LIBCRYPTO_CFLAGS`"
+        "`makl_get_var_mk LIBCRYPTO_CFLAGS`"
+    # now remove dirty bits 
+    makl_unset_var_mk "HAVE_LIBCRYPTO"
+    makl_unset_var_mk "LIBCRYPTO_LDFLAGS"
+    makl_unset_var_mk "LIBCRYPTO_CFLAGS"
+fi
+
+# Set server model depending on OS_{UNIX,WIN}
+if [ -n `makl_get_var_mk "OS_UNIX"` ]; then
+    makl_set_var_h "CONFIG_SERVER_MODEL" "CONFIG_SERVER_FORK" 1
+else
+    makl_set_var_h "CONFIG_SERVER_MODEL" "CONFIG_SERVER_THREAD" 1
 fi
 
 . ${MAKL_DIR}/cf/makl.term
