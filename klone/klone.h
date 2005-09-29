@@ -4,6 +4,4 @@
 #include <klone/os.h>
 #include "conf.h"
 
-#define KLONE_VERSION "1.0"
-
 #endif
