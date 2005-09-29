@@ -7,6 +7,7 @@
 #include <time.h>
 #include <signal.h>
 #include <klone/str.h>
+#include <klone/debug.h>
 #include <klone/io.h>
 #include <klone/md5.h>
 #include <klone/os.h>
@@ -24,16 +25,8 @@
 
 #define KLONE_FREE(p) do {if (p) { free(p); p = NULL; }} while (0)
 
-#if 0
-#define err(args...) \
-    do { dbg(args); fprintf(stderr, args); fprintf(stderr, "\n"); } while(0)
-
-#define err_if(cond, args...) \
-    do { if(cond) err(args);  } while(0)
-#endif
-
 #define die(args...)  \
-    do { err(args); exit(EXIT_FAILURE); } while(0)
+    do { cmsg(args); exit(EXIT_FAILURE); } while(0)
 
 #define die_if(cond, args...)  \
     do { dbg_ifb(cond) die(args); } while(0)
