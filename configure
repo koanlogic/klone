@@ -83,7 +83,7 @@ if  [ -n `makl_get_var_mk "HAVE_LIBSSL"` ] && \
 
     makl_set_var "HAVE_OPENSSL"
     makl_set_var_mk "OPENSSL_LDFLAGS" \
-        "`makl_get_var_mk LIBSSL_LDADD` `makl_get_var_mk LIBCRYPTO_LDADD`"
+        "`makl_get_var_mk LIBSSL_LDFLAGS` `makl_get_var_mk LIBCRYPTO_LDFLAGS`"
     makl_set_var_mk "OPENSSL_CFLAGS" \
         "`makl_get_var_mk LIBSSL_CFLAGS` `makl_get_var_mk LIBCRYPTO_CFLAGS`"
 fi
