@@ -48,6 +48,7 @@ static void sigchld(int sig)
 int app_init()
 {
     io_t *io = NULL;
+    int cfg_found = 0;
 
     /* init embedded resources */
     emb_init();
@@ -60,10 +61,12 @@ int app_init()
 
     /* load the embedded config */
     if(io)
+    {
         dbg_err_if(config_load(ctx->config, io, 0));
-
-    io_free(io);
-    io = NULL;
+        cfg_found = 1;
+        io_free(io);
+        io = NULL;
+    }
 
     /* load the external (-f command line switch) config file */
     if(ctx->ext_config)
@@ -72,10 +75,14 @@ int app_init()
         dbg_err_if(u_file_open(ctx->ext_config, O_RDONLY, &io));
 
         dbg_err_if(config_load(ctx->config, io, 1 /* overwrite */));
+        cfg_found = 1;
 
         io_free(io);
         io = NULL;
     }
+
+    cmsg_err_ifm(cfg_found == 0, 
+        "missing config file (use -f file or embed /etc/kloned.conf");
 
     if(ctx->debug)
         config_print(ctx->config, 0);
