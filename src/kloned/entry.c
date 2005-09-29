@@ -48,8 +48,6 @@ static int parse_opt(int argc, char **argv)
         #define CMDLINE_FORMAT "hFdf:"
     #endif
 
-    dbg("argc: %d", argc);
-
     /* set defaults */
     ctx->daemon++;
 
