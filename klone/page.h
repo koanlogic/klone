@@ -1,6 +1,10 @@
 #ifndef _KLONE_PAGE_H_
 #define _KLONE_PAGE_H_
+
+#include "conf.h"
+#ifdef HAVE_STDINT
 #include <stdint.h>
+#endif /* HAVE_STDINT */
 #include <klone/queue.h>
 #include <klone/response.h>
 #include <klone/request.h>

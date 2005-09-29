@@ -1,8 +1,12 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
+
+#include "conf.h"
+#ifdef HAVE_STDINT
+#include <stdint.h>
+#endif /* HAVE_STDINT */
 #include <stdarg.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <limits.h>
 #include <time.h>
 #include <signal.h>

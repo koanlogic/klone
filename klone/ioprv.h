@@ -1,6 +1,10 @@
 #ifndef _KLONE_IO_PRV_H_
 #define _KLONE_IO_PRV_H_
+
+#include "conf.h"
+#ifdef HAVE_STDINT
 #include <stdint.h>
+#endif /* HAVE_STDINT */
 #include <klone/codec.h>
 
 /* functions used by io devices */
