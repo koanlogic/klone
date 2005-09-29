@@ -1,12 +1,12 @@
-# $Id: Makefile,v 1.1 2005/09/21 15:15:25 tat Exp $
+# $Id: Makefile,v 1.2 2005/09/29 12:11:09 tat Exp $
 
 include ../Makefile.conf
 
 PROG = iocat
 SRCS = iocat.c
 
-CFLAGS += ${LIBSSL_CFLAGS} ${LIBZ_CFLAGS}
-LDFLAGS += ${LIBSSL_LDADD} ${LIBZ_LDADD}
+CFLAGS += ${OPENSSL_CFLAGS} ${LIBZ_CFLAGS}
+LDFLAGS += ${OPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
 
 LDADD +=../src/libhttp/libhttp.a        \
         ../src/libutils/libutils.a      \
