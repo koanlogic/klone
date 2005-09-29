@@ -376,7 +376,7 @@ err:
 int server_create(config_t *config, int model, server_t **ps)
 {
     server_t *s = NULL;
-    config_t *server_key = NULL, *bekey = NULL;
+    config_t *bekey = NULL;
     backend_t *be = NULL;
     const char *list, *type;
     char *n = NULL, *name = NULL;
@@ -407,11 +407,8 @@ int server_create(config_t *config, int model, server_t **ps)
     /* init backend list */
     LIST_INIT(&s->bes);
     
-    /* get "server" subkey */
-    dbg_err_if(config_get_subkey(config, "server", &server_key));
-
     /* parse server list and build s->bes */
-    list = config_get_subkey_value(server_key, "list");
+    list = config_get_subkey_value(config, "server_list");
     dbg_err_if(list == NULL);
 
     name = n = u_calloc(strlen(list) + 1);
@@ -428,7 +425,7 @@ int server_create(config_t *config, int model, server_t **ps)
         dbg_err_if(s->nserver == SERVER_MAX_BACKENDS);
 
         /* get config tree of this backend */
-        warn_err_ifm(config_get_subkey(server_key, name, &bekey),
+        warn_err_ifm(config_get_subkey(config, name, &bekey),
             "missing [%s] backend configuration", name);
 
         type = config_get_subkey_value(bekey, "type");
