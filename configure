@@ -28,6 +28,7 @@ os_detect () {
             # library dependencies
             makl_require        "lib"       "pthread"
             makl_require        "lib"       "ssl"
+            makl_require        "lib"       "crypto"
         ;;
     esac
 }
@@ -76,6 +77,16 @@ makl_func_strerror_r
 # Handle command-line arguments
 makl_args_handle "$@"
 
-[ -z `makl_get_var_mk "HAVE_LIBSSL"` ] || makl_set_var "HAVE_OPENSSL"
+# Set HAVE_OPENSSL, OPENSSL_CFLAGS and OPENSSL_LDFLAGS
+if  [ -n `makl_get_var_mk "HAVE_LIBSSL"` ] && \
+    [ -n `makl_get_var_mk "HAVE_LIBCRYPTO"` ]; then
+
+    makl_set_var "HAVE_OPENSSL"
+    makl_set_var_mk "OPENSSL_LDFLAGS" \
+        "`makl_get_var_mk LIBSSL_LDADD` `makl_get_var_mk LIBCRYPTO_LDADD`"
+    makl_set_var_mk "OPENSSL_CFLAGS" \
+        "`makl_get_var_mk LIBSSL_CFLAGS` `makl_get_var_mk LIBCRYPTO_CFLAGS`"
+fi
+
 
 . ${MAKL_DIR}/cf/makl.term
