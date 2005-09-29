@@ -201,7 +201,7 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
         }
         break;
 
-    case SERVER_MODEL_SERIAL:
+    case SERVER_MODEL_ITERATIVE:
         /* serve the page */
         dbg_if(backend_serve(be, ad));
         close(ad);
@@ -271,8 +271,6 @@ int server_dispatch(server_t *s, int ld)
         {
             /* accept the pending connection */
             dbg_if(server_be_accept(s, be, &ad));
-
-            /* dbg("%s conn accepted (ld: %d)", be->proto, ld); */
 
             dbg_if(server_be_serve(s, be, ad));
 
@@ -395,9 +393,6 @@ int server_create(config_t *config, int model, server_t **ps)
 
     s->config = config;
     s->model = model;
-
-    warn_err_ifm(s->model == SERVER_MODEL_THREAD,
-        "thread server model not supported");
 
     /* init fd_set */
     memset(&s->rdfds, 0, sizeof(fd_set));

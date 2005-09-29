@@ -131,7 +131,7 @@ int app_run()
     #endif
 
     /* fork() if the server has been launched w/ -F */
-    model = ctx->daemon ? SERVER_MODEL_FORK : SERVER_MODEL_SERIAL;
+    model = ctx->daemon ? SERVER_MODEL_FORK : SERVER_MODEL_ITERATIVE;
 
     /* create a server object and start its main loop */
     dbg_err_if(server_create(ctx->config, model, &ctx->server));
