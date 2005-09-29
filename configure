@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.10 2005/09/29 17:07:36 tho Exp $
+# $Id: configure,v 1.11 2005/09/29 19:24:39 tho Exp $
 
 export makl_debug=1
 
@@ -51,6 +51,8 @@ case `makl_os_name` in
 
     *)
         makl_set_var_h      "OS_UNIX"
+        # the following is a hack ... [FIXME]
+        makl_set_var_h      "HAVE_STDINT"
         makl_require        "lib"       "pthread"
         makl_require        "lib"       "crypto"
         ;;
