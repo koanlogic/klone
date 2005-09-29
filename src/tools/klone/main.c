@@ -236,7 +236,7 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
     u_md5(uri, strlen(uri), uri_md5);
 
     if(ctx->verbose)
-        cmsg("file: %s   uri: %s   md5: %s", de->d_name, uri, uri_md5);
+        cmsg("%s -> %s", file_in + strlen("$(srcdir)"), uri);
 
     dbg_err_if(io_printf(ctx->iom, " \\\n" KL1_FILE_FMT, uri_md5) < 0);
 
