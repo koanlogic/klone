@@ -69,8 +69,8 @@ extern const char *WARN_LABEL;
  */
 #define msg_err_if(label, expr) do { msg_ifb(label, expr) goto err; } while(0)
 
-#define msg_err_ifm(label, expr, args...) \
-    do { if( (expr) ) { msg(label, args); goto err; } } while(0)
+#define msg_err_ifm(label, expr, ...) \
+    do { if( (expr) ) { msg(label, __VA_ARGS__); goto err; } } while(0)
 
 #define msg_err_sif(label, expr) \
     do { msg_ifb(label, expr) { msg_strerror(label, errno); goto err; } } while(0)
