@@ -1,8 +1,8 @@
-# $Id: Makefile,v 1.2 2005/09/14 20:30:35 tat Exp $
+# $Id: Makefile,v 1.3 2005/09/29 10:12:58 tat Exp $
 include ../../../Makefile.conf
 
 PROG = klone
-SRCS = main.c run.c
+SRCS = main.c
 
 CFLAGS += ${LIBSSL_CFLAGS} ${LIBZ_CFLAGS}
 LDFLAGS += ${LIBSSL_LDADD} ${LIBZ_LDADD}
