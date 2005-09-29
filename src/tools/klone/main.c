@@ -323,9 +323,9 @@ static int trans_site(const char *root_dir, const char *base_uri)
     dbg_err_if(io_printf(ctx->iom, "autogen_src= ") < 0);
 
     /* for each file call cb_file */
-    u_foreach_dir_item(root_dir, S_IFREG, cb_file, (void*)base_uri);
+    u_foreach_dir_item(root_dir, S_IFREG, cb_file, base_uri);
     /* for each directory call cb_dir */
-    u_foreach_dir_item(root_dir, S_IFDIR, cb_dir, (void*)base_uri);
+    u_foreach_dir_item(root_dir, S_IFDIR, cb_dir, base_uri);
 
     dbg_err_if(print_register_footer(ctx->ior));
 
@@ -359,7 +359,7 @@ static int command_import(void)
 
     dbg_err_if(trans_site(root_dir, base_uri));
 
-    cmsg("%u dirs and %u files imported\n", ctx->ndir, ctx->nfile);
+    cmsg("%lu dirs and %lu files imported", ctx->ndir, ctx->nfile);
 
     return 0;
 err:
