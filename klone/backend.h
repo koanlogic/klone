@@ -20,6 +20,7 @@ struct backend_s
     struct server_s *server;
     struct config_s *config;
     struct addr_s *addr; 
+    int model;
     int ld;
     void *arg;
     LIST_ENTRY(backend_s) np;  /* next & prev pointers         */

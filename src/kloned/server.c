@@ -181,7 +181,7 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
     pid_t child;
     alarm_t *al = NULL;
 
-    switch(s->model)
+    switch(be->model)
     {
     case SERVER_MODEL_FORK:
         if((child = fork()) == 0)
@@ -322,6 +322,9 @@ int server_loop(server_t *s)
             } 
         } /* for each ready fd */
 
+        /* a child is calling, use the internal service backend */
+        // server_be_serve(s, service_be, fd);
+
     } /* infinite loop */
 
     return 0;
@@ -436,6 +439,8 @@ int server_create(config_t *config, int model, server_t **ps)
 
         be->server = s;
         be->config = bekey;
+        if(be->model == SERVER_MODEL_UNSET)
+            be->model = s->model; /* inherit server model */
 
         LIST_INSERT_HEAD(&s->bes, be, np);
 
