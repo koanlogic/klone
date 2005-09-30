@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.11 2005/09/29 19:24:39 tho Exp $
+# $Id: configure,v 1.12 2005/09/30 13:38:02 tho Exp $
 
 export makl_debug=1
 
@@ -45,7 +45,6 @@ case `makl_os_name` in
 
     freebsd4*)
         makl_set_var_h      "OS_UNIX"
-        makl_add_var_mk     "CFLAGS" "-pthread"
         makl_require        "lib" "crypto"
         ;;
 
@@ -53,11 +52,11 @@ case `makl_os_name` in
         makl_set_var_h      "OS_UNIX"
         # the following is a hack ... [FIXME]
         makl_set_var_h      "HAVE_STDINT"
-        makl_require        "lib"       "pthread"
-        makl_require        "lib"       "crypto"
+        makl_require        "lib" "crypto"
         ;;
 esac
 
+makl_add_var_mk "CFLAGS" "-std=c99 -pedantic"
 makl_add_var_mk "CFLAGS" "-W -Wall -Wpointer-arith -Wno-uninitialized"
 makl_add_var_mk "CFLAGS" "-Wreturn-type -Wcast-qual -Wwrite-strings"
 makl_add_var_mk "CFLAGS" "-Wswitch -Wshadow"
@@ -67,7 +66,7 @@ makl_add_var_mk "CFLAGS" "-DHAVE_CONF_H"
 makl_feature_x          "doxygen"
 
 # Library dependencies
-makl_optional           "1"     "lib"       "z"
+makl_optional           "1" "lib" "z"
 
 # Function dependencies
 makl_checktype          "pid_t"     "<sys/types.h>" 
@@ -81,24 +80,25 @@ makl_func_strerror_r
 makl_args_handle "$@"
 
 # Set HAVE_OPENSSL, OPENSSL_CFLAGS and OPENSSL_LDFLAGS
-if [ -n `makl_get_var_mk "HAVE_LIBCRYPTO"` ]; then
-
+if [ -n "`makl_get_var_mk HAVE_LIBCRYPTO`" ]
+then
     makl_set_var "HAVE_OPENSSL"
     makl_set_var_mk "OPENSSL_LDFLAGS" \
         "-lssl `makl_get_var_mk LIBCRYPTO_LDFLAGS`"
     makl_set_var_mk "OPENSSL_CFLAGS" \
         "`makl_get_var_mk LIBCRYPTO_CFLAGS`"
-    # now remove dirty bits 
+    # now remove the dirty bits 
     makl_unset_var_mk "HAVE_LIBCRYPTO"
     makl_unset_var_mk "LIBCRYPTO_LDFLAGS"
     makl_unset_var_mk "LIBCRYPTO_CFLAGS"
 fi
 
 # Set server model depending on OS_{UNIX,WIN}
-if [ -n `makl_get_var_mk "OS_UNIX"` ]; then
-    makl_set_var_h "CONFIG_SERVER_MODEL" "CONFIG_SERVER_FORK" 1
+if [ -n "`makl_get_var_mk OS_UNIX`" ]
+then
+    makl_set_var_h "CONFIG_SERVER_MODEL" "CONFIG_SERVER_FORK"
 else
-    makl_set_var_h "CONFIG_SERVER_MODEL" "CONFIG_SERVER_THREAD" 1
+    makl_set_var_h "CONFIG_SERVER_MODEL" "CONFIG_SERVER_THREAD"
 fi
 
 . ${MAKL_DIR}/cf/makl.term
