@@ -127,7 +127,6 @@ static int session_mem_term(session_t *ss)
 static int session_mem_remove(session_t *ss)
 {
     embfile_t *e = NULL;
-    io_t *io = NULL;
 
     /* find the file bound to this session */
     dbg_err_if(emb_lookup(ss->filename, (embres_t**)&e));

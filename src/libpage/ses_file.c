@@ -16,8 +16,6 @@
 static int session_file_save(session_t *ss)
 {
     io_t *io = NULL;
-    size_t sz = 0;
-    int i;
 
     /* delete old file (we'll rewrite it from scratch) */
     dbg_if(unlink(ss->filename));
@@ -71,7 +69,6 @@ int session_file_create(session_opt_t *so, request_t *rq, response_t *rs,
 {
     session_t *ss = NULL;
     struct stat st;
-    const char *session_path = NULL;
 
     ss = u_calloc(sizeof(session_t));
     dbg_err_if(ss == NULL);

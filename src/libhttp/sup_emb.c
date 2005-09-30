@@ -115,9 +115,7 @@ err:
 
 static int supemb_serve(request_t *rq, response_t *rs)
 {
-    page_t *pg = NULL;
     char *file_name;
-    int rc = 0;
     embres_t *e;
 
     file_name = request_get_resolved_filename(rq);

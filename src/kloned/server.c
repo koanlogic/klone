@@ -168,7 +168,12 @@ static int cb_term_child(alarm_t *al, void *arg)
 
     dbg("sending SIGTERM to child [%d]", child);
 
-    dbg_if(kill(child, SIGTERM));
+    dbg_err_if(kill(child, SIGTERM) == -1);
+
+    return 0;
+err:
+    dbg_strerror(errno);
+    return ~0;
 }
 
 static int server_be_serve(server_t *s, backend_t *be, int ad)

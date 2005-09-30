@@ -9,7 +9,7 @@ int u_write_debug_message(const char *label, const char *file, int line,
     const char *func, const char *fmt, ...)
 {
     enum { BUFSZ = 1024, MSGSZ = 1200 };
-    char buf[BUFSZ], msg[MSGSZ];
+    char buf[BUFSZ];
     va_list ap;
 
     /* build the message to send to the log system */

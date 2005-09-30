@@ -41,7 +41,7 @@ static void usage()
 
 static int parse_opt(int argc, char **argv)
 {
-    int ret, len;
+    int ret;
     #ifdef OS_WIN
         #define CMDLINE_FORMAT "hFdiuf:"
     #else

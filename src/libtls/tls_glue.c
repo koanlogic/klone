@@ -1,4 +1,4 @@
-/* $Id: tls_glue.c,v 1.1 2005/09/09 15:26:15 tat Exp $ */
+/* $Id: tls_glue.c,v 1.2 2005/09/30 10:47:14 tho Exp $ */
 
 /*
  * This product includes software developed by Ralf S. Engelschall 
@@ -195,11 +195,7 @@ end:
     return ret;
 }
 
-/*
- * Read a file that contains our certificate in "PEM" format, possibly
- * followed by a sequence of CA certificates that should be sent to the peer
- * in the Certificate message.
- */
+#if 0
 int SSL_CTX_use_certificate_chain_file (SSL_CTX *ctx, const char *res_name)
 {
     int ret = 0;
@@ -265,7 +261,7 @@ end:
 
     return ret;
 }
-
+#endif /* 0 */
 
 /* Read a file that optionally contains the server certificate in PEM
  * format, possibly followed by a sequence of CA certificates that

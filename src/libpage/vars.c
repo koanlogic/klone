@@ -257,30 +257,30 @@ err:
  */
 int vars_add_strvar(vars_t *vs, const char *str)
 {
-    char *eq, *dup = NULL;
+    char *eq, *dups = NULL;
     var_t *var = NULL;
 
     /* dup the string (str is const) */
-    dup = u_strdup(str);
-    dbg_err_if(dup == NULL);
+    dups = u_strdup(str);
+    dbg_err_if(dups == NULL);
 
     /* search the '=' and replace it with a '\0' */
-    eq = strchr(dup, '=');
+    eq = strchr(dups, '=');
     dbg_err_if(eq == NULL);
     *eq = 0;
 
     /* create a new var obj */
-    dbg_err_if(var_create(dup, eq+1, &var));
+    dbg_err_if(var_create(dups, eq+1, &var));
 
-    u_free(dup);
+    u_free(dups);
 
     /* push into the cookie list */
     dbg_err_if(vars_add(vs, var));
 
     return 0;
 err:
-    if(dup)
-        u_free(dup);
+    if(dups)
+        u_free(dups);
     if(var)
         var_free(var);
     return ~0;

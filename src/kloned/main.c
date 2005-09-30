@@ -16,6 +16,8 @@
 #include "main.h"
 
 extern context_t* ctx;
+extern int modules_init(context_t *);
+extern int modules_term(context_t *);
 
 static void sigint(int sig)
 {

@@ -178,8 +178,6 @@ static ssize_t u_sqlncpy_decode(char *d, const char *s, size_t slen)
     *d = 0;
 
     return ++wr;
-err:
-    return -1;
 }
 
 ssize_t u_sqlncpy(char *d, const char *s, size_t slen, int flags)
@@ -224,8 +222,6 @@ static ssize_t u_urlncpy_encode(char *d, const char *s, size_t slen)
     *d = 0;
 
     return ++wr;
-err:
-    return -1;
 }
 
 static ssize_t u_urlncpy_decode(char *d, const char *s, size_t slen)
@@ -276,6 +272,13 @@ ssize_t u_urlncpy(char *d, const char *s, size_t slen, int flags)
     return -1;
 }
 
+inline char u_tochex(int n)
+{
+	if(n > 15)
+		return '?';
+	return ( n < 10 ? n + '0' : n-10 + 'a');
+}
+
 static int u_hex2ch(char c)
 {
     if(c >= 'a' && c <= 'z') 
@@ -290,7 +293,7 @@ static int u_hex2ch(char c)
 
 static ssize_t u_hexncpy_decode(char *d, const char *s, size_t slen)
 {
-	size_t c, i, t;
+	size_t i, t;
 
     /* slen must be multiple of 2 */
     dbg_err_if((slen % 2) != 0);
@@ -371,8 +374,6 @@ static ssize_t u_htmlncpy_encode(char *d, const char *s, size_t slen)
     *d = 0;
 
     return ++wr;
-err:
-    return -1;
 }
 
 static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
@@ -394,8 +395,6 @@ static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
     }
 
     return 1 + strlen(d);
-err:
-    return -1;
 }
 
 int u_htmlncpy(char *d, const char *s, size_t slen, int flags)
@@ -673,13 +672,6 @@ err:
     return ~0;
 }
 
-inline char u_tochex(int n)
-{
-	if(n > 15)
-		return '?';
-	return ( n < 10 ? n + '0' : n-10 + 'a');
-}
-
 /* convert buf to hex
  * hex must be at least 2*sz
  */
@@ -819,8 +811,6 @@ int u_io_unzip_copy(io_t *out, const uint8_t *data, size_t sz)
 {
     codec_gzip_t *zip = NULL;
     io_t *ios = NULL;
-    int rc, i;
-    unsigned char c;
 
     /* create an io_t around the HTML block */
     dbg_err_if(io_mem_create(data, sz, 0, &ios));

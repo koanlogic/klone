@@ -52,8 +52,6 @@ err:
 int addr_set_from_sa(addr_t *addr, struct sockaddr *sa, size_t sz)
 {
     return 0;
-err:
-    return ~0;
 }
 
 int addr_set_from_config(addr_t *addr, config_t *c)
@@ -79,8 +77,6 @@ err:
 
 int addr_create(addr_t **pa)
 {
-    config_t *subkey;
-    const char *type;
     addr_t *addr = NULL;
 
     addr = u_calloc(sizeof(addr_t));

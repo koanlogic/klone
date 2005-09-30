@@ -303,8 +303,6 @@ int session_age(session_t *ss)
 
     /* ss->mtime must has been set into session_X_create funcs */
     return (int)(now - ss->mtime); /* in seconds */
-err:
-    return -1;
 }
 
 /** 

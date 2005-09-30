@@ -13,7 +13,7 @@
 #include <klone/codec.h>
 #include <klone/codgzip.h>
 
-int preprocess(io_t *in, io_t *out);
+static int preprocess(io_t *in, io_t *out);
 
 static int is_a_script(const char *filename)
 {
@@ -38,7 +38,6 @@ static int process_directive_include(parser_t* p, char *inc_file)
     enum { BUFSZ = 4096 };
     char buf[BUFSZ], *pc;
     io_t *io = NULL;
-    size_t c;
 
     dbg_err_if(io_get_name(p->in, buf, BUFSZ));
 

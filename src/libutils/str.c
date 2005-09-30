@@ -22,6 +22,35 @@ struct string_s
     size_t data_sz, data_len, shift_cnt;
 };
 
+/**
+ * \brief  Return the string length
+ *
+ * Return the length of the given string.
+ *
+ * \param s     string object
+ *
+ * \return the string length
+ */
+inline size_t string_len(string_t *s)
+{
+    return s->data_len;
+}
+
+/**
+ * \brief  Return the string value
+ *
+ * Return the const char* value of the given string object. Such const char*
+ * value cannot be modified, realloc'd or free'd.
+ *
+ * \param s     string object
+ *
+ * \return the string value or NULL if the string is empty
+ */
+inline const char *string_c(string_t *s)
+{
+    return s->data;
+}
+
 int string_sql_encode(string_t *s)
 {
     char *buf = NULL;
@@ -91,9 +120,6 @@ int string_trim(string_t *s)
     }
 
     return 0;
-err:
-    return ~0;
-
 }
 
 /**
@@ -257,34 +283,6 @@ err:
     return ~0;
 }
 
-/**
- * \brief  Return the string length
- *
- * Return the length of the given string.
- *
- * \param s     string object
- *
- * \return the string length
- */
-inline size_t string_len(string_t *s)
-{
-    return s->data_len;
-}
-
-/**
- * \brief  Return the string value
- *
- * Return the const char* value of the given string object. Such const char*
- * value cannot be modified, realloc'd or free'd.
- *
- * \param s     string object
- *
- * \return the string value or NULL if the string is empty
- */
-inline const char *string_c(string_t *s)
-{
-    return s->data;
-}
 
 /**
  * \brief  Copy the value of a string to another

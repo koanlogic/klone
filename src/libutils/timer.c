@@ -37,8 +37,6 @@ static int timerm_set_next()
         alarm(MAX(1, al->expire - now));
 
     return 0;
-err:
-    return ~0;
 }
 
 void timerm_sigalrm(int sigalrm)
@@ -93,8 +91,6 @@ static int timerm_free(timerm_t *t)
     }
 
     return 0;
-err:
-    return ~0;
 }
 
 static int timerm_create(timerm_t **pt)

@@ -7,6 +7,8 @@
    running any "useful" code; add here your initialization function calls */
 int modules_init(context_t *ctx)
 {
+    dbg_err_if (ctx == NULL);
+
     return 0;
 err:
     return ~0;

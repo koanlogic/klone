@@ -60,7 +60,6 @@ static ssize_t gzip_transform(codec_gzip_t *iz, char *dst, size_t *dcount,
         const char *src, size_t src_sz)
 {
     size_t consumed;
-    size_t written;
     
     dbg_err_if(src == NULL || dst == NULL || *dcount == 0 || src_sz == 0);
 

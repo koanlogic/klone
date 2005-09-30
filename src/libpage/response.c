@@ -63,7 +63,6 @@ int response_set_cookie(response_t *rs, const char *name, const char *value,
     enum { BUFSZ = 4096, DATESZ = 64 };
     field_t *field = NULL;
     char buf[BUFSZ], date[DATESZ];
-    struct tm ex;
 
     if(value == NULL)
     {   /* delete this cookie */

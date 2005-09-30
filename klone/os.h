@@ -28,6 +28,7 @@
     #include <sys/un.h>
     #include <netdb.h>
     #include <netinet/in.h>
+    #include <unistd.h>
 #else
     #error unsupported platform
 #endif

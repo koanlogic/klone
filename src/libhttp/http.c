@@ -433,8 +433,6 @@ static int http_set_config_opt(http_t *http)
         http->index = v;
 
     return 0;
-err:
-    return ~0;
 }
 
 
