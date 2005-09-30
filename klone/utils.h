@@ -29,11 +29,8 @@
 
 #define KLONE_FREE(p) do {if (p) { free(p); p = NULL; }} while (0)
 
-#define die(args...)  \
-    do { cmsg(args); exit(EXIT_FAILURE); } while(0)
-
-#define die_if(cond, args...)  \
-    do { dbg_ifb(cond) die(args); } while(0)
+#define die(...) do { cmsg(__VA_ARGS__); exit(EXIT_FAILURE); } while(0)
+#define die_if(cond, ...) do { dbg_ifb(cond) die(__VA_ARGS__); } while(0)
 
 int u_file_exists(const char*);
 int u_write_debug_message(const char*, const char*, int, const char*, 
