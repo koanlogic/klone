@@ -15,7 +15,7 @@ enum http_method_e
 struct http_s;
 typedef struct http_s http_t;
 
-struct session_opt_s;;
+struct session_opt_s;
 
 config_t *http_get_config(http_t* http);
 struct session_opt_s *http_get_session_opt(http_t* http);
