@@ -1,4 +1,4 @@
-/* $Id: tls_glue.c,v 1.2 2005/09/30 10:47:14 tho Exp $ */
+/* $Id: tls_glue.c,v 1.3 2005/09/30 16:54:08 tho Exp $ */
 
 /*
  * This product includes software developed by Ralf S. Engelschall 
@@ -11,7 +11,10 @@
 #include "conf.h"
 #include <klone/io.h>
 #include <klone/debug.h>
-#ifdef HAVE_OPENSSL
+
+#ifndef HAVE_OPENSSL
+int tls_dummy_decl_stub = 0;
+#else /* HAVE_OPENSSL */
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 
@@ -194,74 +197,6 @@ end:
 
     return ret;
 }
-
-#if 0
-int SSL_CTX_use_certificate_chain_file (SSL_CTX *ctx, const char *res_name)
-{
-    int ret = 0;
-    BIO *b = NULL;
-    X509 *x = NULL;
-
-    dbg_return_if (!ctx, 0);
-    dbg_return_if (!res_name, 0);
-    
-    dbg_goto_if (!(b = bio_from_emb(res_name)), end);
-    dbg_goto_if (!(x = PEM_read_bio_X509(b, NULL, NULL, NULL)), end);
-    ret = SSL_CTX_use_certificate(ctx, x);
-
-    if (ERR_peek_error() != 0)
-        ret = 0;    /* Key/certificate mismatch doesn't imply ret==0 ... */
-
-    if (ret) 
-    {
-        /*
-         * If we could set up our certificate, now proceed to the CA
-         * certificates.
-         */
-        X509           *ca;
-        int             r;
-        unsigned long   err;
-
-        if (ctx->extra_certs) 
-        {
-            sk_X509_pop_free(ctx->extra_certs, X509_free);
-            ctx->extra_certs = NULL;
-        }
-
-        while ((ca = PEM_read_bio_X509(b, NULL, NULL, NULL)))
-        {
-            if (!(r = SSL_CTX_add_extra_chain_cert(ctx, ca)))
-            {
-                X509_free(ca);
-                ret = 0;
-                goto end;
-            }
-
-            /*
-             * Note that we must not free r if it was successfully added 
-             * to the chain (while we must free the main certificate, since 
-             * its reference count is increased by SSL_CTX_use_certificate).
-             */
-        }
-
-        /* When the while loop ends, it's usually just EOF. */
-        err = ERR_peek_last_error();
-        if (ERR_GET_LIB(err) == ERR_LIB_PEM && 
-            ERR_GET_REASON(err) == PEM_R_NO_START_LINE)
-            (void) ERR_get_error();
-        else
-            ret = 0; /* some real error */
-    }
-
-end:
-    if (x)
-        X509_free(x);
-    if (b)
-        BIO_free(b);
-
-    return ret;
-}
-#endif /* 0 */
 
 /* Read a file that optionally contains the server certificate in PEM
  * format, possibly followed by a sequence of CA certificates that
