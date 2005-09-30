@@ -72,9 +72,11 @@ int session_module_init(config_t *config, session_opt_t **pso)
     if((v = config_get_subkey_value(c, "max_age")) != NULL)
         max_age = MAX(atoi(v) * 60, 60); /* min value: 1 min */
 
+    #ifdef HAVE_OPENSSL
     /* per-type configuration init */
     if(so->type == SESSION_TYPE_CLIENT)
         dbg_err_if(session_client_module_init(c, so));
+    #endif
 
     *pso = so;
 
@@ -415,9 +417,11 @@ int session_create(session_opt_t *so, request_t *rq, response_t *rs,
     case SESSION_TYPE_MEMORY:
         dbg_err_if(session_mem_create(so, rq, rs, &ss));
         break;
+    #ifdef HAVE_OPENSSL
     case SESSION_TYPE_CLIENT:
         dbg_err_if(session_client_create(so, rq, rs, &ss));
         break;
+    #endif
     default:
         warn_err("bad session type");
     }
