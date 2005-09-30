@@ -38,12 +38,6 @@ typedef struct
 
 context_t *ctx;
 
-#define die(args...)  \
-    do { cmsg(args); exit(EXIT_FAILURE); } while(0)
-
-#define die_if(cond, args...)  \
-    do { dbg_ifb(cond) die(args); } while(0)
-
 #define KL1_FILE_FMT "pg_%s.c"
 
 static void usage(void)
