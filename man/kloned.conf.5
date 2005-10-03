@@ -1,5 +1,5 @@
-.\" $Id: kloned.conf.5,v 1.2 2005/09/28 19:53:41 tho Exp $
-.TH "KLONED.CONF" "5" "09/28/2005" "KoanLogic Srl" "KoanLogic Srl"
+.\" $Id: kloned.conf.5,v 1.3 2005/10/03 21:24:44 tho Exp $
+.TH "KLONED.CONF" "5" "10/03/2005" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -15,7 +15,7 @@ daemon, i.e. it contains its runtime configuration information. The complete des
 .SH "FILE FORMAT"
 .PP
 The file consists of sections and parameters. A section begins with the name of the section, is followed by a '{' and continues until the corresponding '}' is found. Sections can contain subsections or parameter assignements of the form:
-\fIname \fR\fIvalue\fR.
+\fIname\fR \fIvalue\fR.
 .PP
 The file is line\-based \- that is, each newline\-terminated line represents either a comment, a section name or a parameter.
 .PP
@@ -25,20 +25,20 @@ Leading, trailing and internal whitespace in section and parameter names is irre
 .PP
 Any line beginning with a hash ('#') character is ignored, as well as lines containing only whitespace.
 .PP
-Any line ending in a '\\' is continued on the next line in the customary UNIX fashion.
-.PP
-The value following the equals sign in parameters must be either a string (no quotes needed) or a boolean, which may be given as yes/no, 0/1 or true/false. Case is not significant in boolean values, but is preserved in string values.
+The value in parameters is always a string (no quotes needed) whose case is preserved.
 .PP
 It is also possible to use variable substitution which allows you to define a symbol name to be replaced by an arbitrary text string, with the classic bottom\-up scoping.
-.SH "NAMES AND VALUES"
+.SH "CONFIGURATION FILE STRUCTURE"
 .PP
 Basically, you have an activation record for each running
 \fBkloned\fR(8)
-instance: each instance implements an access method to the embedded data. The two access methods currently implemented are HTTP and HTTPS.
+instance: each instance implements an access method to the embedded data or to external data (file system) when requested. The two access methods currently implemented are HTTP and HTTPS.
 .PP
-For the sake of simplicity, the available options are grouped into three categories: those of general applicability (GENERAL), those which trim the per\-session behaviour of the
-\fBkloned\fR(8)
-server (SESSION), and those specific to HTTP over SSL/TLS sessions (SSL/TLS).
+The top level parameter
+\fBserver_list\fR
+lists the klone instances by name. For each name listed here there exist a corresponding activation record labelled with the same name.
+.PP
+For the sake of simplicity, the available options are grouped into three categories: those of general applicability (GENERAL), those common to both HTTP and HTTPS servers (SERVER), and those specific to HTTP over SSL/TLS sessions (SSL/TLS).
 .SS "GENERAL"
 .TP
 \fBtype\fR
@@ -50,51 +50,108 @@ or
 \fIHTTPS\fR. This parameter is
 \fImandatory\fR.
 .TP
+\fBdaemon.name\fR
+Identifier for the service (Windows(TM)
+ONLY).
+.TP
+\fBdaemon.description\fR
+Service description (Windows(TM)
+ONLY).
+.TP
 \fBaddr.type\fR
-The protocol family (IPv4, IPv6, UNIX) of the interface socket. At present
+The protocol family (\fIIPv4\fR,
+\fIIPv6\fR,
+\fIUNIX\fR) of the interface socket. At present
 \fIIPv4\fR
-is the only value supported. The default value ...
+is the only value supported.
+.TP
+\fBaddr.ip\fR
+The IPv4 address at which this instance is accepting connections. The default value is
+\fBINADDR_ANY\fR.
 .TP
 \fBaddr.port\fR
-The TCP port at which this instance is accepting connections. The default value is the standard HTTP server port, 80.
+The TCP port at which this instance is accepting connections. The default value is the standard HTTP server port,
+\fI80\fR.
 .TP
-\fBdir_root\fR
-The top level directory under which this server's instance keeps the site data. The default value is
-\fI/\fR.
-.TP
-\fBerror.404\fR
-Path of the file which will be displayed on a 'file not found' event. The default value is ...
-.TP
-\fBserver_sig\fR
-Set the server signature string. The default value is
-klone/1.0
+\fBbacklog\fR
+Defines the maximum length the queue of pending connections may grow to, it is passed verbatim to the
+\fBlisten\fR(2)
+call on this instance's socket.
 .TP
 \fBidle_timeout\fR
-Set the maximum number of seconds the server waits for an HTTP request. The default value is 10 seconds.
-.SS "SESSION"
+Set the maximum number of seconds the server waits for an HTTP request on an already connected socket. The default value is 10 seconds.
+.SS "SERVER"
 .PP
-The session variables are gathered into an ad hoc
+Per server\-type configuration parameters.
+.PP
+Note that we use the URI
+\fIsup://\fR
+convention to specify the location of contents that
+\fBkloned\fR
+tries to retreive from its suppliers. By default there is only one active supplier, which is the embedded file system. Anyway, there could be many different suppliers, e.g. the local disk that is enabled by setting the
+\fBENABLE_SUP_FS\fR
+during compilation. The embedded file system supplier is
+\fIalways\fR
+searched first. In case the requested resource were not found in the embedded file system, the other suppliers are searched sequentially.
+.TP
+\fBdir_root\fR
+The top level directory under which this server's instance keeps the site data. When a request for the resource
+\fI/dir/page.kl1\fR
+is done, it is mapped to
+\fIsup://${dir_root}/dir/page.kl1\fR. The default value is
+\fI/\fR.
+.TP
+\fBerror.\fR\fB\fIhttp_errno\fR\fR
+Select the file which will be displayed on the given HTTP error event (\fIhttp_errno\fR
+can be any of 4XX and 5XX). The value is a URI relative to the site: e.g.
+\fI/a/b/c/d.klone\fR
+is translated into
+\fI(http|https)://sitehost[:port]/a/b/c/d.klone\fR.
+.TP
+\fBdir_alias \fR\fB\fIsrc\fR\fR\fB \fR\fB\fIdst\fR\fR
+Substitutes
+\fIsrc\fR
+to
+\fIdst\fR
+in the requested URI. For example, when the following is set:
+.sp
+.nf
+dir_alias /image /var/httpd/images
+.fi
+.sp
+a request to
+\fIsup://image/logo.gif\fR
+will be mapped to
+\fIsup://var/httpd/images/logo.gif\fR.
+.TP
+\fBserver_sig\fR
+Set the server signature string which will be returned in the HTTP head (Server: %s). When setting a custom Product token, the guidelines stated in paragraph 3.7 of RFC 1945 should be followed. The default value is
+"klone/1.0".
+.TP
+\fBindex\fR
+Specify the index page location. This is the page that is returned to the client requesting
+\fI(http|https)://sitehost[:port]/\fR. The default values are (in order):
+\fIindex.klone\fR,
+\fIindex.kl1\fR,
+\fIindex.html\fR,
+\fIindex.htm\fR.
+.PP
+All the session variables are gathered into an ad hoc
 \fBsession\fR
 subsection of an HTTP or HTTPS activation record.
 .TP
-\fBdriver\fR
+\fBtype\fR
 Specify where to store session data:
 \fImemory\fR
 for the host volatile memory,
 \fIfile\fR
 for the host file system,
 \fIclient\fR
-for storing data on the client. This parameter is
-\fImandatory\fR.
+for storing data on the client. The default value is
+\fIfile\fR.
 .TP
 \fBmax_age\fR
-Specify the session life\-time in seconds. The default value is 60*20 seconds (20 minutes).
-.TP
-\fBmemory.mem_limit\fR
-TODO
-.TP
-\fBmemory.max_count\fR
-TODO
+Set the inactivity threshold timeout for the session. The default value is 60*20 seconds (20 minutes).
 .TP
 \fBfile.path\fR
 Specify where to store session data when the
@@ -104,8 +161,25 @@ UNIX(TM)
 it is
 \fI/tmp\fR, on
 Windows(TM)
-a system auto\-generated path.
+the system temporary path.
+.TP
+\fBclient.hash_function\fR
+The hash function that should be used in the HMAC calculation over the cookies. The available values are:
+\fImd5\fR,
+\fIsha1\fR,
+\fIripemd160\fR. The default is
+\fIsha1\fR.
+.TP
+\fBclient.encrypt\fR
+A boolean specifying whether the session data should be encrypted before being sent to the client. The default is
+\fIyes\fR.
+.TP
+\fBclient.compress\fR
+A boolean specifying whether the session data should be compressed before being pushed to the client. The default is
+\fIno\fR.
 .SS "SSL/TLS"
+.PP
+All the cryptographic material examined in this section MUST not be password protected. This is because on unattended devices such as appliances or similar, password protection is useless if not harmful.
 .TP
 \fBcert_file\fR
 PEM\-encoded certificate file for the server and optionally also its corresponding RSA or DSA Private Key file (contained in the same file). The certificate should be configured with the Common Name matching the fully qualified domain name of the server. This parameter is
