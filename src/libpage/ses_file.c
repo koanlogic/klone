@@ -54,6 +54,7 @@ err:
 
 static int session_file_term(session_t *ss)
 {
+    U_UNUSED_ARG(ss);
     return 0;
 }
 
@@ -101,6 +102,7 @@ err:
 
 int session_file_module_term(session_opt_t *so)
 {
+    U_UNUSED_ARG(so);
     return 0;
 }
 

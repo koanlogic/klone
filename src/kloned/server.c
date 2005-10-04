@@ -130,6 +130,8 @@ static int server_be_accept(server_t *s, backend_t *be, int* pfd)
     int sa_len = sizeof(struct sockaddr);
     int ad;
 
+    U_UNUSED_ARG(s);
+
 again:
     ad = accept(be->ld, &sa, &sa_len);
     if(ad == -1 && errno == EINTR)
@@ -166,6 +168,8 @@ static int cb_term_child(alarm_t *al, void *arg)
 {
     pid_t child = (int)arg;
 
+    U_UNUSED_ARG(al);
+    
     dbg("sending SIGTERM to child [%d]", child);
 
     dbg_err_if(kill(child, SIGTERM) == -1);
@@ -179,7 +183,8 @@ err:
 static int server_be_serve(server_t *s, backend_t *be, int ad)
 {
     pid_t child;
-    alarm_t *al = NULL;
+
+    U_UNUSED_ARG(s);
 
     switch(be->model)
     {

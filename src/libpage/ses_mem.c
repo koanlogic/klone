@@ -121,6 +121,7 @@ err:
 static int session_mem_term(session_t *ss)
 {
     /* nothing to do */
+    U_UNUSED_ARG(ss);
     return 0;
 }
 

@@ -51,6 +51,9 @@ err:
 
 int addr_set_from_sa(addr_t *addr, struct sockaddr *sa, size_t sz)
 {
+    U_UNUSED_ARG(addr);
+    U_UNUSED_ARG(sa);
+    U_UNUSED_ARG(sz);
     return 0;
 }
 

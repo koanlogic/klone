@@ -29,6 +29,8 @@
 
 #define KLONE_FREE(p) do {if (p) { free(p); p = NULL; }} while (0)
 
+#define U_UNUSED_ARG(x) (x) = *(&(x))
+
 #define die(...) do { cmsg(__VA_ARGS__); exit(EXIT_FAILURE); } while(0)
 #define die_if(cond, ...) do { dbg_ifb(cond) die(__VA_ARGS__); } while(0)
 

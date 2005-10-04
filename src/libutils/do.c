@@ -60,15 +60,21 @@ err:
 #else
 int do_load(const char *fqn, do_t **pd)
 {
+    U_UNUSED_ARG(fqn);
+    U_UNUSED_ARG(pd);
     return ~0;
 }
 
 void do_free(do_t *d)
 {
+    U_UNUSED_ARG(d);
 }
 
 int do_sym(do_t *d, const char *sym, void **pptr)
 {
+    U_UNUSED_ARG(d);
+    U_UNUSED_ARG(sym);
+    U_UNUSED_ARG(pptr);
     return ~0;
 }
 

@@ -295,6 +295,8 @@ static int http_cb_close_fd(alarm_t *al, void *arg)
 {
     int fd = (int)arg;
 
+    U_UNUSED_ARG(al);
+
     warn("connection on fd [%d] timed out, closing");
 
     /* this will unblock pending I/O calls */

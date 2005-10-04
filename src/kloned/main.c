@@ -21,12 +21,14 @@ extern int modules_term(context_t *);
 
 static void sigint(int sig)
 {
+    U_UNUSED_ARG(sig);
     dbg("SIGINT");
     server_stop(ctx->server);
 }
 
 static void sigterm(int sig)
 {
+    U_UNUSED_ARG(sig);
     dbg("SIGTERM");
     server_stop(ctx->server);
 }
@@ -35,6 +37,8 @@ static void sigchld(int sig)
 {
     pid_t           pid = -1;
     int             status;
+
+    U_UNUSED_ARG(sig);
 
     /* detach from child processes */
     while((pid = waitpid(-1, &status, WNOHANG)) > 0) 

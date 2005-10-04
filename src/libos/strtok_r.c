@@ -108,4 +108,6 @@ cont:
     /* NOTREACHED */
 }
 
+#else
+int strtok_dummy_decl_stub = 0;
 #endif 

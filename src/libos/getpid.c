@@ -7,5 +7,6 @@ pid_t getpid()
     return GetCurrentProcessId();
     #endif
 }
-
+#else
+int getpid_dummy_decl_stub = 0;
 #endif 

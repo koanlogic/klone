@@ -255,6 +255,7 @@ err:
 
 static int session_client_term(session_t *ss)
 {
+    U_UNUSED_ARG(ss);
     return 0;
 }
 

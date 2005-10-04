@@ -21,6 +21,9 @@ enum {
 
 static int rf_flush(response_filter_t *rf, char *buf, size_t *sz)
 {
+    U_UNUSED_ARG(sz);
+    U_UNUSED_ARG(buf);
+
     if(rf->state == RFS_BUFFERING)
     {
         /* print the header and flush the buffer */

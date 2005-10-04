@@ -44,6 +44,8 @@ void timerm_sigalrm(int sigalrm)
     alarm_t *al = NULL, *next = NULL;
     int expire;
 
+    U_UNUSED_ARG(sigalrm);
+
     dbg_err_if(timer == NULL);
 
     for(;;)
