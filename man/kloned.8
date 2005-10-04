@@ -1,5 +1,5 @@
-.\" $Id: kloned.8,v 1.2 2005/09/28 19:53:41 tho Exp $
-.TH "KLONED" "8" "09/28/2005" "KoanLogic Srl" "KoanLogic Srl"
+.\" $Id: kloned.8,v 1.3 2005/10/04 09:33:55 tho Exp $
+.TH "KLONED" "8" "10/04/2005" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -12,7 +12,7 @@ kloned \- klone daemon
 .SH "DESCRIPTION"
 .PP
 \fBkloned\fR
-merges a web server (or CGI to be plugged into other CGI\-compliant web servers), its compressed configuration, together with the static contents and static blocks of dynamic web pages into a single executable file.
+merges a web server (or CGI to be plugged into other CGI\-compliant web servers), its compressed configuration, together with the static and dynamic web contents into a single executable file.
 .PP
 The process of creating the
 \fBkloned\fR
@@ -28,12 +28,14 @@ Enable verbose logging for debugging purposes.
 Load further configuration parameters from the external file
 \fIconfig_file\fR
 besides those found in the embedded configuration file
-\fI/etc/kloned.conf\fR.
+\fIsup://etc/kloned.conf\fR. Parameters in
+\fIconf_file\fR
+override the values of those with the same name in the embedded configuration file.
 .TP
 \-F
 If specified, this parameter causes the main
 \fBkloned\fR
-process to not detach from the terminal. Child processes are still created as normal to serve HTTP/HTTPS requests, but the main process does not exit.
+process to not detach from the terminal. HTTP/HTTPS requests are served iteratively: no child is forked to handle the client connection.
 .TP
 \-h
 Display a summary of command\-line options and exit.
@@ -51,7 +53,7 @@ service and exit (only available on Windows).
 .PP
 \fBkloned\fR
 depends on
-\fI/etc/kloned.conf\fR
+\fIsup://etc/kloned.conf\fR
 for the configuration of its instances (clones). Additional configuration can be supplied via an external file (the
 \fB\-f\fR
 command line flag): see
@@ -60,7 +62,7 @@ for details on available configuration parameters and their respective values.
 .SH "DIAGNOSTICS"
 .PP
 KLone
-is a product targeted for embedded systems, especially those with limited disk resources; as such it tries to reduce logging activity to a minumum (at its best, zero logging).
+is a product targeted for embedded systems, especially those with limited or no disk resources; as such it tries to reduce logging activity to a minumum (at its best, zero logging).
 .PP
 Diagnostics issued by
 \fBkloned\fR
