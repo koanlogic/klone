@@ -14,7 +14,7 @@
 #include <klone/ses_prv.h>
 #include "conf.h"
 
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
 #include <openssl/hmac.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -60,7 +60,7 @@ int session_module_init(config_t *config, session_opt_t **pso)
             so->type = SESSION_TYPE_MEMORY;
         } else if(!strcasecmp(v, "file")) {
             so->type = SESSION_TYPE_FILE;
-        #ifdef HAVE_OPENSSL
+        #ifdef HAVE_LIBOPENSSL
         } else if(!strcasecmp(v, "client")) {
             so->type = SESSION_TYPE_CLIENT;
         #endif
@@ -72,7 +72,7 @@ int session_module_init(config_t *config, session_opt_t **pso)
     if((v = config_get_subkey_value(c, "max_age")) != NULL)
         max_age = MAX(atoi(v) * 60, 60); /* min value: 1 min */
 
-    #ifdef HAVE_OPENSSL
+    #ifdef HAVE_LIBOPENSSL
     /* per-type configuration init */
     if(so->type == SESSION_TYPE_CLIENT)
         dbg_err_if(session_client_module_init(c, so));
@@ -417,7 +417,7 @@ int session_create(session_opt_t *so, request_t *rq, response_t *rs,
     case SESSION_TYPE_MEMORY:
         dbg_err_if(session_mem_create(so, rq, rs, &ss));
         break;
-    #ifdef HAVE_OPENSSL
+    #ifdef HAVE_LIBOPENSSL
     case SESSION_TYPE_CLIENT:
         dbg_err_if(session_client_create(so, rq, rs, &ss));
         break;

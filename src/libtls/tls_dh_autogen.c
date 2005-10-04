@@ -1,5 +1,5 @@
 #include "conf.h"
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
 #ifndef HEADER_DH_H
 #include <openssl/dh.h>
 #endif

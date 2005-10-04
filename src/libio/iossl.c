@@ -1,5 +1,5 @@
 #include "conf.h"
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
 #include <unistd.h>
 #include <klone/io.h>
 #include <klone/debug.h>

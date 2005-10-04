@@ -8,7 +8,7 @@
 #include "conf.h"
 #endif
 
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #endif 
@@ -29,7 +29,7 @@ enum io_mem_flags {
 int io_fd_create(int fd, int flags, io_t **pio);
 int io_mem_create(char *buf, size_t size, int flags, io_t **pio);
 
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
 int io_ssl_create(int fd, int flags, SSL_CTX *ctx, io_t **pio);
 #endif
 

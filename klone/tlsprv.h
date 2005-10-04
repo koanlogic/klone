@@ -1,7 +1,7 @@
 #ifndef _KLONE_TLS_PRV_H_
 #define _KLONE_TLS_PRV_H_
 #include "conf.h"
-#ifdef  HAVE_OPENSSL
+#ifdef  HAVE_LIBOPENSSL
 
 /* used by tls.c */
 DH  *get_dh1024 (void);
@@ -14,5 +14,5 @@ int SSL_CTX_use_certificate_chain_file(SSL_CTX *, const char *);
 int tls_use_certificate_chain(SSL_CTX *, const char *, int, int (*)(void));
 STACK_OF(X509_NAME) *tls_load_client_CA_file(const char *);
 
-#endif /* HAVE_OPENSSL */
+#endif /* HAVE_LIBOPENSSL */
 #endif /* _KLONE_TLS_PRV_H_ */

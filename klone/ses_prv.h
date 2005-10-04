@@ -8,7 +8,7 @@
 #include <klone/http.h>
 #include "conf.h"
 
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
 #include <openssl/hmac.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -30,7 +30,7 @@ enum {
 /* hmac and cipher key size */
 enum { 
     HMAC_KEY_SIZE = 64, 
-    #ifdef HAVE_OPENSSL
+    #ifdef HAVE_LIBOPENSSL
     CIPHER_KEY_SIZE = EVP_MAX_KEY_LENGTH, CIPHER_IV_SIZE = EVP_MAX_IV_LENGTH
     #else
     CIPHER_KEY_SIZE = 64, CIPHER_IV_SIZE = 64
@@ -45,7 +45,7 @@ typedef struct session_opt_s
     int max_age;    /* max allowed age of sessions                   */
     int encrypt;    /* >0 when client-side session encryption is on  */
     int compress;   /* >0 when client-side session compression is on */
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
     HMAC_CTX hmac_ctx;  /* openssl HMAC context                      */
     const EVP_MD *hash; /* client-side session HMAC hash algorithm   */
     const EVP_CIPHER *cipher; /* encryption cipher algorithm         */

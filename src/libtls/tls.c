@@ -1,11 +1,11 @@
-/* $Id: tls.c,v 1.1 2005/09/09 15:26:15 tat Exp $ */
+/* $Id: tls.c,v 1.2 2005/10/04 10:47:32 stewy Exp $ */
 
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <strings.h>
 #include "conf.h"
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
@@ -391,4 +391,4 @@ static void tls_free_ctx_args (tls_ctx_args_t *cargs)
     KLONE_FREE(cargs);
     return;
 }
-#endif /* HAVE_OPENSSL */
+#endif /* HAVE_LIBOPENSSL */

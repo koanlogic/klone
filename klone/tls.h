@@ -1,10 +1,10 @@
-/* $Id: tls.h,v 1.2 2005/09/14 20:18:31 tat Exp $ */
+/* $Id: tls.h,v 1.3 2005/10/04 10:47:32 stewy Exp $ */
 
 #ifndef _KLONE_TLS_H_
 #define _KLONE_TLS_H_
 
 #include "conf.h"
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
 
 /* (pseudo) unique data to feed the PRNG */
@@ -39,6 +39,6 @@ SSL_CTX *tls_init_ctx (tls_ctx_args_t *);
 int     tls_load_ctx_args(config_t *, tls_ctx_args_t **);
 char    *tls_get_error (void);
 
-#endif /* HAVE_OPENSSL */
+#endif /* HAVE_LIBOPENSSL */
 
 #endif /* !_KLONE_TLS_H */

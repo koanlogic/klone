@@ -18,7 +18,7 @@
 #include <klone/ses_prv.h>
 #include "conf.h"
 
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #endif 
@@ -30,7 +30,7 @@ struct http_s
     config_t *config;       /* server config                                 */
     broker_t *broker;       /* pages broker                                  */
     int ssl;                /* >0 when SSL is enabled                        */
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
     SSL_CTX* ssl_ctx;       /* OpenSSL context                               */
 #endif
     /* toplevel configuration options */
@@ -322,7 +322,7 @@ static int http_serve(http_t *h, int fd)
     /* create a response object */
     dbg_err_if(response_create(h, &rs));
 
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
     /* create input io buffer (no IO_FD_CLOSE used because 'out' 
        will close it */
     if(h->ssl && !cgi)
@@ -509,7 +509,7 @@ err:
     
 }
 
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBOPENSSL
 int https_backend_init(struct backend_s *be)
 {
     http_t *https;
