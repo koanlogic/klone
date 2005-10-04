@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.3 2005/09/29 19:11:53 tho Exp $
+# $Id: Makefile,v 1.4 2005/10/04 10:27:57 stewy Exp $
 include ../../Makefile.conf
 
 LIB = page
@@ -15,7 +15,7 @@ SRCS =          \
     var.c       \
     vars.c  
 
-ifdef HAVE_OPENSSL
+ifdef HAVE_LIBOPENSSL
 SRCS += ses_client.c
 endif
 

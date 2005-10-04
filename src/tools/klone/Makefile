@@ -1,11 +1,11 @@
-# $Id: Makefile,v 1.5 2005/09/30 14:10:29 tat Exp $
+# $Id: Makefile,v 1.6 2005/10/04 10:27:57 stewy Exp $
 include ../../../Makefile.conf
 
 PROG = klone
 SRCS = main.c
 
-CFLAGS += ${OPENSSL_CFLAGS} ${LIBZ_CFLAGS}
-LDFLAGS += ${OPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
+CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
+LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
 LDFLAGS += -lc # see checkin 30-09-2005
 
 LDADD += ../../libtrans/libtrans.a  \

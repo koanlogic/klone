@@ -1,12 +1,12 @@
-# $Id: Makefile,v 1.3 2005/09/30 14:10:29 tat Exp $
+# $Id: Makefile,v 1.4 2005/10/04 10:27:57 stewy Exp $
 
 include ../../Makefile.conf
 
 PROG = kloned
 SRCS = server.c main.c entry.c modules_init.c modules_term.c
 
-CFLAGS += ${OPENSSL_CFLAGS} ${LIBZ_CFLAGS}
-LDFLAGS += ${OPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
+CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
+LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
 LDFLAGS += -lc # see checkin 30-09-2005
 
 LDADD += ../libhttp/libhttp.a ../libutils/libutils.a ../libpage/libpage.a \
