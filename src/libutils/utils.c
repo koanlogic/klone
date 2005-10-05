@@ -808,6 +808,15 @@ err:
     return ~0;
 }
 
+void* u_memdup(void *src, size_t size)
+{
+    void *p;
+
+    p = malloc(size);
+    if(p)
+        memcpy(p, src, size);
+    return p;
+}
 
 /**
  *  \}

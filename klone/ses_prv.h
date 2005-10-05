@@ -6,6 +6,7 @@
 #include <klone/config.h>
 #include <klone/vars.h>
 #include <klone/http.h>
+#include <klone/atom.h>
 #include "conf.h"
 
 #ifdef HAVE_LIBOPENSSL
@@ -56,6 +57,7 @@ typedef struct session_opt_s
     EVP_CIPHER_CTX cipher_dec_ctx;      /* decrypt context           */
 #endif
     char path[PATH_MAX + 1]; /* session save path                    */
+    atoms_t *atoms; /* atom list used to store in-memory sessions    */
 } session_opt_t;
 
 struct session_s

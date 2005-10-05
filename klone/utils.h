@@ -51,6 +51,7 @@ char* u_strdup(const char *s);
 char* u_strndup(const char *s, size_t len);
 char* u_strnrchr(const char *s, char c, size_t len);
 char *u_stristr(const char *string, const char *sub);
+void* u_memdup(void *src, size_t size);
 
 enum { URLCPY_VERBATIM, URLCPY_ENCODE, URLCPY_DECODE };
 ssize_t u_urlncpy(char *dst, const char *src, size_t slen, int flags);
@@ -99,6 +100,7 @@ int u_httpdate_to_tt(const char *str, time_t *tp);
 int u_rfc822_to_tt(const char *str, time_t *tp);
 int u_rfc850_to_tt(const char *str, time_t *tp);
 int u_asctime_to_tt(const char *str, time_t *tp);
+
 
 
 #endif

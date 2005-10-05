@@ -331,11 +331,9 @@ static int server_process_ppc(server_t *s, int fd)
         /* child has exit or closed the channel. close our side of the sock 
            and remove it from the watch list */
         server_close_fd(s, fd);
-        dbg("CHILD: closed ");
     } else {
         /* error. close fd and remove it from the watch list */
         server_close_fd(s, fd);
-        dbg_err("CHILD: error");
     }
 
     return 0;

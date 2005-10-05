@@ -10,11 +10,20 @@
 #include <klone/response.h>
 #include <klone/vars.h>
 #include <klone/utils.h>
-#include <klone/emb.h>
 #include <klone/str.h>
+#include <klone/atom.h>
 #include <klone/debug.h>
 #include <klone/ses_prv.h>
 #include <klone/ppc.h>
+
+
+typedef struct enc_ses_mem_s
+{
+    time_t mtime;               /* modification time    */
+    char filename[PATH_MAX];    /* session filename     */
+    size_t size;                /* data size            */
+    char data[1];               /* data block           */
+} enc_ses_mem_t;
 
 static int session_calc_maxsize(var_t *v, size_t *psz)
 {
@@ -32,29 +41,74 @@ err:
     return ~0;
 }
 
-/* add an embedded file to the list of available resources */
-static int session_mem_add(session_t *ss, char *buf, size_t sz)
+/* add an atom to the list of global atoms */
+static int session_mem_add(atoms_t *as, const char *filename, char *buf, 
+    size_t size, time_t mtime)
 {
-    embfile_t *e = NULL;
+    atom_t *atom = NULL;
+    enc_ses_mem_t *esm = NULL;
+    ppc_t *ppc;
+    size_t esize;
 
-    e = (embfile_t*)u_calloc(sizeof(embfile_t));
-    dbg_err_if(e == NULL);
+    // FIXME run checks for maxsize and/or maxcount
 
-    e->res.type = ET_FILE;
-    e->res.filename = u_strdup(ss->filename);
-    e->size = e->file_size = sz;
-    e->data = buf;
-    e->comp = 0;
-    e->mtime = time(0);
+    if(ctx->pipc)
+    {   /* children context */
+        ppc = server_get_ppc(ctx->server);
+        dbg_err_if(ppc == NULL);
 
-    dbg_err_if(emb_register((embres_t*)e));
+        esize = size + sizeof(enc_ses_mem_t);
+        esm = (enc_ses_mem_t*)u_malloc(esize);
+        dbg_err_if(esm == NULL);
+
+        esm->mtime = time(0);
+        esm->size = size;
+        strncpy(esm->filename, filename, PATH_MAX);
+        memcpy(esm->data, buf, size);
+
+        dbg_err_if(ppc_write(ppc, ctx->pipc, 's', esm, esize) < 0);
+
+        u_free(esm);
+    } else {
+        /* parent context */
+
+        /* create a new atom */
+        dbg_err_if(atom_create(filename, buf, size, mtime, &atom));
+
+        /* add it to the list */
+        dbg_err_if(atoms_add(as, atom));
+    }
 
     return 0;
 err:
-    if(e)
-        u_free(e);
+    if(esm)
+        u_free(esm);
+    if(atom)
+        atom_free(atom);
     return ~0;
 }
+
+static int session_cmd_save_mem(ppc_t *ppc, unsigned char cmd, char *data, 
+    size_t size, void *vso)
+{
+    session_opt_t *so = (session_opt_t*)vso;
+    enc_ses_mem_t *esm = (enc_ses_mem_t*)data;
+
+    dbg(__FUNCTION__);
+
+    dbg_err_if(vso == NULL || data == NULL);
+
+    so = (session_opt_t*)vso;
+    esm = (enc_ses_mem_t*)data;
+
+    dbg_err_if(session_mem_add(so->atoms, esm->filename, esm->data, esm->size, 
+        esm->mtime));
+
+    return 0;
+err:
+    return ~0;
+}
+
 
 static int session_mem_save(session_t *ss)
 {
@@ -80,7 +134,9 @@ static int session_mem_save(session_t *ss)
     io_free(io);
 
     /* don't free buf that will be used by the embfs */
-    dbg_err_if(session_mem_add(ss, buf, sz));
+    dbg_err_if(session_mem_add(ss->so->atoms, ss->filename,  buf, sz, time(0)));
+
+    u_free(buf);
 
     return 0;
 err:
@@ -91,19 +147,20 @@ err:
     return ~0;
 }
 
+
 static int session_mem_load(session_t *ss)
 {
-    embfile_t *e;
+    atom_t *atom;
     io_t *io = NULL;
 
-    /* find the file into the embfs */
-    dbg_err_if(emb_lookup(ss->filename, (embres_t**)&e));
+    /* find the file into the atom list */
+    dbg_err_if(atoms_get(ss->so->atoms, ss->filename, &atom));
 
     /* copy stored mtime */
-    ss->mtime = e->mtime;
+    ss->mtime = (time_t)atom->arg;
 
     /* build an io_t around it */
-    dbg_err_if(io_mem_create(e->data, e->size, 0, &io));
+    dbg_err_if(io_mem_create(atom->data, atom->size, 0, &io));
 
     /* load data */
     dbg_err_if(session_prv_load(ss, io));
@@ -117,38 +174,28 @@ err:
     return ~0;
 }
 
+static int session_mem_remove(session_t *ss)
+{
+    atom_t *atom;
+
+    /* find the atom bound to this session */
+    dbg_err_if(atoms_get(ss->so->atoms, ss->filename, &atom));
+
+    /* remove it from the list */
+    dbg_err_if(atoms_remove(ss->so->atoms, atom));
+
+    atom_free(atom);
+
+    return 0;
+err:
+    return ~0;
+}
+
 static int session_mem_term(session_t *ss)
 {
     /* nothing to do */
     U_UNUSED_ARG(ss);
     return 0;
-}
-
-static int session_mem_remove(session_t *ss)
-{
-    embfile_t *e = NULL;
-
-    /* find the file bound to this session */
-    dbg_err_if(emb_lookup(ss->filename, (embres_t**)&e));
-
-    /* detach from embfs */
-    dbg_err_if(emb_unregister((embres_t*)e));
-
-    /* free embfile buffers */
-    u_free(e->res.filename);
-    u_free(e->data);
-
-    u_free(e);
-
-    return 0;
-err:
-    if(e)
-    {
-        if(e->data)
-            u_free(e->data);
-        u_free(e);
-    }
-    return ~0;
 }
 
 int session_mem_create(session_opt_t *so, request_t *rq, response_t *rs, 
@@ -179,15 +226,6 @@ err:
     return ~0;
 }
 
-static int session_cmd_save_mem(ppc_t *ppc, unsigned char cmd, char *data, 
-    size_t size, void *so)
-{
-    /* save data to so->atoms */
-    dbg(__FUNCTION__);
-
-    return 0;
-}
-
 /* this function will be called once by the server during startup */
 int session_mem_module_init(config_t *config, session_opt_t *so)
 {
@@ -197,6 +235,9 @@ int session_mem_module_init(config_t *config, session_opt_t *so)
 
     ppc = server_get_ppc(ctx->server);
     dbg_err_if(ppc == NULL);
+
+    /* attach an atom list to so the store in-memory session data */
+    dbg_err_if(atoms_create(&so->atoms));
 
     dbg_err_if(ppc_register(ppc, 's', session_cmd_save_mem, (void*)so));
 

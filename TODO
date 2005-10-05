@@ -3,6 +3,11 @@ TODO
 
 1.0.0:
 
+    - mettere la documentazione del klone di default nel klone-1.0.1.tar.gz
+    - togliere robaccia da klone/doc e spostare man e doxy li'
+
+    - kloned-sample.conf
+    
     - kloned.conf
        CONFIG OPT (per backend):  model         iterative|fork
 
