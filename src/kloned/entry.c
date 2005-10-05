@@ -7,7 +7,7 @@
 #include <klone/server.h>
 #include <klone/os.h>
 #include "conf.h"
-#include "context.h"
+#include <klone/context.h>
 #include "main.h"
 
 static context_t c;

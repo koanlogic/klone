@@ -310,7 +310,7 @@ int session_client_module_init(config_t *config, session_opt_t *so)
 
     /* defaults */
     so->compress = 0;
-    so->encrypt = 0;
+    so->encrypt = 1;
     so->hash = EVP_sha1(); 
     so->cipher = NULL;
 

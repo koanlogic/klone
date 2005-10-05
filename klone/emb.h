@@ -9,6 +9,7 @@
 #include <klone/response.h>
 #include <klone/queue.h>
 #include <klone/session.h>
+#include <klone/io.h>
 #include <klone/codec.h>
 #include <klone/codgzip.h>
 #include <klone/utils.h>
@@ -57,6 +58,7 @@ int emb_unregister(embres_t *r);
 int emb_lookup(const char *filename, embres_t **pr);
 int emb_count();
 int emb_getn(size_t n, embres_t **pr);
+int emb_open(const char *file, io_t **pio);
 
 #endif
 

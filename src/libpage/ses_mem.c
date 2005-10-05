@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <klone/session.h>
 #include <klone/request.h>
+#include <klone/context.h>
 #include <klone/response.h>
 #include <klone/vars.h>
 #include <klone/utils.h>
@@ -13,9 +14,7 @@
 #include <klone/str.h>
 #include <klone/debug.h>
 #include <klone/ses_prv.h>
-
-static int ses_count;
-static size_t ses_size;
+#include <klone/ppc.h>
 
 static int session_calc_maxsize(var_t *v, size_t *psz)
 {
@@ -179,3 +178,32 @@ err:
         session_free(ss);
     return ~0;
 }
+
+static int session_cmd_save_mem(ppc_t *ppc, unsigned char cmd, char *data, 
+    size_t size, void *so)
+{
+    /* save data to so->atoms */
+    dbg(__FUNCTION__);
+
+    return 0;
+}
+
+/* this function will be called once by the server during startup */
+int session_mem_module_init(config_t *config, session_opt_t *so)
+{
+    ppc_t *ppc;
+
+    dbg(__FUNCTION__);
+
+    ppc = server_get_ppc(ctx->server);
+    dbg_err_if(ppc == NULL);
+
+    dbg_err_if(ppc_register(ppc, 's', session_cmd_save_mem, (void*)so));
+
+    /* session_mem_save() will call server_rpc_send(server, 's', data, size) */
+
+    return 0;
+err:
+    return ~0;
+}
+

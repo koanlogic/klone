@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2005/10/04 10:27:57 stewy Exp $
+# $Id: Makefile,v 1.7 2005/10/05 10:02:04 tat Exp $
 include ../../../Makefile.conf
 
 PROG = klone
@@ -11,12 +11,8 @@ LDFLAGS += -lc # see checkin 30-09-2005
 LDADD += ../../libtrans/libtrans.a  \
          ../../libio/libio.a        \
          ../../libcodec/libcodec.a  \
-         ../../libpage/libpage.a    \
-         ../../libutils/libutils.a  \
-         ../../libemb/libemb.a      \
-         ../../libtls/libtls.a      \
-         ../../libhttp/libhttp.a    \
-         ../../../site/libsite.a
+         ../../libutils/libutils.a  
+
 
 
 include prog.mk

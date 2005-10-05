@@ -35,12 +35,12 @@ typedef struct backends_s backends_t; /* backend_t list        */
         init,                                                   \
         connect,                                                \
         term,                                                   \
-        NULL,   /* server  */                                   \
-        NULL,   /* config  */                                   \
-        NULL,   /* addr    */                                   \
-        0,      /* model   */                                   \
-        -1,     /* ld      */                                   \
-        NULL,   /* arg     */                                   \
+        NULL,   /* server       */                              \
+        NULL,   /* config       */                              \
+        NULL,   /* addr         */                              \
+        0,      /* model        */                              \
+        -1,     /* ld           */                              \
+        NULL,   /* arg          */                              \
         LIST_ENTRY_NULL                                         \
     }
 

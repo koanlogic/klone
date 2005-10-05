@@ -7,6 +7,7 @@
 #include <klone/os.h>
 #include "conf.h"
 
+/* global applicaton context */
 typedef struct context_s
 {
     server_t *server;   /* server object                   */
@@ -16,6 +17,7 @@ typedef struct context_s
     int daemon;         /* daemon/service mode on/off      */
     char **arg;         /* cmd line args array             */
     size_t narg;        /* # of cmd line args              */
+    int pipc;           /* parent IPC socket descriptor    */
 
     #ifdef OS_WIN
     SERVICE_STATUS_HANDLE hServiceStatus;
@@ -24,5 +26,8 @@ typedef struct context_s
                         /* install/remove service bindings */
     #endif
 } context_t;
+
+/* exported variable (see entry.c) */
+extern context_t *ctx;
 
 #endif

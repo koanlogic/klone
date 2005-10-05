@@ -28,6 +28,7 @@ static int backend_set_model(backend_t *be, const char *v)
         be->model = SERVER_MODEL_ITERATIVE;
     else
         warn_err("unknown server model [%s]", v);
+
     return 0;
 err:
     return ~0;

@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <unistd.h>
-
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <klone/debug.h>
 #include <klone/queue.h>
 #include <klone/addr.h>
@@ -9,6 +10,8 @@
 #include <klone/backend.h>
 #include <klone/os.h>
 #include <klone/timer.h>
+#include <klone/context.h>
+#include <klone/ppc.h>
 
 #define SERVER_MAX_BACKENDS 8
 
@@ -19,17 +22,25 @@ enum watch_fd_e
     WATCH_FD_EXCP   = 1 << 3
 };
 
-void server_watch_fd(server_t *s, int fd, unsigned int mode);
-void server_clear_fd(server_t *s, int fd, unsigned int mode);
-void server_close_fd(server_t *s, int fd);
+enum ipc_cmd_e 
+{ 
+    IPC_OP_UNKNOWN, 
+    IPC_OP_LOG, 
+    IPC_OP_ATOM_SAVE 
+};
+
+static void server_watch_fd(server_t *s, int fd, unsigned int mode);
+static void server_clear_fd(server_t *s, int fd, unsigned int mode);
+static void server_close_fd(server_t *s, int fd);
 
 struct server_s 
 {
     config_t *config;       /* server config                    */
+    ppc_t *ppc;             /* parent procedure call            */
+    backends_t bes;         /* backend list                     */
     fd_set rdfds, wrfds, exfds;
     int hfd;                /* highest set fd in fd_sets        */
     size_t nserver;         /* # of servers                     */
-    backends_t bes;         /* backend list                     */
     int stop;               /* >0 will stop the loop            */
     int model;              /* server model                     */
 };
@@ -89,7 +100,7 @@ static void server_recalc_hfd(server_t *s)
     }
 }
 
-void server_clear_fd(server_t *s, int fd, unsigned int mode)
+static void server_clear_fd(server_t *s, int fd, unsigned int mode)
 {
     if(mode & WATCH_FD_READ)
         FD_CLR(fd, &s->rdfds);
@@ -103,7 +114,7 @@ void server_clear_fd(server_t *s, int fd, unsigned int mode)
     server_recalc_hfd(s);
 }
 
-void server_watch_fd(server_t *s, int fd, unsigned int mode)
+static void server_watch_fd(server_t *s, int fd, unsigned int mode)
 {
     if(mode & WATCH_FD_READ)
         FD_SET(fd, &s->rdfds);
@@ -117,7 +128,7 @@ void server_watch_fd(server_t *s, int fd, unsigned int mode)
     s->hfd = MAX(s->hfd, fd);
 }
 
-void server_close_fd(server_t *s, int fd)
+static void server_close_fd(server_t *s, int fd)
 {
     server_clear_fd(s, fd, WATCH_FD_READ | WATCH_FD_WRITE | WATCH_FD_EXCP);
     close(fd);
@@ -180,35 +191,65 @@ err:
     return ~0;
 }
 
-static int server_be_serve(server_t *s, backend_t *be, int ad)
+static int server_child_serve(server_t *s, backend_t *be, int ad)
 {
     pid_t child;
+    int socks[2];
 
     U_UNUSED_ARG(s);
+
+    /* create a parent<->child IPC channel */
+    dbg_err_if(socketpair(AF_UNIX, SOCK_STREAM, 0, socks) < 0);
+
+    if((child = fork()) == 0)
+    {   /* child */
+
+        /* close on end of the channel */
+        close(socks[0]);
+
+        /* save parent IPC socket and close the other */
+        ctx->pipc = socks[1];
+
+        /* close this be listening descriptor */
+        close(be->ld);
+
+        /* serve the page */
+        dbg_if(backend_serve(be, ad));
+
+        /* close client socket and die */
+        close(ad);
+        server_stop(be->server); 
+
+    } else if(child > 0) {
+        /* parent */
+
+        /* close one end of the channel */
+        close(socks[1]);
+
+        /* close the accepted socket */
+        close(ad);
+
+        /* watch the socket connected to the child */
+        server_watch_fd(s, socks[0], WATCH_FD_READ);
+    } else {
+        warn_err("fork error");
+    }
+
+    return 0;
+err:
+    warn_strerror(errno);
+    return ~0;
+}
+
+static int server_be_serve(server_t *s, backend_t *be, int ad)
+{
+    alarm_t *al = NULL;
 
     switch(be->model)
     {
     case SERVER_MODEL_FORK:
-        if((child = fork()) == 0)
-        {   /* child */
-
-            /* close this be listening descriptor */
-            close(be->ld);
-
-            /* serve the page */
-            dbg_if(backend_serve(be, ad));
-
-            /* close client socket and die */
-            close(ad);
-            server_stop(be->server); 
-
-        } else if(child > 0) {
-           /* parent */
-            close(ad);
-
-        } else {
-            dbg_err_sif("fork error");
-        }
+        /* spawn a child to handle the request */
+        dbg_err_if(server_child_serve(s, be, ad));
         break;
 
     case SERVER_MODEL_ITERATIVE:
@@ -261,15 +302,48 @@ int server_cgi(server_t *s)
     {
         if(strcasecmp(be->proto, "http") == 0)
         {
-            backend_serve(be, 0);
-            break;
+            dbg_if(backend_serve(be, 0));
+            return 0;
         }
     }
 
     return ~0;
 }
 
-int server_dispatch(server_t *s, int ld)
+ppc_t* server_get_ppc(server_t *s)
+{
+    return s->ppc;
+}
+
+static int server_process_ppc(server_t *s, int fd)
+{
+    unsigned char cmd;
+    char data[PPC_MAX_DATA_SIZE];
+    ssize_t n;
+
+    /* get a ppc request */
+    n = ppc_read(s->ppc, fd, &cmd, data, PPC_MAX_DATA_SIZE); 
+    if(n > 0)
+    {   
+        /* process a ppc (parent procedure call) request */
+        dbg_err_if(ppc_dispatch(s->ppc, cmd, data, n));
+    } else if(n == 0) {
+        /* child has exit or closed the channel. close our side of the sock 
+           and remove it from the watch list */
+        server_close_fd(s, fd);
+        dbg("CHILD: closed ");
+    } else {
+        /* error. close fd and remove it from the watch list */
+        server_close_fd(s, fd);
+        dbg_err("CHILD: error");
+    }
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int server_dispatch(server_t *s, int fd)
 {
     backend_t *be;
     int ad; 
@@ -277,16 +351,19 @@ int server_dispatch(server_t *s, int ld)
     /* find the backend that listen on fd */
     LIST_FOREACH(be, &s->bes, np)
     {
-        if(be->ld == ld)
+        if(be->ld == fd)
         {
             /* accept the pending connection */
             dbg_if(server_be_accept(s, be, &ad));
 
             dbg_if(server_be_serve(s, be, ad));
 
-            break;
+            return 0;
         }
     }
+
+    /* a child is calling, get a ppc (parent procedure call) request */
+    dbg_if(server_process_ppc(s, fd));
 
     return 0;
 }
@@ -327,9 +404,6 @@ int server_loop(server_t *s)
             } 
         } /* for each ready fd */
 
-        /* a child is calling, use the internal service backend */
-        // server_be_serve(s, service_be, fd);
-
     } /* infinite loop */
 
     return 0;
@@ -349,6 +423,8 @@ int server_free(server_t *s)
         LIST_REMOVE(be, np);
         server_backend_detach(s, be);
     }
+
+    dbg_if(ppc_free(s->ppc));
 
 #ifdef OS_WIN
     WSACleanup();
@@ -404,6 +480,8 @@ int server_create(config_t *config, int model, server_t **ps)
     s = u_calloc(sizeof(server_t));
     dbg_err_if(s == NULL);
 
+    *ps = s; /* we need it before backend inits */
+
     s->config = config;
     s->model = model;
 
@@ -414,7 +492,9 @@ int server_create(config_t *config, int model, server_t **ps)
 
     /* init backend list */
     LIST_INIT(&s->bes);
-    
+
+    dbg_err_if(ppc_create(&s->ppc));
+
     /* parse server list and build s->bes */
     list = config_get_subkey_value(config, "server_list");
     dbg_err_if(list == NULL);
@@ -447,14 +527,18 @@ int server_create(config_t *config, int model, server_t **ps)
         if(be->model == SERVER_MODEL_UNSET)
             be->model = s->model; /* inherit server model */
 
+        #ifdef OS_WIN
+        if(be->model == SERVER_MODEL_FORK)
+            warn_err("child-based server model is not "
+                     "yet supported on Windows");
+        #endif
+
         LIST_INSERT_HEAD(&s->bes, be, np);
 
         dbg_err_if(server_setup_backend(s, be));
     }
 
     u_free(n);
-
-    *ps = s;
 
     return 0;
 err:

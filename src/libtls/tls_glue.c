@@ -1,4 +1,4 @@
-/* $Id: tls_glue.c,v 1.4 2005/10/04 10:47:32 stewy Exp $ */
+/* $Id: tls_glue.c,v 1.5 2005/10/05 10:02:04 tat Exp $ */
 
 /*
  * This product includes software developed by Ralf S. Engelschall 
@@ -29,7 +29,7 @@ BIO *bio_from_emb (const char *res_name)
 
     dbg_return_if (!res_name, NULL);
 
-    dbg_err_if (u_emb_open(res_name, &tmp));
+    dbg_err_if (emb_open(res_name, &tmp));
     dbg_err_if (!(b = BIO_new(BIO_s_mem())));
 
     for (;;)

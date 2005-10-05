@@ -484,32 +484,6 @@ err:
     return ~0;
 }
 
-int u_emb_open(const char *file, io_t **pio)
-{
-    embfile_t *e = NULL;
-    codec_gzip_t *gzip = NULL;
-    io_t *io;
-
-    dbg_err_if(emb_lookup(file, (embres_t**)&e) || e->res.type != ET_FILE);
-
-    dbg_err_if(io_mem_create(e->data, e->size, 0, &io));
-
-    if(e->comp)
-    {
-        dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gzip));
-        dbg_err_if(io_set_codec(io, (codec_t*)gzip));
-        gzip = NULL;
-    }
-
-    *pio = io;
-
-    return 0;
-err:
-    if(gzip)
-        codec_free((codec_t*)gzip);
-    return ~0;
-}
-
 int u_file_open(const char *file, int flags, io_t **pio)
 {
     int fmod = 0; /* flags modifier */

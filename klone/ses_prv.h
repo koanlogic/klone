@@ -87,9 +87,6 @@ int session_prv_init(session_t *, request_t *, response_t *);
 int session_prv_load(session_t *, io_t *);
 int session_prv_save_var(var_t *, io_t *);
 
-int session_module_init(config_t *config, session_opt_t **pso);
-int session_module_term(session_opt_t *so);
-
 /* init/term funcs */
 int session_module_init(config_t *config, session_opt_t **pso);
 int session_module_term(session_opt_t *so);

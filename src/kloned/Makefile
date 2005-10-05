@@ -1,9 +1,9 @@
-# $Id: Makefile,v 1.4 2005/10/04 10:27:57 stewy Exp $
+# $Id: Makefile,v 1.5 2005/10/05 10:02:04 tat Exp $
 
 include ../../Makefile.conf
 
 PROG = kloned
-SRCS = server.c main.c entry.c modules_init.c modules_term.c
+SRCS = server.c main.c entry.c modules_init.c modules_term.c ppc.c
 
 CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
 LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
