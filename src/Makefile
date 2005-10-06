@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2005/09/28 09:05:27 tat Exp $
+# $Id: Makefile,v 1.3 2005/10/06 11:33:09 tho Exp $
 
 SUBDIR =    \
  libbackend \
@@ -11,6 +11,7 @@ SUBDIR =    \
  libtls     \
  libtrans   \
  libutils   \
+ libklog    \
  kloned     \
  tools
 
