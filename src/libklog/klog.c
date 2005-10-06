@@ -30,7 +30,27 @@ static int klog_getln_mem (klog_mem_t *klm, size_t nth, char ln[]);
 static int klog_clear_mem (klog_mem_t *klm);
 static void klog_mem_msgs_free (klog_mem_t *klm);
 
+/**
+ *  \defgroup klog KLOG
+ *  \{
+ */
 
+/**
+ * \brief   Create a new \c klog_t object of type \p type
+ *
+ * \param type      one of \c KLOG_TYPE_SYSLOG, \c KLOG_TYPE_MEM or
+ *                  \c KLOG_TYPE_FILE
+ * \param id        an identifier to be prepended to each log message
+ * \param facility  one of syslog(3) facilities (\c KLOG_TYPE_SYSLOG only)
+ * \param opt       a bitmask of syslog(3) options (\c KLOG_TYPE_SYSLOG only)
+ * \param bound     the maximum number of log messages (\c KLOG_TYPE_MEM and
+ *                  \c KLOG_TYPE_FILE only) 
+ * \param pkl       the newly created \c klog_t object as a value-result
+ *                  argument  
+ * \return
+ * - \c 0   success
+ * - \c ~0  on error (\p pkl MUST not be referenced)
+ */
 int klog_open (int type, const char *id, int facility, int opt, size_t bound,
         klog_t **pkl)
 {
@@ -55,6 +75,163 @@ int klog_open (int type, const char *id, int facility, int opt, size_t bound,
 
     return rv;
 }
+
+/** 
+ * \brief   Log a \c KLOG message
+ *
+ * \param kl        The klog context in use
+ * \param level     log severity, from KLOG_DEBUG to KLOG_EMERG
+ * \param fmt       log format string.  Note that the conversion specification
+ *                  depends on the underying log type: \c KLOG_TYPE_MEM and 
+ *                  \c KLOG_TYPE_FILE have printf(3)-like behaviour, while 
+ *                  \c KLOG_TYPE_SYSLOG follows syslog(3) format rules.
+ * \param ...       parameters to \p fmt
+ *
+ * \return
+ * - \c 0   success
+ * - \c ~0  on failure
+ */
+int klog (klog_t *kl, int level, const char *fmt, ...)
+{
+    int rv = 0;
+    va_list ap;
+
+    dbg_return_if (kl == NULL, ~0);
+    dbg_return_if (fmt == NULL, ~0);
+
+    va_start(ap, fmt);
+    
+    switch (kl->type)
+    {
+        case KLOG_TYPE_MEM:
+            rv = klog_mem(kl->u.m, level, fmt, ap);
+            break;
+        case KLOG_TYPE_FILE:
+            rv = klog_file(kl->u.f, level, fmt, ap);
+            break;
+        case KLOG_TYPE_SYSLOG:
+            rv = klog_syslog(kl->u.s, level, fmt, ap);
+            break;
+        default:
+            rv = ~0;
+            break;
+    }
+
+    va_end(ap);
+
+    return rv;
+}
+
+/** 
+ * \brief   Destroy a \c klog_t object
+ *
+ * \param kl    The \c klog_t object to be destroyed.  When destroying a 
+ *              \c KLOG_TYPE_MEM object, all log messages are lost.
+ * \return nothing
+ */
+void klog_close (klog_t *kl)
+{
+    dbg_return_if (kl == NULL, );
+
+    switch (kl->type)
+    {
+        case KLOG_TYPE_MEM:
+            klog_close_mem(kl->u.m);
+            break;
+        case KLOG_TYPE_FILE:
+            klog_close_file(kl->u.f);
+            break;
+        case KLOG_TYPE_SYSLOG:
+            klog_close_syslog(kl->u.s);
+            break;
+        default:
+            warn("bad klog_s record !");
+            return;
+    }
+
+    u_free(kl);
+
+    return;
+}
+
+/** 
+ * \brief   Return the nth memory-log message
+ *
+ * \param kl    A \c KLOG_TYPE_MEM context
+ * \param nth   a log message index: elements are retrieved in reverse order 
+ *              with respect to insertion
+ * \param ln    where the log string shall be stored: it must be a preallocated 
+ *              buffer, at least, \c KLOG_MSG_SZ \c + \c 1 bytes long
+ * \return
+ * - \c 0   success
+ * - \c ~0  on failure
+ */
+int klog_getln (klog_t *kl, size_t nth, char ln[])
+{
+    dbg_return_if (kl == NULL, ~0);
+
+    switch (kl->type)
+    {
+        case KLOG_TYPE_MEM:
+            return klog_getln_mem(kl->u.m, nth, ln);
+        case KLOG_TYPE_FILE:
+        case KLOG_TYPE_SYSLOG:
+        default:
+            warn("bad klog_s record !");
+            return ~0;
+    }
+}
+
+/** 
+ * \brief   Remove all memory-log messages from the supplied \c klog_t context 
+ *
+ * \param kl    A \c KLOG_TYPE_MEM context
+ *
+ * \return
+ * - \c 0   success
+ * - \c ~0  on failure
+ */
+int klog_clear (klog_t *kl)
+{
+    dbg_return_if (kl == NULL, ~0);
+
+    switch (kl->type)
+    {
+        case KLOG_TYPE_MEM:
+            return klog_clear_mem(kl->u.m);
+        case KLOG_TYPE_FILE:    /* TODO */
+        case KLOG_TYPE_SYSLOG:
+        default:
+            return ~0;
+    }
+}
+
+/** 
+ * \brief   Count the number of lines in the supplied memory-log context \p kl
+ *
+ * \param kl    A \c KLOG_TYPE_MEM context
+ *
+ * \return nothing
+ */
+ssize_t klog_countln (klog_t *kl)
+{
+    dbg_return_if (kl == NULL, ~0);
+
+    switch (kl->type)
+    {
+        case KLOG_TYPE_MEM:
+            return klog_countln_mem(kl->u.m);
+        case KLOG_TYPE_FILE:
+        case KLOG_TYPE_SYSLOG:
+        default:
+            warn("bad klog_s record !");
+            return -1;
+    }
+}
+
+/**
+ *  \}
+ */
 
 /* each klog_*_open() will push its private data afterwards */
 static int klog_new (int type, klog_t **pkl)
@@ -87,30 +264,6 @@ err:
     return ~0;
 }
 
-void klog_close (klog_t *kl)
-{
-    dbg_return_if (kl == NULL, );
-
-    switch (kl->type)
-    {
-        case KLOG_TYPE_MEM:
-            klog_close_mem(kl->u.m);
-            break;
-        case KLOG_TYPE_FILE:
-            klog_close_file(kl->u.f);
-            break;
-        case KLOG_TYPE_SYSLOG:
-            klog_close_syslog(kl->u.s);
-            break;
-        default:
-            warn("bad klog_s record !");
-            return;
-    }
-
-    u_free(kl);
-
-    return;
-}
 
 /* TODO */
 static void klog_close_file (klog_file_t *klf)
@@ -228,37 +381,6 @@ err:
     return ~0;
 }
 
-int klog (klog_t *kl, int level, const char *fmt, ...)
-{
-    int rv = 0;
-    va_list ap;
-
-    dbg_return_if (kl == NULL, ~0);
-    dbg_return_if (fmt == NULL, ~0);
-
-    va_start(ap, fmt);
-    
-    switch (kl->type)
-    {
-        case KLOG_TYPE_MEM:
-            rv = klog_mem(kl->u.m, level, fmt, ap);
-            break;
-        case KLOG_TYPE_FILE:
-            rv = klog_file(kl->u.f, level, fmt, ap);
-            break;
-        case KLOG_TYPE_SYSLOG:
-            rv = klog_syslog(kl->u.s, level, fmt, ap);
-            break;
-        default:
-            rv = ~0;
-            break;
-    }
-
-    va_end(ap);
-
-    return rv;
-}
-
 static int klog_mem (klog_mem_t *klm, int level, const char *fmt, va_list ap)
 {
     char ln[KLOG_LN_SZ + 1];
@@ -361,23 +483,6 @@ static int klog_syslog (klog_syslog_t *kls, int level, const char *fmt,
     return 0;
 }
 
-/* 'ln' must be KLOG_MSG_SZ + 1 bytes long */
-int klog_getln (klog_t *kl, size_t nth, char ln[])
-{
-    dbg_return_if (kl == NULL, ~0);
-
-    switch (kl->type)
-    {
-        case KLOG_TYPE_MEM:
-            return klog_getln_mem(kl->u.m, nth, ln);
-        case KLOG_TYPE_FILE:    /* TODO */
-        case KLOG_TYPE_SYSLOG:
-        default:
-            warn("bad klog_s record !");
-            return ~0;
-    }
-}
-
 /* elements are retrieved in reverse order with respect to insertion */
 static int klog_getln_mem (klog_mem_t *klm, size_t nth, char ln[])
 {
@@ -408,22 +513,6 @@ static int klog_getln_mem (klog_mem_t *klm, size_t nth, char ln[])
     return 0;
 }
 
-ssize_t klog_countln (klog_t *kl)
-{
-    dbg_return_if (kl == NULL, ~0);
-
-    switch (kl->type)
-    {
-        case KLOG_TYPE_MEM:
-            return klog_countln_mem(kl->u.m);
-        case KLOG_TYPE_FILE:    /* TODO */
-        case KLOG_TYPE_SYSLOG:
-        default:
-            warn("bad klog_s record !");
-            return -1;
-    }
-}
-
 static ssize_t klog_countln_mem (klog_mem_t *klm)
 {
     dbg_return_if (klm == NULL, -1);
@@ -449,17 +538,4 @@ static int klog_to_syslog (int lev)
     return (lev < KLOG_DEBUG || lev > KLOG_EMERG) ? -1 : ldef[lev];
 }
 
-int klog_clear (klog_t *kl)
-{
-    dbg_return_if (kl == NULL, ~0);
 
-    switch (kl->type)
-    {
-        case KLOG_TYPE_MEM:
-            return klog_clear_mem(kl->u.m);
-        case KLOG_TYPE_FILE:    /* TODO */
-        case KLOG_TYPE_SYSLOG:
-        default:
-            return ~0;
-    }
-}
