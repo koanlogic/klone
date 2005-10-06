@@ -29,7 +29,6 @@ int emb_term()
 {
     dbg_err_if(init == 0);
 
-    dbg("unregistering embedded resources");
     unregister_pages();
 
     return 0;
