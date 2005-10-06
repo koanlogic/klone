@@ -40,10 +40,10 @@ int atoms_create(atoms_t **);
 int atoms_free(atoms_t *);
 
 /* sum of atoms size field */
-int atoms_size(atoms_t *);
+size_t atoms_size(atoms_t *);
 
 /* # of atoms */
-int atoms_count(atoms_t *);
+size_t atoms_count(atoms_t *);
 
 /* return the n-th atom */
 int atoms_getn(atoms_t *, int n, atom_t**);

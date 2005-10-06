@@ -17,8 +17,6 @@ int ppc_register(ppc_t *ppc, unsigned char cmd, ppc_cb_t cb, void *arg)
 {
     dbg_err_if(ppc == NULL || cb == NULL);
 
-    dbg(__FUNCTION__);
-
     ppc->ftb[cmd] = cb;
     ppc->arg[cmd] = arg;
 
@@ -94,7 +92,7 @@ ssize_t ppc_read(ppc_t *ppc, int fd, unsigned char *pcmd, char *data,
     /* buffer too small or cmd bigger then max allowed size */
     dbg_return_if(h.size > size || h.size > PPC_MAX_DATA_SIZE, -1); 
 
-    n = ppc_do_read(fd, data, size);
+    n = ppc_do_read(fd, data, h.size);
     if(n <= 0) /* error or eof */
         return n;
 

@@ -46,7 +46,7 @@ err:
 }
 
 /* sum of atoms size field */
-int atoms_size(atoms_t *as)
+size_t atoms_size(atoms_t *as)
 {
     dbg_err_if(as == NULL);
 
@@ -56,7 +56,7 @@ err:
 }
 
 /* # of atoms */
-int atoms_count(atoms_t *as)
+size_t atoms_count(atoms_t *as)
 {
     dbg_err_if(as == NULL);
 
@@ -113,6 +113,9 @@ int atoms_add(atoms_t *as, atom_t *atom)
 
     LIST_INSERT_HEAD(&as->list, atom, np);
 
+    as->count++;
+    as->size += atom->size;
+
     return 0;
 err:
     return ~0;
@@ -124,6 +127,9 @@ int atoms_remove(atoms_t *as, atom_t *atom)
     dbg_err_if(as == NULL || atom == NULL);
 
     LIST_REMOVE(atom, np);
+
+    as->count--;
+    as->size -= atom->size;
 
     return 0;
 err:
