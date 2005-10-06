@@ -3,10 +3,8 @@
  */
 
 #include "conf.h"
-#include "klog.h" /* TODO move to klone/ */
-
 #include <time.h>
-
+#include <klone/klog.h>
 #include <klone/debug.h>
 #include <klone/utils.h>
 
