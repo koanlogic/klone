@@ -1,5 +1,5 @@
-.\" $Id: kloned.conf.5,v 1.3 2005/10/03 21:24:44 tho Exp $
-.TH "KLONED.CONF" "5" "10/03/2005" "KoanLogic Srl" "KoanLogic Srl"
+.\" $Id: kloned.conf.5,v 1.4 2005/10/06 16:10:40 tho Exp $
+.TH "KLONED.CONF" "5" "10/06/2005" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -15,7 +15,7 @@ daemon, i.e. it contains its runtime configuration information. The complete des
 .SH "FILE FORMAT"
 .PP
 The file consists of sections and parameters. A section begins with the name of the section, is followed by a '{' and continues until the corresponding '}' is found. Sections can contain subsections or parameter assignements of the form:
-\fIname\fR \fIvalue\fR.
+\fIname\fR\fIvalue\fR.
 .PP
 The file is line\-based \- that is, each newline\-terminated line represents either a comment, a section name or a parameter.
 .PP
@@ -116,17 +116,26 @@ to
 in the requested URI. For example, when the following is set:
 .sp
 .nf
-dir_alias /image /var/httpd/images
+dir_alias /img /var/httpd/img
 .fi
 .sp
 a request to
-\fIsup://image/logo.gif\fR
+\fI(http|https)://sitehost[:port]/img/a.gif\fR
 will be mapped to
-\fIsup://var/httpd/images/logo.gif\fR.
+\fI(http|https)://sitehost[:port]/var/httpd/img/a.gif\fR.
 .TP
 \fBserver_sig\fR
 Set the server signature string which will be returned in the HTTP head (Server: %s). When setting a custom Product token, the guidelines stated in paragraph 3.7 of RFC 1945 should be followed. The default value is
 "klone/1.0".
+.TP
+\fBserver_model\fR
+Set the type of the serving model for this klone instance:
+\fIfork\fR, a child process is spawned for every client request, or
+\fIiterative\fR, pending clients are processed one at a time. Note that the
+\fB\-F\fR
+command line switch overrides this value. The default value is inherited from the parent
+\fBkloned\fR
+process.
 .TP
 \fBindex\fR
 Specify the index page location. This is the page that is returned to the client requesting
@@ -152,6 +161,16 @@ for storing data on the client. The default value is
 .TP
 \fBmax_age\fR
 Set the inactivity threshold timeout for the session. The default value is 60*20 seconds (20 minutes).
+.TP
+\fBmemory.mem_limit\fR
+Set the maximum size in bytes for the memory used to hold the collection of all sessions' data. The default value is
+\fI0\fR, i.e. unbounded.
+.TP
+\fBmemory.max_count\fR
+Set the maximum number of sessions the server can store in memory. The default value is
+\fI0\fR, i.e. unbounded.
+.PP
+NOTE: in case one of the two latter limits is exceeded, the data of the older inactive session will be discarded.
 .TP
 \fBfile.path\fR
 Specify where to store session data when the
