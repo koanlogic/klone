@@ -336,7 +336,7 @@ static int klog_open_mem (const char *id, size_t ln_max, klog_t **pkl)
     
     /* initialise the klog_mem_t object to the supplied values */
     klm->id = id ? strdup(id) : NULL;   /* NULL is for anonymous log sink */
-    klm->bound = ln_max;
+    klm->bound = ln_max ? ln_max : 1;   /* set at least a 1 msg window :) */
     klm->count = 0;
     TAILQ_INIT(&klm->msgs);
 
