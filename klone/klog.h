@@ -73,8 +73,7 @@ typedef struct klog_syslog_s klog_syslog_t;
 
 struct klog_s
 {
-    int type;   /* one of KLOG_TYPEs */
-
+    int type;               /* one of KLOG_TYPEs */
     union {
         klog_mem_t *m;      /* in-memory FIFO buffer */
         klog_file_t *f;     /* disk FIFO buffer */
