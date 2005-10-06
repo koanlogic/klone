@@ -428,13 +428,13 @@ int session_create(session_opt_t *so, request_t *rq, response_t *rs,
         warn_err("bad session type");
     }
 
-    /* may fail if session does not exist */
+    /* may fail if the session does not exist */
     session_load(ss);
 
     dbg_ifb(session_age(ss) > so->max_age)
     {
-        session_clean(ss); /* remove all session variables */
-        session_remove(ss); /* remove all session variables */
+        session_clean(ss);  /* remove all session variables */
+        session_remove(ss); /* remove the session itself    */
     }
 
     *pss = ss;

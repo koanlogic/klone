@@ -44,6 +44,16 @@ typedef struct session_opt_s
     /* session related options */
     int type;       /* type of sessions (file, memory, client-side)  */
     int max_age;    /* max allowed age of sessions                   */
+
+    /* file session options/struct                                   */
+    char path[PATH_MAX + 1]; /* session save path                    */
+
+    /* in-memory session options/struct                              */
+    atoms_t *atoms; /* atom list used to store in-memory sessions    */
+    size_t max_count;   /* max # of in-memory sessions               */
+    size_t mem_limit;   /* max (total) size of in-memory sessions    */
+
+    /* client-side options/structs                                   */
     int encrypt;    /* >0 when client-side session encryption is on  */
     int compress;   /* >0 when client-side session compression is on */
 #ifdef HAVE_LIBOPENSSL
@@ -56,8 +66,6 @@ typedef struct session_opt_s
     EVP_CIPHER_CTX cipher_enc_ctx;      /* encrypt context           */
     EVP_CIPHER_CTX cipher_dec_ctx;      /* decrypt context           */
 #endif
-    char path[PATH_MAX + 1]; /* session save path                    */
-    atoms_t *atoms; /* atom list used to store in-memory sessions    */
 } session_opt_t;
 
 struct session_s
