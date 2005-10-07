@@ -7,6 +7,7 @@
 #include <klone/klog.h>
 #include <klone/debug.h>
 #include <klone/utils.h>
+#include <klone/config.h>
 
 static int klog_new (int type, klog_t **pkl);
 static int klog_to_syslog (int lev);
@@ -29,6 +30,7 @@ static ssize_t klog_countln_mem (klog_mem_t *klm);
 static int klog_getln_mem (klog_mem_t *klm, size_t nth, char ln[]);
 static int klog_clear_mem (klog_mem_t *klm);
 static void klog_mem_msgs_free (klog_mem_t *klm);
+static int klog_cfg_check (klog_cfg_t *kcfg);
 
 static const char *kloglev[] = { 
     "DEBUG", "INFO", "NOTICE", "WARNING", "ERR", "CRIT", "ALERT", "EMERG" 
@@ -43,6 +45,37 @@ static int sysloglev[] = {
  *  \defgroup klog KLOG
  *  \{
  */
+
+/**
+ * \brief ...
+ *
+ * \param logsect   a log configuration record
+ * \param pkl       the initialised klog_t context as a value-result argument
+ *
+ * \return
+ * - \c 0  success
+ * - \c ~0 on failure (\p pkl MUST not be referenced)
+ */
+int klog_cfg_open (config_t *logsect, klog_t **pkl)
+{
+    klog_cfg_t c;
+
+    dbg_return_if (logsect == NULL, ~0);
+    dbg_return_if (pkl == NULL, ~0);
+
+    /* read in config values */
+    c.type = klog_type(config_get_subkey_value(logsect, "type"));
+    c.ident = config_get_subkey_value(logsect, "ident");
+    c.threshold = klog_threshold(config_get_subkey_value(logsect, "threshold"));
+    c.path = config_get_subkey_value(logsect, "file.path"); 
+    /* c.facility = config_get_subkey_value(logsect, "syslog.facility"); */
+    c.options = klog_logopt(config_get_subkey_value(logsect, "syslog.options"));
+
+    dbg_return_if (klog_cfg_check(&c), ~0);
+    
+    return klog_open(c.type, c.ident, c.facility, c.options, c.limit, pkl);
+}
+
 
 /**
  * \brief   Create a new \c klog_t object of type \p type
@@ -246,8 +279,10 @@ ssize_t klog_countln (klog_t *kl)
  * \return the internal representation of the supplied string or
  *         \c KLOG_TYPE_UNKNOWN (i.e. \c 0) on error
  */
-int klog_type (char *type)
+int klog_type (const char *type)
 {
+    dbg_return_if (type == NULL, KLOG_TYPE_UNKNOWN);
+
     if (!strcasecmp(type, "mem"))
         return KLOG_TYPE_MEM;
     else if (!strcasecmp(type, "file"))
@@ -264,17 +299,19 @@ int klog_type (char *type)
  * \param threshold     one of "debug" up to "emerg"
  *
  * \return the internal representation of the supplied string or
- *         \c KLOG_UNKNOWN on error
+ *         \c KLOG_LEVEL_UNKNOWN on error
  */
-int klog_treshold (char *threshold)
+int klog_threshold (const char *threshold)
 {
     int i;
+
+    dbg_return_if (threshold == NULL, KLOG_LEVEL_UNKNOWN);
 
     for (i = KLOG_DEBUG; i <= KLOG_EMERG; i++)
         if (!strcasecmp(threshold, kloglev[i]))
             return i;
 
-    return KLOG_UNKNOWN;
+    return KLOG_LEVEL_UNKNOWN;
 }
 
 /**
@@ -284,15 +321,17 @@ int klog_treshold (char *threshold)
  *
  * \return logopt bitmask 
  */
-int klog_logopt (char *options)
+int klog_logopt (const char *options)
 {
+    char *o2 = NULL;    /* 'options' dupped for safe u_tokenize() */
     int i = 0, logopt = 0;
     enum { NOPTS = 4 };
     char *optv[NOPTS + 1];
     
     dbg_return_if (options == NULL, 0);
+    dbg_return_if ((o2 = strdup(options)) == NULL, 0);
 
-    dbg_return_if (u_tokenize(options, optv, NOPTS + 1), 0);
+    dbg_err_if (u_tokenize(o2, optv, NOPTS + 1));
     
     while (optv[i++])
     {
@@ -308,7 +347,12 @@ int klog_logopt (char *options)
             warn("bad log option: \'%s\'", optv[i]);
     }
 
+    u_free(o2);
     return logopt;
+
+err:
+    u_free(o2);
+    return 0;
 }
 
 /**
@@ -587,7 +631,7 @@ static int klog_getln_mem (klog_mem_t *klm, size_t nth, char ln[])
 
     /* 
      * line format is:
-     *      [DBG] Sep 23 13:26:19 <id>: log message line.
+     *      [DEBUG] Sep 23 13:26:19 <ident>: log message line.
      */
     snprintf(ln, KLOG_LN_SZ + 1, "[%s] %s <%s>: %s", 
              klog_to_str(cur->level), ct, klm->id, cur->line);
@@ -612,4 +656,27 @@ static int klog_to_syslog (int lev)
     return (lev < KLOG_DEBUG || lev > KLOG_EMERG) ? -1 : sysloglev[lev];
 }
 
+static int klog_cfg_check (klog_cfg_t *c)
+{
+    dbg_return_if (c == NULL, ~0);
 
+    if (c->type == KLOG_TYPE_UNKNOWN)
+        warn_err("unknown log type");
+
+    /* set default (i.e. do not filter) if not set */
+    if (c->threshold == KLOG_LEVEL_UNKNOWN)
+        c->threshold = KLOG_DEBUG;
+
+    if (c->type == KLOG_TYPE_MEM && c->limit == 0)
+        c->limit = KLOG_BOUND_DFL;
+        
+    if (c->type == KLOG_TYPE_FILE && c->path == NULL)
+        warn_err("log file path is mandatory !");
+
+    if (c->type == KLOG_TYPE_SYSLOG && c->facility == KLOG_FACILITY_UNKNOWN)
+        c->facility = LOG_LOCAL0;
+
+    return 0;
+err:
+    return ~0;
+}

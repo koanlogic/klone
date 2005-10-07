@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <klone/os.h>
 #include <klone/queue.h>
+#include <klone/config.h>
 
 /* log types */
 enum { KLOG_TYPE_UNKNOWN, KLOG_TYPE_MEM, KLOG_TYPE_FILE, KLOG_TYPE_SYSLOG };
@@ -24,7 +25,7 @@ enum {
     KLOG_CRIT,
     KLOG_ALERT,
     KLOG_EMERG,
-    KLOG_UNKNOWN    /* stopper */
+    KLOG_LEVEL_UNKNOWN    /* stopper */
 };
 
 #define KLOG_LN_SZ      512  /* maximum log line size */
@@ -84,7 +85,23 @@ struct klog_s
 
 typedef struct klog_s klog_t;
 
+/* internal representation of a 'log' config section */
+struct klog_cfg_s
+{
+    int type;
+    const char *ident;
+    int threshold;
+    size_t limit;
+    const char *path;
+#define KLOG_FACILITY_UNKNOWN   -1
+    int facility;
+    int options;
+};
+
+typedef struct klog_cfg_s klog_cfg_t;
+
 /* common */
+int klog_cfg_open (config_t *cfg, klog_t **pkl);
 int klog_open (int type, const char *id, int facility, int opt, size_t bound,
         klog_t **pkl);
 int klog (klog_t *kl, int level, const char *msg, ...);
@@ -96,8 +113,8 @@ ssize_t klog_countln (klog_t *kl);
 int klog_clear (klog_t *kl);
 
 /* configuration parsing/validation */
-int klog_type (char *type);
-int klog_treshold (char *threshold);
-int klog_logopt (char *options);
+int klog_type (const char *type);
+int klog_threshold (const char *threshold);
+int klog_logopt (const char *options);
 
 #endif /* _KLONE_LOG_H_ */
