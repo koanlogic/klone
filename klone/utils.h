@@ -75,6 +75,7 @@ int u_file_open(const char *file, int flags, io_t **pio);
 int u_tmpfile_open(io_t **pio);
 int u_getline(io_t *io, string_t *ln);
 int u_fgetline(FILE *in, string_t *ln);
+int u_tokenize (char *wlist, char **tokv, size_t tokv_sz);
 
 int u_io_unzip_copy(io_t *out, const uint8_t *data, size_t size);
 

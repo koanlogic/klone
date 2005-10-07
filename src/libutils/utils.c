@@ -819,6 +819,45 @@ void* u_memdup(void *src, size_t size)
 }
 
 /**
+ * \brief   tokenize the space and/or tab separated string \p wlist
+ *
+ * Tokenize the space and/or tab separated string \p wlist and place its
+ * pieces (at most \p tokv_sz - 1) into \p tokv.
+ *
+ * \param wlist     space (tab) separated list of strings
+ * \param tokv      pre-allocated string array
+ * \param tokv_sz   number of cells in \p tokv array  
+ *
+ */
+int u_tokenize (char *wlist, char **tokv, size_t tokv_sz)
+{
+    char **ap;
+
+    dbg_return_if (wlist == NULL, ~0);
+    dbg_return_if (tokv == NULL, ~0);
+    dbg_return_if (tokv_sz == 0, ~0);
+
+    ap = tokv;
+
+    for ( ; (*ap = strsep(&wlist, " \t")) != NULL; )
+    {
+        /* skip empty field */
+        if (**ap == '\0')
+            continue;
+
+        /* check bounds */
+        if (++ap >= &tokv[tokv_sz - 1])
+            break;
+    }
+
+    /* put an explicit stopper to tokv */
+    *ap = NULL;
+
+    return 0;
+}
+
+
+/**
  *  \}
  */
 
