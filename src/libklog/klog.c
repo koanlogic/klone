@@ -30,6 +30,15 @@ static int klog_getln_mem (klog_mem_t *klm, size_t nth, char ln[]);
 static int klog_clear_mem (klog_mem_t *klm);
 static void klog_mem_msgs_free (klog_mem_t *klm);
 
+static const char *kloglev[] = { 
+    "DEBUG", "INFO", "NOTICE", "WARNING", "ERR", "CRIT", "ALERT", "EMERG" 
+};
+
+static int sysloglev[] = {
+    LOG_DEBUG, LOG_INFO, LOG_NOTICE, LOG_WARNING, LOG_ERR, LOG_CRIT, 
+    LOG_ALERT, LOG_EMERG
+};
+
 /**
  *  \defgroup klog KLOG
  *  \{
@@ -161,7 +170,7 @@ void klog_close (klog_t *kl)
  * \param nth   a log message index: elements are retrieved in reverse order 
  *              with respect to insertion
  * \param ln    where the log string shall be stored: it must be a preallocated 
- *              buffer, at least, \c KLOG_MSG_SZ \c + \c 1 bytes long
+ *              buffer, at least \c KLOG_MSG_SZ \c + \c 1 bytes long
  * \return
  * - \c 0   success
  * - \c ~0  on failure
@@ -227,6 +236,79 @@ ssize_t klog_countln (klog_t *kl)
             warn("bad klog_s record !");
             return -1;
     }
+}
+
+/**
+ * \brief   Map type directive to the internal representation
+ *
+ * \param type  one of "mem", "file" or "syslog"
+ *
+ * \return the internal representation of the supplied string or
+ *         \c KLOG_TYPE_UNKNOWN (i.e. \c 0) on error
+ */
+int klog_type (char *type)
+{
+    if (!strcasecmp(type, "mem"))
+        return KLOG_TYPE_MEM;
+    else if (!strcasecmp(type, "file"))
+        return KLOG_TYPE_FILE;
+    else if (!strcasecmp(type, "syslog"))
+        return KLOG_TYPE_SYSLOG;
+    else
+        return KLOG_TYPE_UNKNOWN;
+}
+
+/**
+ * \brief   Map threshold directive to the internal representation
+ *
+ * \param threshold     one of "debug" up to "emerg"
+ *
+ * \return the internal representation of the supplied string or
+ *         \c KLOG_UNKNOWN on error
+ */
+int klog_treshold (char *threshold)
+{
+    int i;
+
+    for (i = KLOG_DEBUG; i <= KLOG_EMERG; i++)
+        if (!strcasecmp(threshold, kloglev[i]))
+            return i;
+
+    return KLOG_UNKNOWN;
+}
+
+/**
+ * \brief   Map threshold directive to the internal representation
+ *
+ * \param options   space separated list of syslog(3) log options
+ *
+ * \return logopt bitmask 
+ */
+int klog_logopt (char *options)
+{
+    int i = 0, logopt = 0;
+    enum { NOPTS = 4 };
+    char *optv[NOPTS + 1];
+    
+    dbg_return_if (options == NULL, 0);
+
+    dbg_return_if (u_tokenize(options, optv, NOPTS + 1), 0);
+    
+    while (optv[i++])
+    {
+        if (!strcasecmp(optv[i], "LOG_CONS"))
+            logopt |= LOG_CONS;
+        else if (!strcasecmp(optv[i], "LOG_NDELAY"))
+            logopt |= LOG_NDELAY;
+        else if (!strcasecmp(optv[i], "LOG_PERROR"))
+            logopt |= LOG_PERROR;
+        else if (!strcasecmp(optv[i], "LOG_PID"))
+            logopt |= LOG_PID;
+        else
+            warn("bad log option: \'%s\'", optv[i]);
+    }
+
+    return logopt;
 }
 
 /**
@@ -522,20 +604,12 @@ static ssize_t klog_countln_mem (klog_mem_t *klm)
 
 static const char *klog_to_str (int lev)
 {
-    static const char *lstr[] =
-        { "???", "DBG", "INF", "NTC", "WRN", "ERR", "CRT", "ALR", "EMR" };
-
-    return (lev < KLOG_DEBUG || lev > KLOG_EMERG) ? lstr[0] : lstr[lev + 1];
+    return (lev < KLOG_DEBUG || lev > KLOG_EMERG) ? "?" : kloglev[lev];
 }
 
 static int klog_to_syslog (int lev)
 {
-    static int ldef[] = {
-        LOG_DEBUG, LOG_INFO, LOG_NOTICE, LOG_WARNING,
-        LOG_ERR, LOG_CRIT, LOG_ALERT, LOG_EMERG
-    };
-
-    return (lev < KLOG_DEBUG || lev > KLOG_EMERG) ? -1 : ldef[lev];
+    return (lev < KLOG_DEBUG || lev > KLOG_EMERG) ? -1 : sysloglev[lev];
 }
 
 

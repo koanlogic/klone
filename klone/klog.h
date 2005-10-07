@@ -12,7 +12,7 @@
 #include <klone/queue.h>
 
 /* log types */
-enum { KLOG_TYPE_MEM, KLOG_TYPE_FILE, KLOG_TYPE_SYSLOG };
+enum { KLOG_TYPE_UNKNOWN, KLOG_TYPE_MEM, KLOG_TYPE_FILE, KLOG_TYPE_SYSLOG };
 
 /* log levels, from low to high */
 enum {
@@ -23,7 +23,8 @@ enum {
     KLOG_ERR,
     KLOG_CRIT,
     KLOG_ALERT,
-    KLOG_EMERG
+    KLOG_EMERG,
+    KLOG_UNKNOWN    /* stopper */
 };
 
 #define KLOG_LN_SZ      512  /* maximum log line size */
@@ -83,13 +84,20 @@ struct klog_s
 
 typedef struct klog_s klog_t;
 
-/* exported prototypes */
+/* common */
 int klog_open (int type, const char *id, int facility, int opt, size_t bound,
         klog_t **pkl);
 int klog (klog_t *kl, int level, const char *msg, ...);
 void klog_close (klog_t *kl);
+
+/* mem log specific */
 int klog_getln (klog_t *kl, size_t nth, char ln[]);
 ssize_t klog_countln (klog_t *kl);
 int klog_clear (klog_t *kl);
+
+/* configuration parsing/validation */
+int klog_type (char *type);
+int klog_treshold (char *threshold);
+int klog_logopt (char *options);
 
 #endif /* _KLONE_LOG_H_ */
