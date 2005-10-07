@@ -1,0 +1,18 @@
+
+    log 
+    {
+        type        mem|file|syslog             # the obvious
+
+        ident       <string>                    # id string in log msgs
+        threshold   DEBUG->EMERG                # min unfiltered log level
+
+        # mem ONLY
+        mem.limit   123                         # log msgs window size
+
+        # 'file' ONLY
+        file.path   <path>                      # log file name
+
+        # 'syslog' ONLY
+        syslog.facility LOG_{LOCAL0->LOCAL7}    # default facility for log msgs
+        syslog.options  LOG_{CONS, ..., PID}    # combined by OR'ing
+    }
