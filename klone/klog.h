@@ -28,8 +28,10 @@ enum {
     KLOG_LEVEL_UNKNOWN    /* stopper */
 };
 
-#define KLOG_LN_SZ      512  /* maximum log line size */
-#define KLOG_BOUND_DFL  250  /* maximum number of log lines (file and mem) */
+#define KLOG_LN_SZ          512 /* maximum log line size */
+#define KLOG_MLIMIT_DFL     250 /* maximum number of log lines (mem) */
+#define KLOG_FLIMIT_DFL     250 /* maximum number of log lines (file) */
+#define KLOG_FSPLITS_DFL    4   /* maximum number of log files (file) */
 
 /* a log line is at most KLOG_LN_SZ + 1 bytes long (including encoded
  * timestamp and severity) */
@@ -76,6 +78,7 @@ typedef struct klog_syslog_s klog_syslog_t;
 struct klog_s
 {
     int type;               /* one of KLOG_TYPEs */
+    int threshold;          /* min unfiltered level */
     union {
         klog_mem_t *m;      /* in-memory FIFO buffer */
         klog_file_t *f;     /* disk FIFO buffer */
@@ -86,35 +89,31 @@ struct klog_s
 typedef struct klog_s klog_t;
 
 /* internal representation of a 'log' config section */
-struct klog_cfg_s
+struct klog_args_s
 {
-    int type;
-    const char *ident;
-    int threshold;
-    size_t limit;
-    const char *path;
+    int type;           /* one of KLOG_TYPEs */
+    char *ident;        /* string prepended to each log msg */
+    int threshold;      /* filter log msgs lower than this level */
+    size_t mlimit;      /* max number of log messages (memory) */
+    char *fbasename;    /* basename of log files (postfix varies) */
+    size_t fsplits;     /* number of split files (file) */
+    size_t flimit;      /* number of log msgs per file (file) */
+    int soptions;       /* log options (syslog) */
+    int sfacility;      /* default facility (syslog's LOG_LOCAL[0-7]) */
 #define KLOG_FACILITY_UNKNOWN   -1
-    int facility;
-    int options;
 };
 
-typedef struct klog_cfg_s klog_cfg_t;
+typedef struct klog_args_s klog_args_t;
 
 /* common */
-int klog_cfg_open (config_t *cfg, klog_t **pkl);
-int klog_open (int type, const char *id, int facility, int opt, size_t bound,
-        klog_t **pkl);
+int klog_args (config_t *logsect, klog_args_t **pka);
+int klog_open (klog_args_t *ka, klog_t **pkl);
 int klog (klog_t *kl, int level, const char *msg, ...);
 void klog_close (klog_t *kl);
 
-/* mem log specific */
+/* mem and file specific */
 int klog_getln (klog_t *kl, size_t nth, char ln[]);
 ssize_t klog_countln (klog_t *kl);
 int klog_clear (klog_t *kl);
-
-/* configuration parsing/validation */
-int klog_type (const char *type);
-int klog_threshold (const char *threshold);
-int klog_logopt (const char *options);
 
 #endif /* _KLONE_LOG_H_ */

@@ -9,6 +9,11 @@
 #include <klone/utils.h>
 #include <klone/config.h>
 
+static int klog_args_new (klog_args_t **pka);
+static void klog_args_free (klog_args_t *ka);
+static int klog_type (const char *type);
+static int klog_threshold (const char *threshold);
+static int klog_logopt (const char *options);
 static int klog_new (int type, klog_t **pkl);
 static int klog_to_syslog (int lev);
 static const char *klog_to_str (int lev);
@@ -30,7 +35,7 @@ static ssize_t klog_countln_mem (klog_mem_t *klm);
 static int klog_getln_mem (klog_mem_t *klm, size_t nth, char ln[]);
 static int klog_clear_mem (klog_mem_t *klm);
 static void klog_mem_msgs_free (klog_mem_t *klm);
-static int klog_cfg_check (klog_cfg_t *kcfg);
+static int klog_args_check (klog_args_t *ka);
 
 static const char *kloglev[] = { 
     "DEBUG", "INFO", "NOTICE", "WARNING", "ERR", "CRIT", "ALERT", "EMERG" 
@@ -47,75 +52,104 @@ static int sysloglev[] = {
  */
 
 /**
- * \brief ...
+ * \brief   create a \c klog_args_t object with configuration parameters read
+ *          from a log subsection of a kloned configuration file
  *
- * \param logsect   a log configuration record
- * \param pkl       the initialised klog_t context as a value-result argument
- *
+ * \param ls        a log configuration record
+ * \param pka       the corresponding \c klog_args_t object as a value-result 
+ *                  argument
  * \return
  * - \c 0  success
- * - \c ~0 on failure (\p pkl MUST not be referenced)
+ * - \c ~0 on failure (\p pka MUST not be referenced)
  */
-int klog_cfg_open (config_t *logsect, klog_t **pkl)
+int klog_args (config_t *ls, klog_args_t **pka)
 {
-    klog_cfg_t c;
+    const char *cs;
+    klog_args_t *ka = NULL;
 
-    dbg_return_if (logsect == NULL, ~0);
-    dbg_return_if (pkl == NULL, ~0);
+    dbg_return_if (ls == NULL, ~0);
+    dbg_return_if (pka == NULL, ~0);
+
+    /* here defaults are set */
+    dbg_err_if (klog_args_new(&ka));
 
     /* read in config values */
-    c.type = klog_type(config_get_subkey_value(logsect, "type"));
-    c.ident = config_get_subkey_value(logsect, "ident");
-    c.threshold = klog_threshold(config_get_subkey_value(logsect, "threshold"));
-    c.path = config_get_subkey_value(logsect, "file.path"); 
-    /* c.facility = config_get_subkey_value(logsect, "syslog.facility"); */
-    c.options = klog_logopt(config_get_subkey_value(logsect, "syslog.options"));
+    ka->type = klog_type(config_get_subkey_value(ls, "type"));
 
-    dbg_return_if (klog_cfg_check(&c), ~0);
+    if ((cs = config_get_subkey_value(ls, "ident")) != NULL)
+        ka->ident = u_strdup(cs);
+
+    ka->threshold = klog_threshold(config_get_subkey_value(ls, "threshold"));
+
+    if ((cs = config_get_subkey_value(ls, "mem.limit")) != NULL)
+        ka->mlimit = atoi(cs);
+
+    if ((cs = config_get_subkey_value(ls, "file.basename")) != NULL) 
+        ka->fbasename = u_strdup(cs);
+
+    if ((cs = config_get_subkey_value(ls, "file.limit")) != NULL)
+        ka->flimit = atoi(cs);
+
+    if ((cs = config_get_subkey_value(ls, "file.splits")) != NULL)
+        ka->fsplits = atoi(cs);
+
+    /* TODO 
+    ka->facility = config_get_subkey_value(ls, "syslog.facility"); 
+     */
+
+    ka->soptions = klog_logopt(config_get_subkey_value(ls, "syslog.options"));
+
+    dbg_return_if (klog_args_check(ka), ~0);
+
+    *pka = ka;
     
-    return klog_open(c.type, c.ident, c.facility, c.options, c.limit, pkl);
+    return 0;
+err:
+    if (ka)
+        klog_args_free(ka);
+    return ~0;
 }
 
-
 /**
- * \brief   Create a new \c klog_t object of type \p type
+ * \brief   Create a new \c klog_t object from the corresponding \c klog_args_t 
  *
- * \param type      one of \c KLOG_TYPE_SYSLOG, \c KLOG_TYPE_MEM or
- *                  \c KLOG_TYPE_FILE
- * \param id        an identifier to be prepended to each log message
- * \param facility  one of syslog(3) facilities (\c KLOG_TYPE_SYSLOG only)
- * \param opt       a bitmask of syslog(3) options (\c KLOG_TYPE_SYSLOG only)
- * \param bound     the maximum number of log messages (\c KLOG_TYPE_MEM and
- *                  \c KLOG_TYPE_FILE only) 
+ * \param ka        an initialised \c klog_args_t object
  * \param pkl       the newly created \c klog_t object as a value-result
  *                  argument  
  * \return
  * - \c 0   success
  * - \c ~0  on error (\p pkl MUST not be referenced)
  */
-int klog_open (int type, const char *id, int facility, int opt, size_t bound,
-        klog_t **pkl)
+int klog_open (klog_args_t *ka, klog_t **pkl)
 {
     int rv;
 
     dbg_return_if (pkl == NULL, ~0);
+    dbg_return_if (ka == NULL, ~0);
 
-    switch (type)
+    switch (ka->type)
     {
         case KLOG_TYPE_MEM:
-            rv = klog_open_mem(id, bound, pkl);
+            rv = klog_open_mem(ka->ident, ka->mlimit, pkl);
             break;
         case KLOG_TYPE_FILE: /* TODO */
             rv = ~0;
             break;
         case KLOG_TYPE_SYSLOG:
-            rv = klog_open_syslog(id, facility, opt, pkl);
+            rv = klog_open_syslog(ka->ident, ka->sfacility, ka->soptions, pkl);
             break;
         default:
             return ~0;
     }
 
-    return rv;
+    /* go out if something went wrong (deallocation done in klog_open_*()) */
+    if (rv)
+        return rv;
+
+    /* otherwise fill the rest of klog_t */
+    (*pkl)->threshold = ka->threshold;
+
+    return 0;
 }
 
 /** 
@@ -143,6 +177,13 @@ int klog (klog_t *kl, int level, const char *fmt, ...)
 
     va_start(ap, fmt);
     
+    /* get rid of spurious stuff */
+    dbg_goto_if (level < KLOG_DEBUG || level >= KLOG_LEVEL_UNKNOWN, end);
+
+    /* early filtering of msgs with level lower than threshold */
+    if (level < kl->threshold)
+        goto end;
+    
     switch (kl->type)
     {
         case KLOG_TYPE_MEM:
@@ -159,6 +200,7 @@ int klog (klog_t *kl, int level, const char *fmt, ...)
             break;
     }
 
+end:
     va_end(ap);
 
     return rv;
@@ -311,6 +353,7 @@ int klog_threshold (const char *threshold)
         if (!strcasecmp(threshold, kloglev[i]))
             return i;
 
+    warn("unknown threshold value: \'%s\'", threshold);
     return KLOG_LEVEL_UNKNOWN;
 }
 
@@ -329,11 +372,11 @@ int klog_logopt (const char *options)
     char *optv[NOPTS + 1];
     
     dbg_return_if (options == NULL, 0);
-    dbg_return_if ((o2 = strdup(options)) == NULL, 0);
+    dbg_return_if ((o2 = u_strdup(options)) == NULL, 0);
 
     dbg_err_if (u_tokenize(o2, optv, NOPTS + 1));
     
-    while (optv[i++])
+    while (optv[i])
     {
         if (!strcasecmp(optv[i], "LOG_CONS"))
             logopt |= LOG_CONS;
@@ -345,6 +388,7 @@ int klog_logopt (const char *options)
             logopt |= LOG_PID;
         else
             warn("bad log option: \'%s\'", optv[i]);
+        i++;
     }
 
     u_free(o2);
@@ -366,7 +410,7 @@ static int klog_new (int type, klog_t **pkl)
 
     dbg_return_if (pkl == NULL, ~0);
 
-    kl = calloc(1, sizeof(klog_t));
+    kl = u_calloc(sizeof(klog_t));
     dbg_err_if (kl == NULL);
 
     /* check the supplied type */
@@ -457,11 +501,11 @@ static int klog_open_mem (const char *id, size_t ln_max, klog_t **pkl)
     dbg_err_if (klog_new(KLOG_TYPE_MEM, pkl));
 
     /* create a new klog_mem_t object */
-    klm = calloc(1, sizeof(klog_mem_t));
+    klm = u_calloc(sizeof(klog_mem_t));
     dbg_err_if (klm == NULL);
     
     /* initialise the klog_mem_t object to the supplied values */
-    klm->id = id ? strdup(id) : NULL;   /* NULL is for anonymous log sink */
+    klm->id = id ? u_strdup(id) : NULL;   /* NULL is for anonymous log sink */
     klm->bound = ln_max ? ln_max : 1;   /* set at least a 1 msg window :) */
     klm->count = 0;
     TAILQ_INIT(&klm->msgs);
@@ -489,10 +533,10 @@ static int klog_open_syslog (const char *ident, int facility, int logopt,
 
     dbg_err_if (klog_new(KLOG_TYPE_SYSLOG, pkl));
 
-    kls = calloc(1, sizeof(klog_syslog_t));
+    kls = u_calloc(sizeof(klog_syslog_t));
     dbg_err_if (kls == NULL);
 
-    kls->ident = ident ? strdup(ident) : strdup("");
+    kls->ident = ident ? u_strdup(ident) : u_strdup("");
     kls->facility = facility;
     kls->logopt = logopt;
     
@@ -532,7 +576,7 @@ static int klog_mem_msg_new (const char *s, int level, klog_mem_msg_t **pmmsg)
     dbg_return_if (s == NULL, ~0);
     dbg_return_if (pmmsg == NULL, ~0);
 
-    mmsg = calloc(1, sizeof(klog_mem_msg_t));
+    mmsg = u_calloc(sizeof(klog_mem_msg_t));
     dbg_err_if (mmsg == NULL);
 
     mmsg->line = u_strndup(s, KLOG_LN_SZ);
@@ -563,6 +607,7 @@ static int klog_mem_msg_push (klog_mem_t *klm, klog_mem_msg_t *mmsg)
         if (last != NULL)
         {
             TAILQ_REMOVE(&klm->msgs, last, next);
+            klog_mem_msg_free(last);
             klm->count--;
         }
     }
@@ -656,27 +701,80 @@ static int klog_to_syslog (int lev)
     return (lev < KLOG_DEBUG || lev > KLOG_EMERG) ? -1 : sysloglev[lev];
 }
 
-static int klog_cfg_check (klog_cfg_t *c)
+static int klog_args_check (klog_args_t *ka)
 {
-    dbg_return_if (c == NULL, ~0);
+    dbg_return_if (ka == NULL, ~0);
 
-    if (c->type == KLOG_TYPE_UNKNOWN)
+    if (ka->type == KLOG_TYPE_UNKNOWN)
         warn_err("unknown log type");
 
-    /* set default (i.e. do not filter) if not set */
-    if (c->threshold == KLOG_LEVEL_UNKNOWN)
-        c->threshold = KLOG_DEBUG;
+    /* do not filter if not specified or if a wrong value has been supplied */
+    if (ka->threshold == KLOG_LEVEL_UNKNOWN)
+    {
+        warn("threshold unspecified: assuming lowest possible (DEBUG)");
+        ka->threshold = KLOG_DEBUG;
+    }
 
-    if (c->type == KLOG_TYPE_MEM && c->limit == 0)
-        c->limit = KLOG_BOUND_DFL;
-        
-    if (c->type == KLOG_TYPE_FILE && c->path == NULL)
-        warn_err("log file path is mandatory !");
-
-    if (c->type == KLOG_TYPE_SYSLOG && c->facility == KLOG_FACILITY_UNKNOWN)
-        c->facility = LOG_LOCAL0;
+    switch (ka->type)
+    {
+        case KLOG_TYPE_MEM:
+            if (ka->mlimit == 0)
+                ka->mlimit = KLOG_MLIMIT_DFL;
+            break;
+        case KLOG_TYPE_FILE:
+            if (ka->fbasename == NULL)
+                warn_err("log file path is mandatory !");
+            if (ka->fsplits == 0)
+                ka->fsplits =  KLOG_FSPLITS_DFL;
+            if (ka->flimit == 0)
+                ka->flimit = KLOG_FLIMIT_DFL;
+            break;
+        case KLOG_TYPE_SYSLOG:
+            if (ka->sfacility == KLOG_FACILITY_UNKNOWN)
+                ka->sfacility = LOG_LOCAL0;
+            break;
+        default:
+            warn_err("what are you doing here ?");
+    }
 
     return 0;
 err:
     return ~0;
+}
+
+static int klog_args_new (klog_args_t **pka)
+{
+    klog_args_t *ka = u_calloc(sizeof(klog_args_t));
+
+    dbg_return_if (ka == NULL, ~0);
+    /* XXX should set defaults */
+    *pka = ka;
+
+    return 0;
+}
+
+void klog_args_print (FILE *fp, klog_args_t *ka)
+{
+    dbg_return_if (ka == NULL, );
+    dbg_return_if (fp == NULL, );
+
+    fprintf(fp, "ka->type: \t %d\n", ka->type);
+    fprintf(fp, "ka->ident: \t %s\n", ka->ident);
+    fprintf(fp, "ka->threshold: \t %d\n", ka->threshold);
+    fprintf(fp, "ka->mlimit: \t %zd\n", ka->mlimit);
+    fprintf(fp, "ka->fbasename: \t %s\n", ka->fbasename);
+    fprintf(fp, "ka->fsplits: \t %zd\n", ka->fsplits);
+    fprintf(fp, "ka->flimit: \t %zd\n", ka->flimit);
+    fprintf(fp, "ka->soptions: \t %d\n", ka->soptions);
+    fprintf(fp, "ka->sfacility: \t %d\n", ka->sfacility);
+
+    return;
+}
+
+static void klog_args_free (klog_args_t *ka)
+{
+    u_free(ka->ident);
+    u_free(ka->fbasename);
+    u_free(ka);
+    return;
 }

@@ -4,15 +4,67 @@
         type        mem|file|syslog             # the obvious
 
         ident       <string>                    # id string in log msgs
-        threshold   DEBUG->EMERG                # min unfiltered log level
+        threshold   DEBUG, ..., EMERG           # min unfiltered log level
 
         # mem ONLY
         mem.limit   123                         # log msgs window size
 
         # 'file' ONLY
-        file.path   <path>                      # log file name
+        file.basename   <pathname>              # log files basename
+        file.limit      123                     # max number of msgs in each f
+        file.splits     456                     # number of log files
 
         # 'syslog' ONLY
-        syslog.facility LOG_{LOCAL0->LOCAL7}    # default facility for log msgs
-        syslog.options  LOG_{CONS, ..., PID}    # combined by OR'ing
+        syslog.facility LOG_LOCAL[0-7]          # default facility for log msgs
+        syslog.options  LOG_{CONS, ..., PID}    # multivalue directive
     }
+
+/*
+ * file logging structures
+ */
+
+struct klog_file_mem_s
+{
+    size_t count;                       /* how many files in list */
+    char *basename;                     /* files' name prefix */
+    struct klog_file_s *factive;        /* the active log file */
+    TAILQ_HEAD (h, klog_file_s) files;  /* list of all log files */
+};
+
+struct klog_file_s
+{
+    int id;         /* file id (filename is basename.id) */
+    FILE *fp;       /* file pointer (when active) */
+    size_t bound;   /* max lines in file */
+    size_t lines;   /* # of lines written */
+};
+
+
+struct klog_file_mem_s *klf;
+
+open ()
+{
+    get an available log file from klf 
+    open|creat (override) for writing
+}
+
+log (ln)
+{
+    get klf.active
+
+    if (.lines < .bound)
+    {
+        append(ln, klf.active.fp)
+        .lines++
+        return
+    } 
+
+    close klf.active.fp
+
+    klf.active = klf.active.next
+    open klf.active
+    append(ln, klf.active.fp) 
+
+}
+
+
