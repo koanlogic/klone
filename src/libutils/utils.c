@@ -808,7 +808,7 @@ err:
     return ~0;
 }
 
-void* u_memdup(void *src, size_t size)
+void* u_memdup(const void *src, size_t size)
 {
     void *p;
 

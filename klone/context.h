@@ -4,6 +4,7 @@
 #include <klone/debug.h>
 #include <klone/server.h>
 #include <klone/config.h>
+#include <klone/backend.h>
 #include <klone/os.h>
 #include "conf.h"
 
@@ -12,6 +13,7 @@ typedef struct context_s
 {
     server_t *server;   /* server object                   */
     config_t *config;   /* server config object            */
+    backend_t *backend; /* the backend served by this child */
     char *ext_config;   /* additional external config file */
     int debug;          /* debugging on/off                */
     int daemon;         /* daemon/service mode on/off      */

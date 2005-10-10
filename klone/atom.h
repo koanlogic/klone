@@ -46,7 +46,7 @@ size_t atoms_size(atoms_t *);
 size_t atoms_count(atoms_t *);
 
 /* return the n-th atom */
-int atoms_getn(atoms_t *, int n, atom_t**);
+int atoms_getn(atoms_t *, size_t n, atom_t**);
 
 /* return the atom whose ID is id */
 int atoms_get(atoms_t *, const char *id, atom_t**);

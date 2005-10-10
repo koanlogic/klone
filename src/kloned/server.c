@@ -209,6 +209,7 @@ static int server_child_serve(server_t *s, backend_t *be, int ad)
 
         /* save parent IPC socket and close the other */
         ctx->pipc = socks[1];
+        ctx->backend = be;
 
         /* close this be listening descriptor */
         close(be->ld);
@@ -332,7 +333,7 @@ static int server_process_ppc(server_t *s, int fd)
            and remove it from the watch list */
         server_close_fd(s, fd);
     } else {
-        /* error. close fd and remove it from the watch list */
+        /* ppc error. close fd and remove it from the watch list */
         server_close_fd(s, fd);
     }
 
@@ -465,7 +466,7 @@ int server_create(config_t *config, int model, server_t **ps)
     backend_t *be = NULL;
     const char *list, *type;
     char *n = NULL, *name = NULL;
-    int i;
+    int i, id;
 
 #ifdef OS_WIN
     WORD ver;
@@ -501,7 +502,7 @@ int server_create(config_t *config, int model, server_t **ps)
     dbg_err_if(name == NULL);
     
     /* load config and init backend for each server in server.list */
-    for(i = strlen(list); 
+    for(i = strlen(list), id = 0; 
         i > 0 && sscanf(list, "%[^ \t]", name); 
         i -= 1 + strlen(name), list += 1 + strlen(name), name[0] = 0)
     {
@@ -522,6 +523,7 @@ int server_create(config_t *config, int model, server_t **ps)
 
         be->server = s;
         be->config = bekey;
+        be->id = id++;
         if(be->model == SERVER_MODEL_UNSET)
             be->model = s->model; /* inherit server model */
 

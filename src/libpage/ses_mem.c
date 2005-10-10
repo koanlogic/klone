@@ -15,6 +15,7 @@
 #include <klone/debug.h>
 #include <klone/ses_prv.h>
 #include <klone/ppc.h>
+#include <klone/ppc_cmd.h>
 
 
 typedef struct enc_ses_mem_s
@@ -52,7 +53,7 @@ static int session_delete_oldest(session_opt_t *so)
         ppc = server_get_ppc(ctx->server);
         dbg_err_if(ppc == NULL);
 
-        dbg_err_if(ppc_write(ppc, ctx->pipc, 'd', "", 1) < 0);
+        dbg_err_if(ppc_write(ppc, ctx->pipc, PPC_CMD_MSES_DELOLD, "", 1) < 0);
 
         /* delete it from the local copy of atom list */
         dbg_err_if(so_atom_delete_oldest(so));
@@ -200,7 +201,7 @@ static int session_cmd_save(ppc_t *ppc, unsigned char cmd, char *data,
     dbg_err_if(vso == NULL || data == NULL);
 
     dbg_err_if(so_atom_add(so, esm->filename, esm->data, esm->size, 
-        esm->mtime));
+        (void*)esm->mtime));
 
     return 0;
 err:
@@ -234,7 +235,8 @@ static int session_mem_add(session_opt_t *so, const char *filename, char *buf,
         memcpy(esm->data, buf, size);
 
         /* send the command request */
-        dbg_err_if(ppc_write(ppc, ctx->pipc, 's', (char*)esm, esize) < 0);
+        dbg_err_if(ppc_write(ppc, ctx->pipc, PPC_CMD_MSES_SAVE, 
+            (char*)esm, esize) < 0);
 
         u_free(esm);
 
@@ -331,7 +333,7 @@ static int session_mem_remove(session_t *ss)
         ppc = server_get_ppc(ctx->server);
         dbg_err_if(ppc == NULL);
 
-        dbg_err_if(ppc_write(ppc, ctx->pipc, 'r', ss->filename, 
+        dbg_err_if(ppc_write(ppc, ctx->pipc, PPC_CMD_MSES_REMOVE, ss->filename, 
             strlen(ss->filename) + 1) < 0);
 
         /* remove the session-atom from the (local copy) atom list */
@@ -409,13 +411,16 @@ int session_mem_module_init(config_t *config, session_opt_t *so)
     dbg_err_if(atoms_create(&so->atoms));
 
     /* register session_cmd_saveto be called on 's' ppc command */
-    dbg_err_if(ppc_register(ppc, 's', session_cmd_save, (void*)so));
+    dbg_err_if(ppc_register(ppc, PPC_CMD_MSES_SAVE, session_cmd_save, 
+        (void*)so));
 
     /* register session_cmd_delold to be called on 'd' ppc command */
-    dbg_err_if(ppc_register(ppc, 'd', session_cmd_delold, (void*)so));
+    dbg_err_if(ppc_register(ppc, PPC_CMD_MSES_DELOLD, session_cmd_delold, 
+        (void*)so));
 
     /* register session_cmd_remove to be called on 'r' ppc command */
-    dbg_err_if(ppc_register(ppc, 'r', session_cmd_remove, (void*)so));
+    dbg_err_if(ppc_register(ppc, PPC_CMD_MSES_REMOVE, session_cmd_remove, 
+        (void*)so));
 
     return 0;
 err:

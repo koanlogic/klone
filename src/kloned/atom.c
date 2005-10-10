@@ -66,7 +66,7 @@ err:
 }
 
 /* return the n-th atom */
-int atoms_getn(atoms_t *as, int n, atom_t **patom)
+int atoms_getn(atoms_t *as, size_t n, atom_t **patom)
 {
     atom_t *atom;
     int i = 0;

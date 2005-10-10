@@ -23,6 +23,7 @@ struct backend_s
     int model;
     int ld;
     void *arg;
+    int id;
     LIST_ENTRY(backend_s) np;  /* next & prev pointers         */
 };
 
@@ -41,6 +42,7 @@ typedef struct backends_s backends_t; /* backend_t list        */
         0,      /* model        */                              \
         -1,     /* ld           */                              \
         NULL,   /* arg          */                              \
+        -1,     /* id           */                              \
         LIST_ENTRY_NULL                                         \
     }
 
