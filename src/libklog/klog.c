@@ -12,6 +12,7 @@
 static int klog_args_new (klog_args_t **pka);
 static void klog_args_free (klog_args_t *ka);
 static int klog_type (const char *type);
+static int klog_facility (const char *facility);
 static int klog_threshold (const char *threshold);
 static int klog_logopt (const char *options);
 static int klog_new (int type, klog_t **pkl);
@@ -42,8 +43,8 @@ static const char *kloglev[] = {
 };
 
 static int sysloglev[] = {
-    LOG_DEBUG, LOG_INFO, LOG_NOTICE, LOG_WARNING, LOG_ERR, LOG_CRIT, 
-    LOG_ALERT, LOG_EMERG
+    LOG_DEBUG, LOG_INFO, LOG_NOTICE, LOG_WARNING, 
+    LOG_ERR, LOG_CRIT, LOG_ALERT, LOG_EMERG
 };
 
 /**
@@ -93,9 +94,8 @@ int klog_args (config_t *ls, klog_args_t **pka)
     if ((cs = config_get_subkey_value(ls, "file.splits")) != NULL)
         ka->fsplits = atoi(cs);
 
-    /* TODO 
-    ka->facility = config_get_subkey_value(ls, "syslog.facility"); 
-     */
+    ka->sfacility = 
+        klog_facility(config_get_subkey_value(ls, "syslog.facility"));
 
     ka->soptions = klog_logopt(config_get_subkey_value(ls, "syslog.options"));
 
@@ -311,92 +311,6 @@ ssize_t klog_countln (klog_t *kl)
             warn("bad klog_s record !");
             return -1;
     }
-}
-
-/**
- * \brief   Map type directive to the internal representation
- *
- * \param type  one of "mem", "file" or "syslog"
- *
- * \return the internal representation of the supplied string or
- *         \c KLOG_TYPE_UNKNOWN (i.e. \c 0) on error
- */
-int klog_type (const char *type)
-{
-    dbg_return_if (type == NULL, KLOG_TYPE_UNKNOWN);
-
-    if (!strcasecmp(type, "mem"))
-        return KLOG_TYPE_MEM;
-    else if (!strcasecmp(type, "file"))
-        return KLOG_TYPE_FILE;
-    else if (!strcasecmp(type, "syslog"))
-        return KLOG_TYPE_SYSLOG;
-    else
-        return KLOG_TYPE_UNKNOWN;
-}
-
-/**
- * \brief   Map threshold directive to the internal representation
- *
- * \param threshold     one of "debug" up to "emerg"
- *
- * \return the internal representation of the supplied string or
- *         \c KLOG_LEVEL_UNKNOWN on error
- */
-int klog_threshold (const char *threshold)
-{
-    int i;
-
-    dbg_return_if (threshold == NULL, KLOG_LEVEL_UNKNOWN);
-
-    for (i = KLOG_DEBUG; i <= KLOG_EMERG; i++)
-        if (!strcasecmp(threshold, kloglev[i]))
-            return i;
-
-    warn("unknown threshold value: \'%s\'", threshold);
-    return KLOG_LEVEL_UNKNOWN;
-}
-
-/**
- * \brief   Map threshold directive to the internal representation
- *
- * \param options   space separated list of syslog(3) log options
- *
- * \return logopt bitmask 
- */
-int klog_logopt (const char *options)
-{
-    char *o2 = NULL;    /* 'options' dupped for safe u_tokenize() */
-    int i = 0, logopt = 0;
-    enum { NOPTS = 4 };
-    char *optv[NOPTS + 1];
-    
-    dbg_return_if (options == NULL, 0);
-    dbg_return_if ((o2 = u_strdup(options)) == NULL, 0);
-
-    dbg_err_if (u_tokenize(o2, optv, NOPTS + 1));
-    
-    while (optv[i])
-    {
-        if (!strcasecmp(optv[i], "LOG_CONS"))
-            logopt |= LOG_CONS;
-        else if (!strcasecmp(optv[i], "LOG_NDELAY"))
-            logopt |= LOG_NDELAY;
-        else if (!strcasecmp(optv[i], "LOG_PERROR"))
-            logopt |= LOG_PERROR;
-        else if (!strcasecmp(optv[i], "LOG_PID"))
-            logopt |= LOG_PID;
-        else
-            warn("bad log option: \'%s\'", optv[i]);
-        i++;
-    }
-
-    u_free(o2);
-    return logopt;
-
-err:
-    u_free(o2);
-    return 0;
 }
 
 /**
@@ -628,6 +542,7 @@ static void klog_mem_msg_free (klog_mem_msg_t *mmsg)
     return;
 }
 
+/* TODO */
 static int klog_file (klog_file_t *klf, int level, const char *fmt, va_list ap)
 {
     U_UNUSED_ARG(klf);
@@ -731,7 +646,10 @@ static int klog_args_check (klog_args_t *ka)
             break;
         case KLOG_TYPE_SYSLOG:
             if (ka->sfacility == KLOG_FACILITY_UNKNOWN)
-                ka->sfacility = LOG_LOCAL0;
+            {
+                warn("facility unspecified: defaults to LOG_LOCAL7");
+                ka->sfacility = LOG_LOCAL7;
+            }
             break;
         default:
             warn_err("what are you doing here ?");
@@ -753,6 +671,7 @@ static int klog_args_new (klog_args_t **pka)
     return 0;
 }
 
+/* just for testing */
 void klog_args_print (FILE *fp, klog_args_t *ka)
 {
     dbg_return_if (ka == NULL, );
@@ -777,4 +696,97 @@ static void klog_args_free (klog_args_t *ka)
     u_free(ka->fbasename);
     u_free(ka);
     return;
+}
+
+/* map type directive to the internal representation */
+static int klog_type (const char *type)
+{
+    dbg_return_if (type == NULL, KLOG_TYPE_UNKNOWN);
+
+    if (!strcasecmp(type, "mem"))
+        return KLOG_TYPE_MEM;
+    else if (!strcasecmp(type, "file"))
+        return KLOG_TYPE_FILE;
+    else if (!strcasecmp(type, "syslog"))
+        return KLOG_TYPE_SYSLOG;
+    else
+        return KLOG_TYPE_UNKNOWN;
+}
+
+/* map threshold directive to the internal representation */
+static int klog_threshold (const char *threshold)
+{
+    int i;
+
+    dbg_return_if (threshold == NULL, KLOG_LEVEL_UNKNOWN);
+
+    for (i = KLOG_DEBUG; i <= KLOG_EMERG; i++)
+        if (!strcasecmp(threshold, kloglev[i]))
+            return i;
+
+    warn("bad threshold value: \'%s\'", threshold);
+    return KLOG_LEVEL_UNKNOWN;
+}
+
+/* map threshold directive to the internal representation */
+static int klog_logopt (const char *options)
+{
+    char *o2 = NULL;    /* 'options' dupped for safe u_tokenize() */
+    int i = 0, logopt = 0;
+    enum { NOPTS = 4 };
+    char *optv[NOPTS + 1];
+    
+    dbg_return_if (options == NULL, 0);
+    dbg_return_if ((o2 = u_strdup(options)) == NULL, 0);
+
+    dbg_err_if (u_tokenize(o2, optv, NOPTS + 1));
+    
+    while (optv[i])
+    {
+        if (!strcasecmp(optv[i], "LOG_CONS"))
+            logopt |= LOG_CONS;
+        else if (!strcasecmp(optv[i], "LOG_NDELAY"))
+            logopt |= LOG_NDELAY;
+        else if (!strcasecmp(optv[i], "LOG_PERROR"))
+            logopt |= LOG_PERROR;
+        else if (!strcasecmp(optv[i], "LOG_PID"))
+            logopt |= LOG_PID;
+        else
+            warn("bad log option: \'%s\'", optv[i]);
+        i++;
+    }
+
+    u_free(o2);
+    return logopt;
+
+err:
+    u_free(o2);
+    return 0;
+}
+
+/* map LOG_LOCAL[0-7] strings into syslog(3) #define'd values */
+static int klog_facility (const char *facility)
+{
+    dbg_err_if (facility == NULL);
+
+    if (!strcasecmp(facility, "LOG_LOCAL0")) 
+        return LOG_LOCAL0;
+    else if (!strcasecmp(facility, "LOG_LOCAL1")) 
+        return LOG_LOCAL1;
+    else if (!strcasecmp(facility, "LOG_LOCAL2")) 
+        return LOG_LOCAL2;
+    else if (!strcasecmp(facility, "LOG_LOCAL3")) 
+        return LOG_LOCAL3;
+    else if (!strcasecmp(facility, "LOG_LOCAL4")) 
+        return LOG_LOCAL4;
+    else if (!strcasecmp(facility, "LOG_LOCAL5")) 
+        return LOG_LOCAL5;
+    else if (!strcasecmp(facility, "LOG_LOCAL6")) 
+        return LOG_LOCAL6;
+    else if (!strcasecmp(facility, "LOG_LOCAL7")) 
+        return LOG_LOCAL7;
+
+err:    
+    warn("bad facility value \'%s\'", facility);
+    return KLOG_FACILITY_UNKNOWN; 
 }
