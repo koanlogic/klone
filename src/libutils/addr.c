@@ -4,8 +4,8 @@
 #include <stdint.h>
 #endif /* HAVE_STDINT */
 #include <klone/addr.h>
-#include <klone/debug.h>
 #include <klone/server.h>
+#include <u/libu.h>
 
 int addr_free(addr_t *a)
 {
@@ -13,9 +13,9 @@ int addr_free(addr_t *a)
     return 0;
 }
 
-static int addr_ipv4_create(config_t *c, addr_t *addr)
+static int addr_ipv4_create(u_config_t *c, addr_t *addr)
 {
-    config_t *subkey;
+    u_config_t *subkey;
     uint16_t portn;
 
     addr->type = ADDR_IPV4;
@@ -27,20 +27,20 @@ static int addr_ipv4_create(config_t *c, addr_t *addr)
     addr->sa.sin.sin_port = htons(80);
 
     /* use user-defined ip or port */
-    if(!config_get_subkey(c, "ip", &subkey))
+    if(!u_config_get_subkey(c, "ip", &subkey))
     {
 #ifdef OS_UNIX
-        dbg_err_if(inet_pton(AF_INET, config_get_value(subkey), 
+        dbg_err_if(inet_pton(AF_INET, u_config_get_value(subkey), 
             &addr->sa.sin.sin_addr) <= 0);
 #else
         // FIXME
-        addr->sa.sin.sin_addr.s_addr  = inet_addr(config_get_value(subkey));
+        addr->sa.sin.sin_addr.s_addr  = inet_addr(u_config_get_value(subkey));
 #endif
     }
 
-    if(!config_get_subkey(c, "port", &subkey))
+    if(!u_config_get_subkey(c, "port", &subkey))
     {
-        portn = (uint16_t)atoi(config_get_value(subkey));
+        portn = (uint16_t)atoi(u_config_get_value(subkey));
         addr->sa.sin.sin_port = htons(portn);
     }
 
@@ -51,22 +51,21 @@ err:
 
 int addr_set_from_sa(addr_t *addr, struct sockaddr *sa, size_t sz)
 {
-    U_UNUSED_ARG(addr);
-    U_UNUSED_ARG(sa);
-    U_UNUSED_ARG(sz);
+    u_unused_args(addr, sa, sz);
+
     return 0;
 }
 
-int addr_set_from_config(addr_t *addr, config_t *c)
+int addr_set_from_config(addr_t *addr, u_config_t *c)
 {
-    config_t *subkey;
+    u_config_t *subkey;
     const char *type;
 
-    dbg_err_if(strcasecmp(config_get_key(c), "addr"));
+    dbg_err_if(strcasecmp(u_config_get_key(c), "addr"));
 
-    dbg_err_if(config_get_subkey(c, "type", &subkey));
+    dbg_err_if(u_config_get_subkey(c, "type", &subkey));
 
-    type = config_get_value(subkey); /* IPv4, IPv6, unix, etc.  */
+    type = u_config_get_value(subkey); /* IPv4, IPv6, unix, etc.  */
 
     if(!strcasecmp(type, "IPv4"))
         dbg_err_if(addr_ipv4_create(c, addr));
@@ -82,7 +81,7 @@ int addr_create(addr_t **pa)
 {
     addr_t *addr = NULL;
 
-    addr = u_calloc(sizeof(addr_t));
+    addr = u_zalloc(sizeof(addr_t));
     dbg_err_if(addr == NULL);
 
     *pa = addr;

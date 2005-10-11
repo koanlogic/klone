@@ -9,11 +9,12 @@
 #include <sys/stat.h>
 #include <klone/klone.h>
 #include <klone/os.h>
-#include <klone/utils.h>
 #include <klone/io.h>
 #include <klone/codgzip.h>
 #include <klone/emb.h>
 #include <klone/mime_map.h>
+#include <klone/utils.h>
+#include <u/libu.h>
 
 /**
  *  \defgroup utils utils - Utility functions
@@ -60,28 +61,6 @@ int u_sig_unblock(int sig)
     return 0;
 err:
     return ~0;
-}
-
-void u_trim(char *s)
-{
-    char *p;
-
-    if(!s)
-        return;
-
-    /* trim trailing blanks */
-    p = s + strlen(s) -1;
-    while(s < p && isblank(*p))
-        --p;
-    p[1] = 0;
-
-    /* trim leading blanks */
-    p = s;
-    while(*p && isblank(*p))
-        ++p;
-
-    if(p > s)
-        memmove(s, p, 1 + strlen(p));
 }
 
 int u_foreach_dir_item(const char *path, unsigned int mask,
@@ -440,24 +419,6 @@ char* u_strnrchr(const char *s, char c, size_t len)
     return NULL;
 }
 
-inline int u_isblank(int c)
-{
-    return c == ' ' || c == '\t';
-}
-
-inline int u_isblank_str(const char *ln)
-{
-    for(; *ln; ++ln)
-        if(!u_isblank(*ln))
-            return 0;
-    return 1;
-}
-
-inline int u_isnl(int c)
-{
-    return c == '\n' || c == '\r';
-}
-
 int u_tmpfile_open(io_t **pio)
 {
     char tmp[PATH_MAX];
@@ -510,17 +471,17 @@ err:
     return ~0;
 }
 
-int u_getline(io_t *io, string_t *ln)
+int u_getline(io_t *io, u_string_t *ln)
 {
     enum { BUFSZ = 1024 };
     char buf[BUFSZ];
     ssize_t len, rc;
 
-    string_clear(ln);
+    u_string_clear(ln);
 
     while((rc = len = io_gets(io, buf, BUFSZ)) > 0)
     {
-        dbg_err_if(string_append(ln, buf, --len));
+        dbg_err_if(u_string_append(ln, buf, --len));
         if(!u_isnl(buf[len]))
             continue; /* line's longer the bufsz (or eof);get next line chunk */
         else
@@ -531,18 +492,18 @@ err:
     return (rc <= 0 ? ~0 : 0);
 }
 
-int u_fgetline(FILE *in, string_t *ln)
+int u_fgetline(FILE *in, u_string_t *ln)
 {
     enum { BUFSZ = 256 };
     char buf[BUFSZ];
     size_t len;
 
-    string_clear(ln);
+    u_string_clear(ln);
 
     while(!ferror(in) && !feof(in) && fgets(buf, BUFSZ, in))
     {
         len = strlen(buf);
-        dbg_err_if(string_append(ln, buf, len));
+        dbg_err_if(u_string_append(ln, buf, len));
         if(!u_isnl(buf[len-1]))
             continue; /* line's longer the bufsz, get next line chunk */
         else
@@ -552,23 +513,7 @@ int u_fgetline(FILE *in, string_t *ln)
     if(ferror(in))
         dbg_strerror(errno);
 err:
-    return (string_len(ln) ? 0 : ~0);
-}
-
-char *u_strndup(const char *s, size_t len)
-{
-    char *cp;
-
-    if((cp = u_malloc(len + 1)) == NULL)
-        return NULL;
-    memcpy(cp, s, len);
-    cp[len] = 0;
-    return cp;
-}
-
-char *u_strdup(const char *s)
-{
-    return u_strndup(s, strlen(s));
+    return (u_string_len(ln) ? 0 : ~0);
 }
 
 int u_printf_ccstr(io_t *o, const char *buf, size_t sz)
@@ -621,29 +566,6 @@ int u_file_exists(const char *fqn)
     struct stat st;
 
     return stat(fqn, &st) == 0 && S_ISREG(st.st_mode);
-}
-
-int u_path_snprintf(char *buf, size_t sz, const char *fmt, ...)
-{
-    va_list ap;
-    int wr, i, len;
-
-    va_start(ap, fmt); 
-
-    wr = vsnprintf(buf, sz, fmt, ap);
-
-    va_end(ap);
-
-    dbg_err_if(wr < 0 || wr >= (int)sz);                    
-
-    /* remove multiple consecutive '/' */
-    for(len = i = strlen(buf); i > 0; --i)
-        if(buf[i] == '/' && buf[i-1] == '/')
-            memmove(buf + i, buf + i + 1, len--);
-
-    return 0;                                                 
-err:                                                          
-    return ~0;
 }
 
 /* convert buf to hex
@@ -704,24 +626,6 @@ int u_md5io(io_t *io, char out[MD5_DIGEST_BUFSZ])
 err:
     return ~0;
 }
-
-int u_snprintf(char *str, size_t size, const char *format, ...)
-{
-    va_list ap;
-    int wr;
-
-    va_start(ap, format); 
-
-    wr = vsnprintf(str, size, format, ap);
-
-    va_end(ap);
-
-    dbg_err_if(wr < 0 || wr >= (int)size);                    
-
-    return 0;                                                 
-err:                                                          
-    return ~0;
-}      
 
 int u_signal(int sig, sig_t handler)
 {
@@ -807,55 +711,6 @@ err:
         io_free(ios);
     return ~0;
 }
-
-void* u_memdup(const void *src, size_t size)
-{
-    void *p;
-
-    p = malloc(size);
-    if(p)
-        memcpy(p, src, size);
-    return p;
-}
-
-/**
- * \brief   tokenize the space and/or tab separated string \p wlist
- *
- * Tokenize the space and/or tab separated string \p wlist and place its
- * pieces (at most \p tokv_sz - 1) into \p tokv.
- *
- * \param wlist     space (tab) separated list of strings
- * \param tokv      pre-allocated string array
- * \param tokv_sz   number of cells in \p tokv array  
- *
- */
-int u_tokenize (char *wlist, char **tokv, size_t tokv_sz)
-{
-    char **ap;
-
-    dbg_return_if (wlist == NULL, ~0);
-    dbg_return_if (tokv == NULL, ~0);
-    dbg_return_if (tokv_sz == 0, ~0);
-
-    ap = tokv;
-
-    for ( ; (*ap = strsep(&wlist, " \t")) != NULL; )
-    {
-        /* skip empty field */
-        if (**ap == '\0')
-            continue;
-
-        /* check bounds */
-        if (++ap >= &tokv[tokv_sz - 1])
-            break;
-    }
-
-    /* put an explicit stopper to tokv */
-    *ap = NULL;
-
-    return 0;
-}
-
 
 /**
  *  \}

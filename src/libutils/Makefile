@@ -1,19 +1,7 @@
-# $Id: Makefile,v 1.1 2005/09/09 15:26:15 tat Exp $
+# $Id: Makefile,v 1.2 2005/10/11 14:29:29 tat Exp $
 include ../../Makefile.conf
 
 LIB = utils
-SRCS =          \
-    addr.c      \
-    alloc.c     \
-    config.c    \
-    date.c      \
-    debug.c     \
-    do.c        \
-    md5.c       \
-    mime_map.c  \
-    str.c       \
-    timer.c     \
-    uri.c       \
-    utils.c
+SRCS = utils.c md5.c mime_map.c addr.c timer.c date.c
 
 include lib.mk

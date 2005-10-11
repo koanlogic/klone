@@ -2,9 +2,8 @@
 #include <unistd.h>
 #include <signal.h>
 #include <klone/timer.h>
-#include <klone/queue.h>
 #include <klone/utils.h>
-#include <klone/debug.h>
+#include <u/libu.h>
 
 TAILQ_HEAD(alarm_list_s, alarm_s);
 typedef struct alarm_list_s alarm_list_t;
@@ -44,7 +43,7 @@ void timerm_sigalrm(int sigalrm)
     alarm_t *al = NULL, *next = NULL;
     int expire;
 
-    U_UNUSED_ARG(sigalrm);
+    u_unused_args(sigalrm);
 
     dbg_err_if(timer == NULL);
 
@@ -99,7 +98,7 @@ static int timerm_create(timerm_t **pt)
 {
     timerm_t *t = NULL;
 
-    t = u_calloc(sizeof(timerm_t));
+    t = u_zalloc(sizeof(timerm_t));
     dbg_err_if(t == NULL);
 
     TAILQ_INIT(&t->alist);
@@ -128,7 +127,7 @@ int timerm_add(int secs, alarm_cb_t cb, void *arg, alarm_t **pa)
         dbg_err_if(u_signal(SIGALRM, timerm_sigalrm));
     }
 
-    al = (alarm_t*)u_calloc(sizeof(alarm_t));
+    al = (alarm_t*)u_zalloc(sizeof(alarm_t));
     dbg_err_if(al == NULL);
 
     al->timer = timer;
