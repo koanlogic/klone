@@ -10,6 +10,7 @@
 #include <klone/server.h>
 #include <klone/emb.h>
 #include <klone/context.h>
+#include <klone/utils.h>
 #include <u/libu.h>
 #include "conf.h"
 #include "main.h"
@@ -50,6 +51,17 @@ static void sigchld(int sig)
     }
 }
 
+static char *io_gets_cb(void *arg, char *buf, size_t size)
+{
+    io_t *io = (io_t*)arg;
+
+    dbg_err_if(io_gets(io, buf, size) <= 0);
+
+    return buf;
+err: 
+    return NULL;
+}
+
 int app_init()
 {
     io_t *io = NULL;
@@ -67,7 +79,7 @@ int app_init()
     /* load the embedded config */
     if(io)
     {
-        dbg_err_if(u_config_load(ctx->config, io, 0));
+        dbg_err_if(u_config_load_from(ctx->config, io_gets_cb, io, 0));
         cfg_found = 1;
         io_free(io);
         io = NULL;
@@ -79,7 +91,7 @@ int app_init()
         dbg("loading external config file: %s", ctx->ext_config);
         dbg_err_if(u_file_open(ctx->ext_config, O_RDONLY, &io));
 
-        dbg_err_if(u_config_load(ctx->config, io, 1 /* overwrite */));
+        dbg_err_if(u_config_load_from(ctx->config, io_gets_cb, io, 1));
         cfg_found = 1;
 
         io_free(io);
