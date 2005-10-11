@@ -7,14 +7,13 @@
 #include <sys/dir.h>
 #include <unistd.h>
 #include <klone/klone.h>
-#include <klone/debug.h>
 #include <klone/request.h>
 #include <klone/response.h>
 #include <klone/translat.h>
 #include <klone/utils.h>
-#include <klone/str.h>
 #include <klone/run.h>
 #include <klone/mime_map.h>
+#include <u/libu.h>
 #include "conf.h"
 
 /* command list enums */
@@ -127,7 +126,8 @@ static int parse_opt(int argc, char **argv)
             warn_err_if(ctx->base_uri == NULL);
 
             if(ctx->base_uri[0] != '/')
-                die("base URI must be absolute (i.e. must start with a '/')");
+                klone_die("base URI must be absolute "
+                          "(i.e. must start with a '/')");
 
             remove_trailing_slash(ctx->base_uri);
 
@@ -143,7 +143,7 @@ static int parse_opt(int argc, char **argv)
             warn_err_if(ctx->uri == NULL);
 
             if(ctx->uri[0] != '/')
-                die("URI must be absolute (i.e. must start with a '/')");
+                klone_die("URI must be absolute (i.e. must start with a '/')");
 
             remove_trailing_slash(ctx->uri);
 
@@ -154,7 +154,7 @@ static int parse_opt(int argc, char **argv)
         }
     }
 
-    die_if(ctx->cmd == 0, "missing command argument (-c)");
+    klone_die_if(ctx->cmd == 0, "missing command argument (-c)");
     ctx->narg = argc - optind;  /* # of args left */
     ctx->arg = argv + optind;   
 
@@ -172,9 +172,9 @@ static int command_trans(void)
     if(ctx->narg != 0)
         usage();    /* no argument allowed */
 
-    die_if(!ctx->file_in, "input file name required (-i file)");
-    die_if(!ctx->file_out, "output file name required (-o file)");
-    die_if(!ctx->uri, "translated page URI required (-u uri)");
+    klone_die_if(!ctx->file_in, "input file name required (-i file)");
+    klone_die_if(!ctx->file_out, "output file name required (-o file)");
+    klone_die_if(!ctx->uri, "translated page URI required (-u uri)");
 
     if(ctx->verbose)
         cmsg("translating %s to %s (uri: %s)", ctx->file_in, ctx->file_out, 
@@ -201,7 +201,7 @@ static int command_trans(void)
     }
 
     /* be sure that the input file exists */
-    die_if(stat(ctx->file_in, &st), "input file not found");
+    klone_die_if(stat(ctx->file_in, &st), "input file not found");
 
     ti.file_size = st.st_size;
     ti.mtime = st.st_mtime; 

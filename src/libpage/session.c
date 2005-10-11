@@ -9,9 +9,8 @@
 #include <klone/response.h>
 #include <klone/vars.h>
 #include <klone/utils.h>
-#include <klone/str.h>
-#include <klone/debug.h>
 #include <klone/ses_prv.h>
+#include <u/libu.h>
 #include "conf.h"
 
 #ifdef HAVE_LIBOPENSSL
@@ -32,21 +31,21 @@ int session_module_term(session_opt_t *so)
     return 0;
 }
 
-int session_module_init(config_t *config, session_opt_t **pso)
+int session_module_init(u_config_t *config, session_opt_t **pso)
 {
     session_opt_t *so = NULL;
-    config_t *c;
+    u_config_t *c;
     const char *v;
     int max_age;
 
-    so = u_calloc(sizeof(session_opt_t));
+    so = u_zalloc(sizeof(session_opt_t));
     dbg_err_if(so == NULL);
 
     /* defaults values */
     so->type = SESSION_TYPE_FILE;
     so->max_age = DEFAULT_SESSION_EXPIRATION;
 
-    if(config_get_subkey(config, "session", &c))
+    if(u_config_get_subkey(config, "session", &c))
     {
         /* no 'session' subsection, defaults will be used */
         *pso = so;
@@ -54,7 +53,7 @@ int session_module_init(config_t *config, session_opt_t **pso)
     }
 
     /* set session type */
-    if((v = config_get_subkey_value(c, "type")) != NULL)
+    if((v = u_config_get_subkey_value(c, "type")) != NULL)
     {
         if(!strcasecmp(v, "memory")) {
             so->type = SESSION_TYPE_MEMORY;
@@ -69,7 +68,7 @@ int session_module_init(config_t *config, session_opt_t **pso)
     }
 
     /* set max_age */
-    if((v = config_get_subkey_value(c, "max_age")) != NULL)
+    if((v = u_config_get_subkey_value(c, "max_age")) != NULL)
         max_age = MAX(atoi(v) * 60, 60); /* min value: 1 min */
 
     /* per-type configuration init */
@@ -174,20 +173,20 @@ err:
 
 int session_prv_load(session_t *ss, io_t *io)
 {
-    string_t *line = NULL;
+    u_string_t *line = NULL;
 
-    dbg_err_if(string_create(NULL, 0, &line));
+    dbg_err_if(u_string_create(NULL, 0, &line));
 
     while(u_getline(io, line) == 0)
-        if(string_len(line))
-            dbg_err_if(vars_add_urlvar(ss->vars, string_c(line)));
+        if(u_string_len(line))
+            dbg_err_if(vars_add_urlvar(ss->vars, u_string_c(line)));
 
-    string_free(line);
+    u_string_free(line);
 
     return 0;
 err:
     if(line)
-        string_free(line);
+        u_string_free(line);
     return ~0;
 }
 

@@ -1,9 +1,7 @@
 #include <unistd.h>
-#include <klone/debug.h>
-#include <klone/utils.h>
 #include <klone/backend.h>
 #include <klone/server.h>
-#include <klone/config.h>
+#include <u/libu.h>
 #include "conf.h"
 
 extern backend_t be_http;
@@ -34,15 +32,15 @@ err:
     return ~0;
 }
 
-int backend_create(const char *proto, config_t *config, backend_t **pbe)
+int backend_create(const char *proto, u_config_t *config, backend_t **pbe)
 {
     backend_t *be = NULL, **pp;
     const char *v;
 
-    be = u_calloc(sizeof(backend_t));
+    be = u_zalloc(sizeof(backend_t));
     dbg_err_if(be == NULL);
 
-    if((v = config_get_subkey_value(config, "model")) != NULL)
+    if((v = u_config_get_subkey_value(config, "model")) != NULL)
         dbg_err_if(backend_set_model(be, v));
 
     /* look for the requested backend */

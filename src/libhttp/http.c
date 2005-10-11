@@ -2,20 +2,17 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <klone/klone.h>
-#include <klone/queue.h>
-#include <klone/debug.h>
 #include <klone/server.h>
 #include <klone/broker.h>
-#include <klone/str.h>
 #include <klone/request.h>
 #include <klone/ses_prv.h>
 #include <klone/response.h>
 #include <klone/backend.h>
 #include <klone/io.h>
-#include <klone/config.h>
 #include <klone/timer.h>
 #include <klone/tls.h>
 #include <klone/ses_prv.h>
+#include <u/libu.h>
 #include "conf.h"
 
 #ifdef HAVE_LIBOPENSSL
@@ -27,7 +24,7 @@ enum { HTTP_DEFAULT_IDLE_TIMEOUT = 10 };
 
 struct http_s 
 {
-    config_t *config;       /* server config                                 */
+    u_config_t *config;       /* server config                                 */
     broker_t *broker;       /* pages broker                                  */
     int ssl;                /* >0 when SSL is enabled                        */
 #ifdef HAVE_LIBOPENSSL
@@ -79,7 +76,7 @@ session_opt_t *http_get_session_opt(http_t* http)
     return http->sess_opt;
 }
 
-config_t *http_get_config(http_t* http)
+u_config_t *http_get_config(http_t* http)
 {
     dbg_return_if(!http, NULL);
 
@@ -101,15 +98,15 @@ const char* http_get_status_desc(int status)
 int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
 {
     static const char *WP = " \t";
-    config_t *config;
+    u_config_t *config;
     int i;
     const char *value;
     char *src, *res, *v = NULL,*pp = NULL;
 
     /* for each dir_alias config item */
-    for(i = 0; !config_get_subkey_nth(h->config, "dir_alias", i, &config); ++i)
+    for(i = 0; !u_config_get_subkey_nth(h->config, "dir_alias", i, &config); ++i)
     {
-        if((value = config_get_value(config)) == NULL)
+        if((value = u_config_get_value(config)) == NULL)
             continue; /* empty key */
 
         /* otherwise strtok_r will modify it */
@@ -266,7 +263,7 @@ static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
 
     /* looking for user provided error page */
     dbg_err_if(u_snprintf(buf, BUFSZ, "error.%d", status));
-    err_page = config_get_subkey_value(h->config, buf);
+    err_page = u_config_get_subkey_value(h->config, buf);
 
     if(err_page && !request_set_uri(rq, err_page, NULL, NULL))
     {
@@ -295,7 +292,7 @@ static int http_cb_close_fd(alarm_t *al, void *arg)
 {
     int fd = (int)arg;
 
-    U_UNUSED_ARG(al);
+    u_unused_args(al);
 
     warn("connection on fd [%d] timed out, closing");
 
@@ -408,9 +405,9 @@ err:
     return ~0;
 }
 
-static int http_set_config_opt(http_t *http)
+static int http_set_u_config_opt(http_t *http)
 {
-    config_t *c = http->config;
+    u_config_t *c = http->config;
     const char *v;
 
     /* defaults */
@@ -420,31 +417,31 @@ static int http_set_config_opt(http_t *http)
     http->index = NULL;
 
     /* idle_timeout */
-    if((v = config_get_subkey_value(c, "idle_timeout")) != NULL)
+    if((v = u_config_get_subkey_value(c, "idle_timeout")) != NULL)
         http->idle_timeout = MAX(1, atoi(v));
 
     /* server signature */
-    if((v = config_get_subkey_value(c, "server_sig")) != NULL)
+    if((v = u_config_get_subkey_value(c, "server_sig")) != NULL)
         http->server_sig = v;
 
     /* html dir root */
-    if((v = config_get_subkey_value(c, "dir_root")) != NULL)
+    if((v = u_config_get_subkey_value(c, "dir_root")) != NULL)
         http->dir_root = v;
 
-    if((v = config_get_subkey_value(c, "index")) != NULL)
+    if((v = u_config_get_subkey_value(c, "index")) != NULL)
         http->index = v;
 
     return 0;
 }
 
 
-static int http_create(config_t *config, http_t **ph)
+static int http_create(u_config_t *config, http_t **ph)
 {
     http_t *h = NULL;
 
     dbg_err_if(!config || !ph);
 
-    h = u_calloc(sizeof(http_t));
+    h = u_zalloc(sizeof(http_t));
     dbg_err_if(h == NULL);
 
     h->config = config;
@@ -452,7 +449,7 @@ static int http_create(config_t *config, http_t **ph)
     dbg_err_if(broker_create(&h->broker));
 
     /* set http struct config opt reading from http->config */
-    dbg_err_if(http_set_config_opt(h));
+    dbg_err_if(http_set_u_config_opt(h));
 
     *ph = h;
 

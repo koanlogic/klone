@@ -5,9 +5,8 @@
 #include "conf.h"
 #include <time.h>
 #include <klone/klog.h>
-#include <klone/debug.h>
 #include <klone/utils.h>
-#include <klone/config.h>
+#include <u/libu.h>
 
 static int klog_args_new (klog_args_t **pka);
 static void klog_args_free (klog_args_t *ka);
@@ -63,7 +62,7 @@ static int sysloglev[] = {
  * - \c 0  success
  * - \c ~0 on failure (\p pka MUST not be referenced)
  */
-int klog_args (config_t *ls, klog_args_t **pka)
+int klog_args (u_config_t *ls, klog_args_t **pka)
 {
     const char *cs;
     klog_args_t *ka = NULL;
@@ -75,29 +74,29 @@ int klog_args (config_t *ls, klog_args_t **pka)
     dbg_err_if (klog_args_new(&ka));
 
     /* read in config values */
-    ka->type = klog_type(config_get_subkey_value(ls, "type"));
+    ka->type = klog_type(u_config_get_subkey_value(ls, "type"));
 
-    if ((cs = config_get_subkey_value(ls, "ident")) != NULL)
+    if ((cs = u_config_get_subkey_value(ls, "ident")) != NULL)
         ka->ident = u_strdup(cs);
 
-    ka->threshold = klog_threshold(config_get_subkey_value(ls, "threshold"));
+    ka->threshold = klog_threshold(u_config_get_subkey_value(ls, "threshold"));
 
-    if ((cs = config_get_subkey_value(ls, "mem.limit")) != NULL)
+    if ((cs = u_config_get_subkey_value(ls, "mem.limit")) != NULL)
         ka->mlimit = atoi(cs);
 
-    if ((cs = config_get_subkey_value(ls, "file.basename")) != NULL) 
+    if ((cs = u_config_get_subkey_value(ls, "file.basename")) != NULL) 
         ka->fbasename = u_strdup(cs);
 
-    if ((cs = config_get_subkey_value(ls, "file.limit")) != NULL)
+    if ((cs = u_config_get_subkey_value(ls, "file.limit")) != NULL)
         ka->flimit = atoi(cs);
 
-    if ((cs = config_get_subkey_value(ls, "file.splits")) != NULL)
+    if ((cs = u_config_get_subkey_value(ls, "file.splits")) != NULL)
         ka->fsplits = atoi(cs);
 
     ka->sfacility = 
-        klog_facility(config_get_subkey_value(ls, "syslog.facility"));
+        klog_facility(u_config_get_subkey_value(ls, "syslog.facility"));
 
-    ka->soptions = klog_logopt(config_get_subkey_value(ls, "syslog.options"));
+    ka->soptions = klog_logopt(u_config_get_subkey_value(ls, "syslog.options"));
 
     dbg_return_if (klog_args_check(ka), ~0);
 
@@ -324,7 +323,7 @@ static int klog_new (int type, klog_t **pkl)
 
     dbg_return_if (pkl == NULL, ~0);
 
-    kl = u_calloc(sizeof(klog_t));
+    kl = u_zalloc(sizeof(klog_t));
     dbg_err_if (kl == NULL);
 
     /* check the supplied type */
@@ -415,7 +414,7 @@ static int klog_open_mem (const char *id, size_t ln_max, klog_t **pkl)
     dbg_err_if (klog_new(KLOG_TYPE_MEM, pkl));
 
     /* create a new klog_mem_t object */
-    klm = u_calloc(sizeof(klog_mem_t));
+    klm = u_zalloc(sizeof(klog_mem_t));
     dbg_err_if (klm == NULL);
     
     /* initialise the klog_mem_t object to the supplied values */
@@ -447,7 +446,7 @@ static int klog_open_syslog (const char *ident, int facility, int logopt,
 
     dbg_err_if (klog_new(KLOG_TYPE_SYSLOG, pkl));
 
-    kls = u_calloc(sizeof(klog_syslog_t));
+    kls = u_zalloc(sizeof(klog_syslog_t));
     dbg_err_if (kls == NULL);
 
     kls->ident = ident ? u_strdup(ident) : u_strdup("");
@@ -490,7 +489,7 @@ static int klog_mem_msg_new (const char *s, int level, klog_mem_msg_t **pmmsg)
     dbg_return_if (s == NULL, ~0);
     dbg_return_if (pmmsg == NULL, ~0);
 
-    mmsg = u_calloc(sizeof(klog_mem_msg_t));
+    mmsg = u_zalloc(sizeof(klog_mem_msg_t));
     dbg_err_if (mmsg == NULL);
 
     mmsg->line = u_strndup(s, KLOG_LN_SZ);
@@ -545,10 +544,8 @@ static void klog_mem_msg_free (klog_mem_msg_t *mmsg)
 /* TODO */
 static int klog_file (klog_file_t *klf, int level, const char *fmt, va_list ap)
 {
-    U_UNUSED_ARG(klf);
-    U_UNUSED_ARG(level);
-    U_UNUSED_ARG(fmt);
-    U_UNUSED_ARG(ap);
+    u_unused_args(klf, level, fmt, ap);
+
     return ~0;
 }
 
@@ -662,7 +659,7 @@ err:
 
 static int klog_args_new (klog_args_t **pka)
 {
-    klog_args_t *ka = u_calloc(sizeof(klog_args_t));
+    klog_args_t *ka = u_zalloc(sizeof(klog_args_t));
 
     dbg_return_if (ka == NULL, ~0);
     /* XXX should set defaults */
@@ -739,7 +736,7 @@ static int klog_logopt (const char *options)
     dbg_return_if (options == NULL, 0);
     dbg_return_if ((o2 = u_strdup(options)) == NULL, 0);
 
-    dbg_err_if (u_tokenize(o2, optv, NOPTS + 1));
+    dbg_err_if (u_tokenize(o2, " \t", optv, NOPTS + 1));
     
     while (optv[i])
     {

@@ -9,8 +9,7 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include <klone/os.h>
-#include <klone/queue.h>
-#include <klone/config.h>
+#include <u/libu.h>
 
 /* log types */
 enum { KLOG_TYPE_UNKNOWN, KLOG_TYPE_MEM, KLOG_TYPE_FILE, KLOG_TYPE_SYSLOG };
@@ -106,7 +105,7 @@ struct klog_args_s
 typedef struct klog_args_s klog_args_t;
 
 /* common */
-int klog_args (config_t *logsect, klog_args_t **pka);
+int klog_args (u_config_t *logsect, klog_args_t **pka);
 int klog_open (klog_args_t *ka, klog_t **pkl);
 int klog (klog_t *kl, int level, const char *msg, ...);
 void klog_close (klog_t *kl);

@@ -1,7 +1,7 @@
-#include <klone/debug.h>
-#include <klone/utils.h>
 #include <klone/codec.h>
 #include <klone/codgzip.h>
+#include <u/debug.h>
+#include <u/memory.h>
 #include "conf.h"
 
 #ifdef HAVE_LIBZ
@@ -99,7 +99,7 @@ int codec_gzip_create(int op, codec_gzip_t **piz)
 {
     codec_gzip_t *iz = NULL;
 
-    iz = u_calloc(sizeof(codec_gzip_t));
+    iz = u_zalloc(sizeof(codec_gzip_t));
     dbg_err_if(iz == NULL);
 
     iz->codec.transform = gzip_transform;
@@ -144,7 +144,7 @@ int codec_gzip_create(int op, codec_gzip_t **piz)
 {
     codec_gzip_t *iz = NULL;
 
-    iz = u_calloc(sizeof(codec_gzip_t));
+    iz = u_zalloc(sizeof(codec_gzip_t));
     dbg_err_if(iz == NULL);
 
     iz->codec.transform = NULL;     /* nop */

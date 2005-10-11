@@ -1,10 +1,10 @@
 #include <unistd.h>
 #include <klone/io.h>
-#include <klone/debug.h>
-#include <klone/utils.h>
 #include <klone/io.h>
 #include <klone/ioprv.h>
 #include <klone/codec.h>
+
+#include <u/libu.h>
 
 enum { 
     IO_RD_DEFBUFSZ = 4096, 
@@ -678,7 +678,7 @@ int io_prv_create(size_t dev_sz, io_t **pio)
 {
     io_t *io = NULL;
 
-    io = u_calloc(dev_sz);
+    io = u_zalloc(dev_sz);
     dbg_err_if(io == NULL);
 
     /* set refcnt to 1 */

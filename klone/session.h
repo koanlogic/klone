@@ -3,7 +3,7 @@
 #include <klone/request.h>
 #include <klone/response.h>
 #include <klone/vars.h>
-#include <klone/config.h>
+#include <u/libu.h>
 
 struct session_s;
 typedef struct session_s session_t;

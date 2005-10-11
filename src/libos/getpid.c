@@ -8,5 +8,7 @@ pid_t getpid()
     #endif
 }
 #else
-int getpid_dummy_decl_stub = 0;
+#include <sys/types.h>
+#include <unistd.h>
+pid_t getpid();
 #endif 

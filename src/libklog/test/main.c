@@ -93,15 +93,15 @@ static int stress_test (klog_t *kl, int ntimes)
 
 static int load_conf (const char *cf, klog_args_t **ka)
 {
-    config_t *c = NULL, *l = NULL;
+    u_config_t *c = NULL, *l = NULL;
     io_t *io = NULL;
 
     dbg_return_if (ka == NULL, ~0);
     
     dbg_err_if (u_file_open(cf, O_RDONLY, &io));
-    dbg_err_if (config_create(&c));
-    dbg_err_if (config_load(c, io, 0));
-    dbg_err_if ((l = config_get_child(c, "log")) == NULL);
+    dbg_err_if (u_config_create(&c));
+    dbg_err_if (u_config_load(c, io, 0));
+    dbg_err_if ((l = u_config_get_child(c, "log")) == NULL);
     dbg_err_if (klog_args(l, ka));
     if (g_verbose)
         klog_args_print(stdout, *ka);
@@ -109,7 +109,7 @@ static int load_conf (const char *cf, klog_args_t **ka)
     return 0;
 err:
     if (c)
-        config_free(c);
+        u_config_free(c);
     if (io)
         io_free(io);
     return ~0;

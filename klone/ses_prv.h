@@ -3,10 +3,11 @@
 #include <klone/session.h>
 #include <klone/request.h>
 #include <klone/response.h>
-#include <klone/config.h>
 #include <klone/vars.h>
 #include <klone/http.h>
 #include <klone/atom.h>
+#include <klone/md5.h>
+#include <u/libu.h>
 #include "conf.h"
 
 #ifdef HAVE_LIBOPENSSL
@@ -61,8 +62,8 @@ typedef struct session_opt_s
     const EVP_MD *hash; /* client-side session HMAC hash algorithm   */
     const EVP_CIPHER *cipher; /* encryption cipher algorithm         */
     char hmac_key[HMAC_KEY_SIZE]; /* session HMAC secret key         */
-    char cipher_key[CIPHER_KEY_SIZE];   /* cipher secret key         */
-    char cipher_iv[CIPHER_IV_SIZE];     /* cipher Init Vector        */
+    unsigned char cipher_key[CIPHER_KEY_SIZE]; /* cipher secret key  */
+    unsigned char cipher_iv[CIPHER_IV_SIZE];   /* cipher Init Vector */
     EVP_CIPHER_CTX cipher_enc_ctx;      /* encrypt context           */
     EVP_CIPHER_CTX cipher_dec_ctx;      /* decrypt context           */
 #endif
@@ -98,7 +99,10 @@ int session_prv_load(session_t *, io_t *);
 int session_prv_save_var(var_t *, io_t *);
 
 /* init/term funcs */
-int session_module_init(config_t *config, session_opt_t **pso);
+int session_module_init(u_config_t *config, session_opt_t **pso);
+int session_mem_module_init(u_config_t *config, session_opt_t *pso);
+int session_client_module_init(u_config_t *config, session_opt_t *pso);
+int session_module_term(session_opt_t *so);
 int session_module_term(session_opt_t *so);
 
 #endif

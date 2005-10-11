@@ -3,12 +3,11 @@
 #include <limits.h>
 #include <string.h>
 #include <klone/klone.h>
-#include <klone/queue.h>
 #include <klone/translat.h>
 #include <klone/parser.h>
 #include <klone/utils.h>
-#include <klone/str.h>
 #include <klone/codgzip.h>
+#include <u/libu.h>
 
 struct code_block_s;
 
@@ -28,7 +27,7 @@ typedef struct
 {
     code_block_list_t code_blocks;
     trans_info_t *ti;
-    string_t *html_str;
+    u_string_t *html_str;
     size_t html_block_cnt;
 } lang_c_ctx_t;
 
@@ -63,7 +62,7 @@ static int push_code_block(lang_c_ctx_t *ctx, parser_t *p,
 {
     code_block_t *node;
     
-    node = (code_block_t*)u_calloc(sizeof(code_block_t));
+    node = (code_block_t*)u_zalloc(sizeof(code_block_t));
     dbg_err_if(node == NULL);
 
     node->sz = sz;
@@ -143,7 +142,7 @@ err:
 static int print_html_block(parser_t *p, lang_c_ctx_t *ctx)
 {
     return print_zip_var_definition(p, "klone_html_block", 
-            string_c(ctx->html_str), string_len(ctx->html_str));
+            u_string_c(ctx->html_str), u_string_len(ctx->html_str));
 }
 
 static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
@@ -273,13 +272,13 @@ static int cb_html_block(parser_t* p, void *arg, const char* buf, size_t sz)
     char code[CODESZ];
     char varname[VARNSZ];
 
-    snprintf(varname, VARNSZ, "klone_html_zblock_%d", ctx->html_block_cnt);
+    snprintf(varname, VARNSZ, "klone_html_zblock_%lu", ctx->html_block_cnt);
 
     print_zip_var_definition(p, varname, buf, sz);
 
     snprintf(code, CODESZ, 
-        "\ndbg_ifb(u_io_unzip_copy(out, klone_html_zblock_%d, "
-        "   sizeof(klone_html_zblock_%d))) goto klone_script_exit;\n", 
+        "\ndbg_ifb(u_io_unzip_copy(out, klone_html_zblock_%lu, "
+        "   sizeof(klone_html_zblock_%lu))) goto klone_script_exit;\n", 
         ctx->html_block_cnt, ctx->html_block_cnt);
 
     push_code_block(ctx, p, code, strlen(code));
@@ -356,7 +355,7 @@ int translate_script_to_c(io_t *in, io_t *out, trans_info_t *ti)
     /* init the context obj */
     memset(&ctx, 0, sizeof(lang_c_ctx_t));
     TAILQ_INIT(&ctx.code_blocks);
-    dbg_err_if(string_create(NULL, 0, &ctx.html_str));
+    dbg_err_if(u_string_create(NULL, 0, &ctx.html_str));
     ctx.ti = ti;
 
     /* create a parse that reads from in and writes to out */
@@ -372,7 +371,7 @@ int translate_script_to_c(io_t *in, io_t *out, trans_info_t *ti)
 
     dbg_err_if(parser_run(p));
 
-    //dbg_err_if(print_html_block(p, &ctx));
+    dbg_err_if(print_html_block(p, &ctx));
 
     print_code_blocks(p, &ctx);
 
@@ -381,14 +380,14 @@ int translate_script_to_c(io_t *in, io_t *out, trans_info_t *ti)
     print_register_block(p->out, &ctx);
 
     free_code_blocks(&ctx);
-    string_free(ctx.html_str);
+    u_string_free(ctx.html_str);
 
     parser_free(p);
 
     return 0;
 err:
     if(ctx.html_str)
-        string_free(ctx.html_str);
+        u_string_free(ctx.html_str);
     free_code_blocks(&ctx);
     if(p)
         parser_free(p);

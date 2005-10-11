@@ -1,4 +1,4 @@
-/* $Id: tls.c,v 1.2 2005/10/04 10:47:32 stewy Exp $ */
+/* $Id: tls.c,v 1.3 2005/10/11 14:22:53 tat Exp $ */
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -9,11 +9,10 @@
 #include <openssl/ssl.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
-#include <klone/config.h>
-#include <klone/debug.h>
 #include <klone/tls.h>
 #include <klone/utils.h>
 #include <klone/tlsprv.h>
+#include <u/libu.h>
 
 static int tls_sid = 1;
 static int tls_inited = 0; 
@@ -29,26 +28,26 @@ static int  tls_sid_context (SSL_CTX *, int *);
 static DH   *tls_load_dh_param (const char *);
 static int  tls_no_passphrase_cb (char *, int, int, void *);
 static int  tls_init_ctx_args (tls_ctx_args_t *);
-static int  tls_set_ctx_vdepth (config_t *, tls_ctx_args_t *);
-static int  tls_set_ctx_vmode (config_t *, tls_ctx_args_t *);
+static int  tls_set_ctx_vdepth (u_config_t *, tls_ctx_args_t *);
+static int  tls_set_ctx_vmode (u_config_t *, tls_ctx_args_t *);
 static int  tls_check_ctx (tls_ctx_args_t *);
 static void tls_free_ctx_args (tls_ctx_args_t *cargs);
 
 
 /* load SSL_CTX args from configuration */
-int tls_load_ctx_args (config_t *cfg, tls_ctx_args_t **cargs)
+int tls_load_ctx_args (u_config_t *cfg, tls_ctx_args_t **cargs)
 {
     dbg_return_if (!cfg || !cargs, ~0);
 
-    dbg_err_if (!(*cargs = u_calloc(sizeof(tls_ctx_args_t))));
+    dbg_err_if (!(*cargs = u_zalloc(sizeof(tls_ctx_args_t))));
 
     (void) tls_init_ctx_args(*cargs);
 
-    (*cargs)->cert = config_get_subkey_value(cfg, "cert_file");
-    (*cargs)->key = config_get_subkey_value(cfg, "key_file");
-    (*cargs)->certchain = config_get_subkey_value(cfg, "certchain_file");
-    (*cargs)->ca = config_get_subkey_value(cfg, "ca_file");
-    (*cargs)->dh = config_get_subkey_value(cfg, "dh_file");
+    (*cargs)->cert = u_config_get_subkey_value(cfg, "cert_file");
+    (*cargs)->key = u_config_get_subkey_value(cfg, "key_file");
+    (*cargs)->certchain = u_config_get_subkey_value(cfg, "certchain_file");
+    (*cargs)->ca = u_config_get_subkey_value(cfg, "ca_file");
+    (*cargs)->dh = u_config_get_subkey_value(cfg, "dh_file");
     dbg_err_if (tls_set_ctx_vdepth(cfg, *cargs));
     dbg_err_if (tls_set_ctx_vmode(cfg, *cargs));
 
@@ -327,15 +326,15 @@ static int tls_init_ctx_args (tls_ctx_args_t *cargs)
     return 0;
 }
 
-static int tls_set_ctx_vdepth (config_t *cfg, tls_ctx_args_t *cargs)
+static int tls_set_ctx_vdepth (u_config_t *cfg, tls_ctx_args_t *cargs)
 {
-    config_t    *k;
+    u_config_t    *k;
     
     dbg_return_if (!cfg || !cargs, ~0);
 
-    if (!config_get_subkey(cfg, "verify_depth", &k))
+    if (!u_config_get_subkey(cfg, "verify_depth", &k))
     {
-        cargs->depth = atoi(config_get_value(k));    
+        cargs->depth = atoi(u_config_get_value(k));    
     } 
 
     /* XXX check consistent values for the verification chain's depth ? */
@@ -343,13 +342,13 @@ static int tls_set_ctx_vdepth (config_t *cfg, tls_ctx_args_t *cargs)
     return 0;
 }
 
-static int tls_set_ctx_vmode (config_t *cfg, tls_ctx_args_t *cargs)
+static int tls_set_ctx_vmode (u_config_t *cfg, tls_ctx_args_t *cargs)
 {
     const char  *v;
     
     dbg_return_if (!cfg || !cargs, ~0);
     
-    if (!(v = config_get_subkey_value(cfg, "verify_mode")))
+    if (!(v = u_config_get_subkey_value(cfg, "verify_mode")))
        return 0;    /* will use the default (none) */ 
 
     if (!strcasecmp(v, "no"))

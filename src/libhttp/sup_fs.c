@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include <klone/supplier.h>
 #include <klone/io.h>
-#include <klone/debug.h>
+#include <klone/utils.h>
 
 static int fs_is_valid_uri(const char* uri, size_t len, time_t *mtime)
 {

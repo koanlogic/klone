@@ -1,7 +1,7 @@
 #ifndef _KLONE_ATOM_H_
 #define _KLONE_ATOM_H_
 #include <stdlib.h>
-#include <klone/queue.h>
+#include <u/libu.h>
 
 /* global server-maintaned atom list */
 typedef struct atom_s

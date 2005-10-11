@@ -1,9 +1,8 @@
 #ifndef _SERVER_BACKEND_H_
 #define _SERVER_BACKEND_H_
-#include <klone/queue.h>
+#include <u/libu.h>
 
 struct server_s;
-struct config_s;
 
 /* define page list */
 LIST_HEAD(backends_s, backend_s);
@@ -18,7 +17,7 @@ struct backend_s
 
     /* runtime values */
     struct server_s *server;
-    struct config_s *config;
+    u_config_t *config;
     struct addr_s *addr; 
     int model;
     int ld;
@@ -49,7 +48,7 @@ typedef struct backends_s backends_t; /* backend_t list        */
 
 extern backend_t *backend_list[];
 
-int backend_create(const char *name, struct config_s *, backend_t **);
+int backend_create(const char *name, u_config_t *, backend_t **);
 int backend_serve(backend_t *, int fd);
 int backend_free(backend_t *);
 

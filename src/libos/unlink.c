@@ -7,5 +7,6 @@ int unlink(const char *pathname)
 }
 
 #else
-int unlink_dummy_decl_stub = 0;
+#include <unistd.h>
+int unlink(const char *);
 #endif 

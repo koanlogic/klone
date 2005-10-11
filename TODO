@@ -1,6 +1,8 @@
 TODO
 ------------------
 
+    - rinominare le u_ del klone in uk_ o ku_
+
 1.0.0:
     - access_log, error_log
 

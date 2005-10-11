@@ -1,5 +1,5 @@
-#include <klone/debug.h>
 #include <klone/ppc.h>
+#include <u/libu.h>
 
 typedef struct ppc_header_s
 {
@@ -123,7 +123,7 @@ int ppc_create(ppc_t **pppc)
 {
     ppc_t *ppc = NULL;
 
-    ppc = u_calloc(sizeof(ppc_t));
+    ppc = u_zalloc(sizeof(ppc_t));
     dbg_err_if(ppc == NULL);
 
     *pppc = ppc;

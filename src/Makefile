@@ -1,6 +1,7 @@
-# $Id: Makefile,v 1.3 2005/10/06 11:33:09 tho Exp $
+# $Id: Makefile,v 1.4 2005/10/11 14:22:52 tat Exp $
 
 SUBDIR =    \
+ libutils   \
  libbackend \
  libcodec   \
  libemb     \
@@ -10,9 +11,8 @@ SUBDIR =    \
  libpage    \
  libtls     \
  libtrans   \
- libutils   \
  libklog    \
- kloned     \
- tools
+ tools      \
+ kloned
 
 include subdir.mk

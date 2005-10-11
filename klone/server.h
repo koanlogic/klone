@@ -2,7 +2,7 @@
 #define _KLONE_SERVER_H_
 #include <klone/ppc.h>
 
-struct config_s;
+struct u_config_s;
 struct server_s;
 typedef struct server_s server_t;
 
@@ -12,7 +12,7 @@ enum {
     SERVER_MODEL_ITERATIVE  /* serialize responses                  */
 };
 
-int server_create(struct config_s *config, int model, server_t **ps);
+int server_create(struct u_config_s *config, int model, server_t **ps);
 int server_free(server_t *s);
 int server_loop(server_t *s);
 int server_cgi(server_t *s);

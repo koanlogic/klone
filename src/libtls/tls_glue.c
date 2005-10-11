@@ -1,4 +1,4 @@
-/* $Id: tls_glue.c,v 1.5 2005/10/05 10:02:04 tat Exp $ */
+/* $Id: tls_glue.c,v 1.6 2005/10/11 14:22:53 tat Exp $ */
 
 /*
  * This product includes software developed by Ralf S. Engelschall 
@@ -10,7 +10,7 @@
 
 #include "conf.h"
 #include <klone/io.h>
-#include <klone/debug.h>
+#include <u/libu.h>
 
 #ifndef HAVE_LIBOPENSSL
 int tls_dummy_decl_stub = 0;

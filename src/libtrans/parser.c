@@ -229,7 +229,7 @@ int parser_create(parser_t **pt)
 {
     parser_t * p = NULL;
 
-    p = (parser_t*)u_calloc(sizeof(parser_t));
+    p = (parser_t*)u_zalloc(sizeof(parser_t));
     dbg_err_if(p == NULL);
 
     parser_reset(p);

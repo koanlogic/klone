@@ -1,10 +1,10 @@
 #include <time.h>
 #include <klone/response.h>
-#include <klone/debug.h>
 #include <klone/utils.h>
 #include <klone/io.h>
 #include <klone/codec.h>
 #include <klone/http.h>
+#include <u/libu.h>
 #include "rsfilter.h"
 
 struct response_s
@@ -444,7 +444,7 @@ int response_create(http_t *http, response_t **prs)
 {
     response_t *rs = NULL;
 
-    rs = u_calloc(sizeof(response_t));
+    rs = u_zalloc(sizeof(response_t));
     dbg_err_if(rs == NULL);
 
     dbg_err_if(header_create(&rs->header));

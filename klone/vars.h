@@ -1,7 +1,7 @@
 #ifndef _KLONE_VARLIST_H_
 #define _KLONE_VARLIST_H_
 #include <klone/var.h>
-#include <klone/str.h>
+#include <u/libu.h>
 
 struct vars_s;
 typedef struct vars_s vars_t;
@@ -27,7 +27,7 @@ var_t* vars_get(vars_t *vs, const char *name);
 const char* vars_get_value(vars_t *vs, const char *name);
 
 int vars_get_value_i(vars_t *vs, const char *name);
-string_t* vars_get_value_s(vars_t *vs, const char *name);
+u_string_t* vars_get_value_s(vars_t *vs, const char *name);
 
 /* get i-th variable called "name" */
 var_t* vars_get_ith(vars_t *vs, const char *name, size_t ith);

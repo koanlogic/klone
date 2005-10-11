@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <klone/request.h>
-#include <klone/debug.h>
 #include <klone/utils.h>
 #include <klone/io.h>
 #include <klone/http.h>
 #include <klone/vars.h>
+#include <u/libu.h>
 
 struct request_s
 {
@@ -815,7 +815,7 @@ int request_create(http_t *http, request_t **prq)
 {
     request_t *rq = NULL;
 
-    rq = u_calloc(sizeof(request_t));
+    rq = u_zalloc(sizeof(request_t));
     dbg_err_if(rq == NULL);
 
     dbg_err_if(header_create(&rq->header));

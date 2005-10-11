@@ -1,9 +1,10 @@
 #include <klone/supplier.h>
 #include <klone/broker.h>
 #include <klone/request.h>
-#include <klone/utils.h>
-#include <klone/debug.h>
-#include <klone/config.h>
+#include <u/misc.h>
+#include <u/memory.h>
+#include <u/debug.h>
+#include <u/config.h>
 
 enum { AVAIL_SUP_COUNT = 2 }; /* number of existing supplier types */
 
@@ -55,9 +56,9 @@ err:
     return ~0;
 }
 
-static config_t* broker_get_request_config(request_t *rq)
+static u_config_t* broker_get_request_config(request_t *rq)
 {
-    config_t *config = NULL;
+    u_config_t *config = NULL;
     http_t *http;
 
     http = request_get_http(rq);
@@ -72,7 +73,7 @@ int broker_create(broker_t **pb)
     broker_t *b = NULL;
     int i;
 
-    b = u_calloc(sizeof(broker_t));
+    b = u_zalloc(sizeof(broker_t));
     dbg_err_if(b == NULL);
 
     i = 0;

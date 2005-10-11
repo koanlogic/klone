@@ -10,12 +10,11 @@
 #include <klone/response.h>
 #include <klone/vars.h>
 #include <klone/utils.h>
-#include <klone/str.h>
 #include <klone/atom.h>
-#include <klone/debug.h>
 #include <klone/ses_prv.h>
 #include <klone/ppc.h>
 #include <klone/ppc_cmd.h>
+#include <u/libu.h>
 
 
 typedef struct enc_ses_mem_s
@@ -42,10 +41,33 @@ err:
     return ~0;
 }
 
+static int so_atom_delete_oldest(session_opt_t *so)
+{
+    atom_t *atom, *oldest;
+    size_t count, i;
+
+    count = atoms_count(so->atoms);
+    dbg_err_if(count == 0);
+
+    dbg_err_if(atoms_getn(so->atoms, 0, &oldest));
+    for(i = 1; i < count; ++i)
+    {
+        dbg_err_if(atoms_getn(so->atoms, i, &atom));
+
+        /* save if older */
+        if(atom->arg <= oldest->arg)
+            oldest = atom;
+    }
+
+    dbg_err_if(atoms_remove(so->atoms, oldest));
+
+    return 0;
+err:
+    return ~0;
+}
+
 static int session_delete_oldest(session_opt_t *so)
 {
-    atom_t *atom, *oldest = NULL;
-    size_t i, count;
     ppc_t *ppc;
 
     if(ctx->pipc)
@@ -137,36 +159,14 @@ err:
     return ~0;
 }
 
-static int so_atom_delete_oldest(session_opt_t *so)
-{
-    atom_t *atom, *oldest;
-    size_t count, i;
-
-    count = atoms_count(so->atoms);
-    dbg_err_if(count == 0);
-
-    dbg_err_if(atoms_getn(so->atoms, 0, &oldest));
-    for(i = 1; i < count; ++i)
-    {
-        dbg_err_if(atoms_getn(so->atoms, i, &atom));
-
-        /* save if older */
-        if(atom->arg <= oldest->arg)
-            oldest = atom;
-    }
-
-    dbg_err_if(atoms_remove(so->atoms, oldest));
-
-    return 0;
-err:
-    return ~0;
-}
 
 /* [parent] remove a sessioin*/
 static int session_cmd_remove(ppc_t *ppc, unsigned char cmd, char *data, 
     size_t size, void *vso)
 {
     session_opt_t *so = vso;
+
+    u_unused_args(ppc, cmd, size);
 
     dbg_err_if(so_atom_remove(so, data /* filename */));
 
@@ -180,6 +180,8 @@ static int session_cmd_delold(ppc_t *ppc, unsigned char cmd, char *data,
     size_t size, void *vso)
 {
     session_opt_t *so = vso;
+
+    u_unused_args(ppc, cmd, data, size);
 
     dbg_err_if(so == NULL);
 
@@ -197,6 +199,8 @@ static int session_cmd_save(ppc_t *ppc, unsigned char cmd, char *data,
 {
     session_opt_t *so = vso;
     enc_ses_mem_t *esm = (enc_ses_mem_t*)data;;
+
+    u_unused_args(ppc, cmd, size);
 
     dbg_err_if(vso == NULL || data == NULL);
 
@@ -325,7 +329,6 @@ err:
 
 static int session_mem_remove(session_t *ss)
 {
-    atom_t *atom;
     ppc_t *ppc;
 
     if(ctx->pipc)
@@ -351,7 +354,7 @@ err:
 static int session_mem_term(session_t *ss)
 {
     /* nothing to do */
-    U_UNUSED_ARG(ss);
+    u_unused_args(ss);
     return 0;
 }
 
@@ -360,7 +363,7 @@ int session_mem_create(session_opt_t *so, request_t *rq, response_t *rs,
 {
     session_t *ss = NULL;
 
-    ss = u_calloc(sizeof(session_t));
+    ss = u_zalloc(sizeof(session_t));
     dbg_err_if(ss == NULL);
 
     ss->load = session_mem_load;
@@ -384,10 +387,10 @@ err:
 }
 
 /* this function will be called once by the server during startup */
-int session_mem_module_init(config_t *config, session_opt_t *so)
+int session_mem_module_init(u_config_t *config, session_opt_t *so)
 {
     ppc_t *ppc;
-    config_t *c;
+    u_config_t *c;
     const char *v;
 
     /* defaults */
@@ -395,12 +398,12 @@ int session_mem_module_init(config_t *config, session_opt_t *so)
     so->mem_limit = 0;  /* no limits */
 
     /* get configuration parameters */
-    dbg_err_if(config_get_subkey(config, "memory", &c));
+    dbg_err_if(u_config_get_subkey(config, "memory", &c));
 
-    if((v = config_get_subkey_value(c, "max_count")) != NULL)
+    if((v = u_config_get_subkey_value(c, "max_count")) != NULL)
         so->max_count = atoi(v);
 
-    if((v = config_get_subkey_value(c, "mem_limit")) != NULL)
+    if((v = u_config_get_subkey_value(c, "mem_limit")) != NULL)
         so->mem_limit = atoi(v);
 
     /* setup ppc parent <-> child channel */

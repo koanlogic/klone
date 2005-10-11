@@ -2,12 +2,11 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <klone/klone.h>
-#include <klone/debug.h>
-#include <klone/config.h>
 #include <klone/server.h>
 #include <klone/os.h>
 #include "conf.h"
 #include <klone/context.h>
+#include <u/libu.h>
 #include "main.h"
 
 static context_t c;
@@ -26,14 +25,14 @@ context_t  *ctx = &c; /* exported */
 static void usage()
 {
     fprintf(stderr, 
-        "Usage: kloned [-f config_file] [-d]                    \n"
+        "Usage: kloned [-f u_config_file] [-d]                    \n"
         "          -d                    turn on debugging      \n"
         "          -F                    run in foreground      \n"
         #ifdef OS_WIN
         "          -i                    install service        \n"
         "          -u                    remove service         \n"
         #endif
-        "          -f config_file        use config file        \n"
+        "          -f u_config_file        use config file        \n"
         );
 
     exit(1);
@@ -305,11 +304,11 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
         dbg_err_if(app_init());
 
         /* set up service name and description reading from the config file */
-        name = config_get_subkey_value(ctx->config, "daemon.name");
+        name = u_config_get_subkey_value(ctx->config, "daemon.name");
         if(name)
             strncpy(ss_name, name, SS_NAME_BUFSZ);
 
-        desc = config_get_subkey_value(ctx->config, "daemon.description");
+        desc = u_config_get_subkey_value(ctx->config, "daemon.description");
         if(desc)
             strncpy(ss_desc, desc, SS_DESC_BUFSZ);
 

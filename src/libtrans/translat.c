@@ -96,7 +96,7 @@ static int parse_directive(parser_t* p, void *arg, const char* buf, size_t sz)
     char line[LINE_BUFSZ];
     io_t *io = NULL;
 
-    U_UNUSED_ARG(arg);
+    u_unused_args(arg);
     
     dbg_err_if(io_mem_create(buf, sz, 0, &io));
 
@@ -114,7 +114,7 @@ err:
 
 static int cb_pre_html_block(parser_t* p, void *arg, const char* buf, size_t sz)
 {
-    U_UNUSED_ARG(arg);
+    u_unused_args(arg);
 
     io_write(p->out, buf, sz);
 

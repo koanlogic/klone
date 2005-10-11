@@ -1,10 +1,9 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <klone/var.h>
-#include <klone/queue.h>
-#include <klone/debug.h>
 #include <klone/utils.h>
 #include <klone/varprv.h>
+#include <u/libu.h>
 
 /** 
  *  \ingroup Vhttp Chttp
@@ -30,7 +29,7 @@
  *  - \c 0  if successful
  *  - \c ~0 on error
  */
-string_t* var_get_name_s(var_t *v)
+u_string_t* var_get_name_s(var_t *v)
 {
     dbg_return_if(v == NULL, NULL);
 
@@ -50,7 +49,7 @@ string_t* var_get_name_s(var_t *v)
  *  - \c 0  if successful
  *  - \c ~0 on error
  */
-string_t* var_get_value_s(var_t *v)
+u_string_t* var_get_value_s(var_t *v)
 {
     dbg_return_if(v == NULL, NULL);
 
@@ -61,12 +60,12 @@ int var_create(const char* name, const char *value, var_t**pv)
 {
     var_t *v = NULL;
 
-    v = u_calloc(sizeof(var_t));
+    v = u_zalloc(sizeof(var_t));
     dbg_err_if(v == NULL);
 
-    dbg_err_if(string_create(name, strlen(name), &v->sname));
+    dbg_err_if(u_string_create(name, strlen(name), &v->sname));
 
-    dbg_err_if(string_create(value, strlen(value), &v->svalue));
+    dbg_err_if(u_string_create(value, strlen(value), &v->svalue));
 
     *pv = v;
 
@@ -92,9 +91,9 @@ int var_free(var_t *v)
     if(v)
     {
         if(v->sname)
-            string_free(v->sname);
+            u_string_free(v->sname);
         if(v->svalue)
-            string_free(v->svalue);
+            u_string_free(v->svalue);
         u_free(v);
     }
 
@@ -113,7 +112,7 @@ int var_free(var_t *v)
  */
 const char* var_get_name(var_t *v)
 {
-    return string_c(v->sname);
+    return u_string_c(v->sname);
 }
 
 /**
@@ -128,7 +127,7 @@ const char* var_get_name(var_t *v)
  */
 const char* var_get_value(var_t *v)
 {
-    return string_c(v->svalue);
+    return u_string_c(v->svalue);
 }
 
 /** 
@@ -169,7 +168,7 @@ err:
  */
 int var_set_name(var_t *v, const char *name)
 {
-    dbg_err_if(string_set(v->sname, name, strlen(name)));
+    dbg_err_if(u_string_set(v->sname, name, strlen(name)));
 
     return 0; 
 err:
@@ -190,7 +189,7 @@ err:
  */
 int var_set_value(var_t *v, const char *value)
 {
-    dbg_err_if(string_set(v->svalue, value, strlen(value)));
+    dbg_err_if(u_string_set(v->svalue, value, strlen(value)));
 
     return 0; 
 err:

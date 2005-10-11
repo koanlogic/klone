@@ -54,4 +54,8 @@ void syslog(int priority, const char *fmt, ...)
 
 #endif /* ifdef OS_WIN */
 
+#else /* ifndef HAVE_SYSLOG */
+#include <syslog.h>
+#include <stdarg.h>
+void syslog(int priority, const char *fmt, ...);
 #endif 

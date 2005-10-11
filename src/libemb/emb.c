@@ -1,7 +1,7 @@
 #include <klone/emb.h>
-#include <klone/debug.h>
 #include <klone/io.h>
 #include <klone/codgzip.h>
+#include <u/libu.h>
 
 /* these are klone-site autogen functions */
 int register_pages();

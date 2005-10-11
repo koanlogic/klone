@@ -3,15 +3,14 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <klone/debug.h>
-#include <klone/queue.h>
-#include <klone/addr.h>
 #include <klone/server.h>
 #include <klone/backend.h>
 #include <klone/os.h>
 #include <klone/timer.h>
 #include <klone/context.h>
 #include <klone/ppc.h>
+#include <klone/addr.h>
+#include <u/libu.h>
 
 #define SERVER_MAX_BACKENDS 8
 
@@ -35,7 +34,7 @@ static void server_close_fd(server_t *s, int fd);
 
 struct server_s 
 {
-    config_t *config;       /* server config                    */
+    u_config_t *config;       /* server config                    */
     ppc_t *ppc;             /* parent procedure call            */
     backends_t bes;         /* backend list                     */
     fd_set rdfds, wrfds, exfds;
@@ -49,7 +48,7 @@ static int server_be_listen(backend_t *be)
 {
     enum { DEFAULT_BACKLOG = 10 };
     int d = 0, backlog = 0, val = 1;
-    config_t *subkey;
+    u_config_t *subkey;
 
     switch(be->addr->type)
     {
@@ -66,8 +65,8 @@ static int server_be_listen(backend_t *be)
             dbg_err_if("unupported addr type");
     }
 
-    if(!config_get_subkey(be->config, "backlog", &subkey))
-        backlog = atoi(config_get_value(subkey));
+    if(!u_config_get_subkey(be->config, "backlog", &subkey))
+        backlog = atoi(u_config_get_value(subkey));
 
     if(!backlog)
         backlog = DEFAULT_BACKLOG;
@@ -141,7 +140,7 @@ static int server_be_accept(server_t *s, backend_t *be, int* pfd)
     int sa_len = sizeof(struct sockaddr);
     int ad;
 
-    U_UNUSED_ARG(s);
+    u_unused_args(s);
 
 again:
     ad = accept(be->ld, &sa, &sa_len);
@@ -179,7 +178,7 @@ static int cb_term_child(alarm_t *al, void *arg)
 {
     pid_t child = (int)arg;
 
-    U_UNUSED_ARG(al);
+    u_unused_args(al);
     
     dbg("sending SIGTERM to child [%d]", child);
 
@@ -196,7 +195,7 @@ static int server_child_serve(server_t *s, backend_t *be, int ad)
     pid_t child;
     int socks[2];
 
-    U_UNUSED_ARG(s);
+    u_unused_args(s);
 
     /* create a parent<->child IPC channel */
     dbg_err_if(socketpair(AF_UNIX, SOCK_STREAM, 0, socks) < 0);
@@ -244,8 +243,6 @@ err:
 
 static int server_be_serve(server_t *s, backend_t *be, int ad)
 {
-    alarm_t *al = NULL;
-
     switch(be->model)
     {
     case SERVER_MODEL_FORK:
@@ -437,13 +434,13 @@ err:
 
 static int server_setup_backend(server_t *s, backend_t *be)
 {
-    config_t *subkey;
+    u_config_t *subkey;
 
     /* server count */
     s->nserver++;
 
     /* parse and create the bind addr_t */
-    dbg_err_if(config_get_subkey(be->config, "addr", &subkey));
+    dbg_err_if(u_config_get_subkey(be->config, "addr", &subkey));
 
     dbg_err_if(addr_create(&be->addr));
 
@@ -459,10 +456,10 @@ err:
     return ~0;
 }
 
-int server_create(config_t *config, int model, server_t **ps)
+int server_create(u_config_t *config, int model, server_t **ps)
 {
     server_t *s = NULL;
-    config_t *bekey = NULL;
+    u_config_t *bekey = NULL;
     backend_t *be = NULL;
     const char *list, *type;
     char *n = NULL, *name = NULL;
@@ -476,7 +473,7 @@ int server_create(config_t *config, int model, server_t **ps)
     dbg_err_if(WSAStartup(ver, &wsadata));
 #endif
 
-    s = u_calloc(sizeof(server_t));
+    s = u_zalloc(sizeof(server_t));
     dbg_err_if(s == NULL);
 
     *ps = s; /* we need it before backend inits */
@@ -495,10 +492,10 @@ int server_create(config_t *config, int model, server_t **ps)
     dbg_err_if(ppc_create(&s->ppc));
 
     /* parse server list and build s->bes */
-    list = config_get_subkey_value(config, "server_list");
+    list = u_config_get_subkey_value(config, "server_list");
     dbg_err_if(list == NULL);
 
-    name = n = u_calloc(strlen(list) + 1);
+    name = n = u_zalloc(strlen(list) + 1);
     dbg_err_if(name == NULL);
     
     /* load config and init backend for each server in server.list */
@@ -512,10 +509,10 @@ int server_create(config_t *config, int model, server_t **ps)
         dbg_err_if(s->nserver == SERVER_MAX_BACKENDS);
 
         /* get config tree of this backend */
-        warn_err_ifm(config_get_subkey(config, name, &bekey),
+        warn_err_ifm(u_config_get_subkey(config, name, &bekey),
             "missing [%s] backend configuration", name);
 
-        type = config_get_subkey_value(bekey, "type");
+        type = u_config_get_subkey_value(bekey, "type");
         dbg_err_if(type == NULL);
 
         /* create a new backend and push into the be list */

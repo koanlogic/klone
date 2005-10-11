@@ -1,13 +1,13 @@
 #include <klone/utils.h>
-#include <klone/queue.h>
 #include <klone/atom.h>
+#include <u/libu.h>
 
 int atom_create(const char *id, const char *data, size_t size, void* arg, 
     atom_t **patom)
 {
     atom_t *atom = NULL;
 
-    atom = u_calloc(sizeof(atom_t));
+    atom = u_zalloc(sizeof(atom_t));
     dbg_err_if(atom == NULL);
 
     atom->id = u_strdup(id);
@@ -144,7 +144,7 @@ int atoms_create(atoms_t **pas)
 
     dbg_err_if(pas == NULL);
 
-    as = u_calloc(sizeof(atoms_t));
+    as = u_zalloc(sizeof(atoms_t));
     dbg_err_if(as == NULL);
 
     LIST_INIT(&as->list);

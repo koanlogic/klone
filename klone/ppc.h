@@ -1,6 +1,7 @@
 #ifndef _KLONE_PPC_H_
 #define _KLONE_PPC_H_
 #include <stdlib.h>
+#include <unistd.h>
 
 enum { PPC_MAX_DATA_SIZE = 4096 };
 

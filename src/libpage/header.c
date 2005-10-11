@@ -1,8 +1,7 @@
 #include <klone/klone.h>
 #include <klone/header.h>
 #include <klone/utils.h>
-#include <klone/str.h>
-#include <klone/debug.h>
+#include <u/libu.h>
 
 
 /** 
@@ -177,22 +176,22 @@ int header_add_field(header_t *h, field_t *f)
     return 0;
 }
 
-static int header_process_line(header_t *h, string_t *line)
+static int header_process_line(header_t *h, u_string_t *line)
 {
     field_t *f = NULL;
     const char *p;
 
-    if(!string_len(line))
+    if(!u_string_len(line))
         return 0;
 
     /* look for name/value delimiter */
-    dbg_err_if((p = strchr(string_c(line), ':')) == NULL);
+    dbg_err_if((p = strchr(u_string_c(line), ':')) == NULL);
 
     /* alloc a new field */
     dbg_err_if(field_create(NULL,0,&f));
 
     /* parse and set name, value and params */
-    dbg_err_if(field_set_from_line(f, string_c(line)));
+    dbg_err_if(field_set_from_line(f, u_string_c(line)));
 
     /* add to this header */
     dbg_err_if(header_add_field(h, f));
@@ -218,54 +217,54 @@ err:
  */
 int header_load(header_t *h , io_t *io)
 {
-    string_t *line = NULL, *unfolded = NULL;
+    u_string_t *line = NULL, *unfolded = NULL;
     const char *ln;
     size_t len;
 
     dbg_err_if(h == NULL || io == NULL);
 
-    dbg_err_if(string_create(NULL, 0, &line));
-    dbg_err_if(string_create(NULL, 0, &unfolded));
+    dbg_err_if(u_string_create(NULL, 0, &line));
+    dbg_err_if(u_string_create(NULL, 0, &unfolded));
 
     while(u_getline(io, line) == 0)
     {
-        ln = string_c(line);
-        len = string_len(line);
+        ln = u_string_c(line);
+        len = u_string_len(line);
 
         /* remove trailing nl(s) */
         while(len && u_isnl(ln[len-1]))
-            string_set_length(line, --len);
+            u_string_set_length(line, --len);
 
-        if(string_len(line) == 0)
+        if(u_string_len(line) == 0)
             break; /* empty line */
 
         if(u_isblank(ln[0])) 
         {   /* this is a chunk of a folded line */
-            dbg_err_if(string_append(unfolded, ln, string_len(line)));
+            dbg_err_if(u_string_append(unfolded, ln, u_string_len(line)));
         } else {
-            if(string_len(unfolded))
+            if(u_string_len(unfolded))
             {
                 /* go process this (already unfolded) line */
                 header_process_line(h, unfolded);
-                string_clear(unfolded);
+                u_string_clear(unfolded);
             }
             /* this may be the first line of a folded line so wait next lines */
-            string_copy(unfolded, line);
+            u_string_copy(unfolded, line);
         }
     }
 
-    if(string_len(unfolded))
+    if(u_string_len(unfolded))
         header_process_line(h, unfolded);
 
-    string_free(unfolded);
-    string_free(line);
+    u_string_free(unfolded);
+    u_string_free(line);
 
     return 0;
 err:
     if(line)
-        string_free(line);
+        u_string_free(line);
     if(unfolded)
-        string_free(unfolded);
+        u_string_free(unfolded);
     return ~0;
 }
 
@@ -284,7 +283,7 @@ int header_create(header_t **ph)
 {
     header_t *h = NULL;
 
-    h = u_calloc(sizeof(header_t));
+    h = u_zalloc(sizeof(header_t));
     dbg_err_if(h == NULL);
 
     TAILQ_INIT(&h->fields);

@@ -1,6 +1,6 @@
-#include <klone/debug.h>
 #include <klone/session.h>
 #include <klone/context.h>
+#include <u/libu.h>
 
 /* this function will be called just before closing; put here your 
    destructors */

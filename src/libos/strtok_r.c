@@ -109,5 +109,5 @@ cont:
 }
 
 #else
-int strtok_dummy_decl_stub = 0;
+char *strtok_r(char *s, const char *delim, char **last);
 #endif 

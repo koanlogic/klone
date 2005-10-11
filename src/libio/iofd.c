@@ -1,10 +1,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <klone/io.h>
-#include <klone/debug.h>
-#include <klone/utils.h>
 #include <klone/io.h>
 #include <klone/ioprv.h>
+#include <u/libu.h>
 #include "conf.h"
 
 typedef struct io_fd_s
@@ -19,7 +18,6 @@ static ssize_t io_fd_read(io_fd_t *io, char *buf, size_t size);
 static ssize_t io_fd_write(io_fd_t *io, const char *buf, size_t size);
 static ssize_t io_fd_seek(io_fd_t *io, size_t off);
 static ssize_t io_fd_tell(io_fd_t *io);
-static ssize_t io_fd_size(io_fd_t *io);
 static int io_fd_term(io_fd_t *io);
 
 static ssize_t io_fd_read(io_fd_t *ifd, char *buf, size_t size)
@@ -105,6 +103,7 @@ int io_fd_create(int fd, int flags, io_t **pio)
     ifd->io.read     = (io_read_op) io_fd_read;
     ifd->io.write    = (io_write_op) io_fd_write;
     ifd->io.seek     = (io_seek_op) io_fd_seek;
+    ifd->io.tell     = (io_tell_op) io_fd_tell;
     ifd->io.term     = (io_term_op) io_fd_term; 
     
 #ifdef OS_WIN

@@ -1,7 +1,7 @@
 #ifndef _KLONE_FIELD_H_
 #define _KLONE_FIELD_H_
 #include <sys/types.h>
-#include <klone/queue.h>
+#include <u/libu.h>
 
 TAILQ_HEAD(param_list_s, param_s);
 typedef struct param_s

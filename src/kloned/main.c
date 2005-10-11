@@ -7,11 +7,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <klone/klone.h>
-#include <klone/debug.h>
 #include <klone/server.h>
-#include <klone/config.h>
 #include <klone/emb.h>
 #include <klone/context.h>
+#include <u/libu.h>
 #include "conf.h"
 #include "main.h"
 
@@ -21,14 +20,14 @@ extern int modules_term(context_t *);
 
 static void sigint(int sig)
 {
-    U_UNUSED_ARG(sig);
+    u_unused_args(sig);
     dbg("SIGINT");
     server_stop(ctx->server);
 }
 
 static void sigterm(int sig)
 {
-    U_UNUSED_ARG(sig);
+    u_unused_args(sig);
     dbg("SIGTERM");
     server_stop(ctx->server);
 }
@@ -38,7 +37,7 @@ static void sigchld(int sig)
     pid_t           pid = -1;
     int             status;
 
-    U_UNUSED_ARG(sig);
+    u_unused_args(sig);
 
     /* detach from child processes */
     while((pid = waitpid(-1, &status, WNOHANG)) > 0) 
@@ -60,7 +59,7 @@ int app_init()
     emb_init();
     
     /* create a config obj */
-    dbg_err_if(config_create(&ctx->config));
+    dbg_err_if(u_config_create(&ctx->config));
 
     /* get the io associated to the embedded configuration file (if any) */
     dbg_if(emb_open("/etc/kloned.conf", &io));
@@ -68,7 +67,7 @@ int app_init()
     /* load the embedded config */
     if(io)
     {
-        dbg_err_if(config_load(ctx->config, io, 0));
+        dbg_err_if(u_config_load(ctx->config, io, 0));
         cfg_found = 1;
         io_free(io);
         io = NULL;
@@ -80,7 +79,7 @@ int app_init()
         dbg("loading external config file: %s", ctx->ext_config);
         dbg_err_if(u_file_open(ctx->ext_config, O_RDONLY, &io));
 
-        dbg_err_if(config_load(ctx->config, io, 1 /* overwrite */));
+        dbg_err_if(u_config_load(ctx->config, io, 1 /* overwrite */));
         cfg_found = 1;
 
         io_free(io);
@@ -91,7 +90,7 @@ int app_init()
         "missing config file (use -f file or embed /etc/kloned.conf");
 
     if(ctx->debug)
-        config_print(ctx->config, 0);
+        u_config_print(ctx->config, 0);
 
     dbg_err_if(modules_init(ctx));
 
@@ -109,7 +108,7 @@ int app_term()
 
     if(ctx && ctx->config)
     {
-        config_free(ctx->config);
+        u_config_free(ctx->config);
         ctx->config = NULL;
     }
 

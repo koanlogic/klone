@@ -1,18 +1,17 @@
 #ifndef _KLONE_CONTEXT_H_
 #define _KLONE_CONTEXT_H_
 #include <klone/klone.h>
-#include <klone/debug.h>
 #include <klone/server.h>
-#include <klone/config.h>
 #include <klone/backend.h>
 #include <klone/os.h>
+#include <u/libu.h>
 #include "conf.h"
 
 /* global applicaton context */
 typedef struct context_s
 {
     server_t *server;   /* server object                   */
-    config_t *config;   /* server config object            */
+    u_config_t *config;   /* server config object            */
     backend_t *backend; /* the backend served by this child */
     char *ext_config;   /* additional external config file */
     int debug;          /* debugging on/off                */

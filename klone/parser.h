@@ -1,5 +1,5 @@
-#ifndef _PARSER_H_
-#define _PARSER_H_
+#ifndef _KLONE_PARSER_H_
+#define _KLONE_PARSER_H_
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>

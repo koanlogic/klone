@@ -10,13 +10,12 @@
 #include <klone/vars.h>
 #include <klone/utils.h>
 #include <klone/emb.h>
-#include <klone/str.h>
-#include <klone/debug.h>
 #include <klone/ses_prv.h>
 #include <klone/codgzip.h>
 #include <openssl/hmac.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
+#include <u/libu.h>
 
 #define KL1_CLISES_DATA     "KL1_CLISES_DATA"
 #define KL1_CLISES_MTIME    "KL1_CLISES_MTIME"
@@ -255,7 +254,7 @@ err:
 
 static int session_client_term(session_t *ss)
 {
-    U_UNUSED_ARG(ss);
+    u_unused_args(ss);
     return 0;
 }
 
@@ -279,7 +278,7 @@ int session_client_create(session_opt_t *so, request_t *rq, response_t *rs,
 {
     session_t *ss = NULL;
 
-    ss = u_calloc(sizeof(session_t));
+    ss = u_zalloc(sizeof(session_t));
     dbg_err_if(ss == NULL);
 
     ss->load = session_client_load;
@@ -303,9 +302,9 @@ err:
 }
 
 /* this function will be called once by the server during startup */
-int session_client_module_init(config_t *config, session_opt_t *so)
+int session_client_module_init(u_config_t *config, session_opt_t *so)
 {
-    config_t *c;
+    u_config_t *c;
     const char *v;
 
     /* defaults */
@@ -314,9 +313,9 @@ int session_client_module_init(config_t *config, session_opt_t *so)
     so->hash = EVP_sha1(); 
     so->cipher = NULL;
 
-    dbg_err_if(config_get_subkey(config, "client", &c));
+    dbg_err_if(u_config_get_subkey(config, "client", &c));
 
-    if((v = config_get_subkey_value(c, "hash_function")) != NULL)
+    if((v = u_config_get_subkey_value(c, "hash_function")) != NULL)
     {
         if(!strcasecmp(v, "md5"))
             so->hash = EVP_md5();
@@ -328,7 +327,7 @@ int session_client_module_init(config_t *config, session_opt_t *so)
             warn_err("config error: bad hash_function");
     } 
 
-    if((v = config_get_subkey_value(c, "compress")) != NULL)
+    if((v = u_config_get_subkey_value(c, "compress")) != NULL)
     {
         if(!strcasecmp(v, "yes"))
             so->compress = 1;
@@ -338,7 +337,7 @@ int session_client_module_init(config_t *config, session_opt_t *so)
             warn_err("config error: bad compress value");
     }
 
-    if((v = config_get_subkey_value(c, "encrypt")) != NULL)
+    if((v = u_config_get_subkey_value(c, "encrypt")) != NULL)
     {
         if(!strcasecmp(v, "yes"))
             so->encrypt = 1;

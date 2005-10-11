@@ -5,9 +5,9 @@
 #ifdef HAVE_STDINT
 #include <stdint.h>
 #endif /* HAVE_STDINT */
-#include <klone/queue.h>
 #include <klone/response.h>
 #include <klone/request.h>
+#include <u/libu.h>
 
 typedef void (*page_run_t)(request_t*, response_t*);
 

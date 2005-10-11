@@ -3,8 +3,7 @@
 #include <klone/vars.h>
 #include <klone/varprv.h>
 #include <klone/utils.h>
-#include <klone/queue.h>
-#include <klone/debug.h>
+#include <u/libu.h>
 
 TAILQ_HEAD(var_list_s, var_s);
 
@@ -37,7 +36,7 @@ struct vars_s
  *  - \c 0  if successful
  *  - \c ~0 on error
  */     
-string_t* vars_get_value_s(vars_t *vs, const char *name)
+u_string_t* vars_get_value_s(vars_t *vs, const char *name)
 {
     var_t *v = NULL;
 
@@ -63,7 +62,7 @@ int vars_create(vars_t ** pvs)
 {
     vars_t *vs = NULL;
 
-    vs = u_calloc(sizeof(vars_t));
+    vs = u_zalloc(sizeof(vars_t));
     dbg_err_if(vs == NULL);
 
     TAILQ_INIT(&vs->list);
@@ -305,7 +304,7 @@ var_t* vars_get_ith(vars_t *vs, const char *var_name, size_t i)
 
     TAILQ_FOREACH(v, &vs->list, np)
     {
-        if(strcmp(string_c(v->sname), var_name) == 0)
+        if(strcmp(u_string_c(v->sname), var_name) == 0)
         {
             if(i-- == 0)
                 return v;

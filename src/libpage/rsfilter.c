@@ -1,11 +1,11 @@
 #include <time.h>
 #include <klone/response.h>
-#include <klone/debug.h>
 #include <klone/utils.h>
 #include <klone/io.h>
 #include <klone/codec.h>
 #include <klone/http.h>
 #include <klone/response.h>
+#include <u/libu.h>
 #include "rsfilter.h"
 
 /* this filter prints the HTTP header before any body part of the web page. 
@@ -21,8 +21,7 @@ enum {
 
 static int rf_flush(response_filter_t *rf, char *buf, size_t *sz)
 {
-    U_UNUSED_ARG(sz);
-    U_UNUSED_ARG(buf);
+    u_unused_args(sz, buf);
 
     if(rf->state == RFS_BUFFERING)
     {
@@ -93,7 +92,7 @@ int response_filter_create(response_t *rs, response_filter_t **prf)
 {
     response_filter_t *rf = NULL;
 
-    rf = u_calloc(sizeof(response_filter_t));
+    rf = u_zalloc(sizeof(response_filter_t));
     dbg_err_if(rf == NULL);
 
     rf->rs = rs;

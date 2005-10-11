@@ -1,7 +1,7 @@
 #include <string.h>
 #include <klone/field.h>
 #include <klone/utils.h>
-#include <klone/debug.h>
+#include <u/libu.h>
 
 /** 
  *  \ingroup Chttp
@@ -142,7 +142,7 @@ int field_create(const char *name, const char *value, field_t **pf)
 {
     field_t *f = NULL;
 
-    f = u_calloc(sizeof(field_t));
+    f = u_zalloc(sizeof(field_t));
     dbg_err_if(f == NULL);
 
     if(name)

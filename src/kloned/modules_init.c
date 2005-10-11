@@ -1,7 +1,6 @@
-#include <klone/debug.h>
 #include <klone/session.h>
-#include <klone/config.h>
 #include <klone/context.h>
+#include <u/libu.h>
 
 /* this function will be called just after app initialization and before 
    running any "useful" code; add here your initialization function calls */

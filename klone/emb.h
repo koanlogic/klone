@@ -7,13 +7,11 @@
 #include <sys/stat.h>
 #include <klone/request.h>
 #include <klone/response.h>
-#include <klone/queue.h>
 #include <klone/session.h>
 #include <klone/io.h>
 #include <klone/codec.h>
 #include <klone/codgzip.h>
-#include <klone/utils.h>
-#include <klone/debug.h>
+#include <u/libu.h>
 
 /* supported embedded resource type */
 enum {

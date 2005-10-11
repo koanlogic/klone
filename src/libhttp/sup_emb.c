@@ -2,15 +2,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <klone/supplier.h>
-#include <klone/queue.h>
 #include <klone/io.h>
-#include <klone/debug.h>
 #include <klone/page.h>
 #include <klone/http.h>
-#include <klone/utils.h>
 #include <klone/emb.h>
 #include <klone/codgzip.h>
 #include <klone/ses_prv.h>
+#include <u/libu.h>
 
 static int supemb_is_valid_uri(const char* uri, size_t len, time_t *mtime)
 {
