@@ -1,7 +1,7 @@
-# $Id: Makefile,v 1.1 2005/10/06 11:33:09 tho Exp $
+# $Id: Makefile,v 1.2 2005/10/11 17:58:50 tho Exp $
 include ../../Makefile.conf
 
 LIB = klog
-SRCS = klog.c
+SRCS = klog.c mem.c syslog.c file.c common.c
 
 include lib.mk

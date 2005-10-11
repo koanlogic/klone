@@ -8,8 +8,8 @@
 #include "conf.h"
 #include <sys/types.h>
 #include <stdarg.h>
-#include <klone/os.h>
 #include <u/libu.h>
+#include <klone/os.h>
 
 /* log types */
 enum { KLOG_TYPE_UNKNOWN, KLOG_TYPE_MEM, KLOG_TYPE_FILE, KLOG_TYPE_SYSLOG };
@@ -47,19 +47,33 @@ typedef struct klog_mem_msg_s klog_mem_msg_t;
 /* klog_mem_msg_s' organised in a fixed size buffer with FIFO discard policy */
 struct klog_mem_s
 {
-    char *id;                           /* log sink id (owner ?) */
-    size_t bound;                       /* FIFO buffer max size */
-    size_t count;                       /* # of msgs in buffer */
-#define KLOG_MEM_FULL(klm)  ((klm)->count >= (klm)->bound)
-    TAILQ_HEAD(h, klog_mem_msg_s) msgs; /* the list of msgs */
+    char *id;                               /* log sink id (owner ?) */
+    size_t bound;                           /* FIFO buffer max size */
+    size_t nmsgs;                           /* # of msgs in buffer */
+#define KLOG_MEM_FULL(klm)  ((klm)->nmsgs >= (klm)->bound)
+    TAILQ_HEAD(mh, klog_mem_msg_s) msgs;    /* the list of msgs */
 };
 
 typedef struct klog_mem_s klog_mem_t;
 
-/* TODO */
+struct klog_file_split_s
+{
+    int id;                                 /* split id: fname is basename.id */
+    FILE *fp;                               /* file pointer (when active) */
+    size_t nlines;                          /* # of lines actually written */
+    TAILQ_ENTRY(klog_file_split_s) next;    /* next in log files list */
+};
+
+typedef struct klog_file_split_s klog_file_split_t;
+
 struct klog_file_s
 {
-    int dummy;
+    size_t nfiles;                              /* # of split files */
+    char *basename;                             /* splits' prefix */
+    size_t bound;                               /* max lines in file */
+    struct klog_file_split_s *factive;          /* active log file */
+#define KLOG_FILE_FULL(klf)  ((klf)->factive->nlines >= (klf)->bound)
+    TAILQ_HEAD (fh, klog_file_split_s) files;   /* list of all log files */
 };
 
 typedef struct klog_file_s klog_file_t;

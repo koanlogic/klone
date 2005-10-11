@@ -23,7 +23,7 @@
  * file logging structures
  */
 
-struct klog_file_mem_s
+struct klog_file_s
 {
     size_t count;                       /* how many files in list */
     char *basename;                     /* files' name prefix */
@@ -33,10 +33,11 @@ struct klog_file_mem_s
 
 struct klog_file_s
 {
-    int id;         /* file id (filename is basename.id) */
-    FILE *fp;       /* file pointer (when active) */
-    size_t bound;   /* max lines in file */
-    size_t lines;   /* # of lines written */
+    int id;                         /* file id (filename is basename.id) */
+    FILE *fp;                       /* file pointer (when active) */
+    size_t bound;                   /* max lines in file */
+    size_t lines;                   /* # of lines written */
+    TAILQ_ENTRY(klog_file_s) next;  /* next in log files list */
 };
 
 
@@ -44,8 +45,15 @@ struct klog_file_mem_s *klf;
 
 open ()
 {
-    get an available log file from klf 
+    get(available log file from klf)
     open|creat (override) for writing
+}
+
+get ()
+{
+    get the first empty file f
+    if (!f)
+        get the first file in list
 }
 
 log (ln)
