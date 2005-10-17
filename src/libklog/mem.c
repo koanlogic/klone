@@ -26,7 +26,7 @@ int klog_open_mem (klog_t *kl, const char *id, size_t ln_max)
     dbg_err_if (klm == NULL);
     
     /* initialise the klog_mem_t object to the supplied values */
-    klm->id = id ? u_strdup(id) : NULL;   /* NULL is for anonymous log sink */
+    klm->id = id ? u_strdup(id) : NULL; /* NULL is for anonymous log sink */
     klm->bound = ln_max ? ln_max : 1;   /* set at least a 1 msg window :) */
     klm->nmsgs = 0;
     TAILQ_INIT(&klm->msgs);
@@ -124,14 +124,13 @@ int klog_clear_mem (klog_mem_t *klm)
 
 static void klog_mem_msgs_free (klog_mem_t *klm)
 {
-    klog_mem_msg_t *mmsg, *nmmsg;
+    klog_mem_msg_t *mmsg;
 
     dbg_return_if (klm == NULL, );
     
-    for (mmsg = TAILQ_FIRST(&klm->msgs); mmsg != NULL; mmsg = nmmsg)
+    while((mmsg = TAILQ_FIRST(&klm->msgs)) != NULL)
     {
         TAILQ_REMOVE(&klm->msgs, mmsg, next);
-        nmmsg = TAILQ_NEXT(mmsg, next);
         klm->nmsgs--;
         klog_mem_msg_free(mmsg);
     }

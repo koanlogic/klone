@@ -108,7 +108,8 @@ int klog_open (klog_args_t *ka, klog_t **pkl)
             rv = klog_open_mem(kl, ka->ident, ka->mlimit);
             break;
         case KLOG_TYPE_FILE:
-            rv = klog_open_file(kl, ka->fbasename, ka->fsplits, ka->flimit);
+/* rv = klog_open_file(kl, ka->fbasename, ka->fsplits, ka->flimit); */
+            rv = ~0;
             break;
         case KLOG_TYPE_SYSLOG:
             rv = klog_open_syslog(kl, ka->ident, ka->sfacility, ka->soptions);
@@ -164,7 +165,8 @@ int klog (klog_t *kl, int level, const char *fmt, ...)
             rv = klog_mem(kl->u.m, level, fmt, ap);
             break;
         case KLOG_TYPE_FILE:
-            rv = klog_file(kl->u.f, level, fmt, ap);
+/* rv = klog_file(kl->u.f, level, fmt, ap); */
+            rv = ~0;
             break;
         case KLOG_TYPE_SYSLOG:
             rv = klog_syslog(kl->u.s, level, fmt, ap);
@@ -197,7 +199,7 @@ void klog_close (klog_t *kl)
             klog_close_mem(kl->u.m);
             break;
         case KLOG_TYPE_FILE:
-            klog_close_file(kl->u.f);
+/* klog_close_file(kl->u.f); */
             break;
         case KLOG_TYPE_SYSLOG:
             klog_close_syslog(kl->u.s);
@@ -353,7 +355,7 @@ static int klog_threshold (const char *threshold)
 static int klog_logopt (const char *options)
 {
     char *o2 = NULL;    /* 'options' dupped for safe u_tokenize() */
-    int i = 0, logopt = 0;
+    int i, logopt = 0;
     enum { NOPTS = 4 };
     char *optv[NOPTS + 1];
     
@@ -362,7 +364,7 @@ static int klog_logopt (const char *options)
 
     dbg_err_if (u_tokenize(o2, " \t", optv, NOPTS + 1));
     
-    while (optv[i])
+    for (i = 0; optv[i] != NULL; i++)
     {
         if (!strcasecmp(optv[i], "LOG_CONS"))
             logopt |= LOG_CONS;
@@ -374,7 +376,6 @@ static int klog_logopt (const char *options)
             logopt |= LOG_PID;
         else
             warn("bad log option: \'%s\'", optv[i]);
-        i++;
     }
 
     u_free(o2);
