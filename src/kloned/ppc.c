@@ -78,11 +78,6 @@ ssize_t ppc_read(ppc_t *ppc, int fd, unsigned char *pcmd, char *data,
     ppc_header_t h;
     ssize_t n;
 
-    dbg_return_if(ppc == NULL, -1);
-    dbg_return_if(pcmd == NULL, -1);
-    dbg_return_if(data == NULL, -1);
-    dbg_return_if(fd < 0, -1);
-
     dbg_return_if(ppc == NULL || pcmd == NULL || data == NULL || fd < 0, -1);
 
     n = ppc_do_read(fd, (char*)&h, sizeof(ppc_header_t));

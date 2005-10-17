@@ -86,12 +86,16 @@ err:
 static void server_recalc_hfd(server_t *s)
 {
     register int i;
+    fd_set *prdfds, *pwrfds, *pexfds;
+
+    prdfds = &s->rdfds;
+    pwrfds = &s->wrfds;
+    pexfds = &s->exfds;
 
     /* set s->hfd to highest value */
     for(i = s->hfd, s->hfd = 0; i > 0; --i)
     {
-        if(FD_ISSET(i, &s->rdfds) || FD_ISSET(i, &s->wrfds) || 
-                FD_ISSET(i, &s->exfds))
+        if(FD_ISSET(i, prdfds) || FD_ISSET(i, pwrfds) || FD_ISSET(i, pexfds))
         {
             s->hfd = i;
             break;
