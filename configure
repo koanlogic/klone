@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.15 2005/10/11 14:22:52 tat Exp $
+# $Id: configure,v 1.16 2005/10/17 10:29:33 tat Exp $
 
 # Be sure MAKL_DIR is there.
 # If not found assume MaKL has been embedded in the package.
@@ -21,6 +21,7 @@ fi
 # Preprocess arguments
 makl_args_init "$@"
 
+
 # Custom arguments ...
 makl_args_def   "enable_debug"      "" ""   "enables debugging"
 makl_args_def   "enable_profile"    "" ""   "enables profiling"
@@ -33,6 +34,10 @@ __makl_enable_sup_fs ()     { makl_set_var_h    "ENABLE_SUP_FS" ; }
 # General settings
 makl_pkg_name           "klone"
 makl_pkg_version
+
+# be sure that the libu is installed
+makl_require        "lib"       "u"   "-I`pwd`/libu"  "`pwd`/libu/src/libu.a"
+makl_add_var_mk     "CFLAGS"    "-I`pwd`/libu"
 
 case `makl_os_name` in
 
@@ -62,7 +67,7 @@ makl_add_var_mk "CFLAGS" "-std=c99 -pedantic" \
                          "-Wswitch -Wshadow" \
                          "-DHAVE_CONF_H"
 
-makl_add_var_mk "CFLAGS" "-I`pwd`/libu"
+
 
 # Binary dependencies
 makl_optional           1   "featx"  "doxygen"  "PATH_DOXYGEN" 
