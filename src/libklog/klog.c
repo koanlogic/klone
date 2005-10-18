@@ -13,7 +13,7 @@ static void klog_args_free (klog_args_t *ka);
 static int klog_args_check (klog_args_t *ka);
 
 static int klog_type (const char *type);
-static int klog_facility (const char *facility);
+static int klog_facility (const char *fac);
 static int klog_threshold (const char *threshold);
 static int klog_logopt (const char *options);
 
@@ -290,6 +290,43 @@ ssize_t klog_countln (klog_t *kl)
 }
 
 /**
+ * \brief   create a \c klog_t object reading configuration parameters from
+ *          a configuration "log" record
+ *
+ * \param ls        a log configuration record
+ * \param pka       the corresponding \c klog_args_t object as a value-result 
+ *                  argument
+ * \return
+ * - \c 0  success
+ * - \c ~0 on failure (\p pka MUST not be referenced)
+ */
+int klog_open_from_config(u_config_t *ls, klog_t **pkl)
+{
+    klog_t *kl = NULL;;
+    klog_args_t *kargs = NULL;;
+
+    /* parse config parameters */
+    dbg_err_if(klog_args(ls, &kargs));
+
+    /* create a klog object */
+    dbg_err_if(klog_open(kargs, &kl));
+
+    klog_args_free(kargs);
+    kargs = NULL;
+
+    /* save klog ptr into the backend struct */
+    *pkl = kl;
+
+    return 0;
+err:
+    if(kargs)
+        klog_args_free(kargs);
+    if(kl)
+        klog_close(kl);
+    return ~0;
+}
+
+/**
  *  \}
  */
 
@@ -313,7 +350,7 @@ void klog_args_print (FILE *fp, klog_args_t *ka)
     return;
 }
 
-static void klog_args_free (klog_args_t *ka)
+void klog_args_free (klog_args_t *ka)
 {
     u_free(ka->ident);
     u_free(ka->fbasename);
@@ -387,29 +424,29 @@ err:
 }
 
 /* map LOG_LOCAL[0-7] strings into syslog(3) #define'd values */
-static int klog_facility (const char *facility)
+static int klog_facility (const char *fac)
 {
-    dbg_err_if (facility == NULL);
+    dbg_err_if (fac == NULL);
 
-    if (!strcasecmp(facility, "LOG_LOCAL0")) 
+    if (!strcasecmp(fac, "LOG_LOCAL0")) 
         return LOG_LOCAL0;
-    else if (!strcasecmp(facility, "LOG_LOCAL1")) 
+    else if (!strcasecmp(fac, "LOG_LOCAL1")) 
         return LOG_LOCAL1;
-    else if (!strcasecmp(facility, "LOG_LOCAL2")) 
+    else if (!strcasecmp(fac, "LOG_LOCAL2")) 
         return LOG_LOCAL2;
-    else if (!strcasecmp(facility, "LOG_LOCAL3")) 
+    else if (!strcasecmp(fac, "LOG_LOCAL3")) 
         return LOG_LOCAL3;
-    else if (!strcasecmp(facility, "LOG_LOCAL4")) 
+    else if (!strcasecmp(fac, "LOG_LOCAL4")) 
         return LOG_LOCAL4;
-    else if (!strcasecmp(facility, "LOG_LOCAL5")) 
+    else if (!strcasecmp(fac, "LOG_LOCAL5")) 
         return LOG_LOCAL5;
-    else if (!strcasecmp(facility, "LOG_LOCAL6")) 
+    else if (!strcasecmp(fac, "LOG_LOCAL6")) 
         return LOG_LOCAL6;
-    else if (!strcasecmp(facility, "LOG_LOCAL7")) 
+    else if (!strcasecmp(fac, "LOG_LOCAL7")) 
         return LOG_LOCAL7;
 
 err:    
-    warn("bad facility value \'%s\'", facility);
+    warn("bad facility value \'%s\'", fac);
     return KLOG_FACILITY_UNKNOWN; 
 }
 
