@@ -9,7 +9,9 @@
 #include <klone/timer.h>
 #include <klone/context.h>
 #include <klone/ppc.h>
+#include <klone/ppc_cmd.h>
 #include <klone/addr.h>
+#include <klone/klog.h>
 #include <u/libu.h>
 
 #define SERVER_MAX_BACKENDS 8
@@ -21,12 +23,13 @@ enum watch_fd_e
     WATCH_FD_EXCP   = 1 << 3
 };
 
-enum ipc_cmd_e 
-{ 
-    IPC_OP_UNKNOWN, 
-    IPC_OP_LOG, 
-    IPC_OP_ATOM_SAVE 
-};
+/* struct used to for ppc command PPC_CMD_LOG_ADD */
+typedef struct ppc_log_add_s
+{
+    int bid;                    /* calling backend ID       */
+    int level;                  /* log level                */
+    char log[U_MAX_LOG_LENGTH];   /* log line                 */
+} ppc_log_add_t;
 
 static void server_watch_fd(server_t *s, int fd, unsigned int mode);
 static void server_clear_fd(server_t *s, int fd, unsigned int mode);
@@ -34,9 +37,10 @@ static void server_close_fd(server_t *s, int fd);
 
 struct server_s 
 {
-    u_config_t *config;       /* server config                    */
+    u_config_t *config;     /* server config                    */
     ppc_t *ppc;             /* parent procedure call            */
     backends_t bes;         /* backend list                     */
+    klog_t *klog;           /* klog device                      */
     fd_set rdfds, wrfds, exfds;
     int hfd;                /* highest set fd in fd_sets        */
     size_t nserver;         /* # of servers                     */
@@ -418,6 +422,12 @@ int server_free(server_t *s)
 
     dbg_err_if(s == NULL);
 
+    if(s->klog)
+    {
+        klog_close(s->klog);
+        s->klog = NULL;
+    }
+
     while((be = LIST_FIRST(&s->bes)) != NULL)
     {
         LIST_REMOVE(be, np);
@@ -460,10 +470,112 @@ err:
     return ~0;
 }
 
+static int syslog_to_klog(int level)
+{
+    static int klog_lev[] = 
+    { 
+        KLOG_EMERG,
+        KLOG_ALERT,
+        KLOG_CRIT,
+        KLOG_ERR,
+        KLOG_WARNING,
+        KLOG_NOTICE,
+        KLOG_INFO,
+        KLOG_DEBUG
+    };
+
+    if(level < LOG_EMERG || level > LOG_DEBUG)
+        return KLOG_ALERT;
+
+    return klog_lev[level];
+}
+
+static int server_log(void *arg, int level, const char *str)
+{
+    server_t *s = (server_t*)arg;
+    ppc_log_add_t la;
+    u_log_hook_t old = NULL;
+    void *old_arg = NULL;
+
+    /* if both the server and the calling backend has no log then exit */
+    if(s->klog == NULL && (ctx->backend == NULL || ctx->backend->klog == NULL))
+    {
+        syslog(LOG_LOCAL0 | LOG_DEBUG, "log is disabled");
+        return 0;
+    }
+
+    /* disable log hooking in the hook itself otherwise an infinite loop 
+       may happen if a log function is called from inside the hook */
+    u_log_set_hook(NULL, NULL, &old, &old_arg);
+
+    if(ctx->pipc)
+    {   /* children context */
+        if(s->ppc == NULL)
+            goto err;
+
+        la.bid = ctx->backend->id;
+        la.level = level;
+        strncpy(la.log, str, U_MAX_LOG_LENGTH);
+
+        /* send the command request */
+        if(ppc_write(s->ppc, ctx->pipc, PPC_CMD_LOG_ADD, (char*)&la, 
+            sizeof(la)) < 0) 
+            goto err;
+    } else {
+        /* parent context */
+        if(s->klog)
+            klog(s->klog, syslog_to_klog(level), str);
+    }
+
+    /* re-set the old hook */
+    u_log_set_hook(old, old_arg, NULL, NULL);
+
+    return 0;
+err:
+    if(old)
+        u_log_set_hook(old, old_arg, NULL, NULL);
+    return ~0;
+}
+
+/* [parent] log a new message */
+static int server_ppc_log(ppc_t *ppc, unsigned char cmd, char *data, 
+    size_t size, void *vso)
+{
+    server_t *s = (server_t *)vso;
+    ppc_log_add_t *pla = (ppc_log_add_t*)data;
+    backend_t *be;
+    klog_t *kl;
+
+    u_unused_args(ppc, cmd, size);
+
+    /* by default use server logger */
+    kl = s->klog;
+
+    /* get the logger of the calling backend (if any) */
+    LIST_FOREACH(be, &s->bes, np)
+    {
+        if(be->id == pla->bid)
+        {
+            if(be->klog)
+                kl = be->klog;
+            break;
+        }
+    }
+
+    /* log the line */
+    if(kl)
+        dbg_err_if(klog(kl, syslog_to_klog(pla->level), pla->log));
+
+    return 0;
+err:
+    return ~0;
+}
+
+
 int server_create(u_config_t *config, int model, server_t **ps)
 {
     server_t *s = NULL;
-    u_config_t *bekey = NULL;
+    u_config_t *bekey = NULL, *log_c = NULL;
     backend_t *be = NULL;
     const char *list, *type;
     char *n = NULL, *name = NULL;
@@ -494,6 +606,16 @@ int server_create(u_config_t *config, int model, server_t **ps)
     LIST_INIT(&s->bes);
 
     dbg_err_if(ppc_create(&s->ppc));
+
+    /* create the log device if requested */
+    if(!u_config_get_subkey(config, "log", &log_c))
+        dbg_if(klog_open_from_config(log_c, &s->klog));
+
+    /* register the log ppc callback */
+    dbg_err_if(ppc_register(s->ppc, PPC_CMD_LOG_ADD, server_ppc_log, (void*)s));
+
+    /* redirect logs to the server_log function */
+    dbg_err_if(u_log_set_hook(server_log, s, NULL, NULL));
 
     /* parse server list and build s->bes */
     list = u_config_get_subkey_value(config, "server_list");
@@ -527,6 +649,10 @@ int server_create(u_config_t *config, int model, server_t **ps)
         be->id = id++;
         if(be->model == SERVER_MODEL_UNSET)
             be->model = s->model; /* inherit server model */
+
+        /* create the log device (may fail if logging is not configured) */
+        if(!u_config_get_subkey(bekey, "log", &log_c))
+            dbg_if(klog_open_from_config(log_c, &be->klog));
 
         #ifdef OS_WIN
         if(be->model == SERVER_MODEL_FORK)

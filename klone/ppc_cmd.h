@@ -10,7 +10,7 @@ enum {
     PPC_CMD_MSES_DELOLD,        /* delete the oldest ession             */
     PPC_CMD_MSES_REMOVE,        /* remove a session                     */
 
-    /* in-memory sessions ppc commands                                  */
+    /* logging ppc commands                                             */
     PPC_CMD_LOG_ADD             /* add a log row                        */
 
 };

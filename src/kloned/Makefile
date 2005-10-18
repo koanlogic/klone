@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.7 2005/10/11 14:22:52 tat Exp $
+# $Id: Makefile,v 1.8 2005/10/18 15:51:54 tat Exp $
 
 include ../../Makefile.conf
 
@@ -11,7 +11,8 @@ LDFLAGS += -lc # see checkin 30-09-2005
 
 LDADD += ../libhttp/libhttp.a ../libutils/libutils.a ../libpage/libpage.a \
          ../libbackend/libbackend.a ../libemb/libemb.a ../libio/libio.a   \
-         ../libtls/libtls.a ../../site/libsite.a ../libcodec/libcodec.a
+         ../libtls/libtls.a ../../site/libsite.a ../libcodec/libcodec.a   \
+         ../libklog/libklog.a
 
 # add libu flags
 CFLAGS += -I../../libu

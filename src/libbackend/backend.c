@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <klone/backend.h>
 #include <klone/server.h>
+#include <klone/klog.h>
 #include <u/libu.h>
 #include "conf.h"
 
@@ -81,6 +82,8 @@ int backend_free(backend_t *be)
 {
     if(be)
     {
+        if(be->klog)
+            klog_close(be->klog);
         if(be->cb_term)
             be->cb_term(be);
         u_free(be);

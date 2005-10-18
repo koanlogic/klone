@@ -98,7 +98,7 @@ int app_init()
         io = NULL;
     }
 
-    cmsg_err_ifm(cfg_found == 0, 
+    con_err_ifm(cfg_found == 0, 
         "missing config file (use -f file or embed /etc/kloned.conf");
 
     if(ctx->debug)

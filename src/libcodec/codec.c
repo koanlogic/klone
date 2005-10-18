@@ -1,5 +1,5 @@
 #include <klone/codec.h>
-#include <u/memory.h>
+#include <u/libu.h>
 
 int codec_free(codec_t *codec)
 {

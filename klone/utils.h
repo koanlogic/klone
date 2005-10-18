@@ -31,7 +31,7 @@
 
 #define KLONE_FREE(p) do {if (p) { free(p); p = NULL; }} while (0)
 
-#define klone_die(...) do { cmsg(__VA_ARGS__); exit(EXIT_FAILURE); } while(0)
+#define klone_die(...) do { con(__VA_ARGS__); exit(EXIT_FAILURE); } while(0)
 #define klone_die_if(cond, ...) \
     do { dbg_ifb(cond) klone_die(__VA_ARGS__); } while(0)
 

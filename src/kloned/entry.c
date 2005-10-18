@@ -9,6 +9,8 @@
 #include <u/libu.h>
 #include "main.h"
 
+int facility = LOG_LOCAL0;
+
 static context_t c;
 context_t  *ctx = &c; /* exported */
 

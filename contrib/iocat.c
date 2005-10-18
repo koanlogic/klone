@@ -12,6 +12,8 @@
 #include <klone/utils.h>
 #include <klone/codgzip.h>
 
+int facility = LOG_LOCAL0;
+
 typedef struct ctx_s
 {
     char *file_in, *file_out;

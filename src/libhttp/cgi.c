@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <klone/cgi.h>
 #include <klone/request.h>
-#include <u/debug.h>
+#include <u/libu.h>
 
 int cgi_set_request(request_t *rq)
 {

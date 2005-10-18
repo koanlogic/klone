@@ -120,9 +120,12 @@ typedef struct klog_args_s klog_args_t;
 
 /* common */
 int klog_args (u_config_t *logsect, klog_args_t **pka);
+void klog_args_free (klog_args_t *ka);
+
 int klog_open (klog_args_t *ka, klog_t **pkl);
 int klog (klog_t *kl, int level, const char *msg, ...);
 void klog_close (klog_t *kl);
+int klog_open_from_config (u_config_t *logsect, klog_t **pkl);
 
 /* mem and file specific */
 int klog_getln (klog_t *kl, size_t nth, char ln[]);

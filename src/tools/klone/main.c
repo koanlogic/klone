@@ -16,6 +16,8 @@
 #include <u/libu.h>
 #include "conf.h"
 
+int facility = LOG_LOCAL0;
+
 /* command list enums */
 enum command_e { CMD_UNKNOWN, CMD_TRANS, CMD_IMPORT };
 
@@ -115,7 +117,7 @@ static int parse_opt(int argc, char **argv)
             else if(!strcasecmp(optarg, "translate"))
                 ctx->cmd = CMD_TRANS;
             else
-                cmsg_err("unknown command: %s", optarg);
+                con_err("unknown command: %s", optarg);
             break;
         case 'i': /* input file */
             ctx->file_in = u_strdup(optarg);
@@ -177,7 +179,7 @@ static int command_trans(void)
     klone_die_if(!ctx->uri, "translated page URI required (-u uri)");
 
     if(ctx->verbose)
-        cmsg("translating %s to %s (uri: %s)", ctx->file_in, ctx->file_out, 
+        con("translating %s to %s (uri: %s)", ctx->file_in, ctx->file_out, 
             ctx->uri);
 
     /* input file */
@@ -211,7 +213,7 @@ static int command_trans(void)
 
     return 0;
 err:
-    cmsg("translate error");
+    con("translate error");
     return ~0;
 }
 
@@ -230,7 +232,7 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
     u_md5(uri, strlen(uri), uri_md5);
 
     if(ctx->verbose)
-        cmsg("%s -> %s", file_in + strlen("$(srcdir)"), uri);
+        con("%s -> %s", file_in + strlen("$(srcdir)"), uri);
 
     dbg_err_if(io_printf(ctx->iom, " \\\n" KL1_FILE_FMT, uri_md5) < 0);
 
@@ -353,11 +355,11 @@ static int command_import(void)
 
     dbg_err_if(trans_site(root_dir, base_uri));
 
-    cmsg("%lu dirs and %lu files imported", ctx->ndir, ctx->nfile);
+    con("%lu dirs and %lu files imported", ctx->ndir, ctx->nfile);
 
     return 0;
 err:
-    cmsg("import error");
+    con("import error");
     return ~0;
 }
 
@@ -372,7 +374,7 @@ static int dispatch_command(void)
         dbg_err_if(command_import());
         break;
     default:
-        cmsg_err("unknown command");
+        con_err("unknown command");
     }
 
     return 0;

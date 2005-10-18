@@ -1,7 +1,6 @@
 #include <klone/codec.h>
 #include <klone/codgzip.h>
-#include <u/debug.h>
-#include <u/memory.h>
+#include <u/libu.h>
 #include "conf.h"
 
 #ifdef HAVE_LIBZ
