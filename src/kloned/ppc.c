@@ -49,7 +49,6 @@ again:
     return n;
 }
 
-
 ssize_t ppc_write(ppc_t *ppc, int fd, unsigned char cmd, char *data, 
     size_t size)
 {
@@ -96,11 +95,11 @@ ssize_t ppc_read(ppc_t *ppc, int fd, unsigned char *pcmd, char *data,
     return h.size;
 }
 
-int ppc_dispatch(ppc_t *ppc, unsigned char cmd, char *data, size_t size)
+int ppc_dispatch(ppc_t *ppc, int fd, unsigned char cmd, char *data, size_t size)
 {
     dbg_err_if(ppc == NULL || ppc->ftb[cmd] == NULL);
 
-    ppc->ftb[cmd](ppc, cmd, data, size, ppc->arg[cmd]);
+    ppc->ftb[cmd](ppc, fd, cmd, data, size, ppc->arg[cmd]);
 
     return 0;
 err:

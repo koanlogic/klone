@@ -1,123 +1,68 @@
 TODO
 ------------------
 
-    - valgrind --tool=massif kloned
-    - rinominare le u_ del klone in uk_ o ku_
-    - encrypt alla files in embfs/encrypted  (ask pwd on import)
+FIRST RELEASE:
+    - codice
+        - * klog integration
+        - * klog dump log program/function
 
-1.0.0:
-    - access_log, error_log
+        - encrypted contents support
+            + decryption key sharing via ppc
+            + tools/klone support (klone -c import -e embfs/crypted_tree embfs)
 
-    - mettere la documentazione del klone di default nel klone-1.0.1.tar.gz
-    - togliere robaccia da klone/doc e spostare man e doxy li'
+        - testing & profiling
+        - openssl come lib opzionale
+        - sito embedded di default (nel tar.gz) con documentazione 
+        - more request_ and response_ helper funcs (see jsp docs)
+        - config param: server user/group owner
+        - config param: server working directory (chroot)
+        - fine-grained compiling: modularizzare le funzionalita' 
+          per poterle escludere in fase di compilazione (#ifdef)
+        - io_printf: aggiungere %e o %q per stampare stringhe dopo averle 
+            html-encoded
+        - security audit
 
-    - kloned-sample.conf
-    
-    - kloned.conf
-       CONFIG OPT (per backend):  model         iterative|fork
+    - documentazione:
+        - kloned-sample.conf
+        - sito sezione klone:
+            + what is klone 
+            + features
+                = embedded static content (any file)
+                = embedded C/C++ dynamic HTML pages
+                = static content compression and encryption
+                = server-side and client-side sessions
+                = easy C script programming interfaces
+                = ROMable binary
+                = intellectual property protection
+                = portable
+                = ...
+            + portability
+            + license
+            + support (free [mailing list] e commercial)
+            + bug report
+            + pricing
+            + download 
+            + online demo?
+            + faq
+            + API reference
+            + tutorial
+        - documentare il codice (doxygen)
+            + API (src/libpage/* e src/libio/*) per i clienti
+
+    - mailing list e/o forum
+    - logo prodotto?
 
 
-    conf 
-    {
-        openssl come makl_optional
-
-        se la libz e' optional come faccio ad abilitarla/disabilitarla?
-    }
-
-    - parent<->child communication for:
-        - backend server model (iterative)
-        - service backends:
-            + atoms save    (iterative) atom_save(char *id, char *data, size);
-            + logging       (iterative)
-        - saving in memory sessions
-        - shared decryption key setup (child(set_key.kl1)->parent)
-
-    - documentare che le cli-session funzionano solo settando le variabili prima
-      che l'header HTTP venga inviato (vedi rsfilter)...
-
-  win32:
-    - just iterative server must be allowed
-    - #ifdef around fork() stuff
-
-*nix:
-    - logging
-        + syslog logging (access, error, etc. [apache default format])
-        + in-memory server-side logging (w/ circular buffer)
-
-    - static pages encryption
-
-    - session:
-        + client-side session: multi cookie data for large (>4095b) sessions
-        + in-memory session for fork-based server
-        + session.compress  yes|no
-        + session.memory.max_count   10
-        + session.memory.mem_limit   10k
-        + session_file access locking
-
-    - more request_ and response_ helper funcs (see jsp docs)
-    - file upload support (RFC1867)
+NEXT RELEASE(S):
+    - file upload support (RFC1867) 
     - http/1.0: Basic Auth rfc1945:11  ??
-    - config param: server user/group owner
-    - config param: server working directory (chroot)
-    - (low) max script running time (kill after N seconds)
-    - fine-grained compiling: modularizzare le funzionalita' 
-      per poterle escludere in fase di compilazione (#ifdef)
-    - set proper idle_timeout (what about long POST requests?? see apache.)
-      should the timeout be reset on every read?
-
-    - Pragma: no-cache for *.kl1 pages? see php
-    - Expires: 1/1/1970 for *.kl1 pages? see php
-    - block signals during startup
-
-    - io_printf: aggiungere %e o %q per stampare stringhe dopo averle 
-        html-encoded
-    - security audit
-        + ../../../../../../etc/passwd (se emb_fs e' abilitato)
-        + buffer overflow, dos
-
-1.x.y
     - HTTP/1.1 support (RFC2616)
     - funzione u_sendmail() o simili (drop-in nella spool o SMTP)
     - virtual host support (rfc2616.txt)
     - C++ support
-    - dimensioni del buffer del response_filter_t
     - scheduled pages retrival
-      per eseguire degli script *.cxh ogni N minuti/ore
+      per eseguire degli script *.kl1 ogni N minuti/ore
+    - predictable memory usage (dimensioni max dei buffer temporanei ecc.)
 
   win32:
     - use CGI interface as a workaround to missing fork() 
-      (see apache::mod_cgi.c)
-
-
-documentazione:
-    - documentare il codice (doxygen)
-        + API per i clienti
-        + tutto il resto per noi
-    - sito sezione cxh:
-        + what is cxh
-        + features
-            = embedded static content (any file)
-            = embedded C/C++ dynamic HTML pages
-            = static content compression and encryption
-            = server-side and client-side sessions
-            = easy C script programming interfaces
-            = ROMable binary
-            = intellectual property protection
-            = portable
-            = ...
-        + portability
-        + license
-        + support (free [mailing list] e commercial)
-        + bug report
-        + pricing
-        + download 
-        + online demo?
-        + faq
-        + API reference
-        + tutorial
-
-altro:
-    - mailing list e/o forum
-    - nome prodotto
-    - logo prodotto
-

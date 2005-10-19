@@ -161,12 +161,12 @@ err:
 
 
 /* [parent] remove a sessioin*/
-static int session_cmd_remove(ppc_t *ppc, unsigned char cmd, char *data, 
-    size_t size, void *vso)
+static int session_cmd_remove(ppc_t *ppc, int fd, unsigned char cmd, 
+    char *data, size_t size, void *vso)
 {
     session_opt_t *so = vso;
 
-    u_unused_args(ppc, cmd, size);
+    u_unused_args(ppc, fd, cmd, size);
 
     dbg_err_if(so_atom_remove(so, data /* filename */));
 
@@ -176,12 +176,12 @@ err:
 }
 
 /* [parent] delete oldest session */
-static int session_cmd_delold(ppc_t *ppc, unsigned char cmd, char *data, 
-    size_t size, void *vso)
+static int session_cmd_delold(ppc_t *ppc, int fd, unsigned char cmd, 
+    char *data, size_t size, void *vso)
 {
     session_opt_t *so = vso;
 
-    u_unused_args(ppc, cmd, data, size);
+    u_unused_args(ppc, fd, cmd, data, size);
 
     dbg_err_if(so == NULL);
 
@@ -194,13 +194,13 @@ err:
 }
 
 /* [parent] save a session */
-static int session_cmd_save(ppc_t *ppc, unsigned char cmd, char *data, 
+static int session_cmd_save(ppc_t *ppc, int fd, unsigned char cmd, char *data, 
     size_t size, void *vso)
 {
     session_opt_t *so = vso;
     enc_ses_mem_t *esm = (enc_ses_mem_t*)data;;
 
-    u_unused_args(ppc, cmd, size);
+    u_unused_args(ppc, fd, cmd, size);
 
     dbg_err_if(vso == NULL || data == NULL);
 

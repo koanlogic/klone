@@ -1,6 +1,7 @@
 #ifndef _KLONE_SERVER_H_
 #define _KLONE_SERVER_H_
 #include <klone/ppc.h>
+#include <klone/klog.h>
 
 struct u_config_s;
 struct server_s;
@@ -18,5 +19,6 @@ int server_loop(server_t *s);
 int server_cgi(server_t *s);
 int server_stop(server_t *s);
 ppc_t* server_get_ppc(server_t *s);
+int server_get_logger(server_t *s, klog_t **pkl);
 
 #endif
