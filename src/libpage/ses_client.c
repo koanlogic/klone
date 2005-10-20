@@ -130,14 +130,14 @@ static int session_client_save(session_t *ss)
     if(so->compress)
     {
         dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &zip));
-        dbg_err_if(io_set_codec(io, (codec_t*)zip));
-        zip = NULL; /* io_t owns it after io_set_codec */
+        dbg_err_if(io_codec_set(io, (codec_t*)zip));
+        zip = NULL; /* io_t owns it after io_codec_set */
     }
 
     vars_foreach(ss->vars, session_prv_save_var, io);
 
     /* this will free and flush codec buffers (so we can use io_tell safely) */
-    dbg_err_if(io_set_codec(io, NULL));
+    dbg_err_if(io_codec_set(io, NULL));
 
     /* get real buffer size (not the size of underlaying buffer) */
     blen = io_tell(io);
@@ -236,8 +236,8 @@ static int session_client_load(session_t *ss)
     if(so->compress)
     {
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &zip));
-        dbg_err_if(io_set_codec(io, (codec_t*)zip));
-        zip = NULL; /* io_t owns it after io_set_codec */
+        dbg_err_if(io_codec_set(io, (codec_t*)zip));
+        zip = NULL; /* io_t owns it after io_codec_set */
     }
 
     /* load session vars */

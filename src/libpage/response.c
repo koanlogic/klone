@@ -419,7 +419,7 @@ int response_bind(response_t *rs, io_t *out)
 
     rs->io = out;
 
-    io_set_codec(rs->io, (codec_t*)rs->filter);
+    io_codec_set(rs->io, (codec_t*)rs->filter);
 
     return 0;
 err:

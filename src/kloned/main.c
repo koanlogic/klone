@@ -147,7 +147,7 @@ int app_run()
     dbg_err_if(u_signal(SIGCHLD, sigchld));
     #endif
 
-    /* fork() if the server has been launched w/ -F */
+    /* fork() if the server has been launched w/o -F */
     model = ctx->daemon ? SERVER_MODEL_FORK : SERVER_MODEL_ITERATIVE;
 
     /* create a server object and start its main loop */

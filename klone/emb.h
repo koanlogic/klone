@@ -37,6 +37,7 @@ typedef struct embfile_s
     size_t size;            /* size of the data block                         */
     uint8_t *data;          /* file data                                      */
     int comp;               /* if data is compressed                          */
+    int encrypted;          /* if data is encrypted                           */
     time_t mtime;           /* time of last modification                      */
     const char *mime_type;  /* guessed mime type                              */
     size_t file_size;       /* size of the source file (not compressed)       */

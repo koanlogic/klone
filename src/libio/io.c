@@ -583,7 +583,7 @@ err:
  * \return 0 on success, not zero on error
  *
  */
-int io_set_codec(io_t *io, codec_t* codec)
+int io_codec_set(io_t *io, codec_t* codec)
 {
     if(io->codec)
     {
@@ -605,7 +605,7 @@ int io_set_codec(io_t *io, codec_t* codec)
  * \return the applied codec object or NULL on error or if no codec has been set
  *
  */
-codec_t* io_get_codec(io_t *io)
+codec_t* io_codec_get(io_t *io)
 {
     return io->codec;
 }
@@ -623,7 +623,7 @@ codec_t* io_get_codec(io_t *io)
  * \return 0 on success, not zero on error
  *
  */
-int io_set_name(io_t *io, const char *name)
+int io_name_set(io_t *io, const char *name)
 {
     char *n;
 
@@ -652,7 +652,7 @@ err:
  * \return 0 on success, not zero on error
  *
  */
-int io_get_name(io_t *io, char* name, size_t sz)
+int io_name_get(io_t *io, char* name, size_t sz)
 {
     size_t min = 0;
 

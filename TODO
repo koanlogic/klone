@@ -9,9 +9,14 @@ FIRST RELEASE:
         - encrypted contents support
             + decryption key sharing via ppc
             + tools/klone support (klone -c import -e embfs/crypted_tree embfs)
+        - io_codec_add_tail, io_codec_add_head
 
         - testing & profiling
+        - GPL header in autogen files
+        - test CGI interface
+        - Windows test
         - openssl come lib opzionale
+        - "configure && make" automatico da klone/configure
         - sito embedded di default (nel tar.gz) con documentazione 
         - more request_ and response_ helper funcs (see jsp docs)
         - config param: server user/group owner

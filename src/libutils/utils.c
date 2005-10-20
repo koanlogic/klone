@@ -431,7 +431,7 @@ int u_tmpfile_open(io_t **pio)
         {
             dbg_err_if(u_file_open(tmp, O_CREAT | O_EXCL | O_RDWR, &io));
 
-            dbg_err_if(io_set_name(io, tmp));
+            dbg_err_if(io_name_set(io, tmp));
 
             *pio = io;
 
@@ -460,7 +460,7 @@ int u_file_open(const char *file, int flags, io_t **pio)
     dbg_err_if(io_fd_create(fd, IO_FD_CLOSE, pio));
 
     /* name the stream */
-    dbg_err_if(io_set_name(*pio, file));
+    dbg_err_if(io_name_set(*pio, file));
 
     return 0;
 err:
@@ -695,7 +695,7 @@ int u_io_unzip_copy(io_t *out, const uint8_t *data, size_t sz)
 
     /* apply a gzip codec */
     dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &zip));
-    dbg_err_if(io_set_codec(ios, zip));
+    dbg_err_if(io_codec_set(ios, zip));
     zip = NULL; /* io_free() will free the codec */
 
     /* pipe ios to out */

@@ -33,6 +33,7 @@ typedef struct
     size_t narg;                /* argc                         */
     int cmd;                    /* command to run               */
     char *base_uri;             /* site base uri                */
+    char *key_file;             /* encryption key file name     */
     io_t *iom, *iod, *ior;      /* io makefile, io deps         */
     size_t ndir, nfile;         /* dir and file count           */
 } context_t;
@@ -66,6 +67,7 @@ static void usage(void)
 "            -u URI      URI of translated page                             \n"
 "            -i file     input file                                         \n"
 "            -o file     output file                                        \n"
+"            -k key_file encryption key filename                            \n"
 "\n";
 ;
 
@@ -101,7 +103,7 @@ static int parse_opt(int argc, char **argv)
     if(argc == 1)
         usage();
 
-    while((ret = getopt(argc, argv, "hvVb:i:o:u:c:")) != -1)
+    while((ret = getopt(argc, argv, "hvVb:k:i:o:u:c:")) != -1)
     {
         switch(ret)
         {
@@ -133,6 +135,10 @@ static int parse_opt(int argc, char **argv)
 
             remove_trailing_slash(ctx->base_uri);
 
+            break;
+        case 'k': /* encryption key filename */
+            ctx->key_file = u_strdup(optarg);
+            warn_err_if(ctx->key_file == NULL);
             break;
         case 'o': /* output file */
             ctx->file_out = u_strdup(optarg);
@@ -189,7 +195,14 @@ static int command_trans(void)
     strncpy(ti.file_out, ctx->file_out, NAME_BUFSZ);
 
     /* uri */
-    strncpy(ti.uri, ctx->uri, MIME_BUFSZ);
+    strncpy(ti.uri, ctx->uri, URI_BUFSZ);
+
+    /* key_file */
+    if(ctx->key_file)
+    {
+        strncpy(ti.key_file, ctx->key_file, NAME_BUFSZ);
+        ti.enc = 1; /* encrypt */
+    }
 
     /* mime_type */
     if((mm = u_get_mime_map(ctx->file_in)) != NULL)

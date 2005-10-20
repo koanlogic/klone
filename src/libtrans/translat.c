@@ -39,7 +39,7 @@ static int process_directive_include(parser_t* p, char *inc_file)
     char buf[BUFSZ], *pc;
     io_t *io = NULL;
 
-    dbg_err_if(io_get_name(p->in, buf, BUFSZ));
+    dbg_err_if(io_name_get(p->in, buf, BUFSZ));
 
     /* remove file name, just path is needed */
     dbg_err_if((pc = strrchr(buf, '/')) == NULL);
@@ -81,8 +81,7 @@ static int process_directive(parser_t* p, char* buf)
 
         dbg_err_if(process_directive_include(p, tok));
     } else {
-        dbg("unknown preprocessor directive: %s", tok);
-        goto err; 
+        dbg_err("unknown preprocessor directive: %s", tok);
     }
 
     return 0;
@@ -190,7 +189,7 @@ int translate(trans_info_t *pti)
         dbg_err_if(translate_script_to_c(tmp, out, pti));
 
         /* get the filename of the temporary io_t */
-        dbg_err_if(io_get_name(tmp, tname, PATH_MAX));
+        dbg_err_if(io_name_get(tmp, tname, PATH_MAX));
 
         /* free the tmp io */
         io_free(tmp);
@@ -203,9 +202,19 @@ int translate(trans_info_t *pti)
         {
             /* set a compression filter to the input stream */
             dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &gzip));
-            dbg_err_if(io_set_codec(in, (codec_t*)gzip));
+            dbg_err_if(io_codec_set(in, (codec_t*)gzip));
             gzip = NULL;
         }
+        /* check if encryption is requested */
+        #if 0
+        if(pti->enc)
+        {
+            /* set a cipher filter */
+            dbg_err_if(codec_aes_create(CIPHER_ENCRYPT, &aes));
+            dbg_err_if(io_codec_add_tail(in, (codec_t*)aes));
+            aes = NULL;
+        }
+        #endif
         dbg_err_if(translate_opaque_to_c(in, out, pti));
     }
 

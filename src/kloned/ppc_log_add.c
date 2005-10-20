@@ -40,17 +40,15 @@ int server_ppc_cmd_log_add(server_t *s, int level, const char *str)
 {
     ppc_log_add_t la;
 
-    if(s->ppc == NULL)
-        goto err;
+    nop_err_if(s->ppc == NULL);
 
     la.bid = ctx->backend->id;
     la.level = level;
     strncpy(la.log, str, U_MAX_LOG_LENGTH);
 
     /* send the command request */
-    if(ppc_write(s->ppc, ctx->pipc, PPC_CMD_LOG_ADD, (char*)&la, 
-        sizeof(la)) < 0) 
-        goto err;
+    nop_err_if(ppc_write(s->ppc, ctx->pipc, PPC_CMD_LOG_ADD, (char*)&la, 
+        sizeof(la)) < 0);
 
     return 0;
 err:

@@ -37,11 +37,11 @@ int io_dup(io_t *io, io_t **pio);
 
 int io_free(io_t *io);
 
-int io_set_name(io_t *io, const char* name);
-int io_get_name(io_t *io, char* name, size_t sz);
+int io_name_set(io_t *io, const char* name);
+int io_name_get(io_t *io, char* name, size_t sz);
 
-int io_set_codec(io_t *io, codec_t* codec);
-codec_t* io_get_codec(io_t *io);
+int io_codec_set(io_t *io, codec_t* codec);
+codec_t* io_codec_get(io_t *io);
 
 ssize_t io_read(io_t *io, char* buf, size_t size);
 ssize_t io_write(io_t *io, const char* buf, size_t size);

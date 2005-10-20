@@ -17,7 +17,9 @@ typedef struct trans_info_s
 {
     char file_in[NAME_BUFSZ], file_out[NAME_BUFSZ];
     char uri[URI_BUFSZ], mime_type[MIME_BUFSZ];
+    char key_file[NAME_BUFSZ];
     int comp;
+    int enc;
     size_t file_size;
     time_t mtime;
 } trans_info_t;

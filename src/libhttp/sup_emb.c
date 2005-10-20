@@ -61,8 +61,8 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
     if(e->comp && !sai)
     {
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gzip));
-        dbg_err_if(io_set_codec(response_io(rs), (codec_t*)gzip));
-        gzip = NULL; /* io_t owns it after io_set_codec */
+        dbg_err_if(io_codec_set(response_io(rs), (codec_t*)gzip));
+        gzip = NULL; /* io_t owns it after io_codec_set */
     } 
 
     /* print out page content (the header will be autoprinted by the 
@@ -70,7 +70,7 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
     dbg_err_if(!io_write(response_io(rs), e->data, e->size));
 
     /* free the codec (if it has been set) */
-    dbg_if(io_set_codec(response_io(rs), NULL)); 
+    dbg_if(io_codec_set(response_io(rs), NULL)); 
 
     return 0;
 err:
