@@ -10,7 +10,7 @@
 #include <klone/klone.h>
 #include <klone/os.h>
 #include <klone/io.h>
-#include <klone/codgzip.h>
+#include <klone/codecs.h>
 #include <klone/emb.h>
 #include <klone/mime_map.h>
 #include <klone/utils.h>

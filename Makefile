@@ -1,6 +1,6 @@
-# $Id: Makefile,v 1.2 2005/10/04 10:27:57 stewy Exp $
+# $Id: Makefile,v 1.3 2005/10/22 15:54:46 tat Exp $
 
-SUBDIR = site src klone
+SUBDIR = site src klone contrib
 
 # very basic autoconfiguration
 MK_CONF = Makefile.conf

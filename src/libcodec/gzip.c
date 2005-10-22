@@ -1,5 +1,5 @@
 #include <klone/codec.h>
-#include <klone/codgzip.h>
+#include <klone/cgzip.h>
 #include <u/libu.h>
 #include "conf.h"
 
@@ -18,7 +18,10 @@ struct codec_gzip_s
 
 static ssize_t gzip_flush(codec_gzip_t *iz, char *dst, size_t *dcount)
 {
-    char c = 0;
+    static char c = 0;
+
+    dbg("%s: flush dcount=%lu", iz->action == GZIP_COMPRESS ? "zip" : "unzip",
+        *dcount);
 
     /* can't set it to NULL even if zlib must not use it (avail_in == 0) */
     iz->zstr.next_in = 0xDEADBEEF;
@@ -27,10 +30,11 @@ static ssize_t gzip_flush(codec_gzip_t *iz, char *dst, size_t *dcount)
     #if !defined(ZLIB_VERNUM) || ZLIB_VERNUM < 0x1200
     /* zlib < 1.2.0 workaround: push a dummy byte at the end of the 
        stream when inflating (see zlib ChangeLog) */
-    if(iz->action == GZIP_UNCOMPRESS)
+    if(iz->action == GZIP_UNCOMPRESS && c == 0)
     { 
         iz->zstr.next_in = &c; /* dummy byte */
         iz->zstr.avail_in = 1; 
+        ++c;
     }
     #endif
 
@@ -47,6 +51,13 @@ static ssize_t gzip_flush(codec_gzip_t *iz, char *dst, size_t *dcount)
 
     *dcount = *dcount - iz->zstr.avail_out;   /* written */
 
+    if(iz->err == Z_STREAM_END && *dcount == 0)
+        dbg("%s: flush all done", 
+            iz->action == GZIP_COMPRESS ? "zip" : "unzip");
+    else
+        dbg("%s: flush call again", 
+            iz->action == GZIP_COMPRESS ? "zip" : "unzip");
+
     return iz->err == Z_STREAM_END && *dcount == 0 ? 
         0 /* all done           */: 
         1 /* call flush() again */;
@@ -61,6 +72,10 @@ static ssize_t gzip_transform(codec_gzip_t *iz, char *dst, size_t *dcount,
     size_t consumed;
     
     dbg_err_if(src == NULL || dst == NULL || *dcount == 0 || src_sz == 0);
+
+    dbg("%s: transform dcount=%lu  src_sz=%lu", 
+        iz->action == GZIP_COMPRESS ? "zip" : "unzip",
+        *dcount, src_sz);
 
     iz->zstr.next_out = dst;
     iz->zstr.avail_out = *dcount;

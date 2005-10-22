@@ -22,7 +22,7 @@ typedef int (*io_term_op) (io_t*);
 struct io_s
 {
     char *name;
-    codec_t *codec; 
+    codec_chain_t codec_chain; 
     int eof;
     size_t size;
 
@@ -50,6 +50,7 @@ struct io_s
     size_t wbsz;    /* write buffer size                                      */
     size_t wcount;  /* # of non-empty bytes in the buffer                     */
     size_t woff;    /* offset of the head of the buffer                       */
+
 };
 
 #endif

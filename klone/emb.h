@@ -9,8 +9,7 @@
 #include <klone/response.h>
 #include <klone/session.h>
 #include <klone/io.h>
-#include <klone/codec.h>
-#include <klone/codgzip.h>
+#include <klone/codecs.h>
 #include <u/libu.h>
 
 /* supported embedded resource type */

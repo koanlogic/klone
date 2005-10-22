@@ -7,10 +7,10 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <klone/klone.h>
-#include <klone/debug.h>
 #include <klone/io.h>
 #include <klone/utils.h>
-#include <klone/codgzip.h>
+#include <klone/codecs.h>
+#include <u/libu.h>
 
 int facility = LOG_LOCAL0;
 
@@ -25,7 +25,7 @@ typedef struct ctx_s
 
 context_t context, *ctx = &context;
 
-static void error(char *msg)
+static void error(const char *msg)
 {
     fprintf(stderr, "err: %s", msg);
     exit(1);
@@ -79,6 +79,7 @@ int main(int argc, char **argv)
     ssize_t c;
     io_t *in, *out;
     codec_gzip_t *fi = NULL;
+    codec_gzip_t *fi2 = NULL;
     
     memset(ctx, 0, sizeof(context_t));
 
@@ -97,13 +98,23 @@ int main(int argc, char **argv)
     else
         dbg_err_if(io_fd_create(1, 0, &out));
 
+    #define TEST
+    #ifndef TEST
     if(ctx->decode)
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &fi));
     else if(ctx->encode)
         dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &fi));
      
     if(fi)
-        dbg_err_if(io_set_codec(out, fi));
+        dbg_err_if(io_codec_add_tail(out, (codec_t*)fi));
+    #else
+    /* test code */
+    dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &fi));
+    dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &fi2));
+
+    dbg_err_if(io_codec_add_tail(out, (codec_t*)fi));
+    dbg_err_if(io_codec_add_tail(out, (codec_t*)fi2));
+    #endif
 
     while((c = io_pipe(out, in)) > 0)
          ;

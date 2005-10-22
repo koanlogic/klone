@@ -6,7 +6,7 @@
 #include <klone/page.h>
 #include <klone/http.h>
 #include <klone/emb.h>
-#include <klone/codgzip.h>
+#include <klone/codecs.h>
 #include <klone/ses_prv.h>
 #include <u/libu.h>
 

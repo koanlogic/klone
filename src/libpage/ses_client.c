@@ -11,7 +11,7 @@
 #include <klone/utils.h>
 #include <klone/emb.h>
 #include <klone/ses_prv.h>
-#include <klone/codgzip.h>
+#include <klone/codecs.h>
 #include <openssl/hmac.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>

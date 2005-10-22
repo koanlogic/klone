@@ -6,7 +6,7 @@
 #include <klone/translat.h>
 #include <klone/parser.h>
 #include <klone/utils.h>
-#include <klone/codgzip.h>
+#include <klone/codecs.h>
 #include <u/libu.h>
 
 struct code_block_s;

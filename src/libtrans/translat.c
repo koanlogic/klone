@@ -11,7 +11,7 @@
 #include <klone/os.h>
 #include <klone/io.h>
 #include <klone/codec.h>
-#include <klone/codgzip.h>
+#include <klone/codecs.h>
 
 static int preprocess(io_t *in, io_t *out);
 

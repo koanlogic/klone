@@ -1,6 +1,6 @@
 #include <klone/emb.h>
 #include <klone/io.h>
-#include <klone/codgzip.h>
+#include <klone/codecs.h>
 #include <u/libu.h>
 
 /* these are klone-site autogen functions */

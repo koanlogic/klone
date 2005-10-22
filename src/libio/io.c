@@ -7,9 +7,12 @@
 #include <u/libu.h>
 
 enum { 
-    IO_RD_DEFBUFSZ = 4096, 
-    IO_WR_DEFBUFSZ = 4096 
+    IO_RD_BUFSZ = 4096, 
+    IO_WR_BUFSZ = 4096
 };
+
+#define IO_WBUF_AVAIL(io) (io->wbsz - io->wcount)
+#define IO_WBUF_FULL(io) (io->wbsz == io->wcount)
 
 /**
  *  \defgroup io_t io_t - Input/Output abstraction object
@@ -163,10 +166,10 @@ err:
     return -1;
 }
 
+/* alloc the read buffer */
 static int io_rbuf_alloc(io_t *io)
 {
-    if(io->rbsz == 0)
-        io->rbsz = IO_RD_DEFBUFSZ; /* set default buffer size */
+    io->rbsz = IO_RD_BUFSZ; /* set the buffer size */
 
     /* if a dup'd io_t already alloc'd a buffer then use it */
     io->rbuf = (char*)u_malloc(io->rbsz);
@@ -178,10 +181,10 @@ err:
     return ~0;
 }
 
+/* alloc the write buffer */
 static int io_wbuf_alloc(io_t *io)
 {
-    if(io->wbsz == 0)
-        io->wbsz = IO_WR_DEFBUFSZ; /* set default buffer size */
+    io->wbsz = IO_WR_BUFSZ; /* set the buffer size */
 
     /* if a dup'd io_t already alloc'd a buffer then use it */
     io->wbuf = (char*)u_malloc(io->wbsz);
@@ -192,40 +195,128 @@ err:
     return ~0;
 }
 
+static ssize_t io_transform(io_t *io, codec_t *codec, 
+    char *dst, size_t *dcount, const char *src, size_t sz)
+{
+    enum { BUFSZ = (IO_RD_BUFSZ > IO_WR_BUFSZ ? IO_RD_BUFSZ : IO_WR_BUFSZ) };
+    char buf[BUFSZ];
+    size_t bufsz;
+    ssize_t c;
+
+    if(codec == TAILQ_LAST(&io->codec_chain, codec_chain_s))
+    {
+        /* last codec in the chain */
+        return codec->transform(codec, dst, dcount, src, sz); 
+    } else {
+        /* transform to a temporary buffer */
+        bufsz = MIN(BUFSZ, *dcount);
+        dbg_err_if((c = codec->transform(codec, buf, &bufsz, src, sz)) < 0);
+        /* call the next codec transform function */
+        if(bufsz > 0)
+            dbg_err_if(io_transform(io, TAILQ_NEXT(codec, np), dst, dcount, 
+                buf, bufsz) < 0);
+        else
+            *dcount = 0; /* no bytes written */
+        return c; /* consumed */
+    }
+
+err:
+    return -1;
+}
+
+
+/* transform the data if one or more codecs are set */
+static inline ssize_t io_transfer(io_t *io, char *dst, size_t *dcount, 
+        const char *src, size_t sz)
+{
+    if(!TAILQ_EMPTY(&io->codec_chain))
+    {
+        return io_transform(io, TAILQ_FIRST(&io->codec_chain), 
+            dst, dcount, src, sz); 
+    } else {
+        ssize_t wr = MIN(sz, *dcount); 
+        memcpy(dst, src, wr);
+        *dcount = wr;
+        return wr;
+    }
+}
 
 /* note: codecs will be ONLY flushed on io_free() NOT on io_flush() */
-static ssize_t io_codec_flush(io_t *io)
+static int io_chain_flush(io_t *io)
 {
-    codec_t *fi = io->codec;
+    codec_t *codec;
+    //enum { BUFSZ = 1024 };
+    enum { BUFSZ = 4096 };
+    char buf[BUFSZ], *out;
+    size_t sz, bufsz;
+    ssize_t c;
+    int er;
 
-    if(io->wbuf == NULL)
-        io_wbuf_alloc(io); /* to flush the codec wbuf must be alloc'd */
-
-    if(fi && fi->flush && io->wbuf)
+    TAILQ_FOREACH(codec, &io->codec_chain, np)
     {
-        size_t sz = io->wbsz;
-        ssize_t err;
-
-        /* flush if the buf is full */
-        if(io->wbsz - io->wcount == 0)
-            dbg_err_if(io_flush(io)); 
-
-        /* flush codec's buffer (if any) */
-        for(sz = io->wbsz - io->wcount; 
-            (err = fi->flush(fi, io->wbuf + io->woff, &sz)) > 0; 
-            sz = io->wbsz)
+        /* last codec will write to the write buffer, all other codecs will
+           feed (io_transform) their own next codec in chain */
+        if(codec == TAILQ_LAST(&io->codec_chain, codec_chain_s))
         {
-            io->wcount += sz;
-            io->woff += sz;
-            if(io->wbsz - io->wcount == 0)
-                dbg_err_if(io_flush(io));
-        }
-        dbg_err_if(err < 0);
-    }
+            dbg("LAST CODEC!");
+            do
+            {
+                if(IO_WBUF_FULL(io))
+                    dbg_err_if(io_flush(io));
+
+                sz = IO_WBUF_AVAIL(io);
+
+                /* save flushed data to the write buffer */
+                dbg_err_if((er = codec->flush(codec, io->wbuf + io->woff, 
+                    &sz)) < 0);
+
+                io->woff += sz;
+                io->wcount += sz;
+            } while(er > 0);
+        } else {
+            /* get some bytes (if any) from the codec */
+            for(;;)
+            {
+                bufsz = BUFSZ; 
+                out = buf;
+
+                if((er = codec->flush(codec, buf, &bufsz)) == 0)
+                    break;
+                dbg("got %lu bytes from flush", bufsz);
+
+                dbg_err_if(er < 0); /* flush error */
+
+                while(bufsz)
+                {
+                    if(IO_WBUF_FULL(io))
+                        dbg_err_if(io_flush(io));
+
+                    sz = IO_WBUF_AVAIL(io);  /* avail bytes in the wbuffer */
+
+                    /* push 'out' bytes into next codec (repeat until all bytes 
+                       have been written) */
+                    dbg_err_if((c = io_transform(io, TAILQ_NEXT(codec, np), 
+                        io->wbuf + io->woff, &sz, out, bufsz)) < 0);
+
+                    /* some bytes MUST be read or written otherwise 
+                       we'll dead lock */
+                    dbg_err_if(c == 0 && sz == 0); 
+
+                    io->wcount += sz;
+                    io->woff += sz;
+                    out += c;
+                    bufsz -= c;
+                } 
+            } /* codec->flush */
+            dbg("OUT OF FOR!");
+
+        } /* if it's the last codec */
+
+    } /* foreach */
 
     return 0;
 err:
-    return -1;
+    return ~0;
 }
 
 
@@ -247,6 +338,8 @@ err:
  */
 int io_free(io_t *io)
 {
+    codec_t *codec;
+
     dbg_err_if(io == NULL || io->refcnt == 0);
 
     /* skip if this io_t has been dup'd and there are still one or more 
@@ -254,17 +347,19 @@ int io_free(io_t *io)
     if(--io->refcnt)
         return 0;
 
-    if(io->codec)
-        dbg_if(io_codec_flush(io));
+    if(!TAILQ_EMPTY(&io->codec_chain))
+        dbg_if(io_chain_flush(io));
 
     dbg_if(io_flush(io));
 
-    if(io->codec)
-        codec_free(io->codec);
-    io->codec = NULL;
-
     /* free per dev resources */
     dbg_if(io->term(io));
+
+    while((codec = TAILQ_FIRST(&io->codec_chain)) != NULL)
+    {
+        TAILQ_REMOVE(&io->codec_chain, codec, np);
+        codec_free(codec);
+    }
 
     if(io->rbuf)
         u_free(io->rbuf);
@@ -282,6 +377,7 @@ err:
     return ~0;
 }
 
+/* refill the read buffer */
 static ssize_t io_underflow(io_t *io)
 {
     ssize_t c;
@@ -303,18 +399,6 @@ err:
     return -1;
 }
 
-static ssize_t io_transform(io_t *io, char *dst, size_t *dcount, 
-        const char *src, size_t sz)
-{
-    if(io->codec && io->codec->transform) 
-        return io->codec->transform(io->codec, dst, dcount, src, sz); 
-    else {
-        ssize_t wr = MIN(sz, *dcount); 
-        memcpy(dst, src, wr);
-        *dcount = wr;
-        return wr;
-    }
-}
 
 /**
  * \brief  Read a block of data from an IO object
@@ -347,6 +431,8 @@ ssize_t io_read(io_t *io, char *buf, size_t size)
             dbg_err_if((c = io_underflow(io)) < 0);
             if(c == 0)
             {   /* eof, try to get some buffered byte from the codec */
+                // FIXME
+                #if 0
                 codec_t *fi = io->codec;
                 if(fi && fi->flush)
                 {
@@ -356,12 +442,13 @@ ssize_t io_read(io_t *io, char *buf, size_t size)
                         io->eof++;
                     out += sz;
                 }
+                #endif
                 break; /* return */
             }
         }
         /* copy out bytes in the read buffer */
         sz = size;
-        c = io_transform(io, out, &sz, io->rbuf + io->roff, io->rcount);
+        c = io_transfer(io, out, &sz, io->rbuf + io->roff, io->rcount);
         dbg_err_if(c < 0);
         dbg_err_if(c == 0 && sz == 0);
         io->rcount -= c;
@@ -481,11 +568,11 @@ ssize_t io_write(io_t *io, const char *buf, size_t size)
         if(io->wbuf == NULL)
             dbg_err_if(io_wbuf_alloc(io)); /* alloc the write buffer */
 
-        if(io->wcount == io->wbsz) /* if there's not more free space */
+         if(IO_WBUF_FULL(io)) /* if there's not more free space */
             dbg_err_if(io_flush(io));
 
-        sz = io->wbsz - io->wcount;
-        c = io_transform(io, io->wbuf + io->woff, &sz, buf, rem);
+        sz = IO_WBUF_AVAIL(io);
+        c = io_transfer(io, io->wbuf + io->woff, &sz, buf, rem);
         dbg_err_if(c < 0);
         dbg_err_if(c == 0 && sz == 0); /* some bytes MUST be read or written */
         io->woff += sz;
@@ -583,31 +670,36 @@ err:
  * \return 0 on success, not zero on error
  *
  */
-int io_codec_set(io_t *io, codec_t* codec)
+int io_codec_set(io_t *io, codec_t* c)
 {
-    if(io->codec)
-    {
-        dbg_if(io_codec_flush(io));
-        dbg_if(codec_free(io->codec));
-    }
+    return io_codec_add_tail(io, c);
+}
 
-    io->codec = codec;
+int io_codec_add_head(io_t *io, codec_t* c)
+{
+    dbg_return_if(io == NULL || c == NULL, ~0);
+
+    /* insert the codec at the head of the chain */
+    TAILQ_INSERT_HEAD(&io->codec_chain, c, np);
+
     return 0;
 }
 
-/**
- * \brief  Return the applied codec
- *
- * Return the codec object applied to the given IO object
- *
- * \param io    the IO object
- *
- * \return the applied codec object or NULL on error or if no codec has been set
- *
- */
-codec_t* io_codec_get(io_t *io)
+int io_codec_add_tail(io_t *io, codec_t* c)
 {
-    return io->codec;
+    dbg_return_if(io == NULL || c == NULL, ~0);
+
+    /* insert the codec at the end of the chain */
+    TAILQ_INSERT_TAIL(&io->codec_chain, c, np);
+
+    return 0;
+}
+
+int io_codec_remove(io_t *io, codec_t* c)
+{
+    TAILQ_REMOVE(&io->codec_chain, c, np);
+
+    return 0;
 }
 
 
@@ -680,6 +772,8 @@ int io_prv_create(size_t dev_sz, io_t **pio)
 
     io = u_zalloc(dev_sz);
     dbg_err_if(io == NULL);
+
+    TAILQ_INIT(&io->codec_chain);
 
     /* set refcnt to 1 */
     io->refcnt++;
