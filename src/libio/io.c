@@ -198,44 +198,14 @@ err:
 static ssize_t io_transform(io_t *io, codec_t *codec, 
     char *dst, size_t *dcount, const char *src, size_t sz)
 {
-    enum { BUFSZ = (IO_RD_BUFSZ > IO_WR_BUFSZ ? IO_RD_BUFSZ : IO_WR_BUFSZ) };
-    char buf[BUFSZ];
-    size_t bufsz, cavail;
-    ssize_t wr, c, ct;
-    size_t sdcount = *dcount; /* saved dcount */
+    ssize_t c, ct;
+    size_t cavail, sdcount = *dcount; /* saved dcount */
 
     if(codec == TAILQ_LAST(&io->codec_chain, codec_chain_s))
     {
         /* last codec in the chain */
         return codec->transform(codec, dst, dcount, src, sz); 
     } else {
-#if 0
-            GOOD
-        c = 0;
-        cavail = CODEC_BUFSZ - codec->ccount;
-        if(sz && cavail)
-        {
-            dbg_err_if((c = codec->transform(codec, 
-                codec->cbuf + codec->ccount, &cavail, src, sz)) < 0);
-
-            codec->ccount += cavail;
-        }
-
-        if(codec->ccount)
-        {
-            dbg_err_if((ct = io_transform(io, TAILQ_NEXT(codec, np), 
-                dst, dcount, codec->cbuf, codec->ccount)) < 0);
-
-            codec->ccount -= ct;
-            if(codec->ccount > 0) /* FIXME opt to remove memmove */
-                memmove(codec->cbuf, codec->cbuf + ct, codec->ccount);
-
-            return c;
-        } else {
-            *dcount = 0;
-            return c;
-        }
-#endif
         c = 0;
         do
         {
@@ -248,11 +218,9 @@ static ssize_t io_transform(io_t *io, codec_t *codec,
 
                 if(codec->ccount > 0) /* FIXME opt to remove memmove */
                     memmove(codec->cbuf, codec->cbuf + ct, codec->ccount);
-
-                dbg_err_if(ct == 0 && *dcount == 0); // FIXME remove
-                //return c;
             } else
                 *dcount = 0; /* no bytes written to 'dst' */
+
             c = 0; /* zero byte of 'src' consumed */
             cavail = CODEC_BUFSZ - codec->ccount;
             if(sz && cavail)
@@ -261,67 +229,16 @@ static ssize_t io_transform(io_t *io, codec_t *codec,
                     codec->cbuf + codec->ccount, &cavail, src, sz)) < 0);
 
                 codec->ccount += cavail;
-               // if(c)
-                //    return c;
             }
+
         } while(c == 0 && *dcount == 0 && (codec->ccount || sz));
-        //dbg_err_if(c == 0 && *dcount == 0); // FIXME remove
+
         return c;
     }
 
 err:
     return -1;
 }
-#if 0
-static ssize_t io_transform(io_t *io, codec_t *codec, 
-    char *dst, size_t *dcount, const char *src, size_t sz)
-{
-    enum { BUFSZ = (IO_RD_BUFSZ > IO_WR_BUFSZ ? IO_RD_BUFSZ : IO_WR_BUFSZ) };
-    char buf[BUFSZ];
-    size_t bufsz, cavail;
-    ssize_t wr, c, ct;
-    size_t sdcount = *dcount; /* saved dcount */
-
-    if(codec == TAILQ_LAST(&io->codec_chain, codec_chain_s))
-    {
-        /* last codec in the chain */
-        return codec->transform(codec, dst, dcount, src, sz); 
-    } else {
-        c = 0;
-        do
-        {
-            *dcount = sdcount;
-            if(codec->ccount)
-            {
-                dbg_err_if((ct = io_transform(io, TAILQ_NEXT(codec, np), 
-                    dst, dcount, codec->cbuf, codec->ccount)) < 0);
-                codec->ccount -= ct;
-
-                dbg_err_if(ct == 0 && *dcount == 0); // FIXME remove
-                return c;
-            } else
-                *dcount = 0; /* no bytes written to 'dst' */
-            c = 0; /* zero byte of 'src' consumed */
-            cavail = CODEC_BUFSZ - codec->ccount;
-            if(sz && cavail)
-            {
-                dbg_err_if((c = codec->transform(codec, 
-                    codec->cbuf + codec->ccount, &cavail, src, sz)) < 0);
-
-                codec->ccount += cavail;
-                if(c)
-                    return c;
-            }
-        } while(c == 0 && *dcount == 0 && (codec->ccount || sz));
-        //dbg_err_if(c == 0 && *dcount == 0); // FIXME remove
-        return c;
-    }
-
-err:
-    return -1;
-}
-#endif
-
 
 /* transform the data if one or more codecs are set */
 static inline ssize_t io_transfer(io_t *io, char *dst, size_t *dcount, 
@@ -337,39 +254,6 @@ static inline ssize_t io_transfer(io_t *io, char *dst, size_t *dcount,
         *dcount = wr;
         return wr;
     }
-}
-
-static int io_transform_chunk(io_t *io, codec_t *codec, const char *buf, 
-    size_t bufsz)
-{
-    ssize_t c;
-    size_t sz;
-
-    while(bufsz)
-    {
-        if(IO_WBUF_FULL(io))
-            dbg_err_if(io_flush(io));
-
-        sz = IO_WBUF_AVAIL(io);  /* avail bytes in the wbuffer */
-
-        /* push 'out' bytes into next codec (repeat until all bytes 
-           have been written) */
-        dbg_err_if((c = io_transform(io, codec, 
-            io->wbuf + io->woff, &sz, buf, bufsz)) < 0);
-
-        /* some bytes MUST be read or written otherwise 
-           we'll dead lock */
-        dbg_err_if(c == 0 && sz == 0); 
-
-        io->wcount += sz;
-        io->woff += sz;
-        buf += c;
-        bufsz -= c;
-    } 
-
-    return 0;
-err:
-    return ~0;
 }
 
 static int io_flush_2_wbuf(io_t *io, codec_t *codec)
@@ -399,7 +283,8 @@ err:
 
 static int io_flush_codec_cbuf(io_t *io, codec_t *codec)
 {
-    size_t ct, sz;
+    size_t sz;
+    ssize_t ct;
 
     while(codec->ccount)
     {
@@ -430,22 +315,18 @@ err:
 static int io_chain_flush(io_t *io)
 {
     codec_t *codec;
-    enum { BUFSZ = 4096 };
-    char buf[BUFSZ], *out;
-    size_t c, sz;
+    size_t sz;
     int er;
-    
-    dbg(__FUNCTION__);
 
+    /* io->wbuf is NULL here when the input stream is zero bytes long */
+    if(io->wbuf == NULL)
+        dbg_err_if(io_wbuf_alloc(io));
+    
     TAILQ_FOREACH(codec, &io->codec_chain, np)
     {
         if(codec == TAILQ_LAST(&io->codec_chain, codec_chain_s))
         {
-            dbg("LAST CODEC!");
-
-            dbg("last ccount: %lu",codec->ccount);
             dbg_err_if(io_flush_2_wbuf(io, codec));
-
         } else {
             for(;;)
             {
@@ -459,10 +340,6 @@ static int io_chain_flush(io_t *io)
 
                 if(er == 0 && codec->ccount == 0)
                     break; /* flush of this codec completed */
-
-                if(codec->ccount)
-                    dbg_err_if(io_flush_codec_cbuf(io, codec));
-
             } /* for */
         }
     }
