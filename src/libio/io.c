@@ -250,7 +250,7 @@ static ssize_t io_transform(io_t *io, codec_t *codec,
                     memmove(codec->cbuf, codec->cbuf + ct, codec->ccount);
 
                 dbg_err_if(ct == 0 && *dcount == 0); // FIXME remove
-                return c;
+                //return c;
             } else
                 *dcount = 0; /* no bytes written to 'dst' */
             c = 0; /* zero byte of 'src' consumed */
@@ -261,8 +261,8 @@ static ssize_t io_transform(io_t *io, codec_t *codec,
                     codec->cbuf + codec->ccount, &cavail, src, sz)) < 0);
 
                 codec->ccount += cavail;
-                if(c)
-                    return c;
+               // if(c)
+                //    return c;
             }
         } while(c == 0 && *dcount == 0 && (codec->ccount || sz));
         //dbg_err_if(c == 0 && *dcount == 0); // FIXME remove
