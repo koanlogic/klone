@@ -444,7 +444,7 @@ static int io_chain_flush(io_t *io)
             dbg("LAST CODEC!");
 
             dbg("last ccount: %lu",codec->ccount);
-            //dbg_err_if(io_flush_2_wbuf(io, codec));
+            dbg_err_if(io_flush_2_wbuf(io, codec));
 
         } else {
             for(;;)

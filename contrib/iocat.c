@@ -149,9 +149,10 @@ int main(int argc, char **argv)
     dbg_err_if(io_codec_add_tail(out, (codec_t*)null0));
     dbg_err_if(io_codec_add_tail(out, (codec_t*)null1));
     dbg_err_if(io_codec_add_tail(out, (codec_t*)null2));
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)gunzip));
     dbg_err_if(io_codec_add_tail(out, (codec_t*)null3));
     dbg_err_if(io_codec_add_tail(out, (codec_t*)null4));
+    //dbg_err_if(io_codec_add_tail(out, (codec_t*)gunzip));
+    dbg_err_if(io_codec_add_tail(out, (codec_t*)gzip));
     #endif
 
     while((c = io_pipe(out, in)) > 0)
