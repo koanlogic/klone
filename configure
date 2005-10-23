@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.16 2005/10/17 10:29:33 tat Exp $
+# $Id: configure,v 1.17 2005/10/23 14:30:04 tat Exp $
 
 # Be sure MAKL_DIR is there.
 # If not found assume MaKL has been embedded in the package.
@@ -61,8 +61,7 @@ case `makl_os_name` in
         ;;
 esac
 
-makl_add_var_mk "CFLAGS" "-std=c99 -pedantic" \
-                         "-W -Wall -Wpointer-arith -Wno-uninitialized" \
+makl_add_var_mk "CFLAGS" "-W -Wall -Wpointer-arith -Wno-uninitialized" \
                          "-Wreturn-type -Wcast-qual -Wwrite-strings" \
                          "-Wswitch -Wshadow" \
                          "-DHAVE_CONF_H"

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <klone/utils.h>
 #include <klone/klone.h>
 #include <klone/server.h>
 #include <klone/broker.h>

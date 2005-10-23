@@ -75,7 +75,8 @@ char u_tochex(int n);
 int u_md5(char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ]);
 int u_md5io(io_t *io, char out[MD5_DIGEST_BUFSZ]);
 
-int u_signal(int sig, sig_t handler);
+typedef void (*u_sig_t)(int);
+int u_signal(int sig, u_sig_t handler);
 int u_sig_block(int sig);
 int u_sig_unblock(int sig);
 

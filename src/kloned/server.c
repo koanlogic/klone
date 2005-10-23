@@ -11,6 +11,7 @@
 #include <klone/ppc.h>
 #include <klone/ppc_cmd.h>
 #include <klone/addr.h>
+#include <klone/utils.h>
 #include <klone/klog.h>
 #include <u/libu.h>
 #include "server_s.h"

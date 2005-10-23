@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
 #include <signal.h>
+#include <time.h>
+#include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -627,7 +629,7 @@ err:
     return ~0;
 }
 
-int u_signal(int sig, sig_t handler)
+int u_signal(int sig, u_sig_t handler)
 {
 #ifdef OS_WIN
     dbg_err_if(signal(sig, handler) == SIG_ERR);

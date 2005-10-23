@@ -1,7 +1,7 @@
-# $Id: Makefile,v 1.4 2005/10/22 15:54:47 tat Exp $
+# $Id: Makefile,v 1.5 2005/10/23 14:30:04 tat Exp $
 include ../Makefile.conf
 
-INCS = addr.h backend.h broker.h cgi.h codec.h cgzip.h config.h debug.h   \
+INCS = addr.h backend.h broker.h cgi.h codec.h cgzip.h config.h cnull.h   \
  emb.h embpage.h field.h header.h http.h io.h ioprv.h klone.h md5.h       \
  mime_map.h network.h os.h page.h parser.h paths.h.in queue.h request.h   \
  response.h run.h server.h ses_prv.h session.h str.h supplier.h           \

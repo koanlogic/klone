@@ -6,6 +6,7 @@
 #include <stdint.h>
 #endif /* HAVE_STDINT */
 #include <klone/codec.h>
+#include <klone/utils.h>
 
 /* functions used by io devices */
 

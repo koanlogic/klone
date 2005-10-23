@@ -1,5 +1,6 @@
 #include <klone/codec.h>
 #include <klone/cgzip.h>
+#include <klone/utils.h>
 #include <u/libu.h>
 #include "conf.h"
 
@@ -19,9 +20,6 @@ struct codec_gzip_s
 static ssize_t gzip_flush(codec_gzip_t *iz, char *dst, size_t *dcount)
 {
     static char c = 0;
-
-    dbg("%s: flush dcount=%lu", iz->action == GZIP_COMPRESS ? "zip" : "unzip",
-        *dcount);
 
     /* can't set it to NULL even if zlib must not use it (avail_in == 0) */
     iz->zstr.next_in = 0xDEADBEEF;
@@ -51,13 +49,6 @@ static ssize_t gzip_flush(codec_gzip_t *iz, char *dst, size_t *dcount)
 
     *dcount = *dcount - iz->zstr.avail_out;   /* written */
 
-    if(iz->err == Z_STREAM_END && *dcount == 0)
-        dbg("%s: flush all done", 
-            iz->action == GZIP_COMPRESS ? "zip" : "unzip");
-    else
-        dbg("%s: flush call again", 
-            iz->action == GZIP_COMPRESS ? "zip" : "unzip");
-
     return iz->err == Z_STREAM_END && *dcount == 0 ? 
         0 /* all done           */: 
         1 /* call flush() again */;
@@ -73,10 +64,6 @@ static ssize_t gzip_transform(codec_gzip_t *iz, char *dst, size_t *dcount,
     
     dbg_err_if(src == NULL || dst == NULL || *dcount == 0 || src_sz == 0);
 
-    dbg("%s: transform dcount=%lu  src_sz=%lu", 
-        iz->action == GZIP_COMPRESS ? "zip" : "unzip",
-        *dcount, src_sz);
-
     iz->zstr.next_out = dst;
     iz->zstr.avail_out = *dcount;
 
@@ -88,6 +75,8 @@ static ssize_t gzip_transform(codec_gzip_t *iz, char *dst, size_t *dcount,
 
     consumed = src_sz - iz->zstr.avail_in;  /* consumed */
     *dcount = *dcount - iz->zstr.avail_out; /* written */
+
+    dbg_err_if(consumed == 0 && *dcount == 0); // FIXME remove
 
     return consumed; /* # of consumed input bytes */
 err:
