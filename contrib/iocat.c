@@ -95,19 +95,35 @@ int main(int argc, char **argv)
 
     /* open the input stream */
     if(ctx->file_in)
+    {
         dbg_err_if(u_file_open(ctx->file_in, O_RDONLY, &in));
-    else
+        dbg_err_if(io_name_set(in, ctx->file_in));
+    } else {
         dbg_err_if(io_fd_create(0, 0, &in));
+        dbg_err_if(io_name_set(in, "stdin"));
+    }
 
     /* open the output stream */
     if(ctx->file_out)
+    {
         dbg_err_if(u_file_open(ctx->file_out, O_WRONLY | O_CREAT | O_TRUNC, 
             &out));
-    else
+        dbg_err_if(io_name_set(out, ctx->file_out));
+    } else {
         dbg_err_if(io_fd_create(1, 0, &out));
+        dbg_err_if(io_name_set(out, "stdout"));
+    }
 
-    #define TEST
+    dbg_err_if(codec_null_create(&null0));
+    dbg_err_if(codec_null_create(&null1));
+    dbg_err_if(codec_null_create(&null2));
+    dbg_err_if(codec_null_create(&null3));
+
+    // #define TEST
     #ifndef TEST
+    dbg_err_if(io_codec_add_tail(out, (codec_t*)null0));
+    dbg_err_if(io_codec_add_tail(out, (codec_t*)null1));
+
     if(ctx->decode)
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &fi));
     else if(ctx->encode)
@@ -115,6 +131,9 @@ int main(int argc, char **argv)
      
     if(fi)
         dbg_err_if(io_codec_add_tail(out, (codec_t*)fi));
+
+    dbg_err_if(io_codec_add_tail(out, (codec_t*)null2));
+    dbg_err_if(io_codec_add_tail(out, (codec_t*)null3));
     #else
 
     /* test code */
@@ -149,17 +168,17 @@ int main(int argc, char **argv)
     dbg_err_if(io_codec_add_tail(out, (codec_t*)null0));
     dbg_err_if(io_codec_add_tail(out, (codec_t*)null1));
     dbg_err_if(io_codec_add_tail(out, (codec_t*)null2));
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)null3));
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)null4));
     //dbg_err_if(io_codec_add_tail(out, (codec_t*)gunzip));
     dbg_err_if(io_codec_add_tail(out, (codec_t*)gzip));
+    dbg_err_if(io_codec_add_tail(out, (codec_t*)null3));
+    dbg_err_if(io_codec_add_tail(out, (codec_t*)null4));
     #endif
 
     while((c = io_pipe(out, in)) > 0)
          ;
 
-    io_free(in);
-    io_free(out);
+    dbg_if(io_free(in));
+    dbg_if(io_free(out));
 
     return EXIT_SUCCESS;
 err:
