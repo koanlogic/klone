@@ -30,7 +30,7 @@ int io_fd_create(int fd, int flags, io_t **pio);
 int io_mem_create(char *buf, size_t size, int flags, io_t **pio);
 
 #ifdef HAVE_LIBOPENSSL
-int io_ssl_create(int fd, int flags, SSL_CTX *ctx, io_t **pio);
+int io_ssl_create(int fd, int flags, SSL_CTX *ssl_tx, io_t **pio);
 #endif
 
 int io_dup(io_t *io, io_t **pio);
