@@ -240,7 +240,6 @@ err:
     return -1;
 }
 
-/* transform the data if one or more codecs are set */
 static inline ssize_t io_transfer(io_t *io, char *dst, size_t *dcount, 
         const char *src, size_t sz)
 {
@@ -256,97 +255,53 @@ static inline ssize_t io_transfer(io_t *io, char *dst, size_t *dcount,
     }
 }
 
-static int io_flush_2_wbuf(io_t *io, codec_t *codec)
-{
-    int er;
-    size_t sz;
-
-    do
-    {
-        if(IO_WBUF_FULL(io))
-            dbg_err_if(io_flush(io));
-
-        sz = IO_WBUF_AVAIL(io);
-
-        /* save flushed data to the write buffer */
-        dbg_err_if((er = codec->flush(codec, io->wbuf + io->woff, 
-            &sz)) < 0);
-
-        io->woff += sz;
-        io->wcount += sz;
-    } while(er > 0);
-
-    return 0;
-err:
-    return ~0;
-}
-
-static int io_flush_codec_cbuf(io_t *io, codec_t *codec)
-{
-    size_t sz;
-    ssize_t ct;
-
-    while(codec->ccount)
-    {
-        if(IO_WBUF_FULL(io))
-            dbg_err_if(io_flush(io));
-
-        sz = IO_WBUF_AVAIL(io);
-
-        dbg_err_if((ct = io_transform(io, TAILQ_NEXT(codec, np), 
-            io->wbuf + io->woff, &sz, codec->cbuf, codec->ccount)) < 0);
-
-        codec->ccount -= ct;
-
-        if(codec->ccount > 0) /* FIXME opt to remove memmove */
-            memmove(codec->cbuf, codec->cbuf + ct, codec->ccount);
-
-        io->wcount += sz;
-        io->woff += sz;
-
-        dbg_err_if(ct == 0 && sz == 0); // FIXME remove
-    } 
-
-    return 0;
-err:
-    return ~0;
-}
-
-static int io_chain_flush(io_t *io)
+static int io_chain_flush(io_t *io, char *dst, size_t *dcount)
 {
     codec_t *codec;
     size_t sz;
+    ssize_t ct;
     int er;
+    size_t sdcount = *dcount;
 
-    /* io->wbuf is NULL here when the input stream is zero bytes long */
-    if(io->wbuf == NULL)
-        dbg_err_if(io_wbuf_alloc(io));
-    
     TAILQ_FOREACH(codec, &io->codec_chain, np)
     {
+        *dcount = sdcount;
         if(codec == TAILQ_LAST(&io->codec_chain, codec_chain_s))
         {
-            dbg_err_if(io_flush_2_wbuf(io, codec));
+            return codec->flush(codec, dst, dcount);
         } else {
             for(;;)
             {
+                *dcount = sdcount;
                 if(codec->ccount)
-                    dbg_err_if(io_flush_codec_cbuf(io, codec));
+                {
+                    dbg_err_if((ct = io_transform(io, TAILQ_NEXT(codec, np), 
+                        dst, dcount, codec->cbuf, codec->ccount)) < 0);
+                    codec->ccount -= ct;
+
+                    if(codec->ccount > 0) /* FIXME opt to remove memmove */
+                        memmove(codec->cbuf, codec->cbuf + ct, codec->ccount);
+
+                    if(*dcount)
+                        return CODEC_CALL_FLUSH_AGAIN; /* call flush again */
+                } else
+                    *dcount = 0; /* no bytes written to 'dst' */
+
 
                 sz = CODEC_BUFSZ - codec->ccount;
                 dbg_err_if((er = codec->flush(codec, codec->cbuf+codec->ccount, 
                     &sz)) < 0);
                 codec->ccount += sz;
 
-                if(er == 0 && codec->ccount == 0)
+                if(er == CODEC_FLUSH_OK && codec->ccount == 0)
                     break; /* flush of this codec completed */
             } /* for */
         }
     }
 
-    return 0;
+    return CODEC_FLUSH_OK;
 err:
-    return ~0;
+    return -1;
 }
 
 /**
@@ -368,6 +323,8 @@ err:
 int io_free(io_t *io)
 {
     codec_t *codec;
+    int er;
+    size_t sz;
 
     dbg_err_if(io == NULL || io->refcnt == 0);
 
@@ -376,8 +333,22 @@ int io_free(io_t *io)
     if(--io->refcnt)
         return 0;
 
-    if(!TAILQ_EMPTY(&io->codec_chain))
-        dbg_if(io_chain_flush(io));
+    if(!TAILQ_EMPTY(&io->codec_chain) && io->wbuf)
+    {
+        do
+        {
+            if(IO_WBUF_FULL(io))
+                dbg_err_if(io_flush(io));
+
+            sz = IO_WBUF_AVAIL(io);
+
+            if((er = io_chain_flush(io, io->wbuf + io->woff, &sz)) < 0)
+                break; /* error, try to finish the cleanup procedure */
+
+            io->woff += sz;
+            io->wcount += sz;
+        } while(er == CODEC_CALL_FLUSH_AGAIN);
+    }
 
     dbg_if(io_flush(io));
 
@@ -460,19 +431,15 @@ ssize_t io_read(io_t *io, char *buf, size_t size)
             dbg_err_if((c = io_underflow(io)) < 0);
             if(c == 0)
             {   /* eof, try to get some buffered byte from the codec */
-                // FIXME
-                #if 0
-                codec_t *fi = io->codec;
-                if(fi && fi->flush)
+                if(!TAILQ_EMPTY(&io->codec_chain))
                 {
                     sz = size;
-                    dbg_err_if((c = fi->flush(fi, out, &sz)) < 0);
+                    dbg_err_if((c = io_chain_flush(io, out, &sz)) < 0);
                     if(c == 0)
                         io->eof++;
                     out += sz;
                 }
-                #endif
-                break; /* return */
+                break;
             }
         }
         /* copy out bytes in the read buffer */

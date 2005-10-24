@@ -1,6 +1,8 @@
 #!/bin/sh
 
-IOCAT=/Users/tat/work/KL/klone/contrib/iocat
+IOCAT=/home/tat/work/KL/klone/contrib/iocat
+
+export FQN="$1"
 
 $IOCAT -e < "$1" | $IOCAT -d | diff - "$1"
 

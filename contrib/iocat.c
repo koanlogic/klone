@@ -79,15 +79,10 @@ int main(int argc, char **argv)
     ssize_t c;
     io_t *in, *out;
     codec_gzip_t *fi = NULL;
-    codec_gzip_t *fi2 = NULL;
-
-    codec_null_t *null0= NULL;
-    codec_null_t *null1= NULL;
-    codec_null_t *null2= NULL;
-    codec_null_t *null3= NULL;
-    codec_null_t *null4= NULL;
-    codec_gzip_t *gzip = NULL;
-    codec_gzip_t *gunzip = NULL;
+    codec_null_t *null0 = NULL;
+    codec_null_t *null1 = NULL;
+    codec_null_t *null2 = NULL;
+    codec_null_t *null3 = NULL;
     
     memset(ctx, 0, sizeof(context_t));
 
@@ -119,60 +114,31 @@ int main(int argc, char **argv)
     dbg_err_if(codec_null_create(&null2));
     dbg_err_if(codec_null_create(&null3));
 
-    // #define TEST
-    #ifndef TEST
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)null0));
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)null1));
-
     if(ctx->decode)
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &fi));
     else if(ctx->encode)
         dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &fi));
-     
+
     if(fi)
-        dbg_err_if(io_codec_add_tail(out, (codec_t*)fi));
+    {
+        /* for testing purpose attach the encode codec on input stream and 
+         * the decode one on the output */
+        if(ctx->encode)
+        {
+            dbg_err_if(io_codec_add_tail(in, (codec_t*)null0));
+            dbg_err_if(io_codec_add_tail(in, (codec_t*)null1));
+            dbg_err_if(io_codec_add_tail(in, (codec_t*)fi));
+            dbg_err_if(io_codec_add_tail(in, (codec_t*)null2));
+            dbg_err_if(io_codec_add_tail(in, (codec_t*)null3));
+        } else {
+            dbg_err_if(io_codec_add_tail(out, (codec_t*)null0));
+            dbg_err_if(io_codec_add_tail(out, (codec_t*)null1));
+            dbg_err_if(io_codec_add_tail(out, (codec_t*)fi));
+            dbg_err_if(io_codec_add_tail(out, (codec_t*)null2));
+            dbg_err_if(io_codec_add_tail(out, (codec_t*)null3));
+        }
+    }
 
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)null2));
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)null3));
-    #else
-
-    /* test code */
-
-    dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &gzip));
-    dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gunzip));
-
-    dbg_err_if(codec_null_create(&null0));
-    dbg_err_if(codec_null_create(&null1));
-    dbg_err_if(codec_null_create(&null2));
-    dbg_err_if(codec_null_create(&null3));
-    dbg_err_if(codec_null_create(&null4));
-    
-    //dbg_err_if(codec_null_create(&fi));
-    //dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &fi2));
-
-    // dbg_err_if(io_codec_add_tail(out, (codec_t*)fi));
-    // dbg_err_if(io_codec_add_tail(out, (codec_t*)fi2));
-    
-    //dbg_err_if(io_codec_add_tail(out, (codec_t*)null0));
-    //dbg_err_if(io_codec_add_tail(out, (codec_t*)null1));
-    //dbg_err_if(io_codec_add_tail(out, (codec_t*)null2));
-    //dbg_err_if(io_codec_add_tail(out, (codec_t*)null4));
-
-    //dbg_err_if(io_codec_add_tail(out, (codec_t*)null0));
-    //dbg_err_if(io_codec_add_tail(out, (codec_t*)null1));
-    //dbg_err_if(io_codec_add_tail(out, (codec_t*)gzip));
-    //dbg_err_if(io_codec_add_tail(out, (codec_t*)null2));
-    //dbg_err_if(io_codec_add_tail(out, (codec_t*)gunzip));
-    //dbg_err_if(io_codec_add_tail(out, (codec_t*)null3));
-    
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)null0));
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)null1));
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)null2));
-    //dbg_err_if(io_codec_add_tail(out, (codec_t*)gunzip));
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)gzip));
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)null3));
-    dbg_err_if(io_codec_add_tail(out, (codec_t*)null4));
-    #endif
 
     while((c = io_pipe(out, in)) > 0)
          ;

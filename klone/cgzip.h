@@ -1,5 +1,6 @@
 #ifndef _KLONE_CODEC_GZIP_H__
 #define _KLONE_CODEC_GZIP_H__
+#include <klone/cnull.h>
 
 /* the codec [un]compresses (using libz) the stream to whom it's applied */
 

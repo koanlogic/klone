@@ -12,7 +12,7 @@ struct codec_null_s
 static ssize_t null_flush(codec_null_t *iz, char *dst, size_t *dcount)
 {
     *dcount = 0;
-    return 0;
+    return CODEC_FLUSH_OK;
 }
 
 static ssize_t null_transform(codec_null_t *iz, char *dst, size_t *dcount, 

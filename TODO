@@ -5,11 +5,14 @@ FIRST RELEASE:
     - codice
         - * klog integration
         - * klog dump log program/function
+        - * io_codec_add_tail, io_codec_add_head
+        - * io_t codec chains support
 
         - encrypted contents support
             + decryption key sharing via ppc
             + tools/klone support (klone -c import -e embfs/crypted_tree embfs)
-        - io_codec_add_tail, io_codec_add_head
+
+        - [opt] remove memmove in io.c
 
         - testing & profiling
         - GPL header in autogen files
