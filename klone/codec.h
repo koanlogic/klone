@@ -20,7 +20,7 @@ typedef struct codec_s
     int (*free)(struct codec_s *codec);
     TAILQ_ENTRY(codec_s) np; /* next & prev pointers */
     char cbuf[CODEC_BUFSZ];
-    size_t ccount;
+    size_t ccount, coff;
 } codec_t;
 
 int codec_free(codec_t *codec);
