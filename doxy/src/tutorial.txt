@@ -154,7 +154,7 @@ Now include the header where needed (in our example, at the top of
 \par
 It may be sometimes necessary to link to your own independent libraries or 
 external ones. Before attempting this you will require some knowledge of 
-<a href="http://inti.sourceforge.net/tutorial/libinti/autotoolsproject.html">Autotools</a>.
+<a href="http://www.koanlogic.com/kl/cont/html/makl.html">MaKL</a>.
 
 \par
 As an example, we apply this to the previous <tt>funcs_print_ctime()</tt> 
@@ -163,24 +163,23 @@ The base directory for code generation is <tt>kl1/site</tt>. Create a
 subdirectory called <tt>tute</tt> and move into it. Split the declaration into
 a header file <tt>funcs.h</tt> and a source file <tt>funcs.c</tt>. Hence remove 
 the previous declaration in <tt>embfs/www/index.kl1</tt>. Then create a simple 
-<tt>Makefile.am</tt>:
+<tt>Makefile</tt>:
 
 \code
-    INCLUDES=-I$(top_srcdir)
-    lib_LTLIBRARIES=libtute.la
+    LIB=tute
 
-    libtute_la_INCLUDES=funcs.h
-    libtute_la_SOURCES=funcs.c
+    SRCS=funcs.c
+
+    include lib.mk
 \endcode 
 
 \par
 Now we link to our new library from the base site Makefile
-<tt>kl1/site/Makefile.am</tt>, by appending <tt>-Itute</tt> to the 
-<tt>INCLUDES</tt> directive and <tt>-Ltute -ltute</tt> to 
-<tt>libsite_la_LIBADD</tt>. 
-Add a line <tt>SUBDIRS=tute</tt> to enter the new subdirectory automatically. 
-Next add <tt>site/tute/Makefile</tt> to the <tt>AC_OUTPUT</tt> macro
-in <tt>kl1/configure.in</tt> and include <tt>funcs.h</tt> from 
+<tt>kl1/site/Makefile</tt>, by appending <tt>-Itute</tt> to the 
+<tt>INCS</tt> directive and <tt>-Ltute -ltute</tt> to 
+<tt>LDADD</tt>. 
+Add a line <tt>SUBDIR=tute</tt> to enter the new subdirectory automatically. 
+Next include <tt>funcs.h</tt> from 
 <a href="index_8kl1-example.html">index.kl1</a>.
 
 \par
