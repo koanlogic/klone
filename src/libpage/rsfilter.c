@@ -5,36 +5,91 @@
 #include <klone/codec.h>
 #include <klone/http.h>
 #include <klone/response.h>
+#include <klone/rsfilter.h>
 #include <u/libu.h>
-#include "rsfilter.h"
 
 /* this filter prints the HTTP header before any body part of the web page. 
  * the first RFBUFSZ bytes (at most) of the response will be buffered to 
- * postpone the header printing (so it can be modified).
+ * postpone the header printing (the header can be modified until filter 
+ * flush)
  */
 
 enum { 
     RFS_BUFFERING,
-    RFS_SENDING_HEADER,
-    RFS_SENDING_BODY
+    RFS_FLUSHING
 };
 
-static int rf_flush(response_filter_t *rf, char *buf, size_t *sz)
+struct response_filter_s
 {
-    u_unused_args(sz, buf);
+    codec_t codec;          /* must be the first item in the struct */
+    struct response_s *rs;  /* the response object                  */
+    int state;              /* filter state                         */
+    char buf[RFBUFSZ], *ptr;
+    size_t off;
+    io_t *iob;
+};
+
+static int rf_init_iob(response_filter_t *rf)
+{
+    char *h;
+    size_t hsz, htell;
+
+    hsz = response_get_max_header_size(rf->rs) + rf->off;
+
+    h = (char *)u_zalloc(hsz);
+    dbg_err_if(h == NULL);
+
+    dbg_err_if(io_mem_create(h, hsz, 0, &rf->iob));
+
+    /* write the header to the memory io_t */
+    response_print_header_to_io(rf->rs, rf->iob);
+
+    if(response_get_method(rf->rs) != HM_HEAD)
+    {
+        /* append the rf->buf to the iob */
+        dbg_err_if(io_write(rf->iob, rf->buf, rf->off) < 0);
+    }
+    dbg_err_if(io_flush(rf->iob));
+
+    htell = io_tell(rf->iob);
+
+    dbg_if(io_free(rf->iob));
+    rf->iob = NULL;
+
+    /* create another in-memory io to read from it */
+    dbg_err_if(io_mem_create(h, htell, IO_MEM_FREE_BUF, &rf->iob));
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int rf_flush(response_filter_t *rf, char *dst, size_t *dcount)
+{
+    ssize_t c;
 
     if(rf->state == RFS_BUFFERING)
     {
-        /* print the header and flush the buffer */
-        rf->state = RFS_SENDING_HEADER;
-        response_print_header(rf->rs);
+        rf->state = RFS_FLUSHING;
 
-        rf->state = RFS_SENDING_BODY;
-        if(rf->off > 0)
-            dbg_err_if(io_write(response_io(rf->rs), rf->buf, rf->off) < 0);
+        /* create a in-memory io_t and fill it with header and rf->buf */
+        dbg_err_if(rf_init_iob(rf));
     }
 
-    return 0;
+    if(rf->iob)
+    {
+        dbg_err_if((c = io_read(rf->iob, dst, *dcount)) < 0);
+        if(c == 0)
+        { /* eof */
+            io_free(rf->iob);
+            rf->iob = NULL;
+        } else {
+            *dcount = c;
+            return CODEC_FLUSH_CHUNK;
+        }
+    }
+
+    return CODEC_FLUSH_COMPLETE;
 err:
     return -1;
 }
@@ -44,6 +99,14 @@ static ssize_t rf_transform(response_filter_t *rf,
         const char *src, size_t src_sz)
 {
     size_t max;
+    ssize_t c;
+
+    /* if this's a HEAD request don't print the body of the page */
+    if(response_get_method(rf->rs) == HM_HEAD)
+    {
+        *dcount = 0;    /* zero output byte written */
+        return src_sz;  /* all input bytes consumed */
+    }
 
     if(rf->state == RFS_BUFFERING)
     {
@@ -55,20 +118,23 @@ static ssize_t rf_transform(response_filter_t *rf,
             return src_sz;  /* src_sz input byte consumed */
         } else {
             /* the buffer is full, print the header and flush the buffer */
-            dbg_err_if(rf_flush(rf, NULL, NULL));
+            rf->state = RFS_FLUSHING;
 
-            /* write out the current block */
-            dbg_err_if(io_write(response_io(rf->rs), src, src_sz) < 0);
-            
-            *dcount = 0;   /* zero output byte written */
-            return src_sz; /* all input byte consumed */
+            /* create a in-memory io_t and fill it with header and rf->buf */
+            dbg_err_if(rf_init_iob(rf));
         }
-    } else if(rf->state == RFS_SENDING_BODY) {
-        /* if this's a HEAD request don't print the body of the page */
-        if(response_get_method(rf->rs) == HM_HEAD)
-        {
-            *dcount = 0;    /* zero output byte written */
-            return src_sz;  /* all in bytes consumed    */
+    }
+
+    if(rf->iob)
+    {
+        dbg_err_if((c = io_read(rf->iob, dst, *dcount)) < 0);
+        if(c == 0)
+        { /* eof */
+            io_free(rf->iob);
+            rf->iob = NULL;
+        } else {
+            *dcount = c;
+            return 0;
         }
     }
 
@@ -83,6 +149,9 @@ err:
 
 static int rf_free(response_filter_t *rf)
 {
+    if(rf->iob)
+        io_free(rf->iob);
+
     u_free(rf);
 
     return 0;
@@ -99,6 +168,8 @@ int response_filter_create(response_t *rs, response_filter_t **prf)
     rf->codec.transform = rf_transform;
     rf->codec.flush = rf_flush;
     rf->codec.free = rf_free;
+    rf->ptr = rf->buf;
+    rf->iob = NULL;
 
     *prf = rf;
 

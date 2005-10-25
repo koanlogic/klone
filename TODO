@@ -7,12 +7,12 @@ FIRST RELEASE:
         - * klog dump log program/function
         - * io_codec_add_tail, io_codec_add_head
         - * io_t codec chains support
+        - add -O2 to CFLAGS
+        - user msg on translate error (include file not found, etc.)
 
         - encrypted contents support
             + decryption key sharing via ppc
             + tools/klone support (klone -c import -e embfs/crypted_tree embfs)
-
-        - [opt] remove memmove in io.c
 
         - testing & profiling
         - GPL header in autogen files

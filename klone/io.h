@@ -40,11 +40,10 @@ int io_free(io_t *io);
 int io_name_set(io_t *io, const char* name);
 int io_name_get(io_t *io, char* name, size_t sz);
 
-int io_codec_set(io_t *io, codec_t* codec); /* call io_codec_add_tail */
-
 int io_codec_add_head(io_t *io, codec_t* codec);
 int io_codec_add_tail(io_t *io, codec_t* codec);
-int io_codec_remove(io_t *io, codec_t* codec);
+
+int io_codecs_remove(io_t *io);
 
 ssize_t io_read(io_t *io, char* buf, size_t size);
 ssize_t io_write(io_t *io, const char* buf, size_t size);

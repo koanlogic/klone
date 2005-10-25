@@ -202,7 +202,7 @@ int translate(trans_info_t *pti)
         {
             /* set a compression filter to the input stream */
             dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &gzip));
-            dbg_err_if(io_codec_set(in, (codec_t*)gzip));
+            dbg_err_if(io_codec_add_tail(in, (codec_t*)gzip));
             gzip = NULL;
         }
         /* check if encryption is requested */

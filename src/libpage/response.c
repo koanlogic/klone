@@ -4,15 +4,14 @@
 #include <klone/io.h>
 #include <klone/codec.h>
 #include <klone/http.h>
+#include <klone/rsfilter.h>
 #include <u/libu.h>
-#include "rsfilter.h"
 
 struct response_s
 {
     http_t *http;           /* http server handle       */
     header_t *header;       /* output header            */
     io_t *io;               /* output stream            */
-    response_filter_t *filter;
     int status;             /* http status code         */
     int method;             /* HTTP request method      */
 };
@@ -113,17 +112,17 @@ err:
 }
 
 
-static int response_print_status(response_t *rs)
+static int response_print_status(response_t *rs, io_t *io)
 {
-    io_printf(rs->io, "HTTP/1.0 %d %s\r\n", rs->status, 
+    io_printf(io, "HTTP/1.0 %d %s\r\n", rs->status, 
         http_get_status_desc(rs->status));
 
     return 0;
 }
 
-static int response_print_field(response_t *rs, field_t *field)
+static int response_print_field(response_t *rs, io_t *io, field_t *field)
 {
-    io_printf(rs->io, "%s: %s\r\n", field->name, field->value);
+    io_printf(io, "%s: %s\r\n", field->name, field->value);
     
     return 0;
 }
@@ -159,6 +158,54 @@ int response_get_method(response_t *rs)
     return rs->method;
 }
 
+/* calculate the approx max value of the current header (useful to alloc a
+ * buffer big enough) */
+size_t response_get_max_header_size(response_t *rs)
+{
+    field_t *field;
+    int i, n;
+    size_t sz = 0;
+
+    /* calc status line length */
+    sz += 16; /* http/x.y nnn[n] \r\n */
+    sz += strlen(http_get_status_desc(rs->status));
+
+    n = header_field_count(rs->header);
+    for(i = 0; i < n; ++i)
+    {
+        field =  header_get_fieldn(rs->header, i);
+        sz += strlen(field_get_name(field));
+        sz += strlen(field_get_value(field));
+        sz += 4; /* blanks and new lines */
+    }
+
+    sz += 2; /* final \r\n */
+    sz += 64; /* guard bytes */
+
+    return sz;
+}
+
+int response_print_header_to_io(response_t *rs, io_t *io)
+{
+    int i, n;
+
+    dbg_err_if(io == NULL);
+
+    /* print status line */
+    response_print_status(rs, io);
+
+    /* print field list */
+    n = header_field_count(rs->header);
+    for(i = 0; i < n; ++i)
+        response_print_field(rs, io, header_get_fieldn(rs->header, i));
+
+    io_printf(io, "\r\n");
+
+    return 0;
+err:
+    return ~0;
+}
+
 /** 
  * \brief   One line description
  *  
@@ -172,24 +219,9 @@ int response_get_method(response_t *rs)
  */
 int response_print_header(response_t *rs)
 {
-    int i, n;
-
-    dbg_err_if(rs->io == NULL);
-
-    /* print status line */
-    response_print_status(rs);
-
-    /* print field list */
-    n = header_field_count(rs->header);
-    for(i = 0; i < n; ++i)
-        response_print_field(rs, header_get_fieldn(rs->header, i));
-
-    io_printf(rs->io, "\r\n");
-
-    return 0;
-err:
-    return ~0;
+    return response_print_header_to_io(rs, rs->io);
 }
+
 
 /**
  * \brief   One line description
@@ -415,17 +447,9 @@ int response_set_status(response_t *rs, int status)
  */
 int response_bind(response_t *rs, io_t *out)
 {
-    dbg_err_if(response_filter_create(rs, &rs->filter));
-
     rs->io = out;
 
-    io_codec_set(rs->io, (codec_t*)rs->filter);
-
     return 0;
-err:
-    if(rs->filter)
-        codec_free((codec_t*)rs->filter);
-    return ~0;
 }
 
 /** 

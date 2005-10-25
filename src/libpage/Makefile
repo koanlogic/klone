@@ -1,8 +1,7 @@
-# $Id: Makefile,v 1.4 2005/10/04 10:27:57 stewy Exp $
+# $Id: Makefile,v 1.5 2005/10/25 13:33:24 tat Exp $
 include ../../Makefile.conf
 
 LIB = page
-INCS = rsfilter.h  
 SRCS =          \
     field.c     \
     header.c    \

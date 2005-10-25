@@ -129,7 +129,7 @@ int emb_open(const char *file, io_t **pio)
     if(e->comp)
     {
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gzip));
-        dbg_err_if(io_codec_set(io, (codec_t*)gzip));
+        dbg_err_if(io_codec_add_tail(io, (codec_t*)gzip));
         gzip = NULL;
     }
 

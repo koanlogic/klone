@@ -282,7 +282,7 @@ static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
         "<html><head><title>%d %s</title></head>\n"
         "<body><h1>%s</h1><p>URL: %s</body></html>", 
         status, http_get_status_desc(status), 
-        http_get_status_desc(status), request_get_uri(rq)));
+        http_get_status_desc(status), request_get_uri(rq)) < 0);
 
     return 0;
 err:

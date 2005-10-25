@@ -6,7 +6,7 @@
 #include <u/libu.h>
 
 
-enum { CODEC_FLUSH_OK, CODEC_CALL_FLUSH_AGAIN };
+enum { CODEC_FLUSH_COMPLETE, CODEC_FLUSH_CHUNK };
 
 TAILQ_HEAD(codec_chain_s, codec_s);
 typedef struct codec_chain_s codec_chain_t; 

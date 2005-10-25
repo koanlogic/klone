@@ -113,7 +113,7 @@ static int print_zip_var_definition(parser_t *p, const char* varname,
 
     /* apply a gzip codec */
     dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &zip));
-    dbg_err_if(io_codec_set(ios, zip));
+    dbg_err_if(io_codec_add_tail(ios, zip));
     zip = NULL; /* io_free() will free the codec */
 
     io_printf(p->out, "static uint8_t %s[] = {\n", varname);

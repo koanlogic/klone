@@ -404,6 +404,9 @@ int server_free(server_t *s)
 
     dbg_err_if(s == NULL);
 
+    /* remove the hook (that needs the server_t object) */
+    u_log_set_hook(NULL, NULL, NULL, NULL);
+
     if(s->klog)
     {
         klog_close(s->klog);
@@ -615,7 +618,10 @@ err:
     if(n)
         u_free(n);
     if(s)
+    {
         server_free(s);
+        *ps = NULL;
+    }
     return ~0;
 }
 

@@ -8,6 +8,7 @@
 #include <klone/emb.h>
 #include <klone/codecs.h>
 #include <klone/ses_prv.h>
+#include <klone/rsfilter.h>
 #include <u/libu.h>
 
 static int supemb_is_valid_uri(const char* uri, size_t len, time_t *mtime)
@@ -41,6 +42,7 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
 
     dbg("mime type: %s (%scompressed)", e->mime_type, (e->comp ? "" : "NOT "));
 
+    
     /* set content-type, last-modified and content-length*/
     dbg_err_if(response_set_content_type(rs, e->mime_type));
     dbg_err_if(response_set_last_modified(rs, e->mtime));
@@ -54,6 +56,9 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
         dbg_err_if(response_set_content_length(rs, e->size));
     } 
 
+    /* print HTTP header */
+    dbg_err_if(response_print_header(rs));
+
     if(request_get_method(rq) == HM_HEAD)
         return 0; /* just the header is requested */
 
@@ -61,16 +66,16 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
     if(e->comp && !sai)
     {
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gzip));
-        dbg_err_if(io_codec_set(response_io(rs), (codec_t*)gzip));
-        gzip = NULL; /* io_t owns it after io_codec_set */
+        dbg_err_if(io_codec_add_head(response_io(rs), (codec_t*)gzip));
+        gzip = NULL; /* io_t owns it after io_codec_add_tail */
     } 
 
     /* print out page content (the header will be autoprinted by the 
-       response io filter */
+       response io filter) */
     dbg_err_if(!io_write(response_io(rs), e->data, e->size));
 
-    /* free the codec (if it has been set) */
-    dbg_if(io_codec_set(response_io(rs), NULL)); 
+    /* remove and free the gzip codec (if it has been set) */
+    dbg_if(io_codecs_remove(response_io(rs))); 
 
     return 0;
 err:
@@ -84,6 +89,7 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
     session_t *ss = NULL;
     http_t *http = NULL;
     session_opt_t *so;
+    response_filter_t *filter;
 
     /* get session options */
     dbg_err_if((http = request_get_http(rq)) == NULL);
@@ -95,6 +101,11 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
     /* set some default values */
     dbg_err_if(response_set_content_type(rs, "text/html"));
 
+    /* create a response filter and attach it to the response io */
+    dbg_err_if(response_filter_create(rs, &filter));
+    io_codec_add_tail(response_io(rs), (codec_t*)filter);
+
+    /* run the page code */
     e->run(rq, rs, ss);
 
     /* flush the output buffer */

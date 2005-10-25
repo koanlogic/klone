@@ -41,6 +41,8 @@ void response_set_method(response_t *rs, int method);
 int response_get_method(response_t *rs);
 
 int response_print_header(response_t *rs);
+int response_print_header_to_io(response_t *rs, io_t *io);
+size_t response_get_max_header_size(response_t *rs);
 
 io_t* response_io(response_t *rs);
 

@@ -49,7 +49,7 @@ static ssize_t gzip_flush(codec_gzip_t *iz, char *dst, size_t *dcount)
     *dcount = *dcount - iz->zstr.avail_out;   /* written */
 
     return iz->err == Z_STREAM_END && *dcount == 0 ? 
-        CODEC_FLUSH_OK : CODEC_CALL_FLUSH_AGAIN;
+        CODEC_FLUSH_COMPLETE : CODEC_FLUSH_CHUNK;
 err:
     dbg("%s", zError(iz->err));
     return -1;
@@ -142,7 +142,7 @@ struct codec_gzip_s
 static ssize_t gzip_flush(codec_gzip_t *iz, char *dst, size_t *dcount)
 {
     *dcount = 0;
-    return CODEC_FLUSH_OK;
+    return CODEC_FLUSH_COMPLETE;
 }
 
 static ssize_t gzip_transform(codec_gzip_t *iz, char *dst, size_t *dcount, 

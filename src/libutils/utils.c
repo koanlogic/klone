@@ -697,7 +697,7 @@ int u_io_unzip_copy(io_t *out, const uint8_t *data, size_t sz)
 
     /* apply a gzip codec */
     dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &zip));
-    dbg_err_if(io_codec_set(ios, zip));
+    dbg_err_if(io_codec_add_tail(ios, zip));
     zip = NULL; /* io_free() will free the codec */
 
     /* pipe ios to out */
