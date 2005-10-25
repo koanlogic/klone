@@ -214,6 +214,9 @@ static int command_trans(void)
         strncpy(ti.mime_type, "application/octect-stream", MIME_BUFSZ);
         ti.comp = 1; /* compress it, libz never enlarge uncompressable files  */
     }
+    #ifndef HAVE_LIBZ
+    ti.comp = 0;
+    #endif
 
     /* be sure that the input file exists */
     klone_die_if(stat(ctx->file_in, &st), "input file not found");

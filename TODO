@@ -10,6 +10,7 @@ FIRST RELEASE:
         - add -O2 to CFLAGS
         - user msg on translate error (include file not found, etc.)
         - user msg on config error (server_list missing, etc.)
+        - option to disable page/html-chunk compression even if libz is linked
 
         - encrypted contents support
             + decryption key sharing via ppc
