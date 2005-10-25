@@ -372,14 +372,7 @@ err:
  */
 int io_free(io_t *io)
 {
-    enum { BUFSZ = 4096 };
-    codec_t *codec;
-    int er;
-    size_t sz, count;
-    char buf[BUFSZ], *ptr;
-
     dbg_err_if(io == NULL || io->refcnt == 0);
-
 
     /* skip if this io_t has been dup'd and there are still one or more 
        references in use */

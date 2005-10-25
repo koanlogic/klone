@@ -277,6 +277,12 @@ static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
     /* refresh the status code */
     status = response_get_status(rs);
 
+    /* print HTTP header */
+    dbg_err_if(response_print_header(rs));
+
+    if(request_get_method(rq) == HM_HEAD)
+        return 0; /* just the header is requested */
+
     /* print default error page */
     dbg_err_if(io_printf(response_io(rs), 
         "<html><head><title>%d %s</title></head>\n"

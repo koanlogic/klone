@@ -9,6 +9,7 @@ FIRST RELEASE:
         - * io_t codec chains support
         - add -O2 to CFLAGS
         - user msg on translate error (include file not found, etc.)
+        - user msg on config error (server_list missing, etc.)
 
         - encrypted contents support
             + decryption key sharing via ppc

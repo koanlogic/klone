@@ -37,12 +37,11 @@ err:
 
 static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
 {
-    codec_gzip_t *gzip = NULL;
+    codec_t *gzip = NULL;
     int sai = 0; /* send as is */
 
     dbg("mime type: %s (%scompressed)", e->mime_type, (e->comp ? "" : "NOT "));
 
-    
     /* set content-type, last-modified and content-length*/
     dbg_err_if(response_set_content_type(rs, e->mime_type));
     dbg_err_if(response_set_last_modified(rs, e->mtime));
@@ -66,7 +65,7 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
     if(e->comp && !sai)
     {
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gzip));
-        dbg_err_if(io_codec_add_head(response_io(rs), (codec_t*)gzip));
+        dbg_err_if(io_codec_add_head(response_io(rs), gzip));
         gzip = NULL; /* io_t owns it after io_codec_add_tail */
     } 
 
@@ -80,7 +79,7 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
     return 0;
 err:
     if(gzip)
-        codec_free((codec_t*)gzip);
+        codec_free(gzip);
     return ~0;
 }
 

@@ -7,7 +7,7 @@
 #ifdef HAVE_LIBZ
 #include <zlib.h>
 
-struct codec_gzip_s
+typedef struct codec_gzip_s
 {
     codec_t codec;              /* parent structure block           */
     int action;                 /* GZIP_COMPRESS or GZIP_UNCOMPRESS */
@@ -16,10 +16,12 @@ struct codec_gzip_s
     int (*op)(z_streamp, int);  /* inflate or deflate               */
     int (*opEnd)(z_streamp);    /* inflateEnd or deflateEnd         */
     char dummy;                 /* ZLIB < 1.2 workaround dunny byte */
-};
+} codec_gzip_t;
 
-static ssize_t gzip_flush(codec_gzip_t *iz, char *dst, size_t *dcount)
+static ssize_t gzip_flush(codec_t *codec, char *dst, size_t *dcount)
 {
+    codec_gzip_t *iz = (codec_gzip_t*)codec;
+
     /* can't set it to NULL even if zlib must not use it (avail_in == 0) */
     iz->zstr.next_in = 0xDEADBEEF;
     iz->zstr.avail_in = 0;
@@ -55,9 +57,10 @@ err:
     return -1;
 }
 
-static ssize_t gzip_transform(codec_gzip_t *iz, char *dst, size_t *dcount, 
+static ssize_t gzip_transform(codec_t *codec, char *dst, size_t *dcount, 
         const char *src, size_t src_sz)
 {
+    codec_gzip_t *iz = (codec_gzip_t*)codec;
     size_t consumed;
     
     dbg_err_if(src == NULL || dst == NULL || *dcount == 0 || src_sz == 0);
@@ -94,7 +97,7 @@ err:
     return ~0;
 }
 
-int codec_gzip_create(int op, codec_gzip_t **piz)
+int codec_gzip_create(int op, codec_t **piz)
 {
     codec_gzip_t *iz = NULL;
 
@@ -123,7 +126,7 @@ int codec_gzip_create(int op, codec_gzip_t **piz)
         dbg_err_if("bad op");
     }
 
-    *piz = iz;
+    *piz = (codec_t*)iz;
 
     return 0;
 err:
@@ -134,23 +137,26 @@ err:
 
 #else /* zlib not found */
 
-struct codec_gzip_s
+typedef struct codec_gzip_s
 {
     codec_t codec;
-};
+} codec_gzip_t;
 
-static ssize_t gzip_flush(codec_gzip_t *iz, char *dst, size_t *dcount)
+static ssize_t gzip_flush(codec_t *iz, char *dst, size_t *dcount)
 {
+    u_unused_args(iz, dst);
     *dcount = 0;
     return CODEC_FLUSH_COMPLETE;
 }
 
-static ssize_t gzip_transform(codec_gzip_t *iz, char *dst, size_t *dcount, 
+static ssize_t gzip_transform(codec_t *iz, char *dst, size_t *dcount, 
         const char *src, size_t src_sz)
 {
     ssize_t wr;
     
     dbg_err_if(src == NULL || dst == NULL || *dcount == 0 || src_sz == 0);
+
+    u_unused_args(iz);
 
     wr = MIN(src_sz, *dcount); 
     memcpy(dst, src, wr);
@@ -162,16 +168,18 @@ err:
     return -1;
 }
 
-static int gzip_free(codec_gzip_t *iz)
+static int gzip_free(codec_t *iz)
 {
     u_free(iz);
 
     return 0;
 }
 
-int codec_gzip_create(int op, codec_gzip_t **piz)
+int codec_gzip_create(int op, codec_t **piz)
 {
     codec_gzip_t *iz = NULL;
+
+    u_unused_args(op);
 
     iz = u_zalloc(sizeof(codec_gzip_t));
     dbg_err_if(iz == NULL);
@@ -180,7 +188,7 @@ int codec_gzip_create(int op, codec_gzip_t **piz)
     iz->codec.flush = gzip_flush;
     iz->codec.free = gzip_free;
 
-    *piz = iz;
+    *piz = (codec_t*)iz;
 
     return 0;
 err:

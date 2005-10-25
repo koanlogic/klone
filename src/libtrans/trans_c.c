@@ -101,7 +101,7 @@ static void print_header(parser_t *p, lang_c_ctx_t *ctx)
 static int print_zip_var_definition(parser_t *p, const char* varname, 
         const char* buf, size_t bufsz)
 {
-    codec_gzip_t *zip = NULL;
+    codec_t *zip = NULL;
     io_t *ios = NULL;
     int rc, i;
     unsigned char c;

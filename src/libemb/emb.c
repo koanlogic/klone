@@ -119,7 +119,7 @@ err:
 int emb_open(const char *file, io_t **pio)
 {
     embfile_t *e = NULL;
-    codec_gzip_t *gzip = NULL;
+    codec_t *gzip = NULL;
     io_t *io;
 
     dbg_err_if(emb_lookup(file, (embres_t**)&e) || e->res.type != ET_FILE);
@@ -138,7 +138,7 @@ int emb_open(const char *file, io_t **pio)
     return 0;
 err:
     if(gzip)
-        codec_free((codec_t*)gzip);
+        codec_free(gzip);
     return ~0;
 }
 

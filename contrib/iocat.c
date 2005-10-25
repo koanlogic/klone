@@ -78,11 +78,11 @@ int main(int argc, char **argv)
 {
     ssize_t c;
     io_t *in, *out;
-    codec_gzip_t *fi = NULL;
-    codec_null_t *null0 = NULL;
-    codec_null_t *null1 = NULL;
-    codec_null_t *null2 = NULL;
-    codec_null_t *null3 = NULL;
+    codec_t *fi = NULL;
+    codec_t *null0 = NULL;
+    codec_t *null1 = NULL;
+    codec_t *null2 = NULL;
+    codec_t *null3 = NULL;
     
     memset(ctx, 0, sizeof(context_t));
 
@@ -125,17 +125,17 @@ int main(int argc, char **argv)
          * the decode one on the output */
         if(ctx->encode)
         {
-            dbg_err_if(io_codec_add_tail(in, (codec_t*)null0));
-            dbg_err_if(io_codec_add_tail(in, (codec_t*)null1));
-            dbg_err_if(io_codec_add_tail(in, (codec_t*)fi));
-            dbg_err_if(io_codec_add_tail(in, (codec_t*)null2));
-            dbg_err_if(io_codec_add_tail(in, (codec_t*)null3));
+            dbg_err_if(io_codec_add_tail(in, null0));
+            dbg_err_if(io_codec_add_tail(in, null1));
+            dbg_err_if(io_codec_add_tail(in, fi));
+            dbg_err_if(io_codec_add_tail(in, null2));
+            dbg_err_if(io_codec_add_tail(in, null3));
         } else {
-            dbg_err_if(io_codec_add_tail(out, (codec_t*)null0));
-            dbg_err_if(io_codec_add_tail(out, (codec_t*)null1));
-            dbg_err_if(io_codec_add_tail(out, (codec_t*)fi));
-            dbg_err_if(io_codec_add_tail(out, (codec_t*)null2));
-            dbg_err_if(io_codec_add_tail(out, (codec_t*)null3));
+            dbg_err_if(io_codec_add_tail(out, null0));
+            dbg_err_if(io_codec_add_tail(out, null1));
+            dbg_err_if(io_codec_add_tail(out, fi));
+            dbg_err_if(io_codec_add_tail(out, null2));
+            dbg_err_if(io_codec_add_tail(out, null3));
         }
     }
 

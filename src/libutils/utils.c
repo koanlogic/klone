@@ -689,7 +689,7 @@ const char* u_guess_mime_type(const char *file_name)
 
 int u_io_unzip_copy(io_t *out, const uint8_t *data, size_t sz)
 {
-    codec_gzip_t *zip = NULL;
+    codec_t *zip = NULL;
     io_t *ios = NULL;
 
     /* create an io_t around the HTML block */

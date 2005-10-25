@@ -4,23 +4,26 @@
 #include <u/libu.h>
 #include "conf.h"
 
-struct codec_null_s
+typedef struct codec_null_s
 {
     codec_t codec;
-};
+} codec_null_t;
 
-static ssize_t null_flush(codec_null_t *iz, char *dst, size_t *dcount)
+static ssize_t null_flush(codec_t *cn, char *dst, size_t *dcount)
 {
+    u_unused_args(cn, dst);
     *dcount = 0;
     return CODEC_FLUSH_COMPLETE;
 }
 
-static ssize_t null_transform(codec_null_t *iz, char *dst, size_t *dcount, 
+static ssize_t null_transform(codec_t *cn, char *dst, size_t *dcount, 
         const char *src, size_t src_sz)
 {
     ssize_t wr;
     
     dbg_err_if(src == NULL || dst == NULL || *dcount == 0 || src_sz == 0);
+
+    u_unused_args(cn);
 
     wr = MIN(src_sz, *dcount); 
     memcpy(dst, src, wr);
@@ -32,31 +35,31 @@ err:
     return -1;
 }
 
-static int null_free(codec_null_t *iz)
+static int null_free(codec_t *cn)
 {
-    u_free(iz);
+    u_free(cn);
 
     return 0;
 }
 
 
-int codec_null_create(codec_null_t **piz)
+int codec_null_create(codec_t **pcn)
 {
-    codec_null_t *iz = NULL;
+    codec_null_t *cn = NULL;
 
-    iz = u_zalloc(sizeof(codec_null_t));
-    dbg_err_if(iz == NULL);
+    cn = u_zalloc(sizeof(codec_null_t));
+    dbg_err_if(cn == NULL);
 
-    iz->codec.transform = null_transform;
-    iz->codec.flush = null_flush;
-    iz->codec.free = null_free;      
+    cn->codec.transform = null_transform;
+    cn->codec.flush = null_flush;
+    cn->codec.free = null_free;      
 
-    *piz = iz;
+    *pcn = (codec_t*)cn;
 
     return 0;
 err:
-    if(iz)
-        u_free(iz);
+    if(cn)
+        u_free(cn);
     return ~0;
 }
 

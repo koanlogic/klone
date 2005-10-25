@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.4 2005/10/22 15:54:47 tat Exp $
+# $Id: Makefile,v 1.5 2005/10/25 22:20:27 tat Exp $
 
 include ../Makefile.conf
 
@@ -7,8 +7,6 @@ SRCS = iocat.c
 
 CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
 LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
-
-LDADD += ../libu/src/libu.a
 
 LDADD += ../src/libhttp/libhttp.a        \
          ../src/libutils/libutils.a      \
@@ -19,5 +17,7 @@ LDADD += ../src/libhttp/libhttp.a        \
          ../src/libtls/libtls.a          \
          ../src/libcodec/libcodec.a      \
          ../site/libsite.a
+
+LDADD += ../libu/src/libu.a
 
 include prog.mk

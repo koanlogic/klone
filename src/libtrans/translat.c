@@ -163,7 +163,7 @@ err:
 int translate(trans_info_t *pti)
 {
     io_t *in = NULL, *out = NULL, *tmp = NULL;
-    codec_gzip_t *gzip = NULL;
+    codec_t *gzip = NULL;
 
     /* open the input file */
     dbg_err_if(u_file_open(pti->file_in, O_RDONLY, &in));
@@ -202,7 +202,7 @@ int translate(trans_info_t *pti)
         {
             /* set a compression filter to the input stream */
             dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &gzip));
-            dbg_err_if(io_codec_add_tail(in, (codec_t*)gzip));
+            dbg_err_if(io_codec_add_tail(in, gzip));
             gzip = NULL;
         }
         /* check if encryption is requested */
@@ -224,7 +224,7 @@ int translate(trans_info_t *pti)
     return 0;
 err:
     if(gzip)
-        codec_free((codec_t*)gzip);
+        codec_free(gzip);
     if(tmp)
         io_free(tmp);
     if(in)
