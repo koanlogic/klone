@@ -17,10 +17,12 @@
 #include <u/libu.h>
 
 
+enum { SESSION_FILENAME_MAX_LENGTH = 256 };
+
 typedef struct enc_ses_mem_s
 {
     time_t mtime;               /* modification time    */
-    char filename[PATH_MAX];    /* session filename     */
+    char filename[SESSION_FILENAME_MAX_LENGTH];    /* session filename     */
     size_t size;                /* data size            */
     char data[1];               /* data block           */
 } enc_ses_mem_t;
@@ -235,7 +237,8 @@ static int session_mem_add(session_opt_t *so, const char *filename, char *buf,
         /* fill esm fields */
         esm->mtime = time(0);
         esm->size = size;
-        strncpy(esm->filename, filename, PATH_MAX);
+        dbg_err_if(strlen(filename) > SESSION_FILENAME_MAX_LENGTH); 
+        strncpy(esm->filename, filename, SESSION_FILENAME_MAX_LENGTH);
         memcpy(esm->data, buf, size);
 
         /* send the command request */
