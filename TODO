@@ -7,7 +7,10 @@ FIRST RELEASE:
         - * klog dump log program/function
         - * io_codec_add_tail, io_codec_add_head
         - * io_t codec chains support
-        - add -O2 to CFLAGS
+        - configure
+            + add -O2 to CFLAGS if not debugging
+            + remove libcrypto to dep
+
         - user msg on translate error (include file not found, etc.)
         - user msg on config error (server_list missing, etc.)
         - option to disable page/html-chunk compression even if libz is linked

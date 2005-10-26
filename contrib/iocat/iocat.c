@@ -45,7 +45,7 @@ static void parse_opt(int argc, char **argv)
 {
     int ret;
 
-    while((ret = getopt(argc, argv, "de")) != -1)
+    while((ret = getopt(argc, argv, "hde")) != -1)
     {
         switch(ret)
         {

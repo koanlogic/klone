@@ -178,6 +178,9 @@ static int io_rbuf_alloc(io_t *io)
     dbg_err_if(io->rbuf == NULL);
     io->roff = 0;
 
+    io->ubuf = (char*)u_malloc(io->rbsz);
+    dbg_err_if(io->ubuf == NULL);
+
     return 0;
 err:
     return ~0;
@@ -390,6 +393,9 @@ int io_free(io_t *io)
     if(io->rbuf)
         u_free(io->rbuf);
 
+    if(io->ubuf)
+        u_free(io->ubuf);
+
     if(io->wbuf)
         u_free(io->wbuf);
 
@@ -407,24 +413,38 @@ err:
 static ssize_t io_underflow(io_t *io)
 {
     ssize_t c;
+    size_t sz;
 
     if(io->rbuf == NULL)
         dbg_err_if(io_rbuf_alloc(io)); /* alloc the read buffer */
 
-    if(io->rcount == 0)
-    { /* buffer has been totally read, get more bytes from the device */
-        dbg_err_if((c = io->read(io, io->rbuf, io->rbsz)) < 0);
+    if(io->ucount == 0)
+    {   /* fetch some bytes from the device and fill the ubuffer */
+        dbg_err_if((c = io->read(io, io->ubuf, io->rbsz)) < 0);
         if(c == 0)
-            return 0; /* eof */
-        io->rcount = c;
-        io->roff = 0;
+            return 0;
+        io->ucount += c;
     }
-    return c;
+
+    /* transform all data in the buffer */
+    sz = io->rbsz - io->rcount;
+    dbg_err_if((c = io_transfer(io, io->rbuf, &sz, 
+        io->ubuf + io->uoff, io->ucount)) < 0);
+    dbg_err_if(c < 0);
+    dbg_err_if(c == 0 && sz == 0);
+    io->ucount -= c;
+    if(io->ucount == 0)
+        io->uoff = 0;
+    else
+        io->uoff += c;
+
+    io->rcount = sz;
+    io->roff = 0;
+
+    return sz;
 err:
-    dbg_strerror(errno);
     return -1;
 }
-
 
 /**
  * \brief  Read a block of data from an IO object
@@ -443,7 +463,7 @@ err:
 ssize_t io_read(io_t *io, char *buf, size_t size)
 {
     char *out = buf;
-    size_t sz;
+    size_t sz, wr;
     ssize_t c;
 
     if(io->eof)
@@ -453,7 +473,6 @@ ssize_t io_read(io_t *io, char *buf, size_t size)
     {
         if(io->rcount == 0)
         {
-            /* fetch some bytes and fill the buffer */
             dbg_err_if((c = io_underflow(io)) < 0);
             if(c == 0)
             {   /* eof, try to get some buffered byte from the codec */
@@ -466,17 +485,15 @@ ssize_t io_read(io_t *io, char *buf, size_t size)
                     out += sz;
                 }
                 break;
-            }
+            } 
         }
-        /* copy out bytes in the read buffer */
-        sz = size;
-        c = io_transfer(io, out, &sz, io->rbuf + io->roff, io->rcount);
-        dbg_err_if(c < 0);
-        dbg_err_if(c == 0 && sz == 0);
-        io->rcount -= c;
-        io->roff += c;
-        out += sz;
-        size -= sz;
+        /* copy out data */
+        wr = MIN(io->rcount, size); 
+        memcpy(out, io->rbuf + io->roff, wr);
+        io->rcount -= wr;
+        io->roff += wr;
+        out += wr;
+        size -= wr;
     }
 
     return out - buf;
@@ -638,6 +655,19 @@ inline ssize_t io_getc(io_t *io, char *pc)
     return io_read(io, pc, 1);
 }
 
+static inline char *io_strnchr(char *buf, size_t sz, char c)
+{
+    register char *p = buf;
+
+    while(sz--)
+    {
+        if(*p == c)
+            return p;
+        ++p;
+    }
+    return NULL;
+}
+
 /**
  * \brief  Read a line from an io object
  *
@@ -653,27 +683,57 @@ inline ssize_t io_getc(io_t *io, char *pc)
  */
 ssize_t io_gets(io_t *io, char *buf, size_t size)
 {
-    char ch, *p = buf;
-    ssize_t rc;
+    ssize_t wr, c, len = 0;
+    char *p;
 
     if(size < 2)
         return -1; /* buf too small */
 
     --size; /* save a char for \0 */
 
-    for(; size; --size)
+    if(io->rcount == 0)
+        io_underflow(io);
+
+    if(io->rcount == 0)
+        return 0;
+
+    for(;;)
     {
-        dbg_err_if((rc = io_getc(io, &ch)) < 0);
-
-        if(rc == 0)
-            break;  /* eof */
-
-        if((*p++ = ch) == '\n')
+        if((p = io_strnchr(io->rbuf + io->roff, io->rcount, '\n')) != NULL)
+        {
+            p++; /* jump over newline */
+            wr = MIN(p - (io->rbuf + io->roff), size);
+            memcpy(buf, io->rbuf + io->roff, wr);
+            buf[wr] = 0;
+            io->rcount -= wr;
+            io->roff += wr;
+            len += wr;
             break;
+        } else {
+            if(size >= io->rcount)
+            {
+                memcpy(buf, io->rbuf + io->roff, io->rcount);
+                len += io->rcount;
+                buf += io->rcount;
+                size -= io->rcount;
+                io->rcount = 0;
+                io->roff = 0;
+                dbg_err_if((c = io_underflow(io)) < 0);
+                if(c == 0)
+                    break;
+            } else {
+                /* buffer too small, return a partial line */
+                memcpy(buf, io->rbuf + io->roff, size);
+                len += size;
+                io->rcount -= size;
+                io->roff += size;
+                break;
+            }
+        }
     }
-    *p = 0;
 
-    return p - buf;
+    buf[len] = 0;
+    return len; /* return the # of chars in the line (strlen(line)) */
 err:
     return -1;
 }

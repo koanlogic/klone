@@ -112,7 +112,7 @@ static int session_client_save(session_t *ss)
         BUF_SIZE = COOKIE_MAX_SIZE + EVP_MAX_BLOCK_LENGTH + 96 
     };
     io_t *io = NULL;
-    codec_gzip_t *zip = NULL;
+    codec_t *zip = NULL;
     session_opt_t *so = ss->so;
     char hmac[HMAC_HEX_SIZE], buf[BUF_SIZE], ebuf[BUF_SIZE], mtime[MTIME_SIZE];
     size_t sz = 0;
@@ -130,7 +130,7 @@ static int session_client_save(session_t *ss)
     if(so->compress)
     {
         dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &zip));
-        dbg_err_if(io_codec_add_tail(io, (codec_t*)zip));
+        dbg_err_if(io_codec_add_tail(io, zip));
         zip = NULL; /* io_t owns it after io_codec_add_tail */
     }
 
@@ -184,7 +184,7 @@ err:
 
 static int session_client_load(session_t *ss)
 {
-    codec_gzip_t *zip = NULL;
+    codec_t *zip = NULL;
     io_t *io = NULL;
     session_opt_t *so = ss->so;
     char hmac[HMAC_HEX_SIZE], buf[COOKIE_MAX_SIZE], tmpbuf[COOKIE_MAX_SIZE]; 
@@ -236,7 +236,7 @@ static int session_client_load(session_t *ss)
     if(so->compress)
     {
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &zip));
-        dbg_err_if(io_codec_add_tail(io, (codec_t*)zip));
+        dbg_err_if(io_codec_add_tail(io, zip));
         zip = NULL; /* io_t owns it after io_codec_add_tail */
     }
 

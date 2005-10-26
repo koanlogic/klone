@@ -44,6 +44,11 @@ struct io_s
     size_t rcount;  /* available bytes in the buffer                          */
     size_t roff;    /* offset of the first byte to return                     */
 
+    /* underflow buffer */
+    char *ubuf;     /* underflow buffer                                       */
+    size_t ucount;  /* available bytes in the ubuffer                         */
+    size_t uoff;    /* offset of the first byte to return                     */
+
 
     /* output buffer */
 

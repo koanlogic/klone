@@ -675,11 +675,11 @@ int request_parse(request_t *rq,
     method = strtok_r(ln, WP, &pp); 
     dbg_err_if(!method || request_set_method(rq, method));
 
-    uri     = strtok_r(NULL, WP, &pp);
+    uri = strtok_r(NULL, WP, &pp);
     dbg_err_if(!uri || request_set_uri(rq, uri, is_valid_uri, arg));
 
     /* HTTP/0.9 not supported yet */ 
-    proto   = strtok_r(NULL, WP, &pp);
+    proto = strtok_r(NULL, WP, &pp);
     dbg_err_if(!proto || request_set_proto(rq, proto)); 
 
     dbg_err_if(header_load(rq->header, rq->io));
