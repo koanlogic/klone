@@ -332,26 +332,27 @@ err:
 static int server_dispatch(server_t *s, int fd)
 {
     backend_t *be;
-    int ad; 
+    int ad = -1; 
 
     /* find the backend that listen on fd */
     LIST_FOREACH(be, &s->bes, np)
-    {
         if(be->ld == fd)
-        {
-            /* accept the pending connection */
-            dbg_if(server_be_accept(s, be, &ad));
+            break;
 
-            dbg_if(server_be_serve(s, be, ad));
+    if(be == NULL) /* a child is ppc-calling */
+        return server_process_ppc(s, fd);
 
-            return 0;
-        }
-    }
+    /* accept the pending connection */
+    dbg_err_if(server_be_accept(s, be, &ad));
 
-    /* a child is calling, get a ppc (parent procedure call) request */
-    dbg_if(server_process_ppc(s, fd));
+    /* serve the page */
+    dbg_err_if(server_be_serve(s, be, ad));
 
     return 0;
+err:
+    if(ad != -1)
+        close(ad);
+    return ~0;
 }
 
 int server_loop(server_t *s)
