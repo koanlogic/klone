@@ -469,13 +469,14 @@ static int server_log_hook(void *arg, int level, const char *str)
        may happen if a log function is called from inside the hook */
     u_log_set_hook(NULL, NULL, &old, &old_arg);
 
-    if(ctx->pipc)
-    {   /* children context */
-        dbg_err_if(server_ppc_cmd_log_add(s, level, str));
-    } else {
-        /* parent context */
+    /* syslog klog doesn't go through ppc */
+    if(s->klog->type == KLOG_TYPE_SYSLOG || ctx->pipc == NULL)
+    {   /* syslog klog or parent context */
         if(s->klog)
             dbg_err_if(klog(s->klog, syslog_to_klog(level), str));
+    } else {
+        /* children context */
+        dbg_err_if(server_ppc_cmd_log_add(s, level, str));
     }
 
     /* re-set the old hook */

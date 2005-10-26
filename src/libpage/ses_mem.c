@@ -187,7 +187,6 @@ static int session_cmd_delold(ppc_t *ppc, int fd, unsigned char cmd,
 
     dbg_err_if(so == NULL);
 
-    dbg("deleting oldest session...");
     dbg_err_if(so_atom_delete_oldest(so));
 
     return 0;

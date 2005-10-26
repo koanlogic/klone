@@ -40,7 +40,9 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
     codec_t *gzip = NULL;
     int sai = 0; /* send as is */
 
+    /* 
     dbg("mime type: %s (%scompressed)", e->mime_type, (e->comp ? "" : "NOT "));
+    */
 
     /* set content-type, last-modified and content-length*/
     dbg_err_if(response_set_content_type(rs, e->mime_type));
