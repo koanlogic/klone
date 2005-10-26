@@ -162,7 +162,6 @@ int session_prv_init(session_t *ss, request_t *rq, response_t *rs)
     {
         dbg_err_if(session_set_id(ss, NULL));
         dbg_err_if(response_set_cookie(rs, SID_NAME, ss->id, 0, NULL, NULL, 0));
-        dbg("sid: %s", ss->id);
     } else
         dbg_err_if(session_set_id(ss, sid));
 
