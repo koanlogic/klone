@@ -12,6 +12,9 @@
 #include <klone/io.h>
 #include <klone/codec.h>
 #include <klone/codecs.h>
+#ifdef HAVE_LIBOPENSSL
+#include <openssl/evp.h>
+#endif
 
 static int preprocess(io_t *in, io_t *out);
 
@@ -163,7 +166,7 @@ err:
 int translate(trans_info_t *pti)
 {
     io_t *in = NULL, *out = NULL, *tmp = NULL;
-    codec_t *gzip = NULL;
+    codec_t *gzip = NULL, *aes = NULL;
 
     /* open the input file */
     dbg_err_if(u_file_open(pti->file_in, O_RDONLY, &in));
@@ -205,13 +208,14 @@ int translate(trans_info_t *pti)
             dbg_err_if(io_codec_add_tail(in, gzip));
             gzip = NULL;
         }
+        #ifdef HAVE_LIBOPENSSL
         /* check if encryption is requested */
-        #if 0
-        if(pti->enc)
+        if(pti->encrypt)
         {
             /* set a cipher filter */
-            dbg_err_if(codec_aes_create(CIPHER_ENCRYPT, &aes));
-            dbg_err_if(io_codec_add_tail(in, (codec_t*)aes));
+            dbg_err_if(codec_cipher_create(CIPHER_ENCRYPT, EVP_aes_256_cbc(),
+                pti->key, NULL, &aes));
+            dbg_err_if(io_codec_add_tail(in, aes));
             aes = NULL;
         }
         #endif

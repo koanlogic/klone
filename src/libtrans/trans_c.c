@@ -185,13 +185,15 @@ static void print_static_page_block(io_t *out, lang_c_ctx_t *ctx)
         "   e.mime_type = \"%s\";           \n"
         "   e.mtime = %lu;                  \n"
         "   e.comp = %d;                    \n"
+        "   e.encrypted = %d;               \n"
         "}                                  \n",
         ctx->ti->uri, 
          /* file_size will be == to size if the file is not compressed */
         ctx->ti->file_size, 
         u_guess_mime_type(ctx->ti->uri), 
         ctx->ti->mtime, 
-        ctx->ti->comp);
+        ctx->ti->comp,
+        ctx->ti->encrypt);
 }
 
 static void print_dynamic_page_block(io_t *out, lang_c_ctx_t *ctx)

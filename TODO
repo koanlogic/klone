@@ -9,6 +9,8 @@ FIRST RELEASE:
         - * io_t codec chains support
         - remove klone/src/libos (moved to libu)
 
+        - io_getc opt
+
         - configure
             + add -O2 to CFLAGS if not debugging
             + remove libcrypto to dep

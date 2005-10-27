@@ -2,6 +2,7 @@
 #define _TRANSLAT_H_
 #include <limits.h>
 #include <klone/io.h>
+#include <klone/codecs.h>
 
 enum { 
     URI_BUFSZ = 1024, MIME_BUFSZ = 256, 
@@ -17,9 +18,9 @@ typedef struct trans_info_s
 {
     char file_in[NAME_BUFSZ], file_out[NAME_BUFSZ];
     char uri[URI_BUFSZ], mime_type[MIME_BUFSZ];
-    char key_file[NAME_BUFSZ];
+    char key[CODEC_CIPHER_KEY_SIZE];
     int comp;
-    int enc;
+    int encrypt;
     size_t file_size;
     time_t mtime;
 } trans_info_t;

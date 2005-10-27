@@ -33,6 +33,8 @@ typedef struct
     size_t narg;                /* argc                         */
     int cmd;                    /* command to run               */
     char *base_uri;             /* site base uri                */
+    int encrypt;                /* >0 when encryption is enabled*/
+    int compress;               /* >0 when compress is enabled  */
     char *key_file;             /* encryption key file name     */
     io_t *iom, *iod, *ior;      /* io makefile, io deps         */
     size_t ndir, nfile;         /* dir and file count           */
@@ -67,7 +69,10 @@ static void usage(void)
 "            -u URI      URI of translated page                             \n"
 "            -i file     input file                                         \n"
 "            -o file     output file                                        \n"
+"            -e          encrypt file content                               \n"
 "            -k key_file encryption key filename                            \n"
+"                        (KLONE_KEY environ var is used if not provided)    \n"
+"            -z          compress file content                              \n"
 "\n";
 ;
 
@@ -103,7 +108,7 @@ static int parse_opt(int argc, char **argv)
     if(argc == 1)
         usage();
 
-    while((ret = getopt(argc, argv, "hvVb:k:i:o:u:c:")) != -1)
+    while((ret = getopt(argc, argv, "hvVb:ek:i:o:u:c:z")) != -1)
     {
         switch(ret)
         {
@@ -112,6 +117,9 @@ static int parse_opt(int argc, char **argv)
             break;
         case 'V': /* verbose on */
             version();
+            break;
+        case 'e': /* encryption on */
+            ctx->encrypt = 1;
             break;
         case 'c': /* command */
             if(!strcasecmp(optarg, "import"))
@@ -156,6 +164,9 @@ static int parse_opt(int argc, char **argv)
             remove_trailing_slash(ctx->uri);
 
             break;
+        case 'z': /* compress */
+            ctx->compress = 1;
+            break;
         default:
         case 'h': 
             usage();
@@ -171,14 +182,33 @@ err:
     return ~0;
 }
 
+static int set_key_from_file(trans_info_t *pti, const char *key_file)
+{
+    io_t *io = NULL;
+
+    dbg_err_if(u_file_open(key_file, O_RDONLY, &io));
+
+    dbg_err_if(io_read(io, pti->key, CODEC_CIPHER_KEY_SIZE) <= 0);
+    
+    io_free(io);
+
+    return 0;
+err:
+    return ~0;
+}
+
 static int command_trans(void)
 {
     trans_info_t ti;
     const mime_map_t *mm;
     struct stat st;
+    char *key_env;
+    int key_found = 0;
 
     if(ctx->narg != 0)
         usage();    /* no argument allowed */
+
+    memset(&ti, 0, sizeof(trans_info_t));
 
     klone_die_if(!ctx->file_in, "input file name required (-i file)");
     klone_die_if(!ctx->file_out, "output file name required (-o file)");
@@ -197,26 +227,55 @@ static int command_trans(void)
     /* uri */
     strncpy(ti.uri, ctx->uri, URI_BUFSZ);
 
-    /* key_file */
-    if(ctx->key_file)
+    /* zero out the key (some byte could not be overwritten with small keys) */
+    memset(ti.key, 0, CODEC_CIPHER_KEY_SIZE);
+
+    /* sanity checks */
+    con_err_ifm(ctx->key_file && !ctx->encrypt, "-k used but -e is missing");
+
+    /* encryption key */
+    key_env = getenv("KLONE_KEY");
+    if(key_env && strlen(key_env))
     {
-        strncpy(ti.key_file, ctx->key_file, NAME_BUFSZ);
-        ti.enc = 1; /* encrypt */
+        key_found = 1;
+        strncpy(ti.key, key_env, CODEC_CIPHER_KEY_SIZE);
     }
 
-    /* mime_type */
-    if((mm = u_get_mime_map(ctx->file_in)) != NULL)
+    /* if -k has been used the overwrite KLONE_KEY env var (if present) */
+    if(ctx->key_file)
     {
-        strncpy(ti.mime_type, mm->mime_type, MIME_BUFSZ);
-        ti.comp = mm->comp;
-    } else {
-        /* unable to guess mime type, use default */
-        strncpy(ti.mime_type, "application/octect-stream", MIME_BUFSZ);
-        ti.comp = 1; /* compress it, libz never enlarge uncompressable files  */
+        key_found = 1;
+        con_err_ifm(set_key_from_file(&ti, ctx->key_file), 
+            "error reading key file [%s]", ctx->key_file);
     }
-    #ifndef HAVE_LIBZ
-    ti.comp = 0;
-    #endif
+
+    if(ctx->encrypt)
+    {
+        if(!key_found)
+            con_err("encryption key required (use -k or KLONE_KEY environ "
+                    "variable)");
+        ti.encrypt = 1;
+        #ifndef HAVE_LIBOPENSSL
+        con_err("encryption requires OpenSSL (that's not linked in)");
+        #endif
+    }
+
+    /* compress if requested and the file is compressable (by MIME type) */
+    if(ctx->compress)
+    {
+        if((mm = u_get_mime_map(ctx->file_in)) != NULL)
+        {
+            strncpy(ti.mime_type, mm->mime_type, MIME_BUFSZ);
+            ti.comp = mm->comp;
+        } else {
+            /* unable to guess mime type, use default */
+            strncpy(ti.mime_type, "application/octect-stream", MIME_BUFSZ);
+            ti.comp = 1; /* compress it libz never enlarge uncompressable data*/
+        }
+        #ifndef HAVE_LIBZ
+        con_err("compression requires zlib (that's not linked in)");
+        #endif
+    }
 
     /* be sure that the input file exists */
     klone_die_if(stat(ctx->file_in, &st), "input file not found");
