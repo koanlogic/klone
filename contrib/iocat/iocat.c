@@ -78,11 +78,15 @@ int main(int argc, char **argv)
 {
     ssize_t c;
     io_t *in, *out;
-    codec_t *fi = NULL;
     codec_t *null0 = NULL;
     codec_t *null1 = NULL;
     codec_t *null2 = NULL;
     codec_t *null3 = NULL;
+    codec_t *null4 = NULL;
+    codec_t *zip = NULL;
+    codec_t *unzip = NULL;
+    codec_t *encrypt = NULL;
+    codec_t *decrypt = NULL;
     
     memset(ctx, 0, sizeof(context_t));
 
@@ -113,36 +117,39 @@ int main(int argc, char **argv)
     dbg_err_if(codec_null_create(&null1));
     dbg_err_if(codec_null_create(&null2));
     dbg_err_if(codec_null_create(&null3));
+    dbg_err_if(codec_null_create(&null4));
 
-    //if(ctx->decode)
-    //    dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &fi));
-    //else if(ctx->encode)
-    //    dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &fi));
+    /* zip */
+    dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &zip));
+    dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &unzip));
 
-    if(ctx->decode)
-        dbg_err_if(codec_cipher_create(CIPHER_DECRYPT, EVP_aes_256_cbc(),
-            "pwd", NULL, &fi));
-    else if(ctx->encode)
-        dbg_err_if(codec_cipher_create(CIPHER_ENCRYPT, EVP_aes_256_cbc(),
-            "pwd", NULL, &fi));
+    /* aes256 */
+    dbg_err_if(codec_cipher_create(CIPHER_ENCRYPT, EVP_aes_256_cbc(),
+            "pwd", NULL, &encrypt));
+    dbg_err_if(codec_cipher_create(CIPHER_DECRYPT, EVP_aes_256_cbc(),
+            "pwd", NULL, &decrypt));
 
-    if(fi)
+    if(ctx->encode || ctx->decode)
     {
         /* for testing purpose attach the encode codec on input stream and 
-         * the decode one on the output */
+         * the decode one on the output; also add a few null codecs  */
         if(ctx->encode)
         {
             dbg_err_if(io_codec_add_tail(in, null0));
             dbg_err_if(io_codec_add_tail(in, null1));
-            dbg_err_if(io_codec_add_tail(in, fi));
+            dbg_err_if(io_codec_add_tail(in, zip));
             dbg_err_if(io_codec_add_tail(in, null2));
+            dbg_err_if(io_codec_add_tail(in, encrypt));
             dbg_err_if(io_codec_add_tail(in, null3));
+            dbg_err_if(io_codec_add_tail(in, null4));
         } else {
             dbg_err_if(io_codec_add_tail(out, null0));
             dbg_err_if(io_codec_add_tail(out, null1));
-            dbg_err_if(io_codec_add_tail(out, fi));
+            dbg_err_if(io_codec_add_tail(out, decrypt));
             dbg_err_if(io_codec_add_tail(out, null2));
+            dbg_err_if(io_codec_add_tail(out, unzip));
             dbg_err_if(io_codec_add_tail(out, null3));
+            dbg_err_if(io_codec_add_tail(out, null4));
         }
     }
 
