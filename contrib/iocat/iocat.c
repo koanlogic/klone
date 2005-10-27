@@ -114,10 +114,17 @@ int main(int argc, char **argv)
     dbg_err_if(codec_null_create(&null2));
     dbg_err_if(codec_null_create(&null3));
 
+    //if(ctx->decode)
+    //    dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &fi));
+    //else if(ctx->encode)
+    //    dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &fi));
+
     if(ctx->decode)
-        dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &fi));
+        dbg_err_if(codec_cipher_create(CIPHER_DECRYPT, EVP_aes_256_cbc(),
+            "pwd", NULL, &fi));
     else if(ctx->encode)
-        dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &fi));
+        dbg_err_if(codec_cipher_create(CIPHER_ENCRYPT, EVP_aes_256_cbc(),
+            "pwd", NULL, &fi));
 
     if(fi)
     {
@@ -138,7 +145,6 @@ int main(int argc, char **argv)
             dbg_err_if(io_codec_add_tail(out, null3));
         }
     }
-
 
     while((c = io_pipe(out, in)) > 0)
          ;

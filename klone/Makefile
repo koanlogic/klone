@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2005/10/25 13:33:24 tat Exp $
+# $Id: Makefile,v 1.7 2005/10/27 14:56:36 tat Exp $
 include ../Makefile.conf
 
 INCS = addr.h backend.h broker.h cgi.h codec.h cgzip.h config.h cnull.h   \
@@ -7,5 +7,9 @@ INCS = addr.h backend.h broker.h cgi.h codec.h cgzip.h config.h cnull.h   \
  response.h run.h server.h ses_prv.h session.h str.h supplier.h           \
  sysqueue.h timer.h tls.h tlsprv.h translat.h uri.h utils.h var.h         \
  varprv.h vars.h ppc.h codecs.h caes.h rsfilter.h
+
+ifdef HAVE_LIBOPENSSL
+INCS += ccipher.h
+endif
 
 include incs.mk

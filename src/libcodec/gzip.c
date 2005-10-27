@@ -23,7 +23,7 @@ static ssize_t gzip_flush(codec_t *codec, char *dst, size_t *dcount)
     codec_gzip_t *iz = (codec_gzip_t*)codec;
 
     /* can't set it to NULL even if zlib must not use it (avail_in == 0) */
-    iz->zstr.next_in = 0xDEADBEEF;
+    iz->zstr.next_in = (char*)0xDEADBEEF;
     iz->zstr.avail_in = 0;
 
     #if !defined(ZLIB_VERNUM) || ZLIB_VERNUM < 0x1200
@@ -83,8 +83,9 @@ err:
     return -1;
 }
 
-static int gzip_free(codec_gzip_t *iz)
+static int gzip_free(codec_t *codec)
 {
+    codec_gzip_t *iz = (codec_gzip_t*)codec;
     int err;
 
     dbg_err_if((err = iz->opEnd(&iz->zstr)) != Z_OK);
@@ -123,7 +124,7 @@ int codec_gzip_create(int op, codec_t **piz)
         dbg_err_if(inflateInit2(&iz->zstr, -MAX_WBITS) != Z_OK);
         break;
     default:
-        dbg_err_if("bad op");
+        dbg_err_if("bad gzip op");
     }
 
     *piz = (codec_t*)iz;

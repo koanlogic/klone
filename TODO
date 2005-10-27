@@ -7,6 +7,8 @@ FIRST RELEASE:
         - * klog dump log program/function
         - * io_codec_add_tail, io_codec_add_head
         - * io_t codec chains support
+        - remove klone/src/libos (moved to libu)
+
         - configure
             + add -O2 to CFLAGS if not debugging
             + remove libcrypto to dep

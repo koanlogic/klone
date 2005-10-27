@@ -418,30 +418,33 @@ static ssize_t io_underflow(io_t *io)
     if(io->rbuf == NULL)
         dbg_err_if(io_rbuf_alloc(io)); /* alloc the read buffer */
 
-    if(io->ucount == 0)
-    {   /* fetch some bytes from the device and fill the ubuffer */
-        dbg_err_if((c = io->read(io, io->ubuf, io->rbsz)) < 0);
-        if(c == 0)
-            return 0;
-        io->ucount += c;
+    while(io->rcount == 0)
+    {
+        if(io->ucount == 0)
+        {   /* fetch some bytes from the device and fill the ubuffer */
+            dbg_err_if((c = io->read(io, io->ubuf, io->rbsz)) < 0);
+            if(c == 0)
+                return 0;
+            io->ucount += c;
+        }
+
+        /* transform all data in the buffer */
+        sz = io->rbsz - io->rcount;
+        dbg_err_if((c = io_transfer(io, io->rbuf, &sz, 
+            io->ubuf + io->uoff, io->ucount)) < 0);
+        dbg_err_if(c < 0);
+        dbg_err_if(c == 0 && sz == 0);
+        io->ucount -= c;
+        if(io->ucount == 0)
+            io->uoff = 0;
+        else
+            io->uoff += c;
+
+        io->rcount = sz;
+        io->roff = 0;
     }
 
-    /* transform all data in the buffer */
-    sz = io->rbsz - io->rcount;
-    dbg_err_if((c = io_transfer(io, io->rbuf, &sz, 
-        io->ubuf + io->uoff, io->ucount)) < 0);
-    dbg_err_if(c < 0);
-    dbg_err_if(c == 0 && sz == 0);
-    io->ucount -= c;
-    if(io->ucount == 0)
-        io->uoff = 0;
-    else
-        io->uoff += c;
-
-    io->rcount = sz;
-    io->roff = 0;
-
-    return sz;
+    return io->rcount;
 err:
     return -1;
 }
