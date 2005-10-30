@@ -65,17 +65,15 @@ static void usage(void)
 "            -b URI      base URI                                           \n"
 "            dir         directory tree path                                \n"
 "\n"
-"          translate -i in -o out -u URI                                    \n"
-"            -u URI      URI of translated page                             \n"
-"            -i file     input file                                         \n"
-"            -o file     output file                                        \n"
+"          translate [-ez] [-k key_file] -i in -o out -u uri                \n"
 "            -e          encrypt file content                               \n"
+"            -i file     input file                                         \n"
 "            -k key_file encryption key filename                            \n"
+"            -o file     output file                                        \n"
+"            -u URI      URI of translated page                             \n"
 "                        (KLONE_KEY environ var is used if not provided)    \n"
 "            -z          compress file content                              \n"
 "\n";
-;
-
 
     fprintf(stderr, us, klone_version());
 
