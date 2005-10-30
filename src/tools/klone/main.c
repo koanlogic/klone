@@ -52,7 +52,7 @@ static void usage(void)
 "\n"
 "    -h          display this help                                          \n"
 "    -v          verbose mode                                               \n"
-"    -V          print klone version and exit                               \n"
+"    -V          print KLone version and exit                               \n"
 "    -c          command                                                    \n"
 "\n"
 "    COMMAND LIST:                                                          \n"
@@ -77,18 +77,7 @@ static void usage(void)
 ;
 
 
-    fprintf(stderr, us, KLONE_VERSION);
-
-    exit(EXIT_FAILURE);
-}
-
-static void version(void)
-{
-    static const char *vv = 
-    "klone %s - Copyright (c) 2005 KoanLogic s.r.l. - All rights reserved. \n"
-    "\n";
-
-    fprintf(stderr, vv, KLONE_VERSION);
+    fprintf(stderr, us, klone_version());
 
     exit(EXIT_FAILURE);
 }
@@ -115,8 +104,8 @@ static int parse_opt(int argc, char **argv)
         case 'v': /* verbose on */
             ctx->verbose = 1;
             break;
-        case 'V': /* verbose on */
-            version();
+        case 'V': /* print name/version info and exit */
+            u_print_version_and_exit();
             break;
         case 'e': /* encryption on */
             ctx->encrypt = 1;

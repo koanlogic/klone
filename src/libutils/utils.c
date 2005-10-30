@@ -272,6 +272,17 @@ static int u_hex2ch(char c)
         return -1; /* error */
 }
 
+void u_print_version_and_exit(void)
+{
+    static const char *vv = 
+    "KLone %s - Copyright (c) 2005 KoanLogic s.r.l. - All rights reserved. \n"
+    "\n";
+
+    fprintf(stderr, vv, klone_version());
+
+    exit(EXIT_FAILURE);
+}
+
 static ssize_t u_hexncpy_decode(char *d, const char *s, size_t slen)
 {
 	size_t i, t;

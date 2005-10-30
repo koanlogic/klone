@@ -6,6 +6,7 @@
 #include <klone/os.h>
 #include "conf.h"
 #include <klone/context.h>
+#include <klone/utils.h>
 #include <u/libu.h>
 #include "main.h"
 
@@ -26,16 +27,22 @@ context_t  *ctx = &c; /* exported */
 
 static void usage()
 {
-    fprintf(stderr, 
-        "Usage: kloned [-f u_config_file] [-d]                    \n"
-        "          -d                    turn on debugging      \n"
-        "          -F                    run in foreground      \n"
-        #ifdef OS_WIN
-        "          -i                    install service        \n"
-        "          -u                    remove service         \n"
-        #endif
-        "          -f u_config_file        use config file        \n"
-        );
+    static const char *us = 
+"Usage: kloned OPTIONS ARGUMENTS                                            \n"
+"Version: %s - Copyright (c) 2005 KoanLogic s.r.l. - All rights reserved.   \n"
+"\n"
+"    -d          turn on debugging                                          \n"
+"    -f file     load an external config file                               \n"
+"    -F          run in foreground                                          \n"
+"    -h          display this help                                          \n"
+#ifdef OS_WIN
+"    -i          install KLone Windows service                              \n"
+"    -u          remove KLone Windows service                               \n"
+#endif
+"    -V          print KLone version and exit                               \n"
+"\n";
+
+    fprintf(stderr, us, klone_version());
 
     exit(1);
 }
@@ -44,9 +51,9 @@ static int parse_opt(int argc, char **argv)
 {
     int ret;
     #ifdef OS_WIN
-        #define CMDLINE_FORMAT "hFdiuf:"
+        #define CMDLINE_FORMAT "hVFdiuf:"
     #else
-        #define CMDLINE_FORMAT "hFdf:"
+        #define CMDLINE_FORMAT "hVFdf:"
     #endif
 
     /* set defaults */
@@ -68,6 +75,10 @@ static int parse_opt(int argc, char **argv)
 
         case 'F':   /* run in foreground (not as a daemon/service) */
             ctx->daemon = 0;
+            break;
+
+        case 'V':   /* print version and exit */
+            u_print_version_and_exit();
             break;
 
         #ifdef OS_WIN

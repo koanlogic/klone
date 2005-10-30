@@ -11,6 +11,10 @@ FIRST RELEASE:
 
         - io_getc opt
 
+        - encrypted contents support
+            + decryption key sharing via ppc
+            + tools/klone support (klone -c import -e embfs/crypted_tree embfs)
+
         - configure
             + add -O2 to CFLAGS if not debugging
             + remove libcrypto to dep
@@ -19,9 +23,6 @@ FIRST RELEASE:
         - user msg on config error (server_list missing, etc.)
         - option to disable page/html-chunk compression even if libz is linked
 
-        - encrypted contents support
-            + decryption key sharing via ppc
-            + tools/klone support (klone -c import -e embfs/crypted_tree embfs)
 
         - testing & profiling
         - GPL header in autogen files

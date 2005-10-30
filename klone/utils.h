@@ -90,4 +90,7 @@ int u_rfc822_to_tt(const char *str, time_t *tp);
 int u_rfc850_to_tt(const char *str, time_t *tp);
 int u_asctime_to_tt(const char *str, time_t *tp);
 
+void u_print_version_and_exit(void);
+
+
 #endif
