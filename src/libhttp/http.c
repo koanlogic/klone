@@ -51,7 +51,6 @@ struct http_status_map_s
     { HTTP_STATUS_NOT_MODIFIED          , "Not Modified"            },
     { HTTP_STATUS_MOVED_PERMANENTLY     , "Moved Permanently"       },
     { HTTP_STATUS_MOVED_TEMPORARILY     , "Moved Temporarily"       },
-#if 0    
     { HTTP_STATUS_CREATED               , "Created"                 },
     { HTTP_STATUS_ACCEPTED              , "Accepted"                },
     { HTTP_STATUS_NO_CONTENT            , "No Content"              },
@@ -61,7 +60,6 @@ struct http_status_map_s
     { HTTP_STATUS_NOT_IMPLEMENTED       , "Not Implemented"         },
     { HTTP_STATUS_BAD_GATEWAY           , "Bad Gateway"             },
     { HTTP_STATUS_SERVICE_UNAVAILABLE   , "Service Unavailable"     },
-#endif
     { 0                                 , NULL                      }
 
 };

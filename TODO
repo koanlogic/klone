@@ -15,8 +15,8 @@ FIRST RELEASE:
         - io_getc opt
 
         - encrypted contents support
-            + decryption key sharing via ppc
-            + tools/klone support (klone -c import -e embfs/crypted_tree embfs)
+            + (encrypted?) decryption key in user session
+            + encryption key submit page/function
 
         - configure
             + add -O2 to CFLAGS if not debugging

@@ -35,14 +35,37 @@ err:
     return 0; /* not found */
 }
 
-static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
+static int supemb_get_cipher_key(request_t *rq, response_t *rs, char *key)
 {
-    codec_t *gzip = NULL;
-    int sai = 0; /* send as is */
+    session_t *ss = NULL;
+    http_t *http = NULL;
+    session_opt_t *so;
+    const char *sess_key;
 
-    /* 
-    dbg("mime type: %s (%scompressed)", e->mime_type, (e->comp ? "" : "NOT "));
-    */
+    /* get session options */
+    dbg_err_if((http = request_get_http(rq)) == NULL);
+    dbg_err_if((so = http_get_session_opt(http)) == NULL);
+
+    /* create/get the session */
+    dbg_err_if(session_create(so, rq, rs, &ss));
+
+    dbg_err_if((sess_key = session_get(ss, "KLONE_CIPHER_KEY")) == NULL);
+
+    strncpy(key, sess_key, CODEC_CIPHER_KEY_SIZE);
+
+    session_free(ss);
+
+    return 0;
+err:
+    if(ss)
+        session_free(ss);
+    return ~0;
+}
+
+static int supemb_static_set_header_fields(request_t *rq, response_t *rs, 
+    embfile_t *e, int *sai)
+{
+    /* set header fields based on embfile_t struct */
 
     /* set content-type, last-modified and content-length*/
     dbg_err_if(response_set_content_type(rs, e->mime_type));
@@ -51,17 +74,52 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
 
     /* if the client can accept deflated content then don't uncompress the 
        resource but send as it is */
-    if(e->comp && (sai = request_is_encoding_accepted(rq, "deflate")) != 0)
+    if(e->comp && (*sai = request_is_encoding_accepted(rq, "deflate")) != 0)
     {   /* we can send compressed responses */
         dbg_err_if(response_set_content_encoding(rs, "deflate"));
         dbg_err_if(response_set_content_length(rs, e->size));
     } 
 
-    /* print HTTP header */
-    dbg_err_if(response_print_header(rs));
+    return 0;
+err:
+    return ~0;
+}
 
+static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
+{
+    codec_t *gzip = NULL, *decrypt = NULL;
+    int sai = 0; /* send as is */
+    char key[CODEC_CIPHER_KEY_SIZE];
+
+    /* 
+    dbg("mime type: %s (%scompressed)", e->mime_type, (e->comp ? "" : "NOT "));
+    */
+
+    /* if this is a HEAD request print the header and exit */
     if(request_get_method(rq) == HM_HEAD)
+    {
+        dbg_err_if(supemb_static_set_header_fields(rq, rs, e, &sai));
+        dbg_err_if(response_print_header(rs));
         return 0; /* just the header is requested */
+    }
+
+    /* if the resource is encrypted unencrypt using the key stored in 
+       KLONE_CIPHER_KEY session variable */
+    if(e->encrypted)
+    {
+        if(supemb_get_cipher_key(rq, rs, key))
+        {   /* if the content is encrypted and there's no key then exit */
+            dbg_err_if(response_set_status(rs, 401));
+            dbg_err("cipher key not found, aborting");
+        }
+        dbg_err_if(codec_cipher_create(CIPHER_DECRYPT, EVP_aes_256_cbc(),
+                    key, NULL, &decrypt));
+        dbg_err_if(io_codec_add_head(response_io(rs), decrypt));
+        decrypt = NULL; /* io_t owns it after io_codec_add_tail */
+    } 
+
+    /* set HTTP header based on 'e' (we have the cipher key here) */
+    dbg_err_if(supemb_static_set_header_fields(rq, rs, e, &sai));
 
     /* if needed apply a gzip codec to uncompress content data */
     if(e->comp && !sai)
@@ -80,6 +138,8 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
 
     return 0;
 err:
+    if(decrypt)
+        codec_free(decrypt);
     if(gzip)
         codec_free(gzip);
     return ~0;
