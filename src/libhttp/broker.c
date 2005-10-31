@@ -38,8 +38,10 @@ int broker_serve(broker_t *b, request_t *rq, response_t *rs)
         {
             ims = request_get_if_modified_since(rq);
             if(ims && ims >= mtime)
+            {
                 response_set_status(rs, HTTP_STATUS_NOT_MODIFIED); 
-            else
+                dbg_err_if(response_print_header(rs));
+            } else
                 dbg_err_if(b->sup_list[i]->serve(rq, rs));
 
             return 0;
