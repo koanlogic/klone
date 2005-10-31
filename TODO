@@ -9,6 +9,9 @@ FIRST RELEASE:
         - * io_t codec chains support
         - remove klone/src/libos (moved to libu)
 
+        - klone && kloned usage() proofreading
+        - klone and kloned man update
+
         - io_getc opt
 
         - encrypted contents support

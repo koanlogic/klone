@@ -13,6 +13,7 @@
 #include <klone/utils.h>
 #include <klone/run.h>
 #include <klone/mime_map.h>
+#include <klone/version.h>
 #include <u/libu.h>
 #include "conf.h"
 
@@ -26,18 +27,20 @@ enum flags_e { FLAG_NONE, FLAG_VERBOSE };
 
 typedef struct 
 {
-    char *file_in, *file_out;   /* [trans] input, output file   */
-    char *uri;                  /* [trans] translated file uri  */
-    int verbose;                /* >0 when verbose mode is on   */
-    char **arg;                 /* argv                         */
-    size_t narg;                /* argc                         */
-    int cmd;                    /* command to run               */
-    char *base_uri;             /* site base uri                */
-    int encrypt;                /* >0 when encryption is enabled*/
-    int compress;               /* >0 when compress is enabled  */
-    char *key_file;             /* encryption key file name     */
-    io_t *iom, *iod, *ior;      /* io makefile, io deps         */
-    size_t ndir, nfile;         /* dir and file count           */
+    char *file_in, *file_out;   /* [trans] input, output file       */
+    char *uri;                  /* [trans] translated file uri      */
+    int verbose;                /* >0 when verbose mode is on       */
+    char **arg;                 /* argv                             */
+    size_t narg;                /* argc                             */
+    int cmd;                    /* command to run                   */
+    char *base_uri;             /* site base uri                    */
+    int encrypt;                /* >0 when encryption is enabled    */
+    int compress;               /* >0 when compress is enabled      */
+    char *enc_patt;             /* encrypt file pattern             */
+    char *comp_patt;            /* compress file pattern            */
+    char *key_file;             /* encryption key file name         */
+    io_t *iom, *iod, *ior;      /* io makefile, io deps             */
+    size_t ndir, nfile;         /* dir and file count               */
 } context_t;
 
 context_t *ctx;
@@ -50,29 +53,45 @@ static void usage(void)
 "Usage: klone [-hvV] -c COMMAND OPTIONS ARGUMENTS                           \n"
 "Version: %s - Copyright (c) 2005 KoanLogic s.r.l. - All rights reserved.   \n"
 "\n"
-"    -h          display this help                                          \n"
-"    -v          verbose mode                                               \n"
-"    -V          print KLone version and exit                               \n"
-"    -c          command                                                    \n"
+"       -h            display this help                                     \n"
+"       -v            verbose mode                                          \n"
+"       -V            print KLone version and exit                          \n"
+"       -c command    command to execute (see COMMAND LIST)                 \n"
+"\n"
 "\n"
 "    COMMAND LIST:                                                          \n"
-"          import        import a directory tree in the embedded filesystem \n"
-"          translate     convert a file or a dynamic web page to a C file   \n"
+"       import        import a directory tree in the embedded filesystem    \n"
+"       translate     convert a file or a dynamic web page to a C file      \n"
+"\n"
 "\n"
 "    COMMANDS SYNTAX:                                                       \n"
 "\n"
-"          import [-b URI] dir                                              \n"
-"            -b URI      base URI                                           \n"
-"            dir         directory tree path                                \n"
+"       import OPTIONS dir                                                  \n"
+"         -b URI      base URI                                              \n"
+#ifdef HAVE_LIBOPENSSL
+"         -e pattern  encrypt all files whose URI match the given pattern   \n"
+"         -k key_file encryption key filename                               \n"
+#endif
+#ifdef HAVE_LIBZ
+"         -z          compress all compressable content (based on MIME type)\n"
+"         -Z pattern  compress all files whose URI match the given pattern  \n"
+#endif
+"         dir         directory tree path                                   \n"
 "\n"
-"          translate [-ez] [-k key_file] -i in -o out -u uri                \n"
-"            -e          encrypt file content                               \n"
-"            -i file     input file                                         \n"
-"            -k key_file encryption key filename                            \n"
-"            -o file     output file                                        \n"
-"            -u URI      URI of translated page                             \n"
-"                        (KLONE_KEY environ var is used if not provided)    \n"
-"            -z          compress file content                              \n"
+"       translate OPTIONS                                                   \n"
+#ifdef HAVE_LIBOPENSSL
+"         -E          encrypt file content                                  \n"
+#endif
+"         -i file     input file                                            \n"
+#ifdef HAVE_LIBOPENSSL
+"         -k key_file encryption key filename                               \n"
+#endif
+"         -o file     output file                                           \n"
+"         -u URI      URI of translated page                                \n"
+"                     (KLONE_KEY environ var is used if not provided)       \n"
+#ifdef HAVE_LIBZ
+"         -z          compress file content                                 \n"
+#endif
 "\n";
 
     fprintf(stderr, us, klone_version());
@@ -91,11 +110,25 @@ static void remove_trailing_slash(char *s)
 static int parse_opt(int argc, char **argv)
 {
     int ret;
+    char opts[512];
 
     if(argc == 1)
         usage();
 
-    while((ret = getopt(argc, argv, "hvVb:ek:i:o:u:c:z")) != -1)
+    /* common switches */
+    strcpy(opts, "hvVb:i:o:u:c:");
+
+    /* encryption switches */
+    #ifdef HAVE_LIBOPENSSL
+    strcat(opts, "k:e:E");
+    #endif
+
+    /* compression switches */
+    #ifdef HAVE_LIBZ
+    strcat(opts, "zZ:");
+    #endif
+
+    while((ret = getopt(argc, argv, opts)) != -1)
     {
         switch(ret)
         {
@@ -105,9 +138,31 @@ static int parse_opt(int argc, char **argv)
         case 'V': /* print name/version info and exit */
             u_print_version_and_exit();
             break;
-        case 'e': /* encryption on */
+
+        #ifdef HAVE_LIBOPENSSL
+        case 'E': /* encryption on */
             ctx->encrypt = 1;
             break;
+        case 'e': /* encrypt file pattern */
+            ctx->enc_patt = u_strdup(optarg);
+            warn_err_if(ctx->enc_patt == NULL);
+            break;
+        case 'k': /* encryption key filename */
+            ctx->key_file = u_strdup(optarg);
+            warn_err_if(ctx->key_file == NULL);
+            break;
+        #endif
+
+        #ifdef HAVE_LIBZ
+        case 'Z': /* compress file pattern */
+            ctx->compress = 1;
+            ctx->comp_patt = u_strdup(optarg);
+            warn_err_if(ctx->comp_patt == NULL);
+            break;
+        case 'z': /* compress */
+            ctx->compress = 1;
+            break;
+        #endif
         case 'c': /* command */
             if(!strcasecmp(optarg, "import"))
                 ctx->cmd = CMD_IMPORT;
@@ -131,10 +186,6 @@ static int parse_opt(int argc, char **argv)
             remove_trailing_slash(ctx->base_uri);
 
             break;
-        case 'k': /* encryption key filename */
-            ctx->key_file = u_strdup(optarg);
-            warn_err_if(ctx->key_file == NULL);
-            break;
         case 'o': /* output file */
             ctx->file_out = u_strdup(optarg);
             warn_err_if(ctx->file_out == NULL);
@@ -150,9 +201,6 @@ static int parse_opt(int argc, char **argv)
 
             remove_trailing_slash(ctx->uri);
 
-            break;
-        case 'z': /* compress */
-            ctx->compress = 1;
             break;
         default:
         case 'h': 
@@ -218,7 +266,7 @@ static int command_trans(void)
     memset(ti.key, 0, CODEC_CIPHER_KEY_SIZE);
 
     /* sanity checks */
-    con_err_ifm(ctx->key_file && !ctx->encrypt, "-k used but -e is missing");
+    con_err_ifm(ctx->key_file && !ctx->encrypt, "-k used but -E is missing");
 
     /* encryption key */
     key_env = getenv("KLONE_KEY");
@@ -242,27 +290,17 @@ static int command_trans(void)
             con_err("encryption key required (use -k or KLONE_KEY environ "
                     "variable)");
         ti.encrypt = 1;
-        #ifndef HAVE_LIBOPENSSL
-        con_err("encryption requires OpenSSL (that's not linked in)");
-        #endif
     }
+
+    /* set MIME type */
+    if((mm = u_get_mime_map(ctx->file_in)) != NULL)
+        strncpy(ti.mime_type, mm->mime_type, MIME_BUFSZ);
+    else
+        strncpy(ti.mime_type, "application/octect-stream", MIME_BUFSZ);
 
     /* compress if requested and the file is compressable (by MIME type) */
     if(ctx->compress)
-    {
-        if((mm = u_get_mime_map(ctx->file_in)) != NULL)
-        {
-            strncpy(ti.mime_type, mm->mime_type, MIME_BUFSZ);
-            ti.comp = mm->comp;
-        } else {
-            /* unable to guess mime type, use default */
-            strncpy(ti.mime_type, "application/octect-stream", MIME_BUFSZ);
-            ti.comp = 1; /* compress it libz never enlarge uncompressable data*/
-        }
-        #ifndef HAVE_LIBZ
-        con_err("compression requires zlib (that's not linked in)");
-        #endif
-    }
+        ti.comp = 1;
 
     /* be sure that the input file exists */
     klone_die_if(stat(ctx->file_in, &st), "input file not found");
@@ -281,20 +319,44 @@ err:
 
 static int cb_file(struct dirent *de, const char *path , void *arg)
 {
+    static const char *prefix = "$(srcdir)";
+    const mime_map_t *mm;
     char uri_md5[MD5_DIGEST_BUFSZ];
     char file_in[NAME_BUFSZ], uri[URI_BUFSZ], *base_uri = (char*)arg;
+    int enc = 0, zip = 0;
 
     ctx->nfile++;
 
     /* input file */
-    u_snprintf(file_in, NAME_BUFSZ, "$(srcdir)/%s/%s", path , de->d_name);
+    u_snprintf(file_in, NAME_BUFSZ, "%s/%s/%s", prefix, path , de->d_name);
 
     /* base uri */
     u_snprintf(uri, URI_BUFSZ, "%s/%s", base_uri, de->d_name);
     u_md5(uri, strlen(uri), uri_md5);
 
+    /* if the URI match the given encrypt pattern then encrypt it */
+    if(ctx->enc_patt && !fnmatch(ctx->enc_patt, uri, 0))
+        enc = 1;
+
+    if(ctx->compress) /* -z or -Z have been used */
+    {
+        /* if the URI match the given compress pattern then compress it */
+        if(ctx->comp_patt)
+        {   /* compression enabled basing on file URI pattern */
+            if(!fnmatch(ctx->comp_patt, uri, 0))
+                zip = 1;
+        } else {
+            /* compression enabled basing on URI MIME types */
+            if((mm = u_get_mime_map(uri)) != NULL)
+                zip = mm->comp;
+        }
+    }
+
     if(ctx->verbose)
-        con("%s -> %s", file_in + strlen("$(srcdir)"), uri);
+        con("%s -> %s (encrypted: %s, compressed: %s)", 
+            file_in + strlen(prefix), uri, 
+            enc ? "yes" : "no",
+            zip ? "yes" : "no");
 
     dbg_err_if(io_printf(ctx->iom, " \\\n" KL1_FILE_FMT, uri_md5) < 0);
 
@@ -304,8 +366,13 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
      * to avoid MSYS (win32) automatic path translation oddity */
     dbg_err_if(io_printf(ctx->iod, 
             "\n" KL1_FILE_FMT 
-            ": %s\n\t$(KLONE) -c translate -i $< -o $@ -u /%s\n", 
-            uri_md5, file_in, uri) < 0);
+            ": %s\n\t$(KLONE) -c translate -i $< -o $@ -u /%s %s %s %s %s\n", 
+            uri_md5, file_in, uri, 
+            zip ? "-z" : "",
+            enc ? "-E" : "", 
+            enc && ctx->key_file ? "-k" : "", 
+            enc && ctx->key_file ? ctx->key_file  : ""
+            ) < 0);
 
     return 0;
 err:
