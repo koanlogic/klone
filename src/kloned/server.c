@@ -474,7 +474,7 @@ static int server_log_hook(void *arg, int level, const char *str)
     if(s->klog->type == KLOG_TYPE_SYSLOG || ctx->pipc == NULL)
     {   /* syslog klog or parent context */
         if(s->klog)
-            dbg_err_if(klog(s->klog, syslog_to_klog(level), str));
+            dbg_err_if(klog(s->klog, syslog_to_klog(level), "%s", str));
     } else {
         /* children context */
         dbg_err_if(server_ppc_cmd_log_add(s, level, str));

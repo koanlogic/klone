@@ -75,7 +75,7 @@ int server_ppc_cb_log_add(ppc_t *ppc, int fd, unsigned char cmd, char *data,
 
     /* log the line */
     if(kl)
-        dbg_err_if(klog(kl, syslog_to_klog(pla->level), pla->log));
+        dbg_err_if(klog(kl, syslog_to_klog(pla->level), "%s", pla->log));
 
     return 0;
 err:
