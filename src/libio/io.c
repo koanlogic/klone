@@ -796,11 +796,13 @@ int io_codec_add_tail(io_t *io, codec_t* c)
 int io_codecs_remove(io_t *io)
 {
     codec_t *codec;
+    int rc = 0;
 
     if(!TAILQ_EMPTY(&io->codec_chain))
     {
         if(io->wbuf)
-            dbg_if(io_chain_flush(io));
+            dbg_ifb(io_chain_flush(io))
+                rc++;
 
         while((codec = TAILQ_FIRST(&io->codec_chain)) != NULL)
         {
@@ -809,7 +811,7 @@ int io_codecs_remove(io_t *io)
         }
     }
 
-    return 0;
+    return rc;
 }
 
 

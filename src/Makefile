@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.4 2005/10/11 14:22:52 tat Exp $
+# $Id: Makefile,v 1.5 2005/11/01 15:06:48 tat Exp $
 
 SUBDIR =    \
  libutils   \
@@ -7,7 +7,6 @@ SUBDIR =    \
  libemb     \
  libhttp    \
  libio      \
- libos      \
  libpage    \
  libtls     \
  libtrans   \

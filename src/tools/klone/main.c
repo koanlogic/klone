@@ -88,7 +88,7 @@ static void usage(void)
 #endif
 "         -o file     output file                                           \n"
 "         -u URI      URI of translated page                                \n"
-"                     (KLONE_KEY environ var is used if not provided)       \n"
+"                     (KLONE_CIPHER_KEY environ var is used if not provided)\n"
 #ifdef HAVE_LIBZ
 "         -z          compress file content                                 \n"
 #endif
@@ -269,14 +269,14 @@ static int command_trans(void)
     con_err_ifm(ctx->key_file && !ctx->encrypt, "-k used but -E is missing");
 
     /* encryption key */
-    key_env = getenv("KLONE_KEY");
+    key_env = getenv("KLONE_CIPHER_KEY");
     if(key_env && strlen(key_env))
     {
         key_found = 1;
         strncpy(ti.key, key_env, CODEC_CIPHER_KEY_SIZE);
     }
 
-    /* if -k has been used the overwrite KLONE_KEY env var (if present) */
+    /* if -k has been used the overwrite KLONE_CIPHER_KEY env var (if present)*/
     if(ctx->key_file)
     {
         key_found = 1;
@@ -287,8 +287,8 @@ static int command_trans(void)
     if(ctx->encrypt)
     {
         if(!key_found)
-            con_err("encryption key required (use -k or KLONE_KEY environ "
-                    "variable)");
+            con_err("encryption key required (use -k or KLONE_CIPHER_KEY "
+                    "environ variable)");
         ti.encrypt = 1;
     }
 

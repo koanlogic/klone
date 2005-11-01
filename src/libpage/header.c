@@ -58,6 +58,30 @@ err:
  * \return
  *  - the number of fields found in \a h
  */
+int header_clear(header_t *h)
+{
+    field_t *f;
+
+    /* free all items */
+    while((f = TAILQ_FIRST(&h->fields)) != NULL)
+    {
+        header_del_field(h, f);
+        field_free(f);
+    }
+
+    return 0;
+}
+
+/**
+ * \brief   One line description
+ *
+ * Detailed function descrtiption.
+ *
+ * \param h    parameter \a h description
+ *
+ * \return
+ *  - the number of fields found in \a h
+ */
 size_t header_field_count(header_t *h)
 {
     return h->nfields;
@@ -307,14 +331,7 @@ err:
  */
 int header_free(header_t *h)
 {
-    field_t *f;
-
-    /* free all items */
-    while((f = TAILQ_FIRST(&h->fields)) != NULL)
-    {
-        header_del_field(h, f);
-        field_free(f);
-    }
+    header_clear(h);
 
     u_free(h);
 

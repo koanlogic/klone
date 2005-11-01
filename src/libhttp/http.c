@@ -89,7 +89,10 @@ const char* http_get_status_desc(int status)
 
     for( ; map->status; ++map)
         if(map->status == status)
+        {
             msg = map->desc;
+            break;
+        }
 
     return msg;
 }
@@ -117,7 +120,7 @@ int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
 
         if(strncmp(src, filename, strlen(src)) == 0)
         {
-            dbg("filename %s    src %s", filename, src);
+            /* dbg("filename %s  src %s", filename, src); */
 
             /* alias found, get resolved prefix */
             res = strtok_r(NULL, WP, &pp);
@@ -126,7 +129,7 @@ int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
             dbg_err_if(u_path_snprintf(dst, sz, "%s/%s", res, 
                         filename + strlen(src)));
 
-            dbg("resolved %s in %s", filename, dst);
+            /* dbg("resolved %s in %s", filename, dst); */
 
             u_free(v); 
             return 0;
@@ -226,7 +229,6 @@ err:
     return ~0;
 }
 
-
 static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
 {
     enum { BUFSZ = 64 };
@@ -259,6 +261,12 @@ static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
             response_set_status(rs, HTTP_STATUS_INTERNAL_SERVER_ERROR); 
             break;
     }
+
+    /* clean dirty header fields */
+    dbg_err_if(header_clear(response_get_header(rs)));
+
+    /* add default header fields */
+    dbg_err_if(http_add_default_header(h, rs));
 
     /* looking for user provided error page */
     dbg_err_if(u_snprintf(buf, BUFSZ, "error.%d", status));

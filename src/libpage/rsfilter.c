@@ -64,8 +64,9 @@ err:
     return ~0;
 }
 
-static int rf_flush(response_filter_t *rf, char *dst, size_t *dcount)
+static int rf_flush(codec_t *codec, char *dst, size_t *dcount)
 {
+    response_filter_t *rf = (response_filter_t*)codec;
     ssize_t c;
 
     if(rf->state == RFS_BUFFERING)
@@ -94,10 +95,11 @@ err:
     return -1;
 }
 
-static ssize_t rf_transform(response_filter_t *rf, 
+static ssize_t rf_transform(codec_t *codec, 
         char *dst, size_t *dcount, 
         const char *src, size_t src_sz)
 {
+    response_filter_t *rf = (response_filter_t*)codec;
     size_t max;
     ssize_t c;
 
@@ -147,8 +149,10 @@ err:
     return -1;
 }
 
-static int rf_free(response_filter_t *rf)
+static int rf_free(codec_t *codec)
 {
+    response_filter_t *rf = (response_filter_t*)codec;
+
     if(rf->iob)
         io_free(rf->iob);
 
@@ -157,7 +161,7 @@ static int rf_free(response_filter_t *rf)
     return 0;
 }
 
-int response_filter_create(response_t *rs, response_filter_t **prf)
+int response_filter_create(response_t *rs, codec_t **prf)
 {
     response_filter_t *rf = NULL;
 
@@ -171,7 +175,7 @@ int response_filter_create(response_t *rs, response_filter_t **prf)
     rf->ptr = rf->buf;
     rf->iob = NULL;
 
-    *prf = rf;
+    *prf = (codec_t*)rf;
 
     return 0;
 err:

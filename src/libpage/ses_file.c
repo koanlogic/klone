@@ -114,9 +114,10 @@ int session_file_module_init(u_config_t *config, session_opt_t *so)
     #ifdef OS_WIN
         GetTempPath(PATH_MAX, so->path);
     #else
-        strcpy(so->path, "/tmp");
+        strncpy(so->path, "/tmp", PATH_MAX);
     #endif
-    }
+    } else
+        strncpy(so->path, v, PATH_MAX);
 
     return 0;
 }

@@ -78,6 +78,7 @@ static int supemb_static_set_header_fields(request_t *rq, response_t *rs,
     {   /* we can send compressed responses */
         dbg_err_if(response_set_content_encoding(rs, "deflate"));
         dbg_err_if(response_set_content_length(rs, e->size));
+        /*  dbg("sending deflated content"); */
     } 
 
     return 0;
@@ -89,19 +90,28 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
 {
     codec_t *gzip = NULL, *decrypt = NULL;
     int sai = 0; /* send as is */
+    int decrypting = 0;
     char key[CODEC_CIPHER_KEY_SIZE];
+    codec_t *rsf = NULL;
 
-    /* 
-    dbg("mime type: %s (%scompressed)", e->mime_type, (e->comp ? "" : "NOT "));
-    */
+    /* dbg("mime type: %s (%scompressed)", 
+        e->mime_type, (e->comp ? "" : "NOT ")); */
+
+    /* create a response filter and attach it to the response io */
+    dbg_err_if(response_filter_create(rs, &rsf));
+    dbg_err_if(io_codec_add_tail(response_io(rs), rsf));
+    rsf = NULL;
+
+    /* set HTTP header based on 'e' (we have the cipher key here) */
+    dbg_err_if(supemb_static_set_header_fields(rq, rs, e, &sai));
 
     /* if this is a HEAD request print the header and exit */
     if(request_get_method(rq) == HM_HEAD)
-    {
-        dbg_err_if(supemb_static_set_header_fields(rq, rs, e, &sai));
-        dbg_err_if(response_print_header(rs));
         return 0; /* just the header is requested */
-    }
+
+    /* if needed apply a gzip codec to uncompress content data */
+    if(e->comp && !sai)
+        dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gzip));
 
     /* if the resource is encrypted unencrypt using the key stored in 
        KLONE_CIPHER_KEY session variable */
@@ -114,30 +124,34 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
         }
         dbg_err_if(codec_cipher_create(CIPHER_DECRYPT, EVP_aes_256_cbc(),
                     key, NULL, &decrypt));
-        dbg_err_if(io_codec_add_head(response_io(rs), decrypt));
-        decrypt = NULL; /* io_t owns it after io_codec_add_tail */
     } 
 
-    /* set HTTP header based on 'e' (we have the cipher key here) */
-    dbg_err_if(supemb_static_set_header_fields(rq, rs, e, &sai));
-
-    /* if needed apply a gzip codec to uncompress content data */
-    if(e->comp && !sai)
-    {
-        dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gzip));
+    if(gzip)
+    {   /* set gzip filter */
         dbg_err_if(io_codec_add_head(response_io(rs), gzip));
         gzip = NULL; /* io_t owns it after io_codec_add_tail */
-    } 
+    }
+
+    if(decrypt)
+    {   /* set decrypt filter */
+        dbg_err_if(io_codec_add_head(response_io(rs), decrypt));
+        decrypt = NULL; /* io_t owns it after io_codec_add_tail */
+        decrypting = 1;
+    }
 
     /* print out page content (the header will be autoprinted by the 
        response io filter) */
     dbg_err_if(!io_write(response_io(rs), e->data, e->size));
 
     /* remove and free the gzip codec (if it has been set) */
-    dbg_if(io_codecs_remove(response_io(rs))); 
+    dbg_err_if(io_codecs_remove(response_io(rs))); 
 
     return 0;
 err:
+    if(decrypting)
+        dbg_if(response_set_status(rs, 401)); /* usually wrong key given */
+    /* remove codecs and rs filter */
+    dbg_if(io_codecs_remove(response_io(rs))); 
     if(decrypt)
         codec_free(decrypt);
     if(gzip)
@@ -149,8 +163,8 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
 {
     session_t *ss = NULL;
     http_t *http = NULL;
+    codec_t *filter = NULL;
     session_opt_t *so;
-    response_filter_t *filter;
 
     /* get session options */
     dbg_err_if((http = request_get_http(rq)) == NULL);
@@ -164,7 +178,7 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
 
     /* create a response filter and attach it to the response io */
     dbg_err_if(response_filter_create(rs, &filter));
-    io_codec_add_tail(response_io(rs), (codec_t*)filter);
+    io_codec_add_tail(response_io(rs), filter);
 
     /* run the page code */
     e->run(rq, rs, ss);

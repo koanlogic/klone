@@ -15,6 +15,7 @@ int header_free(header_t*);
 int header_add_field(header_t *h, field_t *f);
 int header_del_field(header_t *h, field_t *f);
 field_t* header_get_field(header_t *h, const char *name);
+int header_clear(header_t *h);
 
 const char* header_get_field_value(header_t *h, const char *name);
 

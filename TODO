@@ -9,6 +9,8 @@ FIRST RELEASE:
         - * io_t codec chains support
         - remove klone/src/libos (moved to libu)
 
+        - option to disable deflate'd transfers
+
         - klone && kloned usage() proofreading
         - klone and kloned man update
 

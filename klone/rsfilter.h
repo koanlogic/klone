@@ -11,6 +11,6 @@ enum { RFBUFSZ = 4096 };
 struct response_s;
 typedef struct response_filter_s response_filter_t;
 
-int response_filter_create(response_t *rs, response_filter_t **prf);
+int response_filter_create(struct response_s *rs, codec_t **prf);
 
 #endif

@@ -114,17 +114,21 @@ err:
 
 static int response_print_status(response_t *rs, io_t *io)
 {
-    io_printf(io, "HTTP/1.0 %d %s\r\n", rs->status, 
-        http_get_status_desc(rs->status));
+    dbg_err_if(io_printf(io, "HTTP/1.0 %d %s\r\n", rs->status, 
+        http_get_status_desc(rs->status)) < 0);
 
     return 0;
+err:
+    return ~0;
 }
 
 static int response_print_field(response_t *rs, io_t *io, field_t *field)
 {
-    io_printf(io, "%s: %s\r\n", field->name, field->value);
+    dbg_err_if(io_printf(io, "%s: %s\r\n", field->name, field->value) < 0);
     
     return 0;
+err:
+    return ~0;
 }
 
 /** 
@@ -192,14 +196,15 @@ int response_print_header_to_io(response_t *rs, io_t *io)
     dbg_err_if(io == NULL);
 
     /* print status line */
-    response_print_status(rs, io);
+    dbg_err_if(response_print_status(rs, io));
 
     /* print field list */
     n = header_field_count(rs->header);
     for(i = 0; i < n; ++i)
-        response_print_field(rs, io, header_get_fieldn(rs->header, i));
+        dbg_err_if(response_print_field(rs, io,
+            header_get_fieldn(rs->header, i)));
 
-    io_printf(io, "\r\n");
+    dbg_err_if(io_printf(io, "\r\n") < 0);
 
     return 0;
 err:

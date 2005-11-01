@@ -74,6 +74,8 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     /* per-type configuration init */
     if(so->type == SESSION_TYPE_MEMORY)
         dbg_err_if(session_mem_module_init(c, so));
+    else if(so->type == SESSION_TYPE_FILE)
+        dbg_err_if(session_file_module_init(c, so));
     #ifdef HAVE_LIBOPENSSL
     else if(so->type == SESSION_TYPE_CLIENT)
         dbg_err_if(session_client_module_init(c, so));

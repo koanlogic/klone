@@ -167,6 +167,7 @@ int translate(trans_info_t *pti)
 {
     io_t *in = NULL, *out = NULL, *tmp = NULL;
     codec_t *gzip = NULL, *aes = NULL;
+    char tname[PATH_MAX];
 
     /* open the input file */
     dbg_err_if(u_file_open(pti->file_in, O_RDONLY, &in));
@@ -177,8 +178,6 @@ int translate(trans_info_t *pti)
     /* should choose the right translator based on file extensions or config */
     if(is_a_script(pti->file_in))
     {
-        char tname[PATH_MAX];
-
         /* get a temporary io_t */
         dbg_err_if(u_tmpfile_open(&tmp));
 
@@ -201,6 +200,7 @@ int translate(trans_info_t *pti)
         unlink(tname);
     } else  {
         /* check if compression is requested */
+        #ifdef HAVE_LIBZ
         if(pti->comp)
         {
             /* set a compression filter to the input stream */
@@ -208,6 +208,7 @@ int translate(trans_info_t *pti)
             dbg_err_if(io_codec_add_tail(in, gzip));
             gzip = NULL;
         }
+        #endif
         #ifdef HAVE_LIBOPENSSL
         /* check if encryption is requested */
         if(pti->encrypt)
