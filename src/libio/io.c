@@ -209,7 +209,9 @@ static ssize_t io_transform(io_t *io, codec_t *codec,
     if(codec == TAILQ_LAST(&io->codec_chain, codec_chain_s))
     {
         /* last codec in the chain */
-        return codec->transform(codec, dst, dcount, src, sz); 
+        c = codec->transform(codec, dst, dcount, src, sz); 
+        dbg_err_if(c == 0 && *dcount == 0);
+        return c;
     } else {
         c = 0;
         do
@@ -229,6 +231,7 @@ static ssize_t io_transform(io_t *io, codec_t *codec,
                     &cavail, src, sz)) < 0);
 
                 codec->ccount += cavail;
+                dbg_err_if(c == 0 && cavail == 0);
             }
         } while(c == 0 && *dcount == 0 && (codec->ccount || sz));
 
