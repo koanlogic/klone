@@ -1,5 +1,5 @@
-.\" $Id: kloned.conf.5,v 1.4 2005/10/06 16:10:40 tho Exp $
-.TH "KLONED.CONF" "5" "10/06/2005" "KoanLogic Srl" "KoanLogic Srl"
+\" $Id: kloned.conf.5,v 1.5 2005/11/03 21:20:25 tho Exp $
+.TH "KLONED.CONF" "5" "11/03/2005" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -15,7 +15,7 @@ daemon, i.e. it contains its runtime configuration information. The complete des
 .SH "FILE FORMAT"
 .PP
 The file consists of sections and parameters. A section begins with the name of the section, is followed by a '{' and continues until the corresponding '}' is found. Sections can contain subsections or parameter assignements of the form:
-\fIname\fR\fIvalue\fR.
+\fIname\fR \fIvalue\fR.
 .PP
 The file is line\-based \- that is, each newline\-terminated line represents either a comment, a section name or a parameter.
 .PP
@@ -38,7 +38,7 @@ The top level parameter
 \fBserver_list\fR
 lists the klone instances by name. For each name listed here there exist a corresponding activation record labelled with the same name.
 .PP
-For the sake of simplicity, the available options are grouped into three categories: those of general applicability (GENERAL), those common to both HTTP and HTTPS servers (SERVER), and those specific to HTTP over SSL/TLS sessions (SSL/TLS).
+For the sake of simplicity, the available options are grouped into four categories: those of general applicability (GENERAL), those common to both HTTP and HTTPS servers (SERVER), those specific to HTTP over SSL/TLS sessions (SSL/TLS) and those concerning activity logging (LOG).
 .SS "GENERAL"
 .TP
 \fBtype\fR
@@ -109,10 +109,10 @@ is translated into
 \fI(http|https)://sitehost[:port]/a/b/c/d.klone\fR.
 .TP
 \fBdir_alias \fR\fB\fIsrc\fR\fR\fB \fR\fB\fIdst\fR\fR
-Substitutes
-\fIsrc\fR
-to
+Maps
 \fIdst\fR
+to
+\fIsrc\fR
 in the requested URI. For example, when the following is set:
 .sp
 .nf
@@ -122,7 +122,7 @@ dir_alias /img /var/httpd/img
 a request to
 \fI(http|https)://sitehost[:port]/img/a.gif\fR
 will be mapped to
-\fI(http|https)://sitehost[:port]/var/httpd/img/a.gif\fR.
+\fIsup://var/httpd/img/a.gif\fR.
 .TP
 \fBserver_sig\fR
 Set the server signature string which will be returned in the HTTP head (Server: %s). When setting a custom Product token, the guidelines stated in paragraph 3.7 of RFC 1945 should be followed. The default value is
@@ -248,6 +248,61 @@ the client has to present a valid certificate
 .sp
 Note that optional makes sense only in testing scenarios. The default value is
 \fBNO\fR.
+.SS "LOG"
+.PP
+Klone provides three types of log device: memory, syslog and file. The first is especially targeted for ROM appliances, while the second and third need a device with available (and writeable) storage in order to work. The file type is for systems with no available system message logger (RFC 3164 like). Instead, if the host system has syslog, either as a locally running daemon or just as a set of client API interfacing an external device, then the syslog type (which is nothing but a wrapper to the
+\fBsyslog\fR(3) family of functions) can be used.
+.PP
+Each klone instance can be given its private log device. Furthermore there may exist a top level log device, associated to the klone dispatcher to which log messages who could not find a suitable sink (i.e. messages sent by klone instances with no configured log device) are forwarded. If no log devices are configured (neither instance specific, nor the top level one), nothing at all is logged.
+.PP
+Each log message is bounded to a severity level. Available levels, starting from the lowest, are:
+\fBKLOG_DEBUG\fR,
+\fBKLOG_INFO\fR,
+\fBKLOG_NOTICE\fR,
+\fBKLOG_WARNING\fR,
+\fBKLOG_ERR\fR,
+\fBKLOG_CRIT\fR,
+\fBKLOG_ALERT\fR,
+\fBKLOG_EMERG\fR.
+.PP
+Each log device has its
+\fBlog\fR
+subsection which gathers all its configuration parameters.
+.TP
+\fBtype\fR
+Specify the type of log device: can be one of
+\fImem\fR,
+\fIfile\fR
+or
+\fIsyslog\fR. This parameter is
+\fImandatory\fR.
+.TP
+\fBident\fR
+Set a fixed string which will be prepended to each log message.
+.TP
+\fBthreshold\fR
+Specify the a threshold severity level for messages that you want to be displayed: log messages with a level lower than this will be discarded. If not specified, the lowest value is set
+(i.e. \fBKLOG_DEBUG\fR).
+.TP
+\fBmem.limit\fR
+The memory log device is basically a fixed size array of log strings with a FIFO discard policy. This parameter specifies the array dimension, i.e. the maximum number of resident log messages. If not specified a default value of 250 is set.
+.TP
+\fBsyslog.facility\fR
+Set a default
+\fBsyslog\fR(3) facility for log messages. It must be one of
+\fBLOG_LOCAL[0\-7]\fR. If not set the highest value possible is set 
+(i.e. \fBLOG_LOCAL7\fR).
+.TP
+\fBsyslog.options\fR
+Optionally specify a list of blank separated values from the set of the
+\fBsyslog\fR(3) log options:
+\fBLOG_CONS\fR,
+\fBLOG_NDELAY\fR,
+\fBLOG_PERROR\fR,
+\fBLOG_PID\fR.
+.TP
+\fBfile.*\fR
+TODO.
 .SH "SEE ALSO"
 .PP
 \fBklone\fR(1),
@@ -258,6 +313,3 @@ KLone
 software distribution contains a complete and carefully annotated
 \fIkloned\-sample.conf\fR
 file which can be used as a reference.
-.SH "AUTHOR"
-.PP
-KoanLogic Srl (http://www.koanlogic.com).
