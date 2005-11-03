@@ -1,5 +1,5 @@
-.\" $Id: klone.1,v 1.3 2005/10/04 09:33:55 tho Exp $
-.TH "KLONE" "1" "10/04/2005" "KoanLogic Srl" "KoanLogic Srl"
+.\" $Id: klone.1,v 1.4 2005/11/03 15:27:18 tho Exp $
+.TH "KLONE" "1" "11/03/2005" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -8,13 +8,13 @@
 klone \- KLone swiss army knife
 .SH "SYNOPSIS"
 .HP 6
-\fBklone\fR [\fB\ klone_opts\ \fR] [\fB\ cmd\ \fR] [\fB\ cmd_opts\ \fR] [\fB\ cmd_args\ \fR]
+\fBklone\fR [\fB\fIklone_opts\fR\fR] [\fB\-c\ \fR\fB\fIcmd\fR\fR] [\fB\fIcmd_opts\fR\fR] [\fB\fIcmd_args\fR\fR]
 .SH "DESCRIPTION"
 .PP
 \fBklone\fR
 performs two different tasks depending on the argument supplied to the
 \fB\-c\fR
-switch: import a site directory tree into the KLone building environment, or translate static and dynamic pages into C files.
+switch: import a site directory tree into the KLone building environment (i.e. the embedded file system), or translate static and dynamic pages into C files.
 .PP
 The translation phase is rarely seen by the user since it is hidden in the Makefile of the site building directory, i.e.
 \fI${KLONE_SRC_DIR}/site\fR. Generally, the developer gets an embedded version of his/her site by providing the following command sequence:
@@ -31,7 +31,7 @@ invocation calls
 \fB'klone \-c translate'\fR
 over the imported files to perform the needed translation and registering (pre\-linking).
 .PP
-Note that whenever a source file is added, removed or renamed the import operation must be done again.
+Note that whenever a source file is added, removed or renamed, or in case the embedded file system encrypting key changes, the import operation must be done again.
 .PP
 The subsequent phase, by which the embedded site is linked to the
 \fBkloned\fR
@@ -44,6 +44,7 @@ anymore. Anyway it is given here for reference:
     $ make
 .fi
 .sp
+That's all.
 .SH "OPTIONS"
 .TP
 \-h
@@ -55,19 +56,32 @@ Enable verbose mode.
 \-V
 Print klone version and exit.
 .SH "COMMANDS"
+.SS "Translate:"
 .HP 6
-\fBklone\fR \fB\ \-c\ translate\ \fR \fB\ \-i\ infile\ \fR \fB\ \-o\ outfile\ \fR \fB\ \-u\ uri\ \fR
+\fBklone\fR \fB\-c\ translate\fR \fB\-i\ \fR\fB\fIinfile\fR\fR \fB\-o\ \fR\fB\fIoutfile\fR\fR \fB\-u\ \fR\fB\fIuri\fR\fR [\fB\-E\fR] [\fB\-k\ \fR\fB\fIkeyfile\fR\fR] [\fB\-z\fR]
 .PP
-Translate the active (\fI.klone\fR) or static page
+Translate the active (i.e. a
+\fI.klone\fR
+file) or static page
 \fIinfile\fR
 into the C file
 \fIoutfile\fR. The
 \fB\-u\fR
-specifies the URI
+specifies the
 \fIuri\fR
-associated to the translated file.
+associated to the translated file. The
+\fB\-E\fR
+option tells
+\fBklone\fR
+to encrypt (using AES\-256 CBC) the file content with the key enclosed in the supplied
+\fIkeyfile\fR
+or in the environment variable
+\fBKLONE_CIPHER_KEY\fR. The translated files' contents are compressed (based on their MIME type) if the
+\fB\-z\fR
+flag is given.
+.SS "Import:"
 .HP 6
-\fBklone\fR \fB\ \-c\ import\ \fR [\fB\ \-b\ uri\ \fR] \fB\ dir\ \fR
+\fBklone\fR \fB\-c\ import\fR [\fB\-b\ \fR\fB\fIuri\fR\fR] [\fB\-e\ \fR\fB\fIpattern\fR\fR] [\fB\-k\ \fR\fB\fIkeyfile\fR\fR] [\fB\-Z\ \fR\fB\fIpattern\fR\fR] [\fB\-z\fR] \fB\fIdir\fR\fR
 .PP
 Import the site tree starting at
 \fIdir\fR
@@ -75,7 +89,28 @@ into the KLone building environment. The command output comprises two makefiles 
 and
 \fIautogen.dps\fR) and the
 \fIregister.c\fR
-file which will gather the imported and translated site files. The latter file is the glue by which the embedded site can afterwards be linked to the HTTP/S server.
+file which will gather the imported and translated site files. The latter file is the glue by which the embedded site can afterwards be linked to the HTTP/S server. When the
+\fB\-e\fR
+flag is given, the files matching the specified
+\fIpattern\fR
+will be encrypted using the key enclosed in the supplied
+\fIkeyfile\fR
+or in the environment variable
+\fBKLONE_CIPHER_KEY\fR. The user can choose whether to compress all the imported files based on their MIME type, using the
+\fB\-z\fR
+flag, or to select a subset matching the supplied shell
+\fIpattern\fR.
+.SH "ENVIRONMENT"
+.PP
+The following environment variable affects the execution of
+\fBklone\fR:
+.TP
+\fBKLONE_CIPHER_KEY\fR
+If set,
+\fBklone\fR
+tries to read the embedded file system encryption key from it. It is be overridden by the
+\fB\-k\fR
+option.
 .SH "DIAGNOSTICS"
 .PP
 The
@@ -92,7 +127,7 @@ if an error occurs.
 .SH "BUGS"
 .PP
 If you find one, please email it to
-<klone\-bugs@koanlogic.com>
+<klone\-bug@koanlogic.com>
 .SH "AUTHOR"
 .PP
-KoanLogic Srl (http://www.koanlogic.com).
+KoanLogic S.r.l. - http://www.koanlogic.com
