@@ -26,9 +26,8 @@ int klog_clear_mem (klog_mem_t *klm);
 
 /* file */
 int klog_file (klog_file_t *klm, int level, const char *fmt, va_list ap);
-int klog_open_file (klog_t *kl, const char *bname, size_t ns, size_t nl);
+int klog_open_file (klog_t *kl, char *basename, size_t npages, size_t nlines);
 void klog_close_file (klog_file_t *klf);
-ssize_t klog_countln_file (klog_file_t *klf);
 
 /* syslog */
 int klog_open_syslog (klog_t *kl, const char *ident, int fac, int logopt);

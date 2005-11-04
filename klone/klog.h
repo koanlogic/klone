@@ -56,24 +56,14 @@ struct klog_mem_s
 
 typedef struct klog_mem_s klog_mem_t;
 
-struct klog_file_split_s
-{
-    int id;                                 /* split id: fname is basename.id */
-    FILE *fp;                               /* file pointer (when active) */
-    size_t nlines;                          /* # of lines actually written */
-    TAILQ_ENTRY(klog_file_split_s) next;    /* next in log files list */
-};
-
-typedef struct klog_file_split_s klog_file_split_t;
-
 struct klog_file_s
 {
-    size_t nfiles;                              /* # of split files */
-    char *basename;                             /* splits' prefix */
-    size_t bound;                               /* max lines in file */
-    struct klog_file_split_s *factive;          /* active log file */
-#define KLOG_FILE_FULL(klf)  ((klf)->factive->nlines >= (klf)->bound)
-    TAILQ_HEAD (fh, klog_file_split_s) files;   /* list of all log files */
+    size_t npages;  /* number of available log pages */
+    size_t nlines;  /* number of available log lines per page */
+    size_t wpageid; /* working page id */
+    size_t offset;  /* write offset in working page */
+    char basename[PATH_MAX + 1];
+    FILE *wfp;      /* working page file pointer */
 };
 
 typedef struct klog_file_s klog_file_t;
@@ -127,7 +117,7 @@ int klog (klog_t *kl, int level, const char *msg, ...);
 void klog_close (klog_t *kl);
 int klog_open_from_config (u_config_t *logsect, klog_t **pkl);
 
-/* mem and file specific */
+/* mem specific */
 int klog_getln (klog_t *kl, size_t nth, char ln[]);
 ssize_t klog_countln (klog_t *kl);
 int klog_clear (klog_t *kl);
