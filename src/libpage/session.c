@@ -200,11 +200,13 @@ int session_prv_load(session_t *ss, io_t *io)
                 memset(key, 0, sizeof(key));
                 dbg_ifb(u_cipher_decrypt(EVP_aes_256_cbc(), ss->so->session_key,
                     NULL, key, &ksz, var_get_value(v), var_get_value_size(v)))
-                    continue;
-
-                /* save it to the var list */
-                dbg_ifb(var_set_bin_value(v, key, ksz))
-                    continue;
+                {
+                    v = vars_get(ss->vars, "KLONE_CIPHER_KEY");
+                    vars_del(ss->vars, v);
+                } else {
+                    /* save it to the var list */
+                    dbg_err_if(var_set_bin_value(v, key, ksz));
+                }
             }
             #endif
         }
