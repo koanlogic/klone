@@ -17,11 +17,17 @@
 #include <openssl/hmac.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
+#include <klone/ccipher.h>
 #endif
 
 enum { DEFAULT_SESSION_EXPIRATION = 60*20 }; /* 20 minutes */
 static const char SID_NAME[] = "klone_sid";
 
+typedef struct save_cb_params_s
+{
+    session_t *ss;
+    io_t *io;
+} save_cb_params_t;
 
 int session_module_term(session_opt_t *so)
 {
@@ -175,12 +181,34 @@ err:
 int session_prv_load(session_t *ss, io_t *io)
 {
     u_string_t *line = NULL;
+    var_t *v = NULL;
+    unsigned char key[CODEC_CIPHER_KEY_SIZE];
+    size_t ksz;
 
     dbg_err_if(u_string_create(NULL, 0, &line));
 
     while(u_getline(io, line) == 0)
+    {
         if(u_string_len(line))
-            dbg_err_if(vars_add_urlvar(ss->vars, u_string_c(line)));
+        {
+            dbg_err_if(vars_add_urlvar(ss->vars, u_string_c(line), &v));
+
+            #ifdef HAVE_LIBOPENSSL
+            if(!strcmp(var_get_name(v), "KLONE_CIPHER_KEY"))
+            {
+                /* decrypt key and save it to key */
+                memset(key, 0, sizeof(key));
+                dbg_ifb(u_cipher_decrypt(EVP_aes_256_cbc(), ss->so->session_key,
+                    NULL, key, &ksz, var_get_value(v), var_get_value_size(v)))
+                    continue;
+
+                /* save it to the var list */
+                dbg_ifb(var_set_bin_value(v, key, ksz))
+                    continue;
+            }
+            #endif
+        }
+    }
 
     u_string_free(line);
 
@@ -362,46 +390,85 @@ err:
     return ~0;
 }
 
-int session_prv_save_var(var_t *v, io_t *out)
+int session_prv_save_to_io(session_t *ss, io_t *out)
 {
-    char *vbuf = NULL, *nbuf = NULL;
-    const char *value = NULL, *name = NULL;
-    size_t vsz, nsz;
+    save_cb_params_t prm; 
 
-    dbg_err_if(v == NULL || var_get_name(v) == NULL || out == NULL);
+    /* pass io and session poiters to the callback function */
+    prm.io = out;
+    prm.ss = ss;
 
-    name = var_get_name(v);
-
-    if((value = var_get_value(v)) != NULL)
-    {
-        vsz = 3 * strlen(value) + 1; 
-        nsz = 3 * strlen(name) + 1; 
-
-        /* alloc buffers to store encoded version of name and value */
-        vbuf = u_malloc(vsz);
-        dbg_err_if(vbuf == NULL);
-
-        nbuf = u_malloc(nsz);
-        dbg_err_if(nbuf == NULL);
-
-        /* encode name & value */
-        dbg_err_if(u_urlncpy(vbuf, value, strlen(value), URLCPY_ENCODE) <= 0);
-        dbg_err_if(u_urlncpy(nbuf, name, strlen(name), URLCPY_ENCODE) <= 0);
-
-        io_printf(out, "%s=%s\n", nbuf, vbuf);
-
-        u_free(nbuf);
-        u_free(vbuf);
-    } else
-        io_printf(out, "%s=\n", var_get_name(v));
+    vars_foreach(ss->vars, session_prv_save_var, (void*)&prm);
 
     return 0;
 err:
-    if(nbuf)
-        u_free(nbuf);
-    if(vbuf)
-        u_free(vbuf);
     return ~0;
+}
+
+/* save a var_t (text or binary) to the session io_t */
+int session_prv_save_var(var_t *v, void *vp)
+{
+    enum { NAMESZ = 256, VALSZ = 4096 };
+    char sname[NAMESZ], svalue[VALSZ];
+    char *uname = sname, *uvalue = svalue;
+    save_cb_params_t *pprm = (save_cb_params_t*)vp;
+    /* encrypted key buffer */
+    unsigned char ekey[CODEC_CIPHER_KEY_SIZE + CODEC_CIPHER_BLOCK_SIZE + 1]; 
+    size_t eksz, nsz, vsz;
+    int rc = ~0;
+
+    /* buffers must be at least three times the src data to URL-encode  */
+    nsz = 1 + 3 * strlen(var_get_name(v));  /* name buffer size  */
+    #ifndef HAVE_LIBOPENSSL
+    vsz = 1 + 3 * var_get_value_size(v);    /* value buffer size */
+    #else
+    vsz = 1 + 3 * (var_get_value_size(v) + CODEC_CIPHER_BLOCK_SIZE);
+    #endif
+
+    /* if the buffer on the stack is too small alloc a bigger one */
+    if(NAMESZ <= nsz)
+        dbg_err_if((uname = u_zalloc(nsz)) == NULL);
+
+    /* url encode name */
+    dbg_err_if(u_urlncpy(uname, var_get_name(v), strlen(var_get_name(v)), 
+        URLCPY_ENCODE) <= 0);
+
+    if(var_get_value(v))
+    {
+        /* if the buffer on the stack is too small alloc a bigger one */
+        if(VALSZ <= vsz)
+            dbg_err_if((uvalue = u_zalloc(vsz)) == NULL);
+
+        #ifdef HAVE_LIBOPENSSL
+        if(!strcmp(var_get_name(v), "KLONE_CIPHER_KEY"))
+        {
+            /* encrypt key and save it to ekey */
+            dbg_err_if(u_cipher_encrypt(EVP_aes_256_cbc(), 
+                pprm->ss->so->session_key, NULL, ekey, &eksz, 
+                var_get_value(v), var_get_value_size(v)));
+
+            /* save it to the var list */
+            dbg_err_if(var_set_bin_value(v, ekey, eksz));
+        }
+        #endif
+
+        dbg_err_if(u_urlncpy(uvalue, var_get_value(v), var_get_value_size(v), 
+            URLCPY_ENCODE) <= 0);
+
+        dbg_err_if(io_printf(pprm->io, "%s=%s\n", uname, uvalue) < 0);
+    } else 
+        dbg_err_if(io_printf(pprm->io, "%s=\n", uname) < 0);
+
+    rc = 0; /* success */
+err:
+    /* free heap buffers */
+    if(uname && uname != sname)
+        u_free(uname);
+
+    if(uvalue && uvalue != svalue)
+        u_free(uvalue);
+
+    return rc;
 }
 
 int session_create(session_opt_t *so, request_t *rq, response_t *rs, 

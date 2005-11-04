@@ -29,13 +29,12 @@ static int addr_ipv4_create(u_config_t *c, addr_t *addr)
     /* use user-defined ip or port */
     if(!u_config_get_subkey(c, "ip", &subkey))
     {
-#ifdef OS_UNIX
+        #ifdef OS_UNIX
         dbg_err_if(inet_pton(AF_INET, u_config_get_value(subkey), 
             &addr->sa.sin.sin_addr) <= 0);
-#else
-        // FIXME
+        #else
         addr->sa.sin.sin_addr.s_addr  = inet_addr(u_config_get_value(subkey));
-#endif
+        #endif
     }
 
     if(!u_config_get_subkey(c, "port", &subkey))

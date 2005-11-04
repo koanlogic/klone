@@ -27,9 +27,10 @@ typedef struct enc_ses_mem_s
     char data[1];               /* data block           */
 } enc_ses_mem_t;
 
-static int session_calc_maxsize(var_t *v, size_t *psz)
+static int session_calc_maxsize(var_t *v, void *p)
 {
     const char *value = NULL;
+    size_t *psz = (size_t*)p;
 
     dbg_err_if(v == NULL || var_get_name(v) == NULL || psz == NULL);
 
@@ -274,7 +275,7 @@ static int session_mem_save(session_t *ss)
     //session_remove(ss);
 
     /* calc the maximum session data size (exact calc requires url encoding) */
-    vars_foreach(ss->vars, session_calc_maxsize, &sz);
+    vars_foreach(ss->vars, session_calc_maxsize, (void*)&sz);
 
     /* alloc a block to save the session */
     buf = u_malloc(sz);
@@ -283,7 +284,7 @@ static int session_mem_save(session_t *ss)
     /* create a big-enough in-memory io object */
     dbg_err_if(io_mem_create(buf, sz, 0, &io));
 
-    vars_foreach(ss->vars, session_prv_save_var, io);
+    dbg_err_if(session_prv_save_to_io(ss, io));
 
     io_free(io);
 

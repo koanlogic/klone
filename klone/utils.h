@@ -92,5 +92,11 @@ int u_asctime_to_tt(const char *str, time_t *tp);
 
 void u_print_version_and_exit(void);
 
+#ifdef HAVE_LIBOPENSSL
+int u_cipher_encrypt(const EVP_CIPHER *cipher, unsigned char *key, 
+    unsigned char *iv, char *dst, size_t *dcount, const char *src, size_t ssz);
+int u_cipher_decrypt(const EVP_CIPHER *cipher, unsigned char *key, 
+    unsigned char *iv, char *dst, size_t *dcount, const char *src, size_t ssz);
+#endif
 
 #endif

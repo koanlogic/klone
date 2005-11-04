@@ -193,6 +193,9 @@ static int server_child_serve(server_t *s, backend_t *be, int ad)
     if((child = fork()) == 0)
     {   /* child */
 
+        /* reseed the PRNG */
+        srand(rand() + getpid() + time(0));
+
         /* close on end of the channel */
         close(socks[0]);
 

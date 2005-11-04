@@ -4,9 +4,11 @@
 
 struct var_s
 {
-    TAILQ_ENTRY(var_s) np;/* next & prev pointers   */
+    TAILQ_ENTRY(var_s) np;  /* next & prev pointers   */
     u_string_t *sname;      /* var string name        */
     u_string_t *svalue;     /* var string value       */
+    char *data;
+    size_t size;
 };
 
 #endif

@@ -15,6 +15,7 @@
 #include <klone/codecs.h>
 #include <klone/emb.h>
 #include <klone/mime_map.h>
+#include <klone/version.h>
 #include <klone/utils.h>
 #include <u/libu.h>
 
@@ -724,6 +725,73 @@ err:
         io_free(ios);
     return ~0;
 }
+
+#ifdef HAVE_LIBOPENSSL
+int u_cipher_encrypt(const EVP_CIPHER *cipher, unsigned char *key, 
+    unsigned char *iv, char *dst, size_t *dcount, const char *src, size_t ssz)
+{
+    EVP_CIPHER_CTX ctx;
+    ssize_t dlen = 0;  /* dst buffer length */
+    int wr;
+
+    /* init the context */
+    EVP_CIPHER_CTX_init(&ctx);
+
+    /* be sure that the cipher has been loaded */
+    EVP_add_cipher(cipher);
+    
+    dbg_err_if(!EVP_EncryptInit_ex(&ctx, cipher, NULL, key, iv));
+
+    dbg_err_if(!EVP_EncryptUpdate(&ctx, dst, &wr, src, ssz));
+    dlen += wr;
+    dst += wr;
+
+    dbg_err_if(!EVP_EncryptFinal_ex(&ctx, dst, &wr));
+    dlen += wr;
+
+    *dcount = dlen; /* # of bytes written to dst */
+
+    EVP_CIPHER_CTX_cleanup(&ctx);
+
+    return 0;
+err:
+    EVP_CIPHER_CTX_cleanup(&ctx);
+    return ~0;
+}
+
+int u_cipher_decrypt(const EVP_CIPHER *cipher, unsigned char *key, 
+    unsigned char *iv, char *dst, size_t *dcount, const char *src, size_t ssz)
+{
+    EVP_CIPHER_CTX ctx;
+    ssize_t dlen = 0;  /* dst buffer length */
+    int wr;
+
+    /* init the context */
+    EVP_CIPHER_CTX_init(&ctx);
+
+    /* be sure that the cipher has been loaded */
+    EVP_add_cipher(cipher);
+    
+    dbg_err_if(!EVP_DecryptInit_ex(&ctx, cipher, NULL, key, iv));
+
+    dbg_err_if(!EVP_DecryptUpdate(&ctx, dst, &wr, src, ssz));
+    dlen += wr;
+    dst += wr;
+
+    dbg_err_if(!EVP_DecryptFinal_ex(&ctx, dst, &wr));
+    dlen += wr;
+
+    *dcount = dlen; /* # of bytes written to dst */
+
+    EVP_CIPHER_CTX_cleanup(&ctx);
+
+    return 0;
+err:
+    EVP_CIPHER_CTX_cleanup(&ctx);
+    return ~0;
+}
+
+#endif
 
 /**
  *  \}

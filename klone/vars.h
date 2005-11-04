@@ -18,7 +18,7 @@ int vars_del(vars_t *vs, var_t *v);
 int vars_add_strvar(vars_t *vs, const char *str);
 
 /* str must be a (possibly url-encoded) 'name=value' string */
-int vars_add_urlvar(vars_t *vs, const char *str);
+int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **v);
 
 var_t* vars_getn(vars_t *vs, size_t i);
 size_t vars_count(vars_t *vs);

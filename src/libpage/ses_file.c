@@ -22,7 +22,7 @@ static int session_file_save(session_t *ss)
     // FIXME may be busy, must retry
     dbg_err_if(u_file_open(ss->filename, O_WRONLY | O_CREAT, &io));
 
-    vars_foreach(ss->vars, session_prv_save_var, io);
+    dbg_err_if(session_prv_save_to_io(ss, io));
 
     io_free(io);
 
@@ -119,6 +119,11 @@ int session_file_module_init(u_config_t *config, session_opt_t *so)
     } else
         strncpy(so->path, v, PATH_MAX);
 
+    /* create a random key to crypt the KLONE_CIPHER_KEY variable */
+    dbg_err_if(!RAND_bytes(so->session_key, CIPHER_KEY_SIZE));
+
     return 0;
+err:
+    return ~0;
 }
 

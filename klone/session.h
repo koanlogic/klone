@@ -17,5 +17,6 @@ vars_t *session_get_vars(session_t*);
 const char *session_get(session_t*, const char*);
 int session_set(session_t*, const char*, const char*);
 int session_del(session_t*, const char*);
+int session_save_to_io(session_t*, const char*);
 
 #endif

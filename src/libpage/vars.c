@@ -198,40 +198,66 @@ size_t vars_count(vars_t *vs)
  *  - \c 0  if successful
  *  - \c ~0 on error
  */
-int vars_add_urlvar(vars_t *vs, const char *cstr)
+int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **v)
 {
-    enum { NAMESZ = 256, VALSZ = 2048 };
-    char *eq, name[NAMESZ], value[VALSZ];
+    enum { NAMESZ = 256, VALSZ = 4096 };
+    char sname[NAMESZ], svalue[VALSZ];
+    char *val, *str = NULL, *name = sname, *value = svalue;
     var_t *var = NULL;
-    char *str = NULL;
+    size_t vsz;
 
     /* dup the string so we can modify it */
     str = u_strdup(cstr);
     dbg_err_if(str == NULL);
 
-    eq = strchr(str, '=');
-    dbg_err_if(eq == NULL);
+    val = strchr(str, '=');
+    dbg_err_if(val == NULL);
 
-    /* zero-term the name part */
-    *eq = 0;
+    /* zero-term the name part and set the value pointer */
+    *val++ = 0; 
+
+    /* if the buffer on the stack is too small alloc a bigger one */
+    if(strlen(str) >= NAMESZ)
+        dbg_err_if((name = u_zalloc(1 + strlen(str))) == NULL);
+
+    /* if the buffer on the stack is too small alloc a bigger one */
+    if(strlen(val) >= VALSZ)
+        dbg_err_if((value = u_zalloc(1 + strlen(val))) == NULL);
 
     /* url-decode var name */
     dbg_err_if(u_urlncpy(name, str, strlen(str), URLCPY_DECODE) <= 0);
 
     /* url-decode var value */
-    dbg_err_if(u_urlncpy(value, eq+1, strlen(eq+1), URLCPY_DECODE) <= 0);
+    dbg_err_if((vsz = u_urlncpy(value, val, strlen(val), URLCPY_DECODE)) <= 0);
 
     /* dbg("name: [%s]  value: [%s]", name, value); */
 
-    dbg_err_if(var_create(name, value, &var));
+    /* u_urlncpy always add a \0 at the end of the resulting data block */
+    --vsz;
 
-    /* push into the cookie list */
+    dbg_err_if(var_bin_create(name, value, vsz, &var));
+
+    /* push into the var list */
     dbg_err_if(vars_add(vs, var));
+
+    if(v)
+        *v = var;
+
+    /* if the buffer has been alloc'd on the heap then free it */
+    if(value && value != svalue)
+        u_free(value);
+
+    if(name && name != sname)
+        u_free(name);
 
     u_free(str);
 
     return 0;
 err:
+    if(value && value != svalue)
+        u_free(value);
+    if(name && name != sname)
+        u_free(name);
     if(cstr)
         dbg("%s", cstr);
     if(str)

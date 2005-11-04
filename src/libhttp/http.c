@@ -346,7 +346,7 @@ static int http_serve(http_t *h, int fd)
     dbg_err_if(io_fd_create(fd, IO_FD_CLOSE, &in));
 #endif
 
-    /* parse the rq and fill rq fields */
+    /* bind the request object to the 'in' io_t */
     dbg_err_if(request_bind(rq, in));
     in = NULL; 
 

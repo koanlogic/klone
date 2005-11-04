@@ -48,6 +48,7 @@ typedef struct session_opt_s
 
     /* file session options/struct                                   */
     char path[PATH_MAX + 1]; /* session save path                    */
+    unsigned char session_key[CIPHER_KEY_SIZE]; /* session secret key*/
 
     /* in-memory session options/struct                              */
     atoms_t *atoms; /* atom list used to store in-memory sessions    */
@@ -96,10 +97,12 @@ int session_mem_create(session_opt_t*, request_t*, response_t*, session_t**);
 /* private functions */
 int session_prv_init(session_t *, request_t *, response_t *);
 int session_prv_load(session_t *, io_t *);
-int session_prv_save_var(var_t *, io_t *);
+int session_prv_save_to_io(session_t*, io_t *);
+int session_prv_save_var(var_t *, void*);
 
 /* init/term funcs */
 int session_module_init(u_config_t *config, session_opt_t **pso);
+int session_file_module_init(u_config_t *config, session_opt_t *pso);
 int session_mem_module_init(u_config_t *config, session_opt_t *pso);
 int session_client_module_init(u_config_t *config, session_opt_t *pso);
 int session_module_term(session_opt_t *so);

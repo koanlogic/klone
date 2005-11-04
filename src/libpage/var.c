@@ -53,10 +53,15 @@ u_string_t* var_get_value_s(var_t *v)
 {
     dbg_return_if(v == NULL, NULL);
 
-    return v->svalue; /* may be NULL */
+    if(v->svalue == NULL)
+        dbg_err_if(u_string_create(v->data, v->size, &v->svalue));
+    
+    return v->svalue;
+err:
+    return NULL;
 }
 
-int var_create(const char* name, const char *value, var_t**pv)
+int var_bin_create(const char* name, const char *data, size_t size, var_t**pv)
 {
     var_t *v = NULL;
 
@@ -65,7 +70,7 @@ int var_create(const char* name, const char *value, var_t**pv)
 
     dbg_err_if(u_string_create(name, strlen(name), &v->sname));
 
-    dbg_err_if(u_string_create(value, strlen(value), &v->svalue));
+    dbg_err_if(var_set_bin_value(v, data, size));
 
     *pv = v;
 
@@ -74,6 +79,11 @@ err:
     if(v)
         var_free(v);
     return ~0;
+}
+
+int var_create(const char* name, const char *value, var_t**pv)
+{
+    return var_bin_create(name, value, strlen(value) + 1, pv);
 }
 
 /**
@@ -94,6 +104,8 @@ int var_free(var_t *v)
             u_string_free(v->sname);
         if(v->svalue)
             u_string_free(v->svalue);
+        if(v->data)
+            u_free(v->svalue);
         u_free(v);
     }
 
@@ -127,7 +139,12 @@ const char* var_get_name(var_t *v)
  */
 const char* var_get_value(var_t *v)
 {
-    return u_string_c(v->svalue);
+    return v->data;
+}
+
+size_t var_get_value_size(var_t *v)
+{
+    return v->size;
 }
 
 /** 
@@ -175,6 +192,12 @@ err:
     return ~0;
 }
 
+int var_set_value(var_t *v, const char *value)
+{
+    /* copy the string and the trailing '\0' */
+    return var_set_bin_value(v, value, strlen(value) + 1);
+}
+
 /**
  * \brief   One line description
  *
@@ -187,9 +210,19 @@ err:
  *  - \c 0  if successful
  *  - \c ~0 on error
  */
-int var_set_value(var_t *v, const char *value)
+int var_set_bin_value(var_t *v, const char *data, size_t size)
 {
-    dbg_err_if(u_string_set(v->svalue, value, strlen(value)));
+    if(v->data)
+        u_free(v->data);
+
+    v->size = size;
+    v->data = u_malloc(size+1);
+    dbg_err_if(v->data == NULL);
+    memcpy(v->data, data, size);
+    v->data[size] = 0; /* zero-term v->data so it can be used as a string */
+
+    if(v->svalue)
+        dbg_err_if(u_string_set(v->svalue, v->data, v->size));
 
     return 0; 
 err:

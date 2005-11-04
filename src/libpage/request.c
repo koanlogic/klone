@@ -576,7 +576,7 @@ static int request_parse_cookie(request_t *rq, field_t *field)
 
     /* foreach name=value pair... */
     for(src = buf; (tok = strtok_r(src, " ;", &pp)) != NULL; src = NULL)
-        dbg_err_if(vars_add_urlvar(rq->cookies, tok));
+        dbg_err_if(vars_add_urlvar(rq->cookies, tok, NULL));
 
     return 0;
 err:
@@ -617,7 +617,7 @@ static int request_parse_args(request_t *rq)
     for(src = query; (tok = strtok_r(src, "&", &pp)) != NULL; src = NULL)
     {
         /* create a new var_t obj and push it into the args vars-list */
-        dbg_err_if(vars_add_urlvar(rq->args, tok));
+        dbg_err_if(vars_add_urlvar(rq->args, tok, NULL));
     }
 
     u_free(query);

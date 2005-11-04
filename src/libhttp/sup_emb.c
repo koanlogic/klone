@@ -35,12 +35,15 @@ err:
     return 0; /* not found */
 }
 
-static int supemb_get_cipher_key(request_t *rq, response_t *rs, char *key)
+static int supemb_get_cipher_key(request_t *rq, response_t *rs, char *key, 
+    size_t keysz)
 {
     session_t *ss = NULL;
     http_t *http = NULL;
     session_opt_t *so;
     const char *sess_key;
+    vars_t *vars;
+    var_t *v;
 
     /* get session options */
     dbg_err_if((http = request_get_http(rq)) == NULL);
@@ -49,9 +52,20 @@ static int supemb_get_cipher_key(request_t *rq, response_t *rs, char *key)
     /* create/get the session */
     dbg_err_if(session_create(so, rq, rs, &ss));
 
-    dbg_err_if((sess_key = session_get(ss, "KLONE_CIPHER_KEY")) == NULL);
+    /* get variables list */
+    vars = session_get_vars(ss);
+    dbg_err_if(vars == NULL);
 
-    strncpy(key, sess_key, CODEC_CIPHER_KEY_SIZE);
+    v = vars_get_ith(vars,"KLONE_CIPHER_KEY", 0); 
+    dbg_err_if(v == NULL); /* no such variable */
+
+    dbg_err_if(var_get_value_size(v) > keysz);
+
+    /* zero-out key array */
+    memset(key, 0, keysz);
+
+    /* set the key */
+    memcpy(key, var_get_value(v), var_get_value_size(v));
 
     session_free(ss);
 
@@ -117,13 +131,15 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
        KLONE_CIPHER_KEY session variable */
     if(e->encrypted)
     {
-        if(supemb_get_cipher_key(rq, rs, key))
+        if(supemb_get_cipher_key(rq, rs, key, CODEC_CIPHER_KEY_SIZE))
         {   /* if the content is encrypted and there's no key then exit */
             dbg_err_if(response_set_status(rs, 401));
             dbg_err("cipher key not found, aborting");
         }
         dbg_err_if(codec_cipher_create(CIPHER_DECRYPT, EVP_aes_256_cbc(),
                     key, NULL, &decrypt));
+        /* delete the key from the stack */
+        memset(key, 0, CODEC_CIPHER_KEY_SIZE);
     } 
 
     if(gzip)

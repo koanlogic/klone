@@ -72,6 +72,7 @@ int response_set_cookie(response_t *rs, const char *name, const char *value,
         dbg_err_if(u_snprintf(buf, BUFSZ, "%s=", name));
 
         /* encoded value */
+        // FIXME buf may be too small....
         dbg_err_if(u_urlncpy(buf + strlen(buf), value, strlen(value), 
             URLCPY_ENCODE) <= 0);
 

@@ -7,7 +7,28 @@ FIRST RELEASE:
         - * klog dump log program/function
         - * io_codec_add_tail, io_codec_add_head
         - * io_t codec chains support
-        - remove klone/src/libos (moved to libu)
+        - * remove klone/src/libos (moved to libu)
+
+        - onthestack buffers for debug/logging procedures
+
+        - # line bug
+        - var_t binary support
+        - [opt] session_prv_save
+
+        - encrypt KLONE_CIPHER_KEY
+        - bind sessions to IP addresses
+        
+        - session.{encrypt|compress}
+
+        - security audit
+            - chroot("..."); chdir("/");
+            - store sessions in a secure dir
+            - disable core dumps?
+            - check if symlink output files
+            - last years apache security issues
+
+
+        - klone -c import -e '/encrypt*' -a EVP_aes
 
         - option to disable deflate'd transfers
 
