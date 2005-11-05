@@ -47,6 +47,9 @@ int klog_mem (klog_mem_t *klm, int level, const char *fmt, va_list ap)
     char ln[KLOG_LN_SZ + 1];
     klog_mem_msg_t *mmsg = NULL;
 
+    dbg_return_if (klm == NULL, ~0);
+    dbg_return_if (fmt == NULL, ~0);
+
     /* NOTE: could check overflow here */
     vsnprintf(ln, sizeof ln, fmt, ap);
     dbg_err_if (klog_mem_msg_new(ln, level, &mmsg));
