@@ -28,6 +28,7 @@ enum {
 };
 
 #define KLOG_LN_SZ          512 /* maximum log line size */
+#define KLOG_ID_SZ          8   /* maximum log id size */
 #define KLOG_MLIMIT_DFL     250 /* maximum number of log lines (mem) */
 #define KLOG_FLIMIT_DFL     250 /* maximum number of log lines (file) */
 #define KLOG_FSPLITS_DFL    4   /* maximum number of log files (file) */
@@ -56,6 +57,7 @@ struct klog_mem_s
 
 typedef struct klog_mem_s klog_mem_t;
 
+
 struct klog_file_s
 {
     size_t npages;  /* number of available log pages */
@@ -63,6 +65,8 @@ struct klog_file_s
     size_t wpageid; /* working page id */
     size_t offset;  /* write offset in working page */
     char basename[PATH_MAX + 1];
+#define KLOG_PAGE_FULL(klf)  ((klf)->offset >= (klf)->nlines)
+    char id[KLOG_ID_SZ + 1];
     FILE *wfp;      /* working page file pointer */
 };
 

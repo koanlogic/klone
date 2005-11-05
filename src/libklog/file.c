@@ -47,6 +47,8 @@ static int klog_file_head_new (const char *bname, const char *id, size_t npages,
         size_t nlines, size_t wpageid, size_t offset, klog_file_t **pklf);
 static void klog_file_head_free (klog_file_t *klf);
 static int klog_file_append (klog_file_t *klf, int level, char *ln);
+static int klog_file_open_page (klog_file_t *klf);
+static int klog_file_shift_page (klog_file_t *klf);
 
 int klog_open_file (klog_t *kl, const char *bname, const char *id, 
         size_t npages, size_t nlines)
@@ -68,7 +70,8 @@ int klog_open_file (klog_t *kl, const char *bname, const char *id,
             klf->nlines = nlines;
     }
 
-    /* TODO open the working log page for writing */
+    /* open the working log page for writing */
+    dbg_err_if (klog_file_open_page(klf));
 
     return 0;
 err:
@@ -85,10 +88,8 @@ int klog_file (klog_file_t *klf, int level, const char *fmt, va_list ap)
     /* print log string */
     vsnprintf(ln, sizeof ln, fmt, ap);
     
-    if (KLOG_PAGE_FULL(klf))
-    {
-        /* TODO shift wrk page (i.e. close wrk, open next for writing) */
-    }
+    if (KLOG_PAGE_FULL(klf)) /* shift working page */
+        dbg_err_if (klog_file_shift_page(klf));
 
     dbg_err_if (klog_file_append(klf, level, ln));
 
@@ -173,9 +174,8 @@ static int klog_file_head_dump (klog_file_t *klf)
     
     dbg_return_if (klf == NULL, ~0);
 
-    dbg_err_if (u_path_snprintf(hf, PATH_MAX + 1, "%s%s", 
-                                klf->basename, ".head"));
-
+    dbg_err_if (u_path_snprintf(hf, PATH_MAX + 1, "%s.%s", 
+                                klf->basename, "head"));
     dbg_err_if ((hfp = fopen(hf, "w")) == NULL);
     dbg_err_if (fwrite(klf, sizeof(klog_file_t), 1, hfp) != 1);
     dbg_if (fclose(hfp));
@@ -219,4 +219,38 @@ static void klog_file_head_free (klog_file_t *klf)
     free(klf);
     
     return;
+}
+
+static int klog_file_shift_page (klog_file_t *klf)
+{
+    char wf[PATH_MAX + 1];
+    
+    dbg_return_if (klf == NULL, ~0);
+
+    U_FCLOSE(klf->wfp);
+    dbg_err_if (u_path_snprintf(wf, PATH_MAX + 1, "%s.%d", klf->basename,
+                                (klf->wpageid + 1)%klf->npages));
+    dbg_err_if ((klf->wfp = fopen(wf, "w")) == NULL);
+
+    klf->offset = 0;    /* reset offset counter */
+    klf->wpageid += 1;  /* increment page id */
+    
+    return 0;
+err:
+    return ~0;
+}
+
+static int klog_file_open_page (klog_file_t *klf)
+{
+    char wf[PATH_MAX + 1];
+
+    dbg_return_if (klf == NULL, ~0);
+
+    dbg_err_if (u_path_snprintf(wf, PATH_MAX + 1, "%s.%d", 
+                                klf->basename, klf->wpageid));
+    dbg_err_if ((klf->wfp = fopen(wf, "a")) == NULL);
+    
+    return 0;
+err:
+    return ~0;
 }
