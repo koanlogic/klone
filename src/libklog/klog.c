@@ -9,7 +9,6 @@
 #include <klone/klogprv.h>
 
 static int klog_args_new (klog_args_t **pka);
-static void klog_args_free (klog_args_t *ka);
 static int klog_args_check (klog_args_t *ka);
 
 static int klog_type (const char *type);
@@ -108,8 +107,8 @@ int klog_open (klog_args_t *ka, klog_t **pkl)
             rv = klog_open_mem(kl, ka->ident, ka->mlimit);
             break;
         case KLOG_TYPE_FILE:
-/* rv = klog_open_file(kl, ka->fbasename, ka->fsplits, ka->flimit); */
-            rv = ~0;
+            rv = klog_open_file(kl, ka->fbasename, ka->ident, ka->fsplits, 
+                                ka->flimit);
             break;
         case KLOG_TYPE_SYSLOG:
             rv = klog_open_syslog(kl, ka->ident, ka->sfacility, ka->soptions);
@@ -165,8 +164,7 @@ int klog (klog_t *kl, int level, const char *fmt, ...)
             rv = klog_mem(kl->u.m, level, fmt, ap);
             break;
         case KLOG_TYPE_FILE:
-/* rv = klog_file(kl->u.f, level, fmt, ap); */
-            rv = ~0;
+            rv = klog_file(kl->u.f, level, fmt, ap);
             break;
         case KLOG_TYPE_SYSLOG:
             rv = klog_syslog(kl->u.s, level, fmt, ap);
@@ -199,7 +197,7 @@ void klog_close (klog_t *kl)
             klog_close_mem(kl->u.m);
             break;
         case KLOG_TYPE_FILE:
-/* klog_close_file(kl->u.f); */
+            klog_close_file(kl->u.f);
             break;
         case KLOG_TYPE_SYSLOG:
             klog_close_syslog(kl->u.s);
@@ -259,7 +257,7 @@ int klog_clear (klog_t *kl)
     {
         case KLOG_TYPE_MEM:
             return klog_clear_mem(kl->u.m);
-        case KLOG_TYPE_FILE:    /* TODO */
+        case KLOG_TYPE_FILE:
         case KLOG_TYPE_SYSLOG:
         default:
             return ~0;

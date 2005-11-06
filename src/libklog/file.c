@@ -29,9 +29,6 @@
  * (2) append a log line
  * (3) termination (flush state to disk on exit)
  *
- * (x) retrieve the nth log line
- * (y) clear all
- *
  * (1)
  * The 'file' log initialisation phase consists in the selection of an 
  * available page and an offset in it, where to start appending log messages.
@@ -73,6 +70,8 @@ int klog_open_file (klog_t *kl, const char *bname, const char *id,
     /* open the working log page for writing */
     dbg_err_if (klog_file_open_page(klf));
 
+    kl->u.f = klf, klf = NULL;
+
     return 0;
 err:
     return ~0;
@@ -107,20 +106,22 @@ static int klog_file_append (klog_file_t *klf, int level, char *ln)
     dbg_return_if (klf == NULL, ~0);
     dbg_return_if (klf->wfp == NULL, ~0);
 
+    dbg_err_if ((now = time(NULL)) == (time_t) -1);
     ctime_r((const time_t *) &now, ct);
     ct[24] = '\0';
 
     /* append line to wrk page */
-    fprintf(klf->wfp, "[%s] %s <%s>: %s", klog_to_str(level), ct, klf->id, ln);
+    fprintf(klf->wfp, "[%s] %s <%s>: %s\n", 
+            klog_to_str(level), ct, klf->id, ln);
     klf->offset += 1;
 
     return 0;
+err:
+    return ~0;
 }
 
 void klog_close_file (klog_file_t *klf)
 {
-    u_unused_args(klf);
-
     /* flush pending messages */
     fclose(klf->wfp);
 

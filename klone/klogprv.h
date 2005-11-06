@@ -9,7 +9,7 @@
 
 static const char *kloglev[] =
 {
-    "DEBUG", "INFO", "NOTICE", "WARNING", "ERR", "CRIT", "ALERT", "EMERG"
+    "DBG", "INF", "NTC", "WRN", "ERR", "CRT", "ALR", "EMR"
 };
 
 /* common */
