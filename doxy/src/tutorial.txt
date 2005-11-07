@@ -13,7 +13,7 @@ Probably the best reference for any web-related questions is the
 
 \par
 An overview of the functionality is provided through examples in the following
-subsections. For more detail on functions and parameters please refer to 
+sections. For more detail on functions and parameters please refer to the
 <a href="modules.html">KLone API</a>.
 
 \subsection tut2 Basics
@@ -125,7 +125,7 @@ The simplest way to build your own libraries is to create a KLone file containin
 the declarations. In our example, such file is 
 <a href="funcs_8kl1-example.html">funcs.kl1</a>.
 The corresponding header files should be placed relative to
-the <tt>kl12/site</tt> directory. Create a subdirectory <tt>tute</tt> and place 
+the <tt>klone/site</tt> directory. Create a subdirectory <tt>tute</tt> and place 
 the header to <tt>funcs_print_ctime()</tt> in a file called <tt>funcs.h</tt>:
 
 \code
@@ -145,9 +145,7 @@ Now include the header where needed (in our example, at the top of
 <a href="index_8kl1-example.html">index.kl1</a> file) as follows:
 
 \code
-    <%! 
-        #include <tute/funcs.h>
-    %>
+    <%! #include <tute/funcs.h> %>
 \endcode
 
 \subsection tut5 External Libraries (Advanced)
@@ -159,10 +157,10 @@ external ones. Before attempting this you will require some knowledge of
 \par
 As an example, we apply this to the previous <tt>funcs_print_ctime()</tt> 
 declaration.
-The base directory for code generation is <tt>kl1/site</tt>. Create a 
+The base directory for code generation is <tt>klone/site</tt>. Create a 
 subdirectory called <tt>tute</tt> and move into it. Split the declaration into
 a header file <tt>funcs.h</tt> and a source file <tt>funcs.c</tt>. Hence remove 
-the previous declaration in <tt>embfs/www/index.kl1</tt>. Then create a simple 
+the previous declaration in <tt>embfs/www/funcs.kl1</tt>. Then create a simple 
 <tt>Makefile</tt>:
 
 \code
@@ -175,7 +173,7 @@ the previous declaration in <tt>embfs/www/index.kl1</tt>. Then create a simple
 
 \par
 Now we link to our new library from the base site Makefile
-<tt>kl1/site/Makefile</tt>, by appending <tt>-Itute</tt> to the 
+<tt>klone/site/Makefile</tt>, by appending <tt>-Itute</tt> to the 
 <tt>INCS</tt> directive and <tt>-Ltute -ltute</tt> to 
 <tt>LDADD</tt>. 
 Add a line <tt>SUBDIR=tute</tt> to enter the new subdirectory automatically. 
