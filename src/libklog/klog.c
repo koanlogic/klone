@@ -143,7 +143,7 @@ err:
 int klog (klog_t *kl, int level, const char *fmt, ...)
 {
     va_list ap;
-    int rv = ~0;
+    int rv = 0;
 
     dbg_return_if (kl == NULL, ~0);
     dbg_return_if (fmt == NULL, ~0);
