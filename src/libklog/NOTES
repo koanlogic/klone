@@ -20,22 +20,3 @@
     }
 
 
-#include <sys/types.h>
-
-struct l_lnptr_s
-{
-    uint32_t pageid;
-    uint32_t offset;
-};
-
-typedef struct l_lnptr_s l_lnptr_t;
-
-/* must be fixed size, since it shall be written to disk */
-struct klog_fhead_s;
-{
-    uint32_t npages;
-    uint32_t nlines;
-    l_lnptr_t *start;  /* will be set to the last written line + 1 on exit */
-    char basename[PATH_MAX + 1];
-};
-

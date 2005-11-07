@@ -11,6 +11,9 @@
 #include <klone/klog.h>
 #include <klone/klogprv.h>
 
+static void klog_close_file (klog_t *klf);
+static int klog_file (klog_t *klf, int level, const char *fmt, va_list ap);
+
 /* 
  * A 'file' log is physically subdivided in a certain number of files (pages)
  * named "<basename>.<page_id>" used as a sliding circular buffer.
@@ -38,26 +41,27 @@
  * zero, offset zero.
  */
 
-static int klog_file_head_load (const char *bname, klog_file_t **pklf);
+static void klog_free_file (klog_file_t *klf);
+static int klog_file_head_load (const char *base, klog_file_t **pklf);
 static int klog_file_head_dump (klog_file_t *klf);
-static int klog_file_head_new (const char *bname, const char *id, size_t npages,
-        size_t nlines, size_t wpageid, size_t offset, klog_file_t **pklf);
+static int klog_file_head_new (const char *base, size_t npages, size_t nlines, 
+        size_t wpageid, size_t offset, klog_file_t **pklf);
 static void klog_file_head_free (klog_file_t *klf);
-static int klog_file_append (klog_file_t *klf, int level, char *ln);
+static int klog_file_append (klog_file_t *klf, const char *id, int level, 
+        const char *ln);
 static int klog_file_open_page (klog_file_t *klf);
 static int klog_file_shift_page (klog_file_t *klf);
 
-int klog_open_file (klog_t *kl, const char *bname, const char *id, 
-        size_t npages, size_t nlines)
+int klog_open_file (klog_t *kl, const char *base, size_t npages, size_t nlines)
 {
     klog_file_t *klf = NULL;
 
     dbg_return_if (kl == NULL, ~0);
-    dbg_return_if (bname == NULL, ~0);
+    dbg_return_if (base == NULL, ~0);
 
-    if (klog_file_head_load(bname, &klf))
-        /* if there is no head, try to create a new one */
-        dbg_err_if (klog_file_head_new(bname, id, npages, nlines, 0, 0, &klf));
+    /* load an existing head or create a brand new if it doesn't exist */
+    if (klog_file_head_load(base, &klf))
+        dbg_err_if (klog_file_head_new(base, npages, nlines, 0, 0, &klf));
     else
     {
         /* check consistency with the supplied values */
@@ -70,19 +74,38 @@ int klog_open_file (klog_t *kl, const char *bname, const char *id,
     /* open the working log page for writing */
     dbg_err_if (klog_file_open_page(klf));
 
+    /* set private methods */
+    kl->cb_log = klog_file;
+    kl->cb_close = klog_close_file;
+    kl->cb_getln = NULL;
+    kl->cb_countln = NULL;
+    kl->cb_clear = NULL;
+
     kl->u.f = klf, klf = NULL;
 
     return 0;
 err:
+    if (klf)
+        klog_free_file(klf);
     return ~0;
 }
 
-int klog_file (klog_file_t *klf, int level, const char *fmt, va_list ap)
+static void klog_free_file (klog_file_t *klf)
 {
+    U_FREE(klf);
+}
+
+static int klog_file (klog_t *kl, int level, const char *fmt, va_list ap)
+{
+    klog_file_t *klf;
     char ln[KLOG_LN_SZ + 1];
     
-    dbg_return_if (klf == NULL, ~0);
+    dbg_return_if (kl == NULL, ~0);
+    dbg_return_if (kl->type != KLOG_TYPE_FILE, ~0);
+    dbg_return_if (kl->u.f == NULL, ~0);
     dbg_return_if (fmt == NULL, ~0);
+
+    klf = kl->u.f;
 
     /* print log string */
     vsnprintf(ln, sizeof ln, fmt, ap);
@@ -90,19 +113,21 @@ int klog_file (klog_file_t *klf, int level, const char *fmt, va_list ap)
     if (KLOG_PAGE_FULL(klf)) /* shift working page */
         dbg_err_if (klog_file_shift_page(klf));
 
-    dbg_err_if (klog_file_append(klf, level, ln));
+    dbg_err_if (klog_file_append(klf, kl->ident, level, ln));
 
     return 0;
 err:
     return ~0;
 }
 
-static int klog_file_append (klog_file_t *klf, int level, char *ln)
+static int klog_file_append (klog_file_t *klf, const char *id, int level, 
+        const char *ln)
 {
     time_t now;
     char ct[26];
 
     dbg_return_if (ln == NULL, ~0);
+    dbg_return_if (id == NULL, ~0);
     dbg_return_if (klf == NULL, ~0);
     dbg_return_if (klf->wfp == NULL, ~0);
 
@@ -112,7 +137,7 @@ static int klog_file_append (klog_file_t *klf, int level, char *ln)
 
     /* append line to wrk page */
     fprintf(klf->wfp, "[%s] %s <%s>: %s\n", 
-            klog_to_str(level), ct, klf->id, ln);
+            klog_to_str(level), ct, id, ln);
     klf->offset += 1;
 
     return 0;
@@ -120,18 +145,29 @@ err:
     return ~0;
 }
 
-void klog_close_file (klog_file_t *klf)
+static void klog_close_file (klog_t *kl)
 {
+    klog_file_t *klf;
+    
+    dbg_return_if (kl == NULL, );
+    dbg_return_if (kl->type != KLOG_TYPE_FILE, );
+    dbg_return_if (kl->u.f == NULL, );
+
+    klf = kl->u.f;
+    
     /* flush pending messages */
-    fclose(klf->wfp);
+    U_FCLOSE(klf->wfp);
 
     /* dump head info to disk */
     dbg_if (klog_file_head_dump(klf));
+
+    /* free resources */
+    klog_free_file(klf), kl->u.f = NULL;
     
     return;
 }
 
-static int klog_file_head_load (const char *bname, klog_file_t **pklf)
+static int klog_file_head_load (const char *base, klog_file_t **pklf)
 {
     int fd = -1;
     struct stat sb;
@@ -139,10 +175,10 @@ static int klog_file_head_load (const char *bname, klog_file_t **pklf)
     char *mm = MAP_FAILED;
     klog_file_t *hfs, *klf = NULL;
 
-    dbg_return_if (bname == NULL, ~0);
+    dbg_return_if (base == NULL, ~0);
     dbg_return_if (pklf == NULL, ~0);
     
-    dbg_err_if (u_path_snprintf(hf, PATH_MAX + 1, "%s%s", bname, ".head"));
+    dbg_err_if (u_path_snprintf(hf, PATH_MAX + 1, "%s%s", base, ".head"));
     dbg_err_if ((fd = open(hf, O_RDONLY)) == -1);
     dbg_err_if (fstat(fd, &sb) == -1);
     dbg_err_if (sb.st_size != sizeof(klog_file_t));
@@ -150,9 +186,8 @@ static int klog_file_head_load (const char *bname, klog_file_t **pklf)
     dbg_err_if (mm == MAP_FAILED);
     hfs = (klog_file_t *) mm;
 
-    dbg_err_if (klog_file_head_new(bname, hfs->id, hfs->npages, hfs->nlines, 
+    dbg_err_if (klog_file_head_new(base, hfs->npages, hfs->nlines, 
                                    hfs->wpageid, hfs->offset, &klf));
-
     *pklf = klf;
 
     munmap(mm, sizeof(klog_file_t));
@@ -187,16 +222,15 @@ err:
     return ~0;
 }
 
-static int klog_file_head_new (const char *bname, const char *id, size_t npages,
-        size_t nlines, size_t wpageid, size_t offset, klog_file_t **pklf)
+static int klog_file_head_new (const char *base, size_t npages, size_t nlines, 
+        size_t wpageid, size_t offset, klog_file_t **pklf)
 {
     klog_file_t *klf = NULL;
 
     klf = u_zalloc(sizeof(klog_file_t));
     dbg_err_if (klf == NULL);
 
-    u_sstrncpy(klf->basename, bname, PATH_MAX);
-    u_sstrncpy(klf->id, id, KLOG_ID_SZ);
+    u_sstrncpy(klf->basename, base, PATH_MAX);
     klf->npages = npages;
     klf->nlines = nlines;
     klf->wpageid = wpageid;

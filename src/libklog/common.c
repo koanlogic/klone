@@ -9,7 +9,7 @@
 #include <klone/klogprv.h>
 
 /* each klog_*_open() will push its private data afterwards */
-int klog_new (int type, int threshold, klog_t **pkl)
+int klog_new (int type, int threshold, const char *ident, klog_t **pkl)
 {
     klog_t *kl;
 
@@ -19,6 +19,7 @@ int klog_new (int type, int threshold, klog_t **pkl)
     dbg_err_if (kl == NULL);
 
     kl->threshold = threshold;
+    u_sstrncpy(kl->ident, ident ? ident : "", KLOG_ID_SZ);
 
     /* check the supplied type */
     switch (type)
@@ -37,7 +38,7 @@ int klog_new (int type, int threshold, klog_t **pkl)
     
     return 0;
 err:
-    u_free(kl);
+    U_FREE(kl);
     return ~0;
 }
 

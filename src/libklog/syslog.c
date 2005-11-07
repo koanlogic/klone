@@ -9,6 +9,10 @@
 #include <klone/klogprv.h>
 
 static int klog_to_syslog (int lev);
+static void klog_free_syslog (klog_syslog_t *kls);
+
+static int klog_syslog (klog_t *kl, int level, const char *fmt, va_list ap);
+static void klog_close_syslog (klog_t *kl);
 
 /* must be ordered */
 static int sysloglev[] =
@@ -23,7 +27,7 @@ static int sysloglev[] =
  * message which is rather silly ... anyway this should be not so heavy as
  * it seems: in fact (a) the underlying transport is connectionless (UDP) 
  * and (b) most of the time is spent inside the vsyslog call. */
-int klog_open_syslog (klog_t *kl, const char *ident, int facility, int logopt)
+int klog_open_syslog (klog_t *kl, int fac, int logopt)
 {
     klog_syslog_t *kls = NULL;
     
@@ -32,40 +36,57 @@ int klog_open_syslog (klog_t *kl, const char *ident, int facility, int logopt)
     kls = u_zalloc(sizeof(klog_syslog_t));
     dbg_err_if (kls == NULL);
 
-    kls->ident = ident ? u_strdup(ident) : u_strdup("");
-    kls->facility = facility;
+    kls->facility = fac;
     kls->logopt = logopt;
     
+    /* set private methods */
+    kl->cb_log = klog_syslog;
+    kl->cb_close = klog_close_syslog;
+    kl->cb_getln = NULL;
+    kl->cb_countln = NULL;
+    kl->cb_clear = NULL;
+
     /* stick child to its parent */
     kl->u.s = kls, kls = NULL;
 
     return 0;
 err:
-    klog_close_syslog(kls);
+    if (kls)
+        klog_free_syslog(kls);
     return ~0;
 }
 
-void klog_close_syslog (klog_syslog_t *kls)
+static void klog_close_syslog (klog_t *kl)
 {
-    dbg_return_if (kls == NULL, );
-    
-    u_free(kls->ident);
-    u_free(kls);
-     
+    if (kl == NULL || kl->type != KLOG_TYPE_SYSLOG || kl->u.s == NULL)
+        return;
+
+    klog_free_syslog(kl->u.s), kl->u.s = NULL;
+ 
     return;
 }
 
-int klog_syslog (klog_syslog_t *kls, int level, const char *fmt, va_list ap)
+static void klog_free_syslog (klog_syslog_t *kls)
 {
-    dbg_return_if (kls == NULL, ~0);
+    if (kls == NULL)
+        return;
+    U_FREE(kls);
+    return;
+}
+
+static int klog_syslog (klog_t *kl, int level, const char *fmt, va_list ap)
+{
+    dbg_return_if (kl == NULL, ~0);
+    dbg_return_if (kl->type != KLOG_TYPE_SYSLOG, ~0);
+    dbg_return_if (kl->u.s == NULL, ~0);
     dbg_return_if (fmt == NULL, ~0);
     
 #ifdef HAVE_SYSLOG
-    openlog(kls->ident, kls->logopt, kls->facility);
+    openlog(kl->ident, kl->u.s->logopt, kl->u.s->facility);
     vsyslog(klog_to_syslog(level), fmt, ap);
     closelog();
 #else
-    vsyslog(kls->facility | klog_to_syslog(level), fmt, ap);
+    vsyslog(kl->u.s->facility | klog_to_syslog(level), fmt, ap);
 #endif /* HAVE_SYSLOG */
 
     return 0;

@@ -99,19 +99,18 @@ int klog_open (klog_args_t *ka, klog_t **pkl)
 
     /* create a klog_t object: each per-type init will create and stick 
      * its klog_*_t obj */
-    dbg_err_if (klog_new(ka->type, ka->threshold, &kl));
+    dbg_err_if (klog_new(ka->type, ka->threshold, ka->ident, &kl));
 
     switch (ka->type)
     {
         case KLOG_TYPE_MEM:
-            rv = klog_open_mem(kl, ka->ident, ka->mlimit);
+            rv = klog_open_mem(kl, ka->mlimit);
             break;
         case KLOG_TYPE_FILE:
-            rv = klog_open_file(kl, ka->fbasename, ka->ident, ka->fsplits, 
-                                ka->flimit);
+            rv = klog_open_file(kl, ka->fbasename, ka->fsplits, ka->flimit);
             break;
         case KLOG_TYPE_SYSLOG:
-            rv = klog_open_syslog(kl, ka->ident, ka->sfacility, ka->soptions);
+            rv = klog_open_syslog(kl, ka->sfacility, ka->soptions);
             break;
         default:
             return ~0;
@@ -143,11 +142,12 @@ err:
  */
 int klog (klog_t *kl, int level, const char *fmt, ...)
 {
-    int rv = 0;
     va_list ap;
+    int rv = ~0;
 
     dbg_return_if (kl == NULL, ~0);
     dbg_return_if (fmt == NULL, ~0);
+    dbg_return_if (!IS_KLOG_TYPE(kl->type), ~0);
 
     va_start(ap, fmt);
     
@@ -158,21 +158,9 @@ int klog (klog_t *kl, int level, const char *fmt, ...)
     if (level < kl->threshold)
         goto end;
     
-    switch (kl->type)
-    {
-        case KLOG_TYPE_MEM:
-            rv = klog_mem(kl->u.m, level, fmt, ap);
-            break;
-        case KLOG_TYPE_FILE:
-            rv = klog_file(kl->u.f, level, fmt, ap);
-            break;
-        case KLOG_TYPE_SYSLOG:
-            rv = klog_syslog(kl->u.s, level, fmt, ap);
-            break;
-        default:
-            rv = ~0;
-            break;
-    }
+    /* if the log function is set call it with the supplied args */
+    if (kl->cb_log)
+        rv = kl->cb_log(kl, level, fmt, ap);
 
 end:
     va_end(ap);
@@ -190,24 +178,12 @@ end:
 void klog_close (klog_t *kl)
 {
     dbg_return_if (kl == NULL, );
+    dbg_return_if (!IS_KLOG_TYPE(kl->type), );
 
-    switch (kl->type)
-    {
-        case KLOG_TYPE_MEM:
-            klog_close_mem(kl->u.m);
-            break;
-        case KLOG_TYPE_FILE:
-            klog_close_file(kl->u.f);
-            break;
-        case KLOG_TYPE_SYSLOG:
-            klog_close_syslog(kl->u.s);
-            break;
-        default:
-            warn("bad klog_s record !");
-            return;
-    }
+    if (kl->cb_close)
+        kl->cb_close(kl);
 
-    u_free(kl);
+    U_FREE(kl);
 
     return;
 }
@@ -227,17 +203,12 @@ void klog_close (klog_t *kl)
 int klog_getln (klog_t *kl, size_t nth, char ln[])
 {
     dbg_return_if (kl == NULL, ~0);
+    dbg_return_if (!IS_KLOG_TYPE(kl->type), ~0);
 
-    switch (kl->type)
-    {
-        case KLOG_TYPE_MEM:
-            return klog_getln_mem(kl->u.m, nth, ln);
-        case KLOG_TYPE_FILE:
-        case KLOG_TYPE_SYSLOG:
-        default:
-            warn("bad klog_s record !");
-            return ~0;
-    }
+    if (kl->cb_getln)
+        return kl->cb_getln(kl, nth, ln);
+    
+    return ~0;
 }
 
 /** 
@@ -252,16 +223,12 @@ int klog_getln (klog_t *kl, size_t nth, char ln[])
 int klog_clear (klog_t *kl)
 {
     dbg_return_if (kl == NULL, ~0);
+    dbg_return_if (!IS_KLOG_TYPE(kl->type), ~0);
 
-    switch (kl->type)
-    {
-        case KLOG_TYPE_MEM:
-            return klog_clear_mem(kl->u.m);
-        case KLOG_TYPE_FILE:
-        case KLOG_TYPE_SYSLOG:
-        default:
-            return ~0;
-    }
+    if (kl->cb_clear)
+        return kl->cb_clear(kl);
+
+    return ~0;
 }
 
 /** 
@@ -273,18 +240,13 @@ int klog_clear (klog_t *kl)
  */
 ssize_t klog_countln (klog_t *kl)
 {
-    dbg_return_if (kl == NULL, ~0);
+    dbg_return_if (kl == NULL, -1);
+    dbg_return_if (!IS_KLOG_TYPE(kl->type), ~0);
 
-    switch (kl->type)
-    {
-        case KLOG_TYPE_MEM:
-            return klog_countln_mem(kl->u.m);
-        case KLOG_TYPE_FILE:
-        case KLOG_TYPE_SYSLOG:
-        default:
-            warn("bad klog_s record !");
-            return -1;
-    }
+    if (kl->cb_countln)
+        return kl->cb_countln(kl);
+
+    return -1;
 }
 
 /**
@@ -350,9 +312,9 @@ void klog_args_print (FILE *fp, klog_args_t *ka)
 
 void klog_args_free (klog_args_t *ka)
 {
-    u_free(ka->ident);
-    u_free(ka->fbasename);
-    u_free(ka);
+    U_FREE(ka->ident);
+    U_FREE(ka->fbasename);
+    U_FREE(ka);
     return;
 }
 
@@ -413,11 +375,11 @@ static int klog_logopt (const char *options)
             warn("bad log option: \'%s\'", optv[i]);
     }
 
-    u_free(o2);
+    U_FREE(o2);
     return logopt;
 
 err:
-    u_free(o2);
+    U_FREE(o2);
     return 0;
 }
 
