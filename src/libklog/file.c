@@ -64,11 +64,15 @@ int klog_open_file (klog_t *kl, const char *base, size_t npages, size_t nlines)
         dbg_err_if (klog_file_head_new(base, npages, nlines, 0, 0, &klf));
     else
     {
-        /* check consistency with the supplied values */
-        dbg_ifb (klf->npages != npages)
+        /* check consistency with the supplied values, in case there is
+         * a delta for npages and nlines, reset everything */
+        dbg_ifb (klf->npages != npages || klf->nlines != nlines)
+        {
             klf->npages = npages;
-        dbg_ifb (klf->nlines != nlines)
             klf->nlines = nlines;
+            klf->wpageid = 0;
+            klf->offset = 0;
+        }
     }
 
     /* open the working log page for writing */
@@ -267,8 +271,8 @@ static int klog_file_shift_page (klog_file_t *klf)
                                 (klf->wpageid + 1)%klf->npages));
     dbg_err_if ((klf->wfp = fopen(wf, "w")) == NULL);
 
-    klf->offset = 0;    /* reset offset counter */
-    klf->wpageid += 1;  /* increment page id */
+    klf->offset = 0;                                /* reset offset counter */
+    klf->wpageid = ++(klf->wpageid)%klf->npages;    /* increment page id */
     
     return 0;
 err:

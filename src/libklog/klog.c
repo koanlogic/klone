@@ -177,9 +177,10 @@ end:
  */
 void klog_close (klog_t *kl)
 {
-    dbg_return_if (kl == NULL, );
-    dbg_return_if (!IS_KLOG_TYPE(kl->type), );
+    nop_return_if (kl == NULL, );
+    nop_return_if (!IS_KLOG_TYPE(kl->type), );
 
+    /* call private close function */
     if (kl->cb_close)
         kl->cb_close(kl);
 
@@ -274,7 +275,7 @@ int klog_open_from_config(u_config_t *ls, klog_t **pkl)
     klog_args_free(kargs);
     kargs = NULL;
 
-    /* save klog ptr into the backend struct */
+    /* stick it */
     *pkl = kl;
 
     return 0;
