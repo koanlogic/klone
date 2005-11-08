@@ -159,10 +159,7 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
 
     head = &ctx->code_blocks;
     for(node = head->tqh_first; node != NULL; node = node->np.tqe_next)
-    {
-        io_printf(p->out, "\n#line %d \"%s\"\n", node->code_line, node->file_in);
         io_write(p->out, node->buf, node->sz);
-    }
 
     io_printf(p->out, 
             "klone_script_exit:       \n"
@@ -228,21 +225,29 @@ static void print_register_block(io_t *out, lang_c_ctx_t *ctx)
         md5, md5);
 }
 
-static void print_c_line(parser_t *p, lang_c_ctx_t *ctx)
+static int print_c_line(parser_t *p, lang_c_ctx_t *ctx)
 {
-    io_printf(p->out, "#line %d \"%s\"\n", p->code_line, ctx->ti->file_in);
+    dbg_err_if(io_printf(p->out, "#line %d \"%s\"\n", p->code_line, 
+        ctx->ti->file_in) < 0);
+
+    return 0;
+err:
+    return ~0;
 }
 
 static int process_declaration(parser_t* p, void *arg, const char* buf, 
     size_t sz)
 {
-    lang_c_ctx_t *ctx = (lang_c_ctx_t*)arg;
+    /* lang_c_ctx_t *ctx = (lang_c_ctx_t*)arg;
 
-    print_c_line(p, ctx);
+    dbg_err_if(print_c_line(p, ctx)); */
+    u_unused_args(arg);
 
-    io_write(p->out, buf, sz);
+    dbg_err_if(io_write(p->out, buf, sz) < 0);
 
     return 0;
+err:
+    return ~0;
 }
 
 static int process_expression(parser_t* p, void *arg, const char*buf, size_t sz)
@@ -251,20 +256,38 @@ static int process_expression(parser_t* p, void *arg, const char*buf, size_t sz)
     const char before[] = "io_printf(out, \"%s\",";
     const char after[] = ");";
 
-    push_code_block(ctx, p, before, strlen(before));
-    push_code_block(ctx, p, buf, sz);
-    push_code_block(ctx, p, after, strlen(after));
+    dbg_err_if(push_code_block(ctx, p, before, strlen(before)));
+    dbg_err_if(push_code_block(ctx, p, buf, sz));
+    dbg_err_if(push_code_block(ctx, p, after, strlen(after)));
 
     return 0;
+err:
+    return ~0;
 }
 
 static int process_code(parser_t* p, void *arg, const char* buf, size_t sz)
 {
     lang_c_ctx_t *ctx = (lang_c_ctx_t*)arg;
 
-    push_code_block(ctx, p, buf, sz);
+    dbg_err_if(push_code_block(ctx, p, buf, sz));
 
     return 0;
+err:
+    return ~0;
+}
+
+static int translate_set_error(trans_info_t *ti, parser_t *p, const char *msg)
+{
+    char file[U_FILENAME_MAX];
+
+    dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
+
+    dbg_err_if(u_snprintf(ti->emsg, EMSG_BUFSZ, "[%s:%d] %s", 
+        file, p->line, msg));
+
+    return 0;
+err:
+    return ~0;
 }
 
 static int cb_html_block(parser_t* p, void *arg, const char* buf, size_t sz)
@@ -274,25 +297,32 @@ static int cb_html_block(parser_t* p, void *arg, const char* buf, size_t sz)
     char code[CODESZ];
     char varname[VARNSZ];
 
-    snprintf(varname, VARNSZ, "klone_html_zblock_%lu", ctx->html_block_cnt);
+    dbg_err_if(u_snprintf(varname, VARNSZ, "klone_html_zblock_%lu", 
+        ctx->html_block_cnt));
 
-    print_zip_var_definition(p, varname, buf, sz);
+    dbg_err_if(print_zip_var_definition(p, varname, buf, sz));
 
-    snprintf(code, CODESZ, 
+    dbg_err_if(u_snprintf(code, CODESZ, 
         "\ndbg_ifb(u_io_unzip_copy(out, klone_html_zblock_%lu, "
         "   sizeof(klone_html_zblock_%lu))) goto klone_script_exit;\n", 
-        ctx->html_block_cnt, ctx->html_block_cnt);
+        ctx->html_block_cnt, ctx->html_block_cnt));
 
-    push_code_block(ctx, p, code, strlen(code));
+    dbg_err_if(push_code_block(ctx, p, code, strlen(code)));
 
     ctx->html_block_cnt++;
 
     return 0;
+err:
+    return ~0;
 }
+
 
 static int cb_code_block(parser_t* p, int cmd, void *arg, const char* buf, 
     size_t sz)
 {
+    lang_c_ctx_t *ctx = (lang_c_ctx_t *)arg;
+    trans_info_t *ti = ctx->ti;
+
 	switch(cmd)
 	{
 	case 0: /* plain code block <% ... %> */
@@ -308,7 +338,8 @@ static int cb_code_block(parser_t* p, int cmd, void *arg, const char* buf,
         process_expression(p, arg, buf, sz);
 		break;
 	default:
-		dbg_err_if("unknown code type");
+        translate_set_error(ctx->ti, p, "bad command char after <%");
+		warn_err("unknown code type");
 	}
     return 0;
 err:

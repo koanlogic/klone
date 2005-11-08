@@ -112,7 +112,8 @@ int parser_run(parser_t *p)
                     buf[0] = 0; idx = 0;
                 }
 				set_state(S_START_CODE);
-                fetch_next_char(); /* get cmd char (!,@,etc.)*/
+			    p->code_line = p->line; /* save start code line number  */
+                fetch_next_char();      /* get cmd char (!,@,etc.)      */
 				continue;
 			} else {
 				set_state(S_HTML);
@@ -120,7 +121,6 @@ int parser_run(parser_t *p)
 			}
 			break;
 		case S_START_CODE:
-			p->code_line = p->line;
             if(isspace(c))
                 p->cmd_code = 0;
             else {

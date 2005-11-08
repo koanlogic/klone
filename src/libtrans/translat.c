@@ -39,10 +39,12 @@ static int is_a_script(const char *filename)
 static int process_directive_include(parser_t* p, char *inc_file)
 {
     enum { BUFSZ = 4096 };
-    char buf[BUFSZ], *pc;
+    char buf[U_FILENAME_MAX], *pc;
+    char file[U_FILENAME_MAX];
     io_t *io = NULL;
 
-    dbg_err_if(io_name_get(p->in, buf, BUFSZ));
+    dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
+    dbg_err_if(io_name_get(p->in, buf, U_FILENAME_MAX));
 
     /* remove file name, just path is needed */
     dbg_err_if((pc = strrchr(buf, '/')) == NULL);
@@ -55,11 +57,12 @@ static int process_directive_include(parser_t* p, char *inc_file)
     /* copy include file to p->out */
     dbg_err_if(u_file_open(buf, O_RDONLY, &io));
 
-    preprocess(io, p->out);
-    /*
-    while( (c = io_read(io, buf, BUFSZ)) > 0)
-        dbg_err_if(io_write(p->out, buf, c) < 0);
-    */
+    dbg_err_if(io_printf(p->out, "<%% #line 1 \"%s\" \n %%>", buf));
+
+    dbg_err_if(preprocess(io, p->out));
+
+    dbg_err_if(io_printf(p->out, "<%% #line %d \"%s\" \n %%>", 
+        p->code_line, file));
 
     io_free(io);
 
@@ -118,21 +121,33 @@ static int cb_pre_html_block(parser_t* p, void *arg, const char* buf, size_t sz)
 {
     u_unused_args(arg);
 
-    io_write(p->out, buf, sz);
+    dbg_err_if(io_write(p->out, buf, sz) < 0);
 
     return 0;
+err:
+    return ~0;
 }
 
 static int cb_pre_code_block(parser_t* p, int cmd, void *arg, const char* buf, 
     size_t sz)
 {
+    char file[U_FILENAME_MAX];
+
     if(cmd == '@')
     { /* do preprocess */
         dbg_err_if(parse_directive(p, arg, buf, sz));
     } else {
-        io_printf(p->out, "<%%%c ", (cmd == 0 ? ' ' : cmd));
-        io_write(p->out, buf, sz);
-        io_printf(p->out, "%%>");
+        dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
+        if(cmd != '=')
+            dbg_err_if(io_printf(p->out, "<%%%c #line %d \"%s\" \n%%>", 
+                (cmd == 0 ? ' ' : cmd), p->code_line, file)); 
+        else
+            dbg_err_if(io_printf(p->out, "<%% #line %d \"%s\" \n%%>", 
+                p->code_line, file)); 
+
+        dbg_err_if(io_printf(p->out, "<%%%c ", (cmd == 0 ? ' ' : cmd)) < 0);
+        dbg_err_if(io_write(p->out, buf, sz) < 0);
+        dbg_err_if(io_printf(p->out, "%%>") < 0);
     }
     return 0;
 err:
@@ -148,7 +163,6 @@ static int preprocess(io_t *in, io_t *out)
 
     parser_set_io(p, in, out);
 
-    //parser_set_cb_arg(p, NULL);
     parser_set_cb_code(p, cb_pre_code_block);
     parser_set_cb_html(p, cb_pre_html_block);
 
@@ -167,7 +181,7 @@ int translate(trans_info_t *pti)
 {
     io_t *in = NULL, *out = NULL, *tmp = NULL;
     codec_t *gzip = NULL, *aes = NULL;
-    char tname[PATH_MAX];
+    char tname[U_FILENAME_MAX];
 
     /* open the input file */
     dbg_err_if(u_file_open(pti->file_in, O_RDONLY, &in));
@@ -228,6 +242,8 @@ int translate(trans_info_t *pti)
 
     return 0;
 err:
+    if(pti && strlen(pti->emsg))
+        con("%s", pti->emsg);
     if(gzip)
         codec_free(gzip);
     if(tmp)
