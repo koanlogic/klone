@@ -65,6 +65,8 @@ int var_bin_create(const char* name, const char *data, size_t size, var_t**pv)
 {
     var_t *v = NULL;
 
+    dbg_return_if(name == NULL, ~0);
+
     v = u_zalloc(sizeof(var_t));
     dbg_err_if(v == NULL);
 
@@ -83,6 +85,8 @@ err:
 
 int var_create(const char* name, const char *value, var_t**pv)
 {
+    dbg_return_if(name == NULL || value == NULL, ~0);
+
     return var_bin_create(name, value, strlen(value) + 1, pv);
 }
 
@@ -185,6 +189,8 @@ err:
  */
 int var_set_name(var_t *v, const char *name)
 {
+    dbg_return_if(name == NULL, ~0);
+
     dbg_err_if(u_string_set(v->sname, name, strlen(name)));
 
     return 0; 
@@ -194,6 +200,8 @@ err:
 
 int var_set_value(var_t *v, const char *value)
 {
+    dbg_return_if(value == NULL, ~0);
+
     /* copy the string and the trailing '\0' */
     return var_set_bin_value(v, value, strlen(value) + 1);
 }
@@ -215,11 +223,18 @@ int var_set_bin_value(var_t *v, const char *data, size_t size)
     if(v->data)
         u_free(v->data);
 
-    v->size = size;
-    v->data = u_malloc(size+1);
-    dbg_err_if(v->data == NULL);
-    memcpy(v->data, data, size);
-    v->data[size] = 0; /* zero-term v->data so it can be used as a string */
+    if(data && size)
+    {
+        v->size = size;
+        v->data = u_malloc(size+1);
+        dbg_err_if(v->data == NULL);
+
+        memcpy(v->data, data, size);
+        v->data[size] = 0; /* zero-term v->data so it can be used as a string */
+    } else {
+        v->size = 0;
+        v->data = NULL;
+    }
 
     if(v->svalue)
         dbg_err_if(u_string_set(v->svalue, v->data, v->size));
