@@ -313,6 +313,8 @@ static int command_trans(void)
 
     return 0;
 err:
+    /* delete output file on error */
+    unlink(ti.file_out);
     con("translate error");
     return ~0;
 }
