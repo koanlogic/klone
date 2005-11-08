@@ -9,9 +9,9 @@
 static int fs_is_valid_uri(const char* uri, size_t len, time_t *mtime)
 {
     struct stat st; 
-    char fqn[1+PATH_MAX];
+    char fqn[1+U_FILENAME_MAX];
 
-    if(len > PATH_MAX)
+    if(len > U_FILENAME_MAX)
         return 0;
 
     memcpy(fqn, uri, len);

@@ -14,9 +14,9 @@
 static int supemb_is_valid_uri(const char* uri, size_t len, time_t *mtime)
 {
     embres_t *e;
-    char filename[PATH_MAX] = { 0 };
+    char filename[U_FILENAME_MAX] = { 0 };
 
-    dbg_err_if(len >= PATH_MAX);
+    dbg_err_if(len >= U_FILENAME_MAX);
 
     strncpy(filename, uri, len);
 

@@ -27,8 +27,6 @@
 #define MAX(a,b)    (a > b ? a : b)
 #endif
 
-#define FQN_BUFSZ   (PATH_MAX + NAME_MAX)
-
 #define KLONE_FREE(p) do {if (p) { free(p); p = NULL; }} while (0)
 
 #define klone_die(...) do { con(__VA_ARGS__); exit(EXIT_FAILURE); } while(0)

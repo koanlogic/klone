@@ -72,7 +72,7 @@ int u_foreach_dir_item(const char *path, unsigned int mask,
     struct dirent *de;
     struct stat st;
     DIR *dir = NULL;
-    char buf[PATH_MAX];
+    char buf[U_FILENAME_MAX];
     int rc;
 
     /* open the spool directory */
@@ -86,7 +86,7 @@ int u_foreach_dir_item(const char *path, unsigned int mask,
             continue;
 
         /* build fully qualified name of this item */
-        dbg_err_if(u_snprintf(buf, PATH_MAX, "%s/%s", path, de->d_name));
+        dbg_err_if(u_snprintf(buf, U_FILENAME_MAX, "%s/%s", path, de->d_name));
 
         dbg_err_if( (rc = stat(buf, &st)) == -1);
                                                                                         /* skip if its type is not in the requested mask */
@@ -435,7 +435,7 @@ char* u_strnrchr(const char *s, char c, size_t len)
 
 int u_tmpfile_open(io_t **pio)
 {
-    char tmp[PATH_MAX];
+    char tmp[U_FILENAME_MAX];
     io_t *io = NULL;
     int max = 10;
 

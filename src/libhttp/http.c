@@ -151,7 +151,7 @@ err:
 static int http_is_valid_uri(void* arg, const char *buf, size_t len)
 {
     enum { URI_MAX = 2048 };
-    char resolved[PATH_MAX], uri[URI_MAX];
+    char resolved[U_FILENAME_MAX], uri[URI_MAX];
     http_t *h = (http_t*)arg;
 
     strncpy(uri, buf, len);
@@ -167,16 +167,16 @@ err:
 static void http_resolv_request(http_t *h, request_t *rq)
 {
     const char *cstr;
-    char resolved[PATH_MAX];
+    char resolved[U_FILENAME_MAX];
 
     /* unalias rq->filename */
     cstr = request_get_filename(rq);
-    if(cstr && !http_alias_resolv(h, resolved, cstr, PATH_MAX))
+    if(cstr && !http_alias_resolv(h, resolved, cstr, U_FILENAME_MAX))
         request_set_resolved_filename(rq, resolved);
 
     /* unalias rq->path_info */
     cstr = request_get_path_info(rq);
-    if(cstr && !http_alias_resolv(h, resolved, cstr, PATH_MAX))
+    if(cstr && !http_alias_resolv(h, resolved, cstr, U_FILENAME_MAX))
         request_set_resolved_path_info(rq, resolved);
 }
 
@@ -185,7 +185,7 @@ static int http_set_index_request(http_t *h, request_t *rq)
     static const char *indexes[] = { "/index.klone", "/index.kl1",
         "/index.html", "/index.htm", NULL };
     const char **pg;
-    char resolved[PATH_MAX];
+    char resolved[U_FILENAME_MAX];
 
     /* user provided index page list (FIXME add list support) */
     if(h->index == NULL)
@@ -194,7 +194,7 @@ static int http_set_index_request(http_t *h, request_t *rq)
         for(pg = indexes; *pg; ++pg)
         {
             resolved[0] = 0;  /* for valgrind's happyness */
-            u_path_snprintf(resolved, PATH_MAX, "%s/%s", 
+            u_path_snprintf(resolved, U_FILENAME_MAX, "%s/%s", 
                     request_get_resolved_filename(rq), *pg);
 
             if(broker_is_valid_uri(h->broker, resolved, strlen(resolved)))

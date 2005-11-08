@@ -378,7 +378,7 @@ int session_mem_create(session_opt_t *so, request_t *rq, response_t *rs,
 
     dbg_err_if(session_prv_init(ss, rq, rs));
 
-    dbg_err_if(u_path_snprintf(ss->filename, PATH_MAX, "%s.ss", ss->id));
+    dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, "%s.ss", ss->id));
 
     *pss = ss;
 

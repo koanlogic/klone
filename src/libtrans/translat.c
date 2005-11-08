@@ -205,7 +205,7 @@ int translate(trans_info_t *pti)
         dbg_err_if(translate_script_to_c(tmp, out, pti));
 
         /* get the filename of the temporary io_t */
-        dbg_err_if(io_name_get(tmp, tname, PATH_MAX));
+        dbg_err_if(io_name_get(tmp, tname, U_FILENAME_MAX));
 
         /* free the tmp io */
         io_free(tmp);

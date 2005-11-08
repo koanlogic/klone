@@ -254,10 +254,10 @@ static int command_trans(void)
             ctx->uri);
 
     /* input file */
-    strncpy(ti.file_in, ctx->file_in, NAME_BUFSZ);
+    strncpy(ti.file_in, ctx->file_in, U_FILENAME_MAX);
 
     /* output file */
-    strncpy(ti.file_out, ctx->file_out, NAME_BUFSZ);
+    strncpy(ti.file_out, ctx->file_out, U_FILENAME_MAX);
 
     /* uri */
     strncpy(ti.uri, ctx->uri, URI_BUFSZ);
@@ -324,13 +324,13 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
     static const char *prefix = "$(srcdir)";
     const mime_map_t *mm;
     char uri_md5[MD5_DIGEST_BUFSZ];
-    char file_in[NAME_BUFSZ], uri[URI_BUFSZ], *base_uri = (char*)arg;
+    char file_in[U_FILENAME_MAX], uri[URI_BUFSZ], *base_uri = (char*)arg;
     int enc = 0, zip = 0;
 
     ctx->nfile++;
 
     /* input file */
-    u_snprintf(file_in, NAME_BUFSZ, "%s/%s/%s", prefix, path , de->d_name);
+    u_snprintf(file_in, U_FILENAME_MAX, "%s/%s/%s", prefix, path , de->d_name);
 
     /* base uri */
     u_snprintf(uri, URI_BUFSZ, "%s/%s", base_uri, de->d_name);
@@ -383,11 +383,11 @@ err:
 
 static int cb_dir(struct dirent *de, const char *path , void *arg)
 {
-    char dir[PATH_MAX], base_uri[URI_BUFSZ], *cur_uri = (char*)arg;
+    char dir[U_FILENAME_MAX], base_uri[URI_BUFSZ], *cur_uri = (char*)arg;
 
     ctx->ndir++;
 
-    dbg_err_if(u_snprintf(dir, PATH_MAX, "%s/%s", path, de->d_name));
+    dbg_err_if(u_snprintf(dir, U_FILENAME_MAX, "%s/%s", path, de->d_name));
 
     dbg_err_if(u_snprintf(base_uri, URI_BUFSZ, "%s/%s", cur_uri, de->d_name));
 

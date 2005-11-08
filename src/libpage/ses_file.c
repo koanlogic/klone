@@ -81,7 +81,7 @@ int session_file_create(session_opt_t *so, request_t *rq, response_t *rs,
 
     dbg_err_if(session_prv_init(ss, rq, rs));
 
-    dbg_err_if(u_path_snprintf(ss->filename, PATH_MAX, "%s/klone_sess_%s", 
+    dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, "%s/klone_sess_%s", 
         so->path, ss->id));
 
     if(stat(ss->filename, &st))
@@ -112,12 +112,12 @@ int session_file_module_init(u_config_t *config, session_opt_t *so)
     if((v = u_config_get_subkey_value(config, "file.path")) == NULL)
     {
     #ifdef OS_WIN
-        GetTempPath(PATH_MAX, so->path);
+        GetTempPath(U_FILENAME_MAX, so->path);
     #else
-        strncpy(so->path, "/tmp", PATH_MAX);
+        strncpy(so->path, "/tmp", U_FILENAME_MAX);
     #endif
     } else
-        strncpy(so->path, v, PATH_MAX);
+        strncpy(so->path, v, U_FILENAME_MAX);
 
     /* create a random key to crypt the KLONE_CIPHER_KEY variable */
     dbg_err_if(!RAND_bytes(so->session_key, CIPHER_KEY_SIZE));

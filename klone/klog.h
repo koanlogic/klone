@@ -7,6 +7,7 @@
 
 #include <sys/types.h>
 #include <stdarg.h>
+#include <u/libu.h>
 
 /* log levels, from low to high */
 enum {

@@ -9,18 +9,20 @@ FIRST RELEASE:
         - * io_t codec chains support
         - * remove klone/src/libos (moved to libu)
 
+        - safe_unlink (grep -r unlink *)
         - onthestack buffers for debug/logging procedures
 
-        - # line bug
-        - var_t binary support
-        - [opt] session_prv_save
+        - avoid u_unzip_io_printf
 
-        - encrypt KLONE_CIPHER_KEY
+        - disable client-side in cleartext
+        - session_bin_set
+
+        - file upload?
         - bind sessions to IP addresses
         
         - session.{encrypt|compress}
 
-        - security audit
+        - security audit/todo
             - chroot("..."); chdir("/");
             - store sessions in a secure dir
             - disable core dumps?
@@ -28,18 +30,12 @@ FIRST RELEASE:
             - last years apache security issues
 
 
-        - klone -c import -e '/encrypt*' -a EVP_aes
-
         - option to disable deflate'd transfers
 
         - klone && kloned usage() proofreading
         - klone and kloned man update
 
         - io_getc opt
-
-        - encrypted contents support
-            + (encrypted?) decryption key in user session
-            + encryption key submit page/function
 
         - configure
             + add -O2 to CFLAGS if not debugging
