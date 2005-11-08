@@ -861,7 +861,7 @@ int io_name_get(io_t *io, char* name, size_t sz)
     size_t min = 0;
 
     if(io->name == NULL)
-        return 0;
+        return ~0;
 
     dbg_err_if(sz < 2);
 
