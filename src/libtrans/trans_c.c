@@ -27,7 +27,6 @@ typedef struct
 {
     code_block_list_t code_blocks;
     trans_info_t *ti;
-    u_string_t *html_str;
     size_t html_block_cnt;
 } lang_c_ctx_t;
 
@@ -98,7 +97,7 @@ static void print_header(parser_t *p, lang_c_ctx_t *ctx)
                 ++file);
 }
 
-static int print_zip_var_definition(parser_t *p, const char* varname, 
+static int print_var_definition(parser_t *p, int comp, const char* varname, 
         const char* buf, size_t bufsz)
 {
     codec_t *zip = NULL;
@@ -111,10 +110,14 @@ static int print_zip_var_definition(parser_t *p, const char* varname,
     /* create an io_t around the HTML block */
     dbg_err_if(io_mem_create(buf, bufsz, 0, &ios));
 
-    /* apply a gzip codec */
-    dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &zip));
-    dbg_err_if(io_codec_add_tail(ios, zip));
-    zip = NULL; /* io_free() will free the codec */
+    /* if compression is enabled zip the data block */
+    if(comp)
+    {
+        /* apply a gzip codec */
+        dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &zip));
+        dbg_err_if(io_codec_add_tail(ios, zip));
+        zip = NULL; /* io_free() will free the codec */
+    }
 
     io_printf(p->out, "static uint8_t %s[] = {\n", varname);
 
@@ -137,12 +140,6 @@ err:
     if(ios)
         io_free(ios);
     return ~0;
-}
-
-static int print_html_block(parser_t *p, lang_c_ctx_t *ctx)
-{
-    return print_zip_var_definition(p, "klone_html_block", 
-            u_string_c(ctx->html_str), u_string_len(ctx->html_str));
 }
 
 static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
@@ -297,15 +294,30 @@ static int cb_html_block(parser_t* p, void *arg, const char* buf, size_t sz)
     char code[CODESZ];
     char varname[VARNSZ];
 
-    dbg_err_if(u_snprintf(varname, VARNSZ, "klone_html_zblock_%lu", 
-        ctx->html_block_cnt));
+    if(ctx->ti->comp)
+    {   /* zip embedded HTML blocks */
+        dbg_err_if(u_snprintf(varname, VARNSZ, "klone_html_zblock_%lu", 
+            ctx->html_block_cnt));
 
-    dbg_err_if(print_zip_var_definition(p, varname, buf, sz));
+        dbg_err_if(print_var_definition(p, 1 /* zip it */, varname, buf, sz));
 
-    dbg_err_if(u_snprintf(code, CODESZ, 
-        "\ndbg_ifb(u_io_unzip_copy(out, klone_html_zblock_%lu, "
-        "   sizeof(klone_html_zblock_%lu))) goto klone_script_exit;\n", 
-        ctx->html_block_cnt, ctx->html_block_cnt));
+        dbg_err_if(u_snprintf(code, CODESZ, 
+            "\ndbg_ifb(u_io_unzip_copy(out, klone_html_zblock_%lu, "
+            "   sizeof(klone_html_zblock_%lu))) goto klone_script_exit;\n", 
+            ctx->html_block_cnt, ctx->html_block_cnt));
+
+    } else {
+        /* embedded HTML blocks will not be zipped */
+        dbg_err_if(u_snprintf(varname, VARNSZ, "klone_html_%lu", 
+            ctx->html_block_cnt));
+
+        dbg_err_if(print_var_definition(p, 0, varname, buf, sz));
+
+        dbg_err_if(u_snprintf(code, CODESZ, 
+            "\ndbg_ifb(io_write(out, klone_html_%lu, "
+            "   sizeof(klone_html_%lu)) < 0) goto klone_script_exit;\n", 
+            ctx->html_block_cnt, ctx->html_block_cnt));
+    }
 
     dbg_err_if(push_code_block(ctx, p, code, strlen(code)));
 
@@ -388,7 +400,6 @@ int translate_script_to_c(io_t *in, io_t *out, trans_info_t *ti)
     /* init the context obj */
     memset(&ctx, 0, sizeof(lang_c_ctx_t));
     TAILQ_INIT(&ctx.code_blocks);
-    dbg_err_if(u_string_create(NULL, 0, &ctx.html_str));
     ctx.ti = ti;
 
     /* create a parse that reads from in and writes to out */
@@ -404,8 +415,6 @@ int translate_script_to_c(io_t *in, io_t *out, trans_info_t *ti)
 
     dbg_err_if(parser_run(p));
 
-    dbg_err_if(print_html_block(p, &ctx));
-
     print_code_blocks(p, &ctx);
 
     print_dynamic_page_block(p->out, &ctx);
@@ -413,14 +422,11 @@ int translate_script_to_c(io_t *in, io_t *out, trans_info_t *ti)
     print_register_block(p->out, &ctx);
 
     free_code_blocks(&ctx);
-    u_string_free(ctx.html_str);
 
     parser_free(p);
 
     return 0;
 err:
-    if(ctx.html_str)
-        u_string_free(ctx.html_str);
     free_code_blocks(&ctx);
     if(p)
         parser_free(p);
