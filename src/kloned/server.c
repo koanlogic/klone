@@ -358,6 +358,19 @@ err:
     return ~0;
 }
 
+int server_cb_klog_flush(alarm_t *a, void *arg)
+{
+    server_t *s = (server_t*)arg;
+
+    /* alarmt expired, it has been free'd by timerm_t */
+    s->al_klog_flush = NULL;
+
+    /* set a flag to flush the klog object in server_loop */
+    s->klog_flush++;
+
+    return 0;
+}
+
 int server_loop(server_t *s)
 {
     struct timeval tv;
@@ -383,6 +396,19 @@ int server_loop(server_t *s)
             goto again; /* interrupted */
         dbg_err_if(rc == -1); /* select error */
 
+        /* call klog_flush if flush timeout has expired and select() timeouts */
+        if(rc == 0 && s->klog_flush)
+        {
+            /* flush the log buffer */
+            klog_flush(s->klog);
+
+            /* reset the flag */
+            s->klog_flush = 0; 
+
+            /* re-set the timer */
+            dbg_err_if(timerm_add(SERVER_LOG_FLUSH_TIMEOUT, 
+                server_cb_klog_flush, s, &s->al_klog_flush));
+        }
         /* for each signaled listening descriptor */
         for(fd = 0; rc && fd < 1 + s->hfd; ++fd)
         { 
@@ -410,6 +436,13 @@ int server_free(server_t *s)
 
     /* remove the hook (that needs the server_t object) */
     u_log_set_hook(NULL, NULL, NULL, NULL);
+
+    /* remove klog flushing alarm */
+    if(s->al_klog_flush)
+    {
+        timerm_del(s->al_klog_flush);
+        s->al_klog_flush = NULL;
+    }
 
     if(s->klog)
     {
@@ -560,7 +593,10 @@ int server_create(u_config_t *config, int model, server_t **ps)
 
     /* create the log device if requested */
     if(!u_config_get_subkey(config, "log", &log_c))
+    {
         dbg_if(klog_open_from_config(log_c, &s->klog));
+        s->klog_flush = 1;
+    }
 
     /* register the log ppc callbacks */
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_LOG_ADD, server_ppc_cb_log_add, s));

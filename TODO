@@ -11,18 +11,19 @@ FIRST RELEASE:
         - * onthestack buffers for debug/logging procedures
         - * session.{encrypt|compress}
 
-        - scripts ulimit to limit memory/cpu?
+        - option to disable deflate'd transfers
 
-        - line by line code inspection
-        - copyright KL in tutti i file
+        - io_html_printf: html-encode before calling io_printf 
 
         - klog_flush on timeout
         - session_bin_set
 
-        - ifdef HAVE_LIBZ before codec_gzip_create
+        - set_key.klone example page
+        - default documentation embedded site
+
         - file upload?
-        - bind sessions to IP addresses
-        
+
+        - bind sessions to client IP address
 
         - security audit/todo
             - chroot("..."); chdir("/");
@@ -31,7 +32,9 @@ FIRST RELEASE:
             - check if symlink output files
             - last years apache security issues
 
-        - option to disable deflate'd transfers
+        - scripts ulimit to limit memory/cpu?
+        - line by line code inspection
+        - copyright KL in tutti i file
 
         - klone && kloned usage() proofreading
         - klone and kloned man update
@@ -44,8 +47,6 @@ FIRST RELEASE:
 
         - user msg on translate error (include file not found, etc.)
         - user msg on config error (server_list missing, etc.)
-        - option to disable page/html-chunk compression even if libz is linked
-
 
         - testing & profiling
         - GPL header in autogen files
@@ -54,6 +55,7 @@ FIRST RELEASE:
         - *bsd test
         - openssl come lib opzionale
         - "configure && make" automatico da klone/configure
+
         - sito embedded di default (nel tar.gz) con documentazione 
         - more request_ and response_ helper funcs (see jsp docs)
         - config param: server user/group owner

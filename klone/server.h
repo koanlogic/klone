@@ -7,11 +7,15 @@ struct u_config_s;
 struct server_s;
 typedef struct server_s server_t;
 
+enum { SERVER_LOG_FLUSH_TIMEOUT = 5 };
+
 enum { 
     SERVER_MODEL_UNSET,     /* uninitialized                        */
     SERVER_MODEL_FORK,      /* fork for each incoming connection    */
     SERVER_MODEL_ITERATIVE  /* serialize responses                  */
 };
+
+
 
 int server_create(struct u_config_s *config, int model, server_t **ps);
 int server_free(server_t *s);
