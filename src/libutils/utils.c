@@ -702,6 +702,7 @@ const char* u_guess_mime_type(const char *file_name)
     return ao;
 }
 
+#ifdef HAVE_LIBZ
 int u_io_unzip_copy(io_t *out, const uint8_t *data, size_t sz)
 {
     codec_t *zip = NULL;
@@ -728,6 +729,7 @@ err:
         io_free(ios);
     return ~0;
 }
+#endif
 
 #ifdef HAVE_LIBOPENSSL
 int u_cipher_encrypt(const EVP_CIPHER *cipher, unsigned char *key, 

@@ -8,6 +8,7 @@
 #include <klone/utils.h>
 #include <klone/codecs.h>
 #include <u/libu.h>
+#include "conf.h"
 
 struct code_block_s;
 
@@ -110,6 +111,7 @@ static int print_var_definition(parser_t *p, int comp, const char* varname,
     /* create an io_t around the HTML block */
     dbg_err_if(io_mem_create(buf, bufsz, 0, &ios));
 
+    #ifdef HAVE_LIBZ
     /* if compression is enabled zip the data block */
     if(comp)
     {
@@ -118,6 +120,7 @@ static int print_var_definition(parser_t *p, int comp, const char* varname,
         dbg_err_if(io_codec_add_tail(ios, zip));
         zip = NULL; /* io_free() will free the codec */
     }
+    #endif
 
     io_printf(p->out, "static uint8_t %s[] = {\n", varname);
 

@@ -126,12 +126,14 @@ int emb_open(const char *file, io_t **pio)
 
     dbg_err_if(io_mem_create(e->data, e->size, 0, &io));
 
+    #ifdef HAVE_LIBZ
     if(e->comp)
     {
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gzip));
         dbg_err_if(io_codec_add_tail(io, (codec_t*)gzip));
         gzip = NULL;
     }
+    #endif
 
     *pio = io;
 

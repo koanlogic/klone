@@ -123,10 +123,13 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
     if(request_get_method(rq) == HM_HEAD)
         return 0; /* just the header is requested */
 
+    #ifdef HAVE_LIBZ
     /* if needed apply a gzip codec to uncompress content data */
     if(e->comp && !sai)
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gzip));
+    #endif
 
+    #ifdef HAVE_LIBOPENSSL
     /* if the resource is encrypted unencrypt using the key stored in 
        KLONE_CIPHER_KEY session variable */
     if(e->encrypted)
@@ -141,6 +144,7 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
         /* delete the key from the stack */
         memset(key, 0, CODEC_CIPHER_KEY_SIZE);
     } 
+    #endif
 
     if(gzip)
     {   /* set gzip filter */
