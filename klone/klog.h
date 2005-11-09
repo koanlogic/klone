@@ -74,7 +74,7 @@ struct klog_file_s
     size_t nlines;  /* number of available log lines per page */
     size_t wpageid; /* working page id */
     size_t offset;  /* write offset in working page */
-    char basename[PATH_MAX + 1];
+    char basename[U_FILENAME_MAX];
 #define KLOG_PAGE_FULL(klf)  ((klf)->offset >= (klf)->nlines)
     FILE *wfp;      /* working page file pointer */
 };

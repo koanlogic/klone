@@ -89,7 +89,8 @@ int u_foreach_dir_item(const char *path, unsigned int mask,
         dbg_err_if(u_snprintf(buf, U_FILENAME_MAX, "%s/%s", path, de->d_name));
 
         dbg_err_if( (rc = stat(buf, &st)) == -1);
-                                                                                        /* skip if its type is not in the requested mask */
+
+        /* skip if its type is not in the requested mask */
         if(((st.st_mode & S_IFMT) == mask) && cb(de, path, arg))
             break;
     }

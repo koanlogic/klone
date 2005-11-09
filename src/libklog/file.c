@@ -128,7 +128,7 @@ static int klog_file_append (klog_file_t *klf, const char *id, int level,
         const char *ln)
 {
     time_t now;
-    char ct[26];
+    char *ct;
 
     dbg_return_if (ln == NULL, ~0);
     dbg_return_if (id == NULL, ~0);
@@ -136,7 +136,7 @@ static int klog_file_append (klog_file_t *klf, const char *id, int level,
     dbg_return_if (klf->wfp == NULL, ~0);
 
     dbg_err_if ((now = time(NULL)) == (time_t) -1);
-    ctime_r((const time_t *) &now, ct);
+    ct = ctime((const time_t *) &now);
     ct[24] = '\0';
 
     /* append line to wrk page */
@@ -173,52 +173,42 @@ static void klog_close_file (klog_t *kl)
 
 static int klog_file_head_load (const char *base, klog_file_t **pklf)
 {
-    int fd = -1;
-    struct stat sb;
-    char hf[PATH_MAX + 1];
-    char *mm = MAP_FAILED;
-    klog_file_t *hfs, *klf = NULL;
+    FILE *hfp = NULL;
+    char hf[U_FILENAME_MAX];
+    klog_file_t hfs, *klf = NULL;
 
     dbg_return_if (base == NULL, ~0);
     dbg_return_if (pklf == NULL, ~0);
     
-    dbg_err_if (u_path_snprintf(hf, PATH_MAX + 1, "%s%s", base, ".head"));
-    dbg_err_if ((fd = open(hf, O_RDONLY)) == -1);
-    dbg_err_if (fstat(fd, &sb) == -1);
-    dbg_err_if (sb.st_size != sizeof(klog_file_t));
-    mm = mmap(0, sizeof(klog_file_t), PROT_READ, MAP_PRIVATE, fd, 0);
-    dbg_err_if (mm == MAP_FAILED);
-    hfs = (klog_file_t *) mm;
+    dbg_err_if (u_path_snprintf(hf, U_FILENAME_MAX, "%s%s", base, ".head"));
+    dbg_err_if ((hfp = fopen(hf, "r")) == NULL);
+    dbg_err_if (fread(&hfs, sizeof hfs, 1, hfp) != 1);
+    U_FCLOSE(hfp);
 
-    dbg_err_if (klog_file_head_new(base, hfs->npages, hfs->nlines, 
-                                   hfs->wpageid, hfs->offset, &klf));
+    dbg_err_if (klog_file_head_new(base, hfs.npages, hfs.nlines, 
+                                   hfs.wpageid, hfs.offset, &klf));
     *pklf = klf;
-
-    munmap(mm, sizeof(klog_file_t));
-    close(fd);
 
     return 0;
 err:
     if (klf)
         klog_file_head_free(klf);
-    if (mm != MAP_FAILED)
-        munmap(mm, sizeof(klog_file_t));
-    U_CLOSE(fd);
+    U_FCLOSE(hfp);
     return ~0;
 }
 
 static int klog_file_head_dump (klog_file_t *klf)
 {
     FILE *hfp = NULL;
-    char hf[PATH_MAX + 1];
+    char hf[U_FILENAME_MAX];
     
     dbg_return_if (klf == NULL, ~0);
 
-    dbg_err_if (u_path_snprintf(hf, PATH_MAX + 1, "%s.%s", 
+    dbg_err_if (u_path_snprintf(hf, U_FILENAME_MAX, "%s.%s", 
                                 klf->basename, "head"));
     dbg_err_if ((hfp = fopen(hf, "w")) == NULL);
     dbg_err_if (fwrite(klf, sizeof(klog_file_t), 1, hfp) != 1);
-    dbg_if (fclose(hfp));
+    U_FCLOSE(hfp);
 
     return 0;
 err:
@@ -234,7 +224,7 @@ static int klog_file_head_new (const char *base, size_t npages, size_t nlines,
     klf = u_zalloc(sizeof(klog_file_t));
     dbg_err_if (klf == NULL);
 
-    u_sstrncpy(klf->basename, base, PATH_MAX);
+    u_sstrncpy(klf->basename, base, U_FILENAME_MAX - 1);
     klf->npages = npages;
     klf->nlines = nlines;
     klf->wpageid = wpageid;
@@ -262,12 +252,12 @@ static void klog_file_head_free (klog_file_t *klf)
 
 static int klog_file_shift_page (klog_file_t *klf)
 {
-    char wf[PATH_MAX + 1];
+    char wf[U_FILENAME_MAX];
     
     dbg_return_if (klf == NULL, ~0);
 
     U_FCLOSE(klf->wfp);
-    dbg_err_if (u_path_snprintf(wf, PATH_MAX + 1, "%s.%d", klf->basename,
+    dbg_err_if (u_path_snprintf(wf, U_FILENAME_MAX, "%s.%d", klf->basename,
                                 (klf->wpageid + 1)%klf->npages));
     dbg_err_if ((klf->wfp = fopen(wf, "w")) == NULL);
 
@@ -281,11 +271,11 @@ err:
 
 static int klog_file_open_page (klog_file_t *klf)
 {
-    char wf[PATH_MAX + 1];
+    char wf[U_FILENAME_MAX];
 
     dbg_return_if (klf == NULL, ~0);
 
-    dbg_err_if (u_path_snprintf(wf, PATH_MAX + 1, "%s.%d", 
+    dbg_err_if (u_path_snprintf(wf, U_FILENAME_MAX, "%s.%d", 
                                 klf->basename, klf->wpageid));
     dbg_err_if ((klf->wfp = fopen(wf, "a")) == NULL);
     
