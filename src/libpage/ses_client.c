@@ -214,12 +214,6 @@ int session_client_module_init(u_config_t *config, session_opt_t *so)
             warn_err("config error: bad hash_function");
     } 
 
-    if(so->encrypt)
-    {
-        EVP_CIPHER_CTX_init(&so->cipher_enc_ctx);
-        EVP_CIPHER_CTX_init(&so->cipher_dec_ctx);
-    }
-
     /* initialize OpenSSL HMAC stuff */
     HMAC_CTX_init(&so->hmac_ctx);
 

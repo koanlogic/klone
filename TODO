@@ -8,19 +8,18 @@ FIRST RELEASE:
         - * io_codec_add_tail, io_codec_add_head
         - * io_t codec chains support
         - * remove klone/src/libos (moved to libu)
+        - * onthestack buffers for debug/logging procedures
+        - * session.{encrypt|compress}
 
-        - safe_unlink (grep -r unlink *)
-        - onthestack buffers for debug/logging procedures
+        - scripts ulimit to limit memory/cpu?
 
-        - avoid u_unzip_io_printf
-
-        - disable client-side in cleartext
+        - klog_flush on timeout
         - session_bin_set
 
+        - ifdef HAVE_LIBZ before codec_gzip_create
         - file upload?
         - bind sessions to IP addresses
         
-        - session.{encrypt|compress}
 
         - security audit/todo
             - chroot("..."); chdir("/");
@@ -28,7 +27,6 @@ FIRST RELEASE:
             - disable core dumps?
             - check if symlink output files
             - last years apache security issues
-
 
         - option to disable deflate'd transfers
 

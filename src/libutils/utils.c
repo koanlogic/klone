@@ -503,6 +503,8 @@ int u_getline(io_t *io, u_string_t *ln)
             break;
     }
 
+    dbg_if(rc < 0); /* io_gets error */
+
 err:
     return (rc <= 0 ? ~0 : 0);
 }

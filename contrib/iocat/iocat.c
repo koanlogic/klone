@@ -21,22 +21,27 @@ typedef struct ctx_s
     size_t narg;
     int encode;
     int decode;
+    int comp;
+    int cipher;
 } context_t;
 
 context_t context, *ctx = &context;
 
 static void error(const char *msg)
 {
-    fprintf(stderr, "err: %s", msg);
+    fprintf(stderr, "err: %s\n", msg);
     exit(1);
 }
 
 static void usage()
 {
     fprintf(stderr, 
-        "Usage: iocat [-ed] [infile [outfile]]  \n"
-        "           -e    encode                \n"
-        "           -d    decode                \n"
+        "Usage: iocat [-cdez] [infile [outfile]]  \n"
+        "           -c    use OpenSSL AES256 codec  \n"
+        "           -d    decode                    \n"
+        "           -h    print this help and exit  \n"
+        "           -e    encode                    \n"
+        "           -z    use libz codec            \n"
         );
     exit(1);
 }
@@ -45,7 +50,7 @@ static void parse_opt(int argc, char **argv)
 {
     int ret;
 
-    while((ret = getopt(argc, argv, "hde")) != -1)
+    while((ret = getopt(argc, argv, "hcdez")) != -1)
     {
         switch(ret)
         {
@@ -55,6 +60,12 @@ static void parse_opt(int argc, char **argv)
         case 'e': 
             ctx->encode++;
             break;
+        case 'z': 
+            ctx->comp++;
+            break;
+        case 'c': 
+            ctx->cipher++;
+            break;
         default:
         case 'h': 
             usage();
@@ -63,6 +74,12 @@ static void parse_opt(int argc, char **argv)
     /* sanity checks */
     if(ctx->encode && ctx->decode)
         error("just one of -e or -d may be used");
+    
+    if(ctx->encode || ctx->decode)
+    {
+        if(!ctx->comp && !ctx->cipher)
+            error("-z and/or -c must be used with -e and -d");
+    }
 
     ctx->narg = argc - optind;
     ctx->arg = argv + optind;
@@ -87,6 +104,8 @@ int main(int argc, char **argv)
     codec_t *unzip = NULL;
     codec_t *encrypt = NULL;
     codec_t *decrypt = NULL;
+    unsigned char key[CODEC_CIPHER_KEY_SIZE];
+    unsigned char iv[CODEC_CIPHER_IV_SIZE];
     
     memset(ctx, 0, sizeof(context_t));
 
@@ -113,6 +132,7 @@ int main(int argc, char **argv)
         dbg_err_if(io_name_set(out, "stdout"));
     }
 
+    /* create some null codec to stress-test the io_t */
     dbg_err_if(codec_null_create(&null0));
     dbg_err_if(codec_null_create(&null1));
     dbg_err_if(codec_null_create(&null2));
@@ -124,10 +144,15 @@ int main(int argc, char **argv)
     dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &unzip));
 
     /* aes256 */
+    memset(key, 0, sizeof(key));
+    memset(iv, 0, sizeof(iv));
+    strcpy(key, "pwd");
+    strcpy(iv, "iv");
+
     dbg_err_if(codec_cipher_create(CIPHER_ENCRYPT, EVP_aes_256_cbc(),
-            "pwd", NULL, &encrypt));
+            key, iv, &encrypt));
     dbg_err_if(codec_cipher_create(CIPHER_DECRYPT, EVP_aes_256_cbc(),
-            "pwd", NULL, &decrypt));
+            key, iv, &decrypt));
 
     if(ctx->encode || ctx->decode)
     {
@@ -137,17 +162,21 @@ int main(int argc, char **argv)
         {
             dbg_err_if(io_codec_add_tail(in, null0));
             dbg_err_if(io_codec_add_tail(in, null1));
-            dbg_err_if(io_codec_add_tail(in, zip));
+            if(ctx->comp)
+                dbg_err_if(io_codec_add_tail(in, zip));
             dbg_err_if(io_codec_add_tail(in, null2));
-            dbg_err_if(io_codec_add_tail(in, encrypt));
+            if(ctx->cipher)
+                dbg_err_if(io_codec_add_tail(in, encrypt));
             dbg_err_if(io_codec_add_tail(in, null3));
             dbg_err_if(io_codec_add_tail(in, null4));
         } else {
             dbg_err_if(io_codec_add_tail(out, null0));
             dbg_err_if(io_codec_add_tail(out, null1));
-            dbg_err_if(io_codec_add_tail(out, decrypt));
+            if(ctx->cipher)
+                dbg_err_if(io_codec_add_tail(out, decrypt));
             dbg_err_if(io_codec_add_tail(out, null2));
-            dbg_err_if(io_codec_add_tail(out, unzip));
+            if(ctx->comp)
+                dbg_err_if(io_codec_add_tail(out, unzip));
             dbg_err_if(io_codec_add_tail(out, null3));
             dbg_err_if(io_codec_add_tail(out, null4));
         }
