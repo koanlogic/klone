@@ -245,7 +245,7 @@ static void klog_file_head_free (klog_file_t *klf)
         return;
 
     U_FCLOSE(klf->wfp);
-    free(klf);
+    u_free(klf);
     
     return;
 }
