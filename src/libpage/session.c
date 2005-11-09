@@ -10,6 +10,7 @@
 #include <klone/vars.h>
 #include <klone/utils.h>
 #include <klone/ses_prv.h>
+#include <klone/codecs.h>
 #include <u/libu.h>
 #include "conf.h"
 
@@ -50,6 +51,8 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     /* defaults values */
     so->type = SESSION_TYPE_FILE;
     so->max_age = DEFAULT_SESSION_EXPIRATION;
+    so->compress = 0;
+    so->encrypt = 0;
 
     if(u_config_get_subkey(config, "session", &c))
     {
@@ -77,6 +80,48 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     if((v = u_config_get_subkey_value(c, "max_age")) != NULL)
         max_age = MAX(atoi(v) * 60, 60); /* min value: 1 min */
 
+    /* set compression flag */
+    if((v = u_config_get_subkey_value(c, "compress")) != NULL)
+    {
+        if(!strcasecmp(v, "yes"))
+            so->compress = 1;
+        else if(!strcasecmp(v, "no"))
+            so->compress = 0;
+        else
+            warn_err("config error: bad compress value");
+    }
+
+    /* set encryption flag */
+    if((v = u_config_get_subkey_value(c, "encrypt")) != NULL)
+    {
+        if(!strcasecmp(v, "yes"))
+            so->encrypt = 1;
+        else if(!strcasecmp(v, "no"))
+            so->encrypt = 0;
+        else
+            warn_err("config error: bad encrypt value");
+    }
+
+    #ifndef HAVE_LIBZ
+    if(so->compress)
+        warn_err("config error: compression is enabled but libz is not "
+                 "linked");
+    #endif
+
+    #ifndef HAVE_LIBOPENSSL
+    if(so->encrypt)
+        warn_err("config error: encryption is enabled but OpenSSL is not "
+                 "linked");
+    #else
+    /* init cipher EVP algo, the random key and IV */
+    so->cipher = EVP_aes_256_cbc(); /* use AES-256 in CBC mode */
+
+    EVP_add_cipher(so->cipher);
+
+    dbg_err_if(!RAND_bytes(so->cipher_key, CIPHER_KEY_SIZE));
+    dbg_err_if(!RAND_pseudo_bytes(so->cipher_iv, CIPHER_IV_SIZE));
+    #endif
+
     /* per-type configuration init */
     if(so->type == SESSION_TYPE_MEMORY)
         dbg_err_if(session_mem_module_init(c, so));
@@ -96,6 +141,93 @@ err:
     return ~0;
 }
 
+int session_prv_calc_maxsize(var_t *v, void *p)
+{
+    const char *value = NULL;
+    size_t *psz = (size_t*)p;
+
+    dbg_err_if(v == NULL || var_get_name(v) == NULL || psz == NULL);
+
+    #ifdef HAVE_LIBOPENSSL
+    if(*psz == 0)
+    {   /* first time here */
+        *psz = CODEC_CIPHER_BLOCK_SIZE;
+    }
+    #endif
+
+    /* name= */
+    *psz += 3 * strlen(var_get_name(v)) + 3;
+
+    /* value */
+    if((value = var_get_value(v)) != NULL)
+        *psz += 3 * strlen(value) + 1; /* worse case (i.e. longest string) */
+
+    return 0;
+err:
+    return ~0;
+}
+
+int session_prv_load_from_buf(session_t *ss, char *buf, size_t size)
+{
+    io_t *io = NULL;
+
+    /* build an io_t around the buffer */
+    dbg_err_if(io_mem_create(buf, size, 0, &io));
+
+    /* load data */
+    dbg_err_if(session_prv_load_from_io(ss, io));
+
+    io_free(io);
+
+    return 0;
+err:
+    if(io)
+        io_free(io);
+    return ~0;
+}
+
+int session_prv_save_to_buf(session_t *ss, char **pbuf, size_t *psz)
+{
+    io_t *io = NULL;
+    char *buf = NULL;
+    size_t sz = 0;
+
+    /* calc the maximum session data size (exact calc requires url encoding and
+       codec transformation knowledge) */
+    vars_foreach(ss->vars, session_prv_calc_maxsize, (void*)&sz);
+
+    /* alloc a big-enough block to save the session data */
+    buf = u_malloc(sz);
+    dbg_err_if(buf == NULL);
+
+    /* create a big-enough in-memory io object */
+    dbg_err_if(io_mem_create(buf, sz, 0, &io));
+
+    /* save the session to the in-memory io */
+    dbg_err_if(session_prv_save_to_io(ss, io));
+
+    /* remove all codecs to get the right size of 'buf'. we need to remove 
+       the codecs because some of them buffer data until last codec->flush() 
+       is called (and it's not possible to flush codecs without removing them */
+    dbg_err_if(io_codecs_remove(io));
+
+    /* get the number of bytes written to the io (so to 'buf') */
+    sz = io_tell(io);
+
+    io_free(io);
+    io = NULL;
+
+    *pbuf = buf;
+    *psz = sz;
+
+    return 0;
+err:
+    if(io)
+        io_free(io);
+    if(buf)
+        u_free(buf);
+    return ~0;
+}
 
 /** 
  *  \ingroup Chttp
@@ -178,12 +310,33 @@ err:
     return ~0;
 }
 
-int session_prv_load(session_t *ss, io_t *io)
+int session_prv_load_from_io(session_t *ss, io_t *io)
 {
     u_string_t *line = NULL;
     var_t *v = NULL;
+    codec_t *unzip = NULL, *decrypt = NULL;
     unsigned char key[CODEC_CIPHER_KEY_SIZE];
     size_t ksz;
+
+                
+    #ifdef HAVE_LIBOPENSSL
+    if(ss->so->encrypt)
+    {
+        dbg_err_if(codec_cipher_create(CIPHER_DECRYPT, ss->so->cipher, 
+            ss->so->cipher_key, ss->so->cipher_iv, &decrypt)); 
+        dbg_err_if(io_codec_add_tail(io, decrypt));
+        decrypt = NULL; /* io_t owns it after io_codec_add_tail */
+    }
+    #endif
+
+    #ifdef HAVE_LIBZ
+    if(ss->so->compress)
+    {
+        dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &unzip));
+        dbg_err_if(io_codec_add_tail(io, unzip));
+        unzip = NULL; /* io_t owns it after io_codec_add_tail */
+    }
+    #endif
 
     dbg_err_if(u_string_create(NULL, 0, &line));
 
@@ -212,10 +365,19 @@ int session_prv_load(session_t *ss, io_t *io)
         }
     }
 
+    /* remove set codecs and flush */
+    io_codecs_remove(io);
+
     u_string_free(line);
 
     return 0;
 err:
+    if(io)
+        io_codecs_remove(io);
+    if(decrypt)
+        codec_free(decrypt);
+    if(unzip)
+        codec_free(unzip);
     if(line)
         u_string_free(line);
     return ~0;
@@ -395,6 +557,28 @@ err:
 int session_prv_save_to_io(session_t *ss, io_t *out)
 {
     save_cb_params_t prm; 
+    codec_t *zip = NULL, *cencrypt = NULL;
+
+    dbg_err_if(ss == NULL || out == NULL);
+
+    #ifdef HAVE_LIBZ
+    if(ss->so->compress)
+    {
+        dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &zip));
+        dbg_err_if(io_codec_add_tail(out, zip));
+        zip = NULL; /* io_t owns it after io_codec_add_tail */
+    }
+    #endif
+
+    #ifdef HAVE_LIBOPENSSL
+    if(ss->so->encrypt)
+    {
+        dbg_err_if(codec_cipher_create(CIPHER_ENCRYPT, ss->so->cipher, 
+            ss->so->cipher_key, ss->so->cipher_iv, &cencrypt));
+        dbg_err_if(io_codec_add_tail(out, cencrypt));
+        cencrypt = NULL; /* io_t owns it after io_codec_add_tail */
+    }
+    #endif
 
     /* pass io and session poiters to the callback function */
     prm.io = out;
@@ -402,8 +586,17 @@ int session_prv_save_to_io(session_t *ss, io_t *out)
 
     vars_foreach(ss->vars, session_prv_save_var, (void*)&prm);
 
+    /* remove all codecs and flush */
+    io_codecs_remove(out);
+
     return 0;
 err:
+    if(out)
+        io_codecs_remove(out);
+    if(zip)
+        codec_free(zip);
+    if(cencrypt)
+        codec_free(cencrypt);
     return ~0;
 }
 
@@ -421,10 +614,11 @@ int session_prv_save_var(var_t *v, void *vp)
 
     /* buffers must be at least three times the src data to URL-encode  */
     nsz = 1 + 3 * strlen(var_get_name(v));  /* name buffer size  */
-    #ifndef HAVE_LIBOPENSSL
     vsz = 1 + 3 * var_get_value_size(v);    /* value buffer size */
-    #else
-    vsz = 1 + 3 * (var_get_value_size(v) + CODEC_CIPHER_BLOCK_SIZE);
+
+    #ifdef HAVE_LIBOPENSSL
+    vsz += CODEC_CIPHER_BLOCK_SIZE; /* encryption may enlarge the content up 
+                                       to CODEC_CIPHER_BLOCK_SIZE -1         */
     #endif
 
     /* if the buffer on the stack is too small alloc a bigger one */

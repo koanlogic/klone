@@ -19,6 +19,9 @@ static int session_file_save(session_t *ss)
     /* delete old file (we'll rewrite it from scratch) */
     dbg_if(unlink(ss->filename));
 
+    if(vars_count(ss->vars) == 0)
+        return 0; /* nothing to save */
+
     // FIXME may be busy, must retry
     dbg_err_if(u_file_open(ss->filename, O_WRONLY | O_CREAT, &io));
 
@@ -40,7 +43,7 @@ static int session_file_load(session_t *ss)
     // FIXME may be busy, must retry
     dbg_err_if(u_file_open(ss->filename, O_RDONLY | O_CREAT, &io));
 
-    dbg_err_if(session_prv_load(ss, io));
+    dbg_err_if(session_prv_load_from_io(ss, io));
 
     io_free(io);
 

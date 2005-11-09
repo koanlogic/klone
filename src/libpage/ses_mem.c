@@ -27,23 +27,6 @@ typedef struct enc_ses_mem_s
     char data[1];               /* data block           */
 } enc_ses_mem_t;
 
-static int session_calc_maxsize(var_t *v, void *p)
-{
-    const char *value = NULL;
-    size_t *psz = (size_t*)p;
-
-    dbg_err_if(v == NULL || var_get_name(v) == NULL || psz == NULL);
-
-    if((value = var_get_value(v)) != NULL)
-        *psz += 3 * strlen(value) + 1; /* worse case (i.e. longest string) */
-    else
-        *psz += strlen(var_get_name(v))+ 2;
-
-    return 0;
-err:
-    return ~0;
-}
-
 static int so_atom_delete_oldest(session_opt_t *so)
 {
     atom_t *atom, *oldest;
@@ -267,29 +250,14 @@ err:
 
 static int session_mem_save(session_t *ss)
 {
-    io_t *io = NULL;
-    size_t sz = 0;
     char *buf = NULL;
+    size_t sz;
 
-    /* delete previous data */
-    //session_remove(ss);
+    /* save the session data to freshly alloc'd buf of size sz */
+    dbg_err_if(session_prv_save_to_buf(ss, &buf, &sz));
 
-    /* calc the maximum session data size (exact calc requires url encoding) */
-    vars_foreach(ss->vars, session_calc_maxsize, (void*)&sz);
-
-    /* alloc a block to save the session */
-    buf = u_malloc(sz);
-    dbg_err_if(buf == NULL);
-
-    /* create a big-enough in-memory io object */
-    dbg_err_if(io_mem_create(buf, sz, 0, &io));
-
-    dbg_err_if(session_prv_save_to_io(ss, io));
-
-    io_free(io);
-
-    /* don't free buf that will be used by the embfs */
-    dbg_err_if(session_mem_add(ss->so, ss->filename,  buf, sz, time(0)));
+    /* add the session to the in-memory session list */
+    dbg_err_if(session_mem_add(ss->so, ss->filename, buf, sz, time(0)));
 
     u_free(buf);
 
@@ -297,16 +265,12 @@ static int session_mem_save(session_t *ss)
 err:
     if(buf)
         u_free(buf);
-    if(io)
-        io_free(io);
     return ~0;
 }
-
 
 static int session_mem_load(session_t *ss)
 {
     atom_t *atom;
-    io_t *io = NULL;
 
     /* find the file into the atom list */
     if(atoms_get(ss->so->atoms, ss->filename, &atom))
@@ -315,18 +279,11 @@ static int session_mem_load(session_t *ss)
     /* copy stored mtime */
     ss->mtime = (time_t)atom->arg;
 
-    /* build an io_t around it */
-    dbg_err_if(io_mem_create(atom->data, atom->size, 0, &io));
-
-    /* load data */
-    dbg_err_if(session_prv_load(ss, io));
-
-    io_free(io);
+    /* load session from atom->data */
+    dbg_err_if(session_prv_load_from_buf(ss, atom->data, atom->size));
 
     return 0;
 err:
-    if(io)
-        io_free(io);
     return ~0;
 }
 
