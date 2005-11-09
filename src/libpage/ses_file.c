@@ -11,6 +11,7 @@
 #include <klone/utils.h>
 #include <klone/ses_prv.h>
 #include <u/libu.h>
+#include "conf.h"
 
 static int session_file_save(session_t *ss)
 {
@@ -121,9 +122,6 @@ int session_file_module_init(u_config_t *config, session_opt_t *so)
     #endif
     } else
         strncpy(so->path, v, U_FILENAME_MAX);
-
-    /* create a random key to crypt the KLONE_CIPHER_KEY variable */
-    dbg_err_if(!RAND_bytes(so->session_key, CIPHER_KEY_SIZE));
 
     return 0;
 err:

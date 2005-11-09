@@ -138,6 +138,7 @@ err:
 
 #else /* zlib not found */
 
+#if 0
 typedef struct codec_gzip_s
 {
     codec_t codec;
@@ -197,5 +198,6 @@ err:
         u_free(iz);
     return ~0;
 }
+#endif
 
 #endif /* if HAVE_LIBZ */

@@ -73,7 +73,7 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
             so->type = SESSION_TYPE_CLIENT;
         #endif
         } else
-            warn_err("config error: bad session type");
+           warn_err("config error: bad session type (typo or missing library)");
     }
 
     /* set max_age */
@@ -118,8 +118,14 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
 
     EVP_add_cipher(so->cipher);
 
+    /* key and iv for client-side session */
     dbg_err_if(!RAND_bytes(so->cipher_key, CIPHER_KEY_SIZE));
     dbg_err_if(!RAND_pseudo_bytes(so->cipher_iv, CIPHER_IV_SIZE));
+
+    /* create a random key and iv to crypt the KLONE_CIPHER_KEY variable */
+    dbg_err_if(!RAND_bytes(so->session_key, CIPHER_KEY_SIZE));
+    dbg_err_if(!RAND_pseudo_bytes(so->session_iv, CIPHER_IV_SIZE));
+
     #endif
 
     /* per-type configuration init */
@@ -318,7 +324,7 @@ int session_prv_load_from_io(session_t *ss, io_t *io)
     unsigned char key[CODEC_CIPHER_KEY_SIZE];
     size_t ksz;
 
-                
+
     #ifdef HAVE_LIBOPENSSL
     if(ss->so->encrypt)
     {
@@ -327,6 +333,8 @@ int session_prv_load_from_io(session_t *ss, io_t *io)
         dbg_err_if(io_codec_add_tail(io, decrypt));
         decrypt = NULL; /* io_t owns it after io_codec_add_tail */
     }
+    #else
+    u_unused_args(key, ksz);
     #endif
 
     #ifdef HAVE_LIBZ
@@ -352,7 +360,8 @@ int session_prv_load_from_io(session_t *ss, io_t *io)
                 /* decrypt key and save it to key */
                 memset(key, 0, sizeof(key));
                 dbg_ifb(u_cipher_decrypt(EVP_aes_256_cbc(), ss->so->session_key,
-                    NULL, key, &ksz, var_get_value(v), var_get_value_size(v)))
+                    ss->so->session_iv, key, &ksz, 
+                    var_get_value(v), var_get_value_size(v)))
                 {
                     v = vars_get(ss->vars, "KLONE_CIPHER_KEY");
                     vars_del(ss->vars, v);
@@ -619,6 +628,8 @@ int session_prv_save_var(var_t *v, void *vp)
     #ifdef HAVE_LIBOPENSSL
     vsz += CODEC_CIPHER_BLOCK_SIZE; /* encryption may enlarge the content up 
                                        to CODEC_CIPHER_BLOCK_SIZE -1         */
+    #else
+    u_unused_args(ekey, eksz);
     #endif
 
     /* if the buffer on the stack is too small alloc a bigger one */
@@ -640,8 +651,8 @@ int session_prv_save_var(var_t *v, void *vp)
         {
             /* encrypt key and save it to ekey */
             dbg_err_if(u_cipher_encrypt(EVP_aes_256_cbc(), 
-                pprm->ss->so->session_key, NULL, ekey, &eksz, 
-                var_get_value(v), var_get_value_size(v)));
+                pprm->ss->so->session_key, pprm->ss->so->session_iv, 
+                ekey, &eksz, var_get_value(v), var_get_value_size(v)));
 
             /* save it to the var list */
             dbg_err_if(var_set_bin_value(v, ekey, eksz));

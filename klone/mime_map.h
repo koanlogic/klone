@@ -1,5 +1,5 @@
-#ifndef _MIME_MAP_H_
-#define _MIME_MAP_H_
+#ifndef _KLONE_MIME_MAP_H_
+#define _KLONE_MIME_MAP_H_
 
 typedef struct mime_map_s
 {

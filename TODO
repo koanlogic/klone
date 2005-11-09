@@ -13,6 +13,9 @@ FIRST RELEASE:
 
         - scripts ulimit to limit memory/cpu?
 
+        - line by line code inspection
+        - copyright KL in tutti i file
+
         - klog_flush on timeout
         - session_bin_set
 
@@ -48,6 +51,7 @@ FIRST RELEASE:
         - GPL header in autogen files
         - test CGI interface
         - Windows test
+        - *bsd test
         - openssl come lib opzionale
         - "configure && make" automatico da klone/configure
         - sito embedded di default (nel tar.gz) con documentazione 

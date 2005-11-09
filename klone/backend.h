@@ -1,5 +1,5 @@
-#ifndef _SERVER_BACKEND_H_
-#define _SERVER_BACKEND_H_
+#ifndef _KLONE_BACKEND_H_
+#define _KLONE_BACKEND_H_
 #include <u/libu.h>
 #include <klone/klog.h>
 

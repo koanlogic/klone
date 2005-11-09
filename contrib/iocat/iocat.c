@@ -36,12 +36,25 @@ static void error(const char *msg)
 static void usage()
 {
     fprintf(stderr, 
-        "Usage: iocat [-cdez] [infile [outfile]]  \n"
+        "Usage: iocat [-"
+        #ifdef HAVE_LIBOPENSSL
+        "c"
+        #endif
+        "d"
+        "e"
+        #ifdef HAVE_LIBZ
+        "z"
+        #endif
+        "] [infile [outfile]]  \n"
+        #ifdef HAVE_LIBOPENSSL
         "           -c    use OpenSSL AES256 codec  \n"
+        #endif
         "           -d    decode                    \n"
         "           -h    print this help and exit  \n"
         "           -e    encode                    \n"
+        #ifdef HAVE_LIBZ
         "           -z    use libz codec            \n"
+        #endif
         );
     exit(1);
 }
@@ -140,10 +153,13 @@ int main(int argc, char **argv)
     dbg_err_if(codec_null_create(&null4));
 
     /* zip */
+    #ifdef HAVE_LIBZ
     dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &zip));
     dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &unzip));
+    #endif
 
     /* aes256 */
+    #ifdef HAVE_LIBOPENSSL
     memset(key, 0, sizeof(key));
     memset(iv, 0, sizeof(iv));
     strcpy(key, "pwd");
@@ -153,6 +169,7 @@ int main(int argc, char **argv)
             key, iv, &encrypt));
     dbg_err_if(codec_cipher_create(CIPHER_DECRYPT, EVP_aes_256_cbc(),
             key, iv, &decrypt));
+    #endif
 
     if(ctx->encode || ctx->decode)
     {

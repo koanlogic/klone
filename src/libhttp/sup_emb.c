@@ -41,7 +41,6 @@ static int supemb_get_cipher_key(request_t *rq, response_t *rs, char *key,
     session_t *ss = NULL;
     http_t *http = NULL;
     session_opt_t *so;
-    const char *sess_key;
     vars_t *vars;
     var_t *v;
 
