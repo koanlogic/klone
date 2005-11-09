@@ -424,10 +424,23 @@ static ssize_t io_underflow(io_t *io)
     while(io->rcount == 0)
     {
         if(io->ucount == 0)
-        {   /* fetch some bytes from the device and fill the ubuffer */
+        {   /* fetch some bytes from the device and fill the rbuffer */
             dbg_err_if((c = io->read(io, io->ubuf, io->rbsz)) < 0);
             if(c == 0)
-                return 0;
+            {   /* eof, try to get some buffered (already transformed) bytes 
+                   from the codec */
+                if(!TAILQ_EMPTY(&io->codec_chain))
+                {
+                    sz = io->rbsz;
+                    c = io_chain_flush_chunk(io, io->rbuf, &sz);
+                    dbg_err_if(c < 0);
+                    io->rcount += sz;
+                    io->roff = 0;
+                    if(c == 0)
+                        io->eof++;
+                }
+                break;
+            }
             io->ucount += c;
         }
 
@@ -481,17 +494,7 @@ ssize_t io_read(io_t *io, char *buf, size_t size)
         {
             dbg_err_if((c = io_underflow(io)) < 0);
             if(c == 0)
-            {   /* eof, try to get some buffered byte from the codec */
-                if(!TAILQ_EMPTY(&io->codec_chain))
-                {
-                    sz = size;
-                    dbg_err_if((c = io_chain_flush_chunk(io, out, &sz)) < 0);
-                    if(c == 0)
-                        io->eof++;
-                    out += sz;
-                }
                 break;
-            } 
         }
         /* copy out data */
         wr = MIN(io->rcount, size); 
@@ -698,7 +701,7 @@ ssize_t io_gets(io_t *io, char *buf, size_t size)
     --size; /* save a char for \0 */
 
     if(io->rcount == 0)
-        io_underflow(io);
+        dbg_err_if(io_underflow(io) < 0);
 
     if(io->rcount == 0)
         return 0;
