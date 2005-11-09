@@ -13,6 +13,7 @@
 
 static void klog_close_file (klog_t *klf);
 static int klog_file (klog_t *klf, int level, const char *fmt, va_list ap);
+static int klog_flush_file (klog_t *kl);
 
 /* 
  * A 'file' log is physically subdivided in a certain number of files (pages)
@@ -84,6 +85,7 @@ int klog_open_file (klog_t *kl, const char *base, size_t npages, size_t nlines)
     kl->cb_getln = NULL;
     kl->cb_countln = NULL;
     kl->cb_clear = NULL;
+    kl->cb_flush = klog_flush_file;
 
     kl->u.f = klf, klf = NULL;
 
@@ -97,6 +99,24 @@ err:
 static void klog_free_file (klog_file_t *klf)
 {
     U_FREE(klf);
+}
+
+static int klog_flush_file (klog_t *kl)
+{
+    klog_file_t *klf;
+
+    dbg_return_if (kl == NULL, ~0);
+    dbg_return_if (kl->type != KLOG_TYPE_FILE, ~0);
+    dbg_return_if (kl->u.f == NULL, ~0);
+
+    klf = kl->u.f;
+     
+    dbg_err_if (klf->wfp == NULL);
+    dbg_err_sif (fflush(klf->wfp) != 0);
+
+    return 0;
+err:
+    return ~0;
 }
 
 static int klog_file (klog_t *kl, int level, const char *fmt, va_list ap)

@@ -118,6 +118,7 @@ struct klog_s
     int (*cb_getln) (struct klog_s *, size_t, char[]);
     ssize_t (*cb_countln) (struct klog_s *);
     int (*cb_clear) (struct klog_s *);
+    int (*cb_flush) (struct klog_s *);
 };
 
 typedef struct klog_s klog_t;
@@ -126,7 +127,10 @@ int klog_open (klog_args_t *ka, klog_t **pkl);
 int klog (klog_t *kl, int level, const char *msg, ...);
 void klog_close (klog_t *kl);
 
-/* only defined for mem log device */
+/* file device specific */
+int klog_flush (klog_t *kl);
+
+/* mem device specific */
 int klog_getln (klog_t *kl, size_t nth, char ln[]);
 ssize_t klog_countln (klog_t *kl);
 int klog_clear (klog_t *kl);

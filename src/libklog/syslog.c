@@ -45,6 +45,7 @@ int klog_open_syslog (klog_t *kl, int fac, int logopt)
     kl->cb_getln = NULL;
     kl->cb_countln = NULL;
     kl->cb_clear = NULL;
+    kl->cb_flush = NULL;
 
     /* stick child to its parent */
     kl->u.s = kls, kls = NULL;

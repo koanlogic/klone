@@ -288,6 +288,27 @@ err:
 }
 
 /**
+ * \brief   flush all buffered data to the \c klog_t (file) device
+ *
+ * \param kl    a klog device
+ *
+ * \return
+ * - \c 0  success
+ * - \c ~0 on failure
+ */
+int klog_flush (klog_t *kl)
+{
+    dbg_return_if (kl == NULL, ~0);
+    dbg_return_if (!IS_KLOG_TYPE(kl->type), ~0);
+
+    /* call private flush function */
+    if (kl->cb_flush)
+        return kl->cb_flush(kl);
+
+    return ~0;
+}
+
+/**
  *  \}
  */
 

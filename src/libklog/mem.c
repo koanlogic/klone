@@ -42,6 +42,7 @@ int klog_open_mem (klog_t *kl, size_t ln_max)
     kl->cb_getln = klog_getln_mem;
     kl->cb_countln = klog_countln_mem;
     kl->cb_clear = klog_clear_mem;
+    kl->cb_flush = NULL;
 
     /* stick the klog_mem_t object to its parent */
     kl->u.m = klm, klm = NULL;
