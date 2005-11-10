@@ -45,6 +45,7 @@ int server_ppc_cmd_log_add(server_t *s, int level, const char *str)
     la.bid = ctx->backend->id;
     la.level = level;
     strncpy(la.log, str, U_MAX_LOG_LENGTH);
+    la.log[U_MAX_LOG_LENGTH -1] = 0;
 
     /* send the command request */
     nop_err_if(ppc_write(s->ppc, ctx->pipc, PPC_CMD_LOG_ADD, (char*)&la, 

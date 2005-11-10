@@ -344,10 +344,14 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 
     dbg_err_if(app_term());
 
-    return rc;
+    /* don't use return because exit(3) will be called and we don't want
+       FILE* buffers to be automatically flushed (klog_file_t will write same 
+       lines more times, once by the parent process and N times by any child
+       created when FILE buffer was not empty) */
+    _exit(rc);
 err:
     app_term();
-    return ~0;
+    _exit(~0);
 }
 
 #elif defined(OS_UNIX)
@@ -372,10 +376,14 @@ int main(int argc, char **argv)
 
     dbg_err_if(app_term());
 
-    return rc;
+    /* don't use return because exit(3) will be called and we don't want
+       FILE* buffers to be automatically flushed (klog_file_t will write same 
+       lines more times, once by the parent process and N times by any child
+       created when FILE buffer was not empty) */
+    _exit(rc);
 err:
     app_term();
-    return ~0;
+    _exit(~0);
 }
 
 #else

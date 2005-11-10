@@ -10,12 +10,13 @@ FIRST RELEASE:
         - * remove klone/src/libos (moved to libu)
         - * onthestack buffers for debug/logging procedures
         - * session.{encrypt|compress}
+        - * klog_flush on timeout
 
         - option to disable deflate'd transfers
+        - option max children count
 
         - io_html_printf: html-encode before calling io_printf 
 
-        - klog_flush on timeout
         - session_bin_set
 
         - set_key.klone example page

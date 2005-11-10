@@ -193,6 +193,9 @@ static int server_child_serve(server_t *s, backend_t *be, int ad)
     if((child = fork()) == 0)
     {   /* child */
 
+        /* never flush, the parent process will */
+        s->klog_flush = 0;
+
         /* reseed the PRNG */
         srand(rand() + getpid() + time(0));
 
@@ -397,7 +400,7 @@ int server_loop(server_t *s)
         dbg_err_if(rc == -1); /* select error */
 
         /* call klog_flush if flush timeout has expired and select() timeouts */
-        if(rc == 0 && s->klog_flush)
+        if(s->klog_flush && ctx->pipc == NULL)
         {
             /* flush the log buffer */
             klog_flush(s->klog);
@@ -446,7 +449,13 @@ int server_free(server_t *s)
 
     if(s->klog)
     {
-        klog_close(s->klog);
+        /* child processes cann't close klog when in 'file' mode, because 
+           klog_file_t will flush data that the parent already flushed 
+           (children inherit a "used" FILE* that will usually contain, on close,
+           not-empty buffer that fclose flushes). same thing may happen with
+           different log devices when buffers are used.  */
+        if(ctx->pipc == NULL)
+            klog_close(s->klog);
         s->klog = NULL;
     }
 
@@ -530,10 +539,11 @@ int server_get_logger(server_t *s, klog_t **pkl)
 {
     klog_t *kl = NULL;
 
-    kl = s->klog; /* may be NULL */
-
     if(ctx->backend)
         kl = ctx->backend->klog; /* may be NULL */
+
+    if(kl == NULL)
+        kl = s->klog; /* may be NULL */
 
     *pkl = kl;
 

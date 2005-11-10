@@ -2,6 +2,7 @@
 #include <klone/backend.h>
 #include <klone/server.h>
 #include <klone/klog.h>
+#include <klone/context.h>
 #include <u/libu.h>
 #include "conf.h"
 
@@ -82,7 +83,8 @@ int backend_free(backend_t *be)
 {
     if(be)
     {
-        if(be->klog)
+        /* children must not call klog_close (see comment in server.c) */
+        if(be->klog && ctx->pipc == NULL)
             klog_close(be->klog);
         if(be->cb_term)
             be->cb_term(be);
