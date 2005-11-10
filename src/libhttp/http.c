@@ -15,30 +15,12 @@
 #include <klone/ses_prv.h>
 #include <u/libu.h>
 #include "conf.h"
+#include "http_s.h"
 
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #endif 
-
-enum { HTTP_DEFAULT_IDLE_TIMEOUT = 10 };
-
-struct http_s 
-{
-    u_config_t *config;       /* server config                                 */
-    broker_t *broker;       /* pages broker                                  */
-    int ssl;                /* >0 when SSL is enabled                        */
-#ifdef HAVE_LIBOPENSSL
-    SSL_CTX* ssl_ctx;       /* OpenSSL context                               */
-#endif
-    /* toplevel configuration options */
-    const char *server_sig; /* server signature                              */
-    const char *dir_root;   /* base html directory                           */
-    const char *index;      /* user-provided index page                      */
-    int idle_timeout;       /* max # of secs the server wait for the request */
-    /* session options struct                        */
-    session_opt_t *sess_opt;
-};
 
 struct http_status_map_s
 {
@@ -428,10 +410,15 @@ static int http_set_u_config_opt(http_t *http)
     http->server_sig = "klone/" KLONE_VERSION;
     http->dir_root = "";
     http->index = NULL;
+    http->send_enc_deflate = 0; 
 
     /* idle_timeout */
     if((v = u_config_get_subkey_value(c, "idle_timeout")) != NULL)
         http->idle_timeout = MAX(1, atoi(v));
+
+    /* send_enc_deflate */
+    if((v = u_config_get_subkey_value(c, "send_enc_deflate")) != NULL)
+        http->send_enc_deflate = (!strcasecmp(v, "yes") ? 1 : 0);
 
     /* server signature */
     if((v = u_config_get_subkey_value(c, "server_sig")) != NULL)

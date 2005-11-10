@@ -10,6 +10,7 @@
 #include <klone/ses_prv.h>
 #include <klone/rsfilter.h>
 #include <u/libu.h>
+#include "http_s.h"
 
 static int supemb_is_valid_uri(const char* uri, size_t len, time_t *mtime)
 {
@@ -78,6 +79,10 @@ err:
 static int supemb_static_set_header_fields(request_t *rq, response_t *rs, 
     embfile_t *e, int *sai)
 {
+    http_t *http;
+
+    dbg_err_if((http = request_get_http(rq)) == NULL);
+
     /* set header fields based on embfile_t struct */
 
     /* set content-type, last-modified and content-length*/
@@ -85,14 +90,17 @@ static int supemb_static_set_header_fields(request_t *rq, response_t *rs,
     dbg_err_if(response_set_last_modified(rs, e->mtime));
     dbg_err_if(response_set_content_length(rs, e->file_size));
 
-    /* if the client can accept deflated content then don't uncompress the 
-       resource but send as it is */
-    if(e->comp && (*sai = request_is_encoding_accepted(rq, "deflate")) != 0)
-    {   /* we can send compressed responses */
-        dbg_err_if(response_set_content_encoding(rs, "deflate"));
-        dbg_err_if(response_set_content_length(rs, e->size));
-        /*  dbg("sending deflated content"); */
-    } 
+    /* if the client can accept deflated content don't uncompress the 
+       resource but send as it is (if enabled by config) */
+    if(http->send_enc_deflate)
+    {
+        if(e->comp && (*sai = request_is_encoding_accepted(rq, "deflate")) != 0)
+        {   /* we can send compressed responses */
+            dbg_err_if(response_set_content_encoding(rs, "deflate"));
+            dbg_err_if(response_set_content_length(rs, e->size));
+            /*  dbg("sending deflated content"); */
+        } 
+    }
 
     return 0;
 err:

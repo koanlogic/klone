@@ -11,8 +11,11 @@ FIRST RELEASE:
         - * onthestack buffers for debug/logging procedures
         - * session.{encrypt|compress}
         - * klog_flush on timeout
+        - * option to disable deflate'd transfers
 
-        - option to disable deflate'd transfers
+        - u_config_get_subkey_value_b[ool]
+
+
         - option max children count
 
         - io_html_printf: html-encode before calling io_printf 
