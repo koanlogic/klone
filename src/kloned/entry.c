@@ -344,14 +344,22 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 
     dbg_err_if(app_term());
 
+    /* if debugging then call exit(3) because it's needed to gprof to dump 
+       its stats file (gmon.out) */
+    if(ctx->debug)
+        return rc;
+
     /* don't use return because exit(3) will be called and we don't want
        FILE* buffers to be automatically flushed (klog_file_t will write same 
        lines more times, once by the parent process and N times by any child
        created when FILE buffer was not empty) */
-    _exit(rc);
+    _exit(rc); 
 err:
     app_term();
-    _exit(~0);
+
+    if(ctx->debug) 
+        return rc;
+    _exit(EXIT_FAILURE);
 }
 
 #elif defined(OS_UNIX)
@@ -362,7 +370,7 @@ int main(int argc, char **argv)
     memset(ctx, 0, sizeof(context_t));
 
     /* parse command line parameters (and set ctx vars) */
-    dbg_err_if(parse_opt(argc,argv));
+    dbg_err_if(parse_opt(argc, argv));
 
     /* daemonize if not -F */
     if(ctx->daemon)
@@ -376,6 +384,11 @@ int main(int argc, char **argv)
 
     dbg_err_if(app_term());
 
+    /* if debugging then call exit(3) because it's needed to gprof to dump 
+       its stats file (gmon.out) */
+    if(ctx->debug)
+        return rc;
+
     /* don't use return because exit(3) will be called and we don't want
        FILE* buffers to be automatically flushed (klog_file_t will write same 
        lines more times, once by the parent process and N times by any child
@@ -383,7 +396,9 @@ int main(int argc, char **argv)
     _exit(rc);
 err:
     app_term();
-    _exit(~0);
+    if(ctx->debug)
+        return ~0;
+    _exit(EXIT_FAILURE);
 }
 
 #else
