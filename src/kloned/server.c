@@ -32,7 +32,7 @@ static void server_close_fd(server_t *s, int fd);
 
 static int server_be_listen(backend_t *be)
 {
-    enum { DEFAULT_BACKLOG = 10 };
+    enum { DEFAULT_BACKLOG = 128 };
     int d = 0, backlog = 0, val = 1;
     u_config_t *subkey;
 
@@ -374,6 +374,7 @@ int server_cb_klog_flush(alarm_t *a, void *arg)
     return 0;
 }
 
+
 int server_loop(server_t *s)
 {
     struct timeval tv;
@@ -592,9 +593,10 @@ int server_create(u_config_t *config, int model, server_t **ps)
     s->model = model;
 
     /* init fd_set */
-    memset(&s->rdfds, 0, sizeof(fd_set));
-    memset(&s->wrfds, 0, sizeof(fd_set));
-    memset(&s->exfds, 0, sizeof(fd_set));
+    FD_ZERO(&s->rdfds);
+    FD_ZERO(&s->wrfds);
+    FD_ZERO(&s->exfds);
+
 
     /* init backend list */
     LIST_INIT(&s->bes);
