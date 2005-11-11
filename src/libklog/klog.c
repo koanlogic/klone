@@ -209,7 +209,7 @@ int klog_getln (klog_t *kl, size_t nth, char ln[])
     if (kl->cb_getln)
         return kl->cb_getln(kl, nth, ln);
     
-    return ~0;
+    return 0;
 }
 
 /** 
@@ -247,7 +247,7 @@ ssize_t klog_countln (klog_t *kl)
     if (kl->cb_countln)
         return kl->cb_countln(kl);
 
-    return -1;
+    return -1;      /* XXX should be 0 ? */
 }
 
 /**
@@ -305,7 +305,7 @@ int klog_flush (klog_t *kl)
     if (kl->cb_flush)
         return kl->cb_flush(kl);
 
-    return ~0;
+    return 0;
 }
 
 /**
