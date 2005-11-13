@@ -25,7 +25,11 @@ struct backend_s
     void *arg;
     klog_t *klog;
     int id;
-    LIST_ENTRY(backend_s) np;  /* next & prev pointers         */
+    size_t max_child;
+    size_t start_child;;
+    size_t max_rq_xchild;
+    pid_t *child_pid;           /* pid of children              */
+    LIST_ENTRY(backend_s) np;   /* next & prev pointers         */
 };
 
 typedef struct backend_s backend_t;
@@ -45,6 +49,10 @@ typedef struct backends_s backends_t; /* backend_t list        */
         NULL,   /* arg          */                              \
         NULL,   /* klog         */                              \
         -1,     /* id           */                              \
+        0,      /* max_child    */                              \
+        0,      /* start_child  */                              \
+        0,      /* max_rq_xchild*/                              \
+        NULL,   /* children pids*/                              \
         LIST_ENTRY_NULL                                         \
     }
 

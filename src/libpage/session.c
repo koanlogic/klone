@@ -81,26 +81,10 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
         max_age = MAX(atoi(v) * 60, 60); /* min value: 1 min */
 
     /* set compression flag */
-    if((v = u_config_get_subkey_value(c, "compress")) != NULL)
-    {
-        if(!strcasecmp(v, "yes"))
-            so->compress = 1;
-        else if(!strcasecmp(v, "no"))
-            so->compress = 0;
-        else
-            warn_err("config error: bad compress value");
-    }
+    dbg_err_if(u_config_get_subkey_value_b(c, "compress", 0, &so->compress));
 
     /* set encryption flag */
-    if((v = u_config_get_subkey_value(c, "encrypt")) != NULL)
-    {
-        if(!strcasecmp(v, "yes"))
-            so->encrypt = 1;
-        else if(!strcasecmp(v, "no"))
-            so->encrypt = 0;
-        else
-            warn_err("config error: bad encrypt value");
-    }
+    dbg_err_if(u_config_get_subkey_value_b(c, "encrypt", 0, &so->encrypt));
 
     #ifndef HAVE_LIBZ
     if(so->compress)

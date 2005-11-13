@@ -7,12 +7,18 @@ struct u_config_s;
 struct server_s;
 typedef struct server_s server_t;
 
-enum { SERVER_LOG_FLUSH_TIMEOUT = 5 };
+enum { 
+    SERVER_LOG_FLUSH_TIMEOUT = 5,   /* min # of seconds between two log flush */
+    SERVER_PREFORK_MAX_CHILD = 150, /* max # of child allowed to run at once  */
+    SERVER_PREFORK_START_CHILD = 5, /* max # of child allowed to run at once  */
+    SERVER_PREFORK_MAX_RQ_CHILD = 50000 /* # of spare child to run at startup     */
+};
 
 enum { 
-    SERVER_MODEL_UNSET,     /* uninitialized                        */
-    SERVER_MODEL_FORK,      /* fork for each incoming connection    */
-    SERVER_MODEL_ITERATIVE  /* serialize responses                  */
+    SERVER_MODEL_UNSET,     /* uninitialized                                */
+    SERVER_MODEL_FORK,      /* fork for each incoming connection            */
+    SERVER_MODEL_ITERATIVE, /* serialize responses                          */
+    SERVER_MODEL_PREFORK    /* prefork a few child to serve more clients    */
 };
 
 

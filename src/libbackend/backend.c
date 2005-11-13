@@ -26,6 +26,8 @@ static int backend_set_model(backend_t *be, const char *v)
         be->model = SERVER_MODEL_FORK;
     else if(!strcasecmp(v, "iterative"))
         be->model = SERVER_MODEL_ITERATIVE;
+    else if(!strcasecmp(v, "prefork"))
+        be->model = SERVER_MODEL_PREFORK;
     else
         warn_err("unknown server model [%s]", v);
 
@@ -38,28 +40,47 @@ int backend_create(const char *proto, u_config_t *config, backend_t **pbe)
 {
     backend_t *be = NULL, **pp;
     const char *v;
+    int vi;
 
     be = u_zalloc(sizeof(backend_t));
     dbg_err_if(be == NULL);
 
+    /* find the requested backend type */
+    for(pp = backend_list; *pp != NULL; ++pp)
+        if(!strcasecmp((*pp)->proto, proto))
+            break; /* found */
+
+    warn_err_ifm(*pp == NULL, "backend type \"%s\" not found", proto);
+
+    /* copy static backend struct fields */
+    memcpy(be, *pp, sizeof(backend_t));
+
+    be->config = config;
+
     if((v = u_config_get_subkey_value(config, "model")) != NULL)
         dbg_err_if(backend_set_model(be, v));
 
-    /* look for the requested backend */
-    for(pp = backend_list; *pp != NULL; ++pp)
+    if(be->model == SERVER_MODEL_PREFORK)
     {
-        if(strcasecmp((*pp)->proto, proto) == 0)
-        {   /* found */
-            memcpy(be, *pp, sizeof(backend_t));
-            be->config = config;
-            if(be->cb_init)
-                dbg_err_if(be->cb_init(be));
-            *pbe = be;
-            return 0;
-        }
+        /* max # of child allowed to run at once */
+        dbg_err_if(u_config_get_subkey_value_i(config, "prefork.max_child", 
+            SERVER_PREFORK_MAX_CHILD, &be->max_child));
+        
+        /* # of child to run at startup */
+        dbg_err_if(u_config_get_subkey_value_i(config, "prefork.start_child", 
+            SERVER_PREFORK_START_CHILD, &be->start_child));
+
+        /* max # of requests a child process will handle before it dies */
+        dbg_err_if(u_config_get_subkey_value_i(config, 
+            "prefork.max_requests_per_child", SERVER_PREFORK_MAX_RQ_CHILD, 
+            &be->max_rq_xchild));
     }
 
-    warn_err("backend type \"%s\" not found", proto);
+    /* call backend initialization function */
+    if(be->cb_init)
+        dbg_err_if(be->cb_init(be));
+
+    *pbe = be;
 
     return 0;
 err:

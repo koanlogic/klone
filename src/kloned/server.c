@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/tcp.h>
 #include <klone/server.h>
 #include <klone/backend.h>
 #include <klone/os.h>
@@ -68,6 +69,115 @@ err:
         close(d);
     return ~0;
 }
+
+/* remove a child process whose pid is 'pid' to children list */
+static void server_reap_child(server_t *s, pid_t child)
+{
+    pid_t *pid;
+    register int i;
+
+    if(s->nchild)
+    {
+        pid = s->child_pid;
+        for(i = 0; i < SERVER_MAX_CHILD_COUNT; ++i, ++pid)
+        {
+            if(*pid == child)
+            {
+                *pid = 0;
+                break;
+            }
+        }
+
+        if(i < SERVER_MAX_CHILD_COUNT)
+            s->nchild--; /* decrement child count */
+    }
+}
+
+/* add a child to the list */
+static void server_add_child(server_t *s, pid_t child)
+{
+    pid_t *pid;
+    register int i;
+
+    pid = s->child_pid;
+    for(i = 0; i < SERVER_MAX_CHILD_COUNT; ++i, ++pid)
+    {
+        if(*pid == 0)
+        {   /* found an empty slot */
+            dbg("new child [%lu]", child);
+            *pid = child;
+            s->nchild++;
+            break;
+        }
+    }
+}
+
+/* send 'sig' signal to all children process */
+static void server_signal_childs(server_t *s, int sig)
+{
+    pid_t *pid;
+    register int i;
+
+    if(s->nchild)
+    {
+        pid = s->child_pid;
+        for(i = 0; i < SERVER_MAX_CHILD_COUNT; ++i, ++pid)
+        {
+            if(*pid != 0)
+            {
+                dbg("killing child [%lu]", *pid);
+                dbg_err_if(kill(*pid, sig) < 0);
+            }
+        }
+
+        if(i == SERVER_MAX_CHILD_COUNT)
+            return; /* no child found */
+
+        dbg_err_if(s->nchild == 0);
+        s->nchild--; /* decrement child count */
+    }
+
+    return;
+err:
+    dbg_strerror(errno);
+}
+
+static void server_sigint(int sig)
+{
+    u_unused_args(sig);
+    dbg("SIGINT");
+    server_stop(ctx->server);
+}
+
+static void server_sigterm(int sig)
+{
+    u_unused_args(sig);
+    dbg("SIGTERM");
+    server_stop(ctx->server);
+}
+
+static void server_sigchld(int sig)
+{
+    pid_t pid = -1;
+    server_t *s = ctx->server;
+    int status;
+
+    u_unused_args(sig);
+
+    /* detach from child processes */
+    while((pid = waitpid(-1, &status, WNOHANG)) > 0) 
+    {
+        if(WIFEXITED(status) && WEXITSTATUS(status) != EXIT_SUCCESS)
+            warn("pid [%u], exit code [%d]", pid, WEXITSTATUS(status));
+
+        if(WIFSIGNALED(status))
+            warn("pid [%u], signal [%d]", pid, WTERMSIG(status));
+
+        /* decrement child count */
+        server_reap_child(s, pid);
+    }
+}
+
 
 static void server_recalc_hfd(server_t *s)
 {
@@ -149,7 +259,7 @@ err:
 
 static int server_backend_detach(server_t *s, backend_t *be)
 {
-    s->nserver--;
+    s->nbackend--;
 
     addr_free(be->addr);
     be->server = NULL;
@@ -180,12 +290,16 @@ err:
     return ~0;
 }
 
-static int server_child_serve(server_t *s, backend_t *be, int ad)
+static int server_fork_child(server_t *s, backend_t *be)
 {
+    backend_t *obe; /* other backed */
     pid_t child;
     int socks[2];
 
     u_unused_args(s);
+
+    if(s->nchild == SERVER_MAX_CHILD_COUNT)
+        return ~0; /* too much children */
 
     /* create a parent<->child IPC channel */
     dbg_err_if(socketpair(AF_UNIX, SOCK_STREAM, 0, socks) < 0);
@@ -202,9 +316,54 @@ static int server_child_serve(server_t *s, backend_t *be, int ad)
         /* close on end of the channel */
         close(socks[0]);
 
-        /* save parent IPC socket and close the other */
+        /* save parent PPC socket and close the other */
         ctx->pipc = socks[1];
         ctx->backend = be;
+
+        /* close listening sockets of other backends */
+        LIST_FOREACH(obe, &s->bes, np)
+        {
+            if(obe == be)
+                continue;
+            close(obe->ld);
+            obe->ld = -1;
+        }
+
+    } else if(child > 0) {
+        /* parent */
+
+        /* save child pid and increment child count */
+        server_add_child(s, child);
+
+        /* close one end of the channel */
+        close(socks[1]);
+
+        /* watch the PPC socket connected to the child */
+        server_watch_fd(s, socks[0], WATCH_FD_READ);
+    } else {
+        warn_err("fork error");
+    }
+
+    return child;
+err:
+    warn_strerror(errno);
+    return ~0;
+}
+
+static int server_child_serve(server_t *s, backend_t *be, int ad)
+{
+    pid_t child;
+    int socks[2];
+
+    u_unused_args(s);
+
+    /* create a parent<->child IPC channel */
+    dbg_err_if(socketpair(AF_UNIX, SOCK_STREAM, 0, socks) < 0);
+
+    dbg_err_if((child = server_fork_child(s, be)) < 0);
+
+    if(child == 0)
+    {   /* child */
 
         /* close this be listening descriptor */
         close(be->ld);
@@ -216,19 +375,11 @@ static int server_child_serve(server_t *s, backend_t *be, int ad)
         close(ad);
         server_stop(be->server); 
 
-    } else if(child > 0) {
+    } else {
         /* parent */
-
-        /* close one end of the channel */
-        close(socks[1]);
 
         /* close the accepted socket */
         close(ad);
-
-        /* watch the socket connected to the child */
-        server_watch_fd(s, socks[0], WATCH_FD_READ);
-    } else {
-        warn_err("fork error");
     }
 
     return 0;
@@ -247,6 +398,7 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
         break;
 
     case SERVER_MODEL_ITERATIVE:
+    case SERVER_MODEL_PREFORK:
         /* serve the page */
         dbg_if(backend_serve(be, ad));
         close(ad);
@@ -263,10 +415,21 @@ err:
 
 int server_stop(server_t *s)
 {
-    /* this could be protected to avoid races but it's not really needed */
+    if(ctx->pipc)
+    {   /* child process */
+
+        dbg_err_if(ctx->backend == NULL);
+
+        /* close child listening sockets to force accept(2) to exit */
+        close(ctx->backend->ld);
+    }
+
+    /* stop the parent process */
     s->stop = 1;
 
     return 0;
+err:
+    return ~0;
 }
 
 static int server_listen(server_t *s)
@@ -279,7 +442,8 @@ static int server_listen(server_t *s)
         dbg_err_if(server_be_listen(be));
 
         /* watch the listening socket */
-        server_watch_fd(s, be->ld, WATCH_FD_READ);
+        if(be->model != SERVER_MODEL_PREFORK)
+            server_watch_fd(s, be->ld, WATCH_FD_READ);
     }
 
     return 0;
@@ -335,6 +499,21 @@ err:
     return ~0;
 }
 
+static int server_set_socket_opts(server_t *s, int sock)
+{
+    int on = 1; 
+
+    u_unused_args(s);
+
+    /* disable Nagle algorithm */
+    dbg_err_if(setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, 
+        (void*) &on, sizeof(int)) < 0);
+
+    return 0;
+err:
+    return ~0;
+}
+
 static int server_dispatch(server_t *s, int fd)
 {
     backend_t *be;
@@ -351,6 +530,9 @@ static int server_dispatch(server_t *s, int fd)
     /* accept the pending connection */
     dbg_err_if(server_be_accept(s, be, &ad));
 
+    /* set socket options on accepted socket */
+    dbg_err_if(server_set_socket_opts(s, ad));
+
     /* serve the page */
     dbg_err_if(server_be_serve(s, be, ad));
 
@@ -365,6 +547,8 @@ int server_cb_klog_flush(alarm_t *a, void *arg)
 {
     server_t *s = (server_t*)arg;
 
+    u_unused_args(a);
+
     /* alarmt expired, it has been free'd by timerm_t */
     s->al_klog_flush = NULL;
 
@@ -374,6 +558,44 @@ int server_cb_klog_flush(alarm_t *a, void *arg)
     return 0;
 }
 
+/* spawn pre-fork child processes */
+static int server_spawn_children(server_t *s)
+{
+    backend_t *be;
+    size_t i, c;
+    int rc;
+
+    /* spawn N child process that will sleep asap into accept(2) */
+    LIST_FOREACH(be, &s->bes, np)
+    {
+        if(be->model != SERVER_MODEL_PREFORK)
+            continue;
+
+        /* spawn be->start_child child processes */
+        for(i = 0; i < be->start_child; ++i)
+        {
+            dbg_err_if((rc = server_fork_child(s, be)) < 0);
+
+            if(rc == 0)
+            {   /* child */
+
+                for(c = 0; c < be->max_rq_xchild; ++c)
+                {
+                    /* wait for a new client (will block on accept(2)) */
+                    dbg_err_if(server_dispatch(s, be->ld));
+                }
+                break;
+            } else {
+                /* parent */
+                ;
+            }
+        }
+    }
+
+    return 0;
+err:
+    return ~0;
+}
 
 int server_loop(server_t *s)
 {
@@ -384,6 +606,14 @@ int server_loop(server_t *s)
     dbg_err_if(s == NULL || s->config == NULL);
     
     dbg_err_if(server_listen(s));
+
+    dbg_err_if(server_spawn_children(s));
+
+    dbg("server child count: %lu", s->nchild);
+
+    /* children exit here */
+    if(ctx->pipc)
+        return 0;
 
     for(; !s->stop; )
     {
@@ -425,6 +655,18 @@ int server_loop(server_t *s)
         } /* for each ready fd */
 
     } /* infinite loop */
+
+    /* shutdown all children */
+    server_signal_childs(s, SIGTERM);
+
+    sleep(1);
+
+    /* brute kill children process */
+    if(s->nchild)
+    {
+        dbg("sending SIGKILL");
+        server_signal_childs(s, SIGKILL);
+    }
 
     return 0;
 err:
@@ -483,7 +725,7 @@ static int server_setup_backend(server_t *s, backend_t *be)
     u_config_t *subkey;
 
     /* server count */
-    s->nserver++;
+    s->nbackend++;
 
     /* parse and create the bind addr_t */
     dbg_err_if(u_config_get_subkey(be->config, "addr", &subkey));
@@ -597,7 +839,6 @@ int server_create(u_config_t *config, int model, server_t **ps)
     FD_ZERO(&s->wrfds);
     FD_ZERO(&s->exfds);
 
-
     /* init backend list */
     LIST_INIT(&s->bes);
 
@@ -611,6 +852,7 @@ int server_create(u_config_t *config, int model, server_t **ps)
     }
 
     /* register the log ppc callbacks */
+    dbg_err_if(ppc_register(s->ppc, PPC_CMD_NOP, server_ppc_cb_nop, s));
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_LOG_ADD, server_ppc_cb_log_add, s));
 
     /* redirect logs to the server_log_hook function */
@@ -631,7 +873,7 @@ int server_create(u_config_t *config, int model, server_t **ps)
         dbg("configuring backend: %s", name);
 
         /* just SERVER_MAX_BACKENDS supported */
-        dbg_err_if(s->nserver == SERVER_MAX_BACKENDS);
+        dbg_err_if(s->nbackend == SERVER_MAX_BACKENDS);
 
         /* get config tree of this backend */
         warn_err_ifm(u_config_get_subkey(config, name, &bekey),
@@ -665,6 +907,14 @@ int server_create(u_config_t *config, int model, server_t **ps)
     }
 
     u_free(n);
+
+    /* init done, set signal handlers */
+    dbg_err_if(u_signal(SIGINT, server_sigint));
+    dbg_err_if(u_signal(SIGTERM, server_sigterm));
+    #ifdef OS_UNIX 
+    dbg_err_if(u_signal(SIGPIPE, SIG_IGN));
+    dbg_err_if(u_signal(SIGCHLD, server_sigchld));
+    #endif
 
     return 0;
 err:

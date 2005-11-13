@@ -33,7 +33,7 @@ static int so_atom_delete_oldest(session_opt_t *so)
     size_t count, i;
 
     count = atoms_count(so->atoms);
-    dbg_err_if(count == 0);
+    nop_err_if(count == 0);
 
     dbg_err_if(atoms_getn(so->atoms, 0, &oldest));
     for(i = 1; i < count; ++i)

@@ -7,7 +7,7 @@
 #include "server_s.h"
 #include "server_ppc_cmd.h"
 
-/* struct used to for ppc command PPC_CMD_LOG_ADD */
+/* struct used for ppc command PPC_CMD_LOG_ADD */
 typedef struct ppc_log_add_s
 {
     int bid;                        /* calling backend ID       */

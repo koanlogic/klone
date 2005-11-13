@@ -400,7 +400,7 @@ err:
     return ~0;
 }
 
-static int http_set_u_config_opt(http_t *http)
+static int http_set_config_opt(http_t *http)
 {
     u_config_t *c = http->config;
     const char *v;
@@ -416,9 +416,9 @@ static int http_set_u_config_opt(http_t *http)
     if((v = u_config_get_subkey_value(c, "idle_timeout")) != NULL)
         http->idle_timeout = MAX(1, atoi(v));
 
-    /* send_enc_deflate */
-    if((v = u_config_get_subkey_value(c, "send_enc_deflate")) != NULL)
-        http->send_enc_deflate = (!strcasecmp(v, "yes") ? 1 : 0);
+    /* send_enc_deflate (disable if not configured) */
+    dbg_err_if(u_config_get_subkey_value_b(c, "send_enc_deflate", 0, 
+        &http->send_enc_deflate));
 
     /* server signature */
     if((v = u_config_get_subkey_value(c, "server_sig")) != NULL)
@@ -432,6 +432,8 @@ static int http_set_u_config_opt(http_t *http)
         http->index = v;
 
     return 0;
+err:
+    return ~0;
 }
 
 
@@ -449,7 +451,7 @@ static int http_create(u_config_t *config, http_t **ph)
     dbg_err_if(broker_create(&h->broker));
 
     /* set http struct config opt reading from http->config */
-    dbg_err_if(http_set_u_config_opt(h));
+    dbg_err_if(http_set_config_opt(h));
 
     *ph = h;
 

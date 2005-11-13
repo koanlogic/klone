@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #include <u/libu.h>
 
+enum { SERVER_MAX_CHILD_COUNT = 4096 };
+
 struct server_s 
 {
     u_config_t *config;     /* server config                    */
@@ -16,8 +18,10 @@ struct server_s
     klog_t *klog;           /* klog device                      */
     alarm_t *al_klog_flush; /* klog flush alarm                 */
     fd_set rdfds, wrfds, exfds;
+    pid_t child_pid[SERVER_MAX_CHILD_COUNT]; /* children pid    */
     int hfd;                /* highest set fd in fd_sets        */
-    size_t nserver;         /* # of servers                     */
+    size_t nbackend;        /* # of servers                     */
+    size_t nchild;          /* # of child (only in prefork mode)*/
     int stop;               /* >0 will stop the loop            */
     int model;              /* server model                     */
     int klog_flush;         /* >0 will flush the klog           */

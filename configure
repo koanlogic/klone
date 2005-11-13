@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.17 2005/10/23 14:30:04 tat Exp $
+# $Id: configure,v 1.18 2005/11/13 19:31:44 tat Exp $
 
 # Be sure MAKL_DIR is there.
 # If not found assume MaKL has been embedded in the package.
@@ -28,7 +28,7 @@ makl_args_def   "enable_profile"    "" ""   "enables profiling"
 makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
 # ... and their handlers
 __makl_enable_debug ()      { makl_add_var_mk   "CFLAGS" "-g" ; }
-__makl_enable_profile ()    { makl_add_var_mk   "CFLAGS" "-pg -a" ; }
+__makl_enable_profile ()    { makl_add_var_mk   "CFLAGS" "-pg -a" }
 __makl_enable_sup_fs ()     { makl_set_var_h    "ENABLE_SUP_FS" ; }
 
 # General settings

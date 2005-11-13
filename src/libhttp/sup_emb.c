@@ -236,7 +236,7 @@ static int supemb_serve(request_t *rq, response_t *rs)
         return 0;
     }
 
-    dbg("serving %s", e->filename);
+    /* dbg("serving %s", e->filename); */
 
     switch(e->type)
     {

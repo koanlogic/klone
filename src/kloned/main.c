@@ -14,42 +14,11 @@
 #include <u/libu.h>
 #include "conf.h"
 #include "main.h"
+#include "server_s.h"
 
 extern context_t* ctx;
 extern int modules_init(context_t *);
 extern int modules_term(context_t *);
-
-static void sigint(int sig)
-{
-    u_unused_args(sig);
-    dbg("SIGINT");
-    server_stop(ctx->server);
-}
-
-static void sigterm(int sig)
-{
-    u_unused_args(sig);
-    dbg("SIGTERM");
-    server_stop(ctx->server);
-}
-
-static void sigchld(int sig)
-{
-    pid_t           pid = -1;
-    int             status;
-
-    u_unused_args(sig);
-
-    /* detach from child processes */
-    while((pid = waitpid(-1, &status, WNOHANG)) > 0) 
-    {
-        if(WIFEXITED(status) && WEXITSTATUS(status) != EXIT_SUCCESS)
-            warn("pid [%u], exit code [%d]", pid, WEXITSTATUS(status));
-
-        if(WIFSIGNALED(status))
-            warn("pid [%u], signal [%d]", pid, WTERMSIG(status));
-    }
-}
 
 static char *io_gets_cb(void *arg, char *buf, size_t size)
 {
@@ -138,14 +107,6 @@ int app_term()
 int app_run()
 {
     int model;
-
-    /* set signal handlers */
-    dbg_err_if(u_signal(SIGINT, sigint));
-    dbg_err_if(u_signal(SIGTERM, sigterm));
-    #ifdef OS_UNIX 
-    dbg_err_if(u_signal(SIGPIPE, SIG_IGN));
-    dbg_err_if(u_signal(SIGCHLD, sigchld));
-    #endif
 
     /* fork() if the server has been launched w/o -F */
     model = ctx->daemon ? SERVER_MODEL_FORK : SERVER_MODEL_ITERATIVE;

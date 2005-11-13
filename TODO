@@ -13,14 +13,27 @@ FIRST RELEASE:
         - * klog_flush on timeout
         - * option to disable deflate'd transfers
 
-        - u_config_get_subkey_value_b[ool]
+        - usare u_config_get_subkey_value_b && u_config_get_subkey_value_i
+          dove possibile
 
+        - keepalive requests
 
-        - option max children count
+        - #ifndef HAVE_FORK
+
+        - prefork
+            = start a new process when all children are busy (complete timeout?)
+            = max request per process
+
+        - profiling
+            + keep child to the smallest number to avoid loosing time into
+              scheduler code
+            + if a child takes more then X ms spawn a new child and set the
+              slow child to die when it finishes
 
         - io_html_printf: html-encode before calling io_printf 
 
         - session_bin_set
+        - no-cache header field on error pages
 
         - set_key.klone example page
         - default documentation embedded site
