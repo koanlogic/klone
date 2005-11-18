@@ -33,7 +33,7 @@ static void server_close_fd(server_t *s, int fd);
 
 static int server_be_listen(backend_t *be)
 {
-    enum { DEFAULT_BACKLOG = 128 };
+    enum { DEFAULT_BACKLOG = 1024 };
     int d = 0, backlog = 0, val = 1;
     u_config_t *subkey;
 
@@ -84,12 +84,10 @@ static void server_reap_child(server_t *s, pid_t child)
             if(*pid == child)
             {
                 *pid = 0;
+                s->nchild--; /* decrement child count */
                 break;
             }
         }
-
-        if(i < SERVER_MAX_CHILD_COUNT)
-            s->nchild--; /* decrement child count */
     }
 }
 
@@ -104,7 +102,7 @@ static void server_add_child(server_t *s, pid_t child)
     {
         if(*pid == 0)
         {   /* found an empty slot */
-            dbg("new child [%lu]", child);
+            /* dbg("new child [%lu]", child); */
             *pid = child;
             s->nchild++;
             break;
@@ -146,23 +144,33 @@ static void server_sigint(int sig)
 {
     u_unused_args(sig);
     dbg("SIGINT");
-    server_stop(ctx->server);
+    if(ctx && ctx->server)
+        server_stop(ctx->server);
 }
 
 static void server_sigterm(int sig)
 {
     u_unused_args(sig);
     dbg("SIGTERM");
-    server_stop(ctx->server);
+    if(ctx && ctx->server)
+        server_stop(ctx->server);
 }
 
 static void server_sigchld(int sig)
 {
-    pid_t pid = -1;
     server_t *s = ctx->server;
-    int status;
 
     u_unused_args(sig);
+
+    s->reap_childs = 1;
+}
+
+static void server_waitpid(server_t *s)
+{
+    pid_t pid = -1;
+    int status;
+
+    u_sig_block(SIGCHLD);
 
     /* detach from child processes */
     while((pid = waitpid(-1, &status, WNOHANG)) > 0) 
@@ -176,8 +184,11 @@ static void server_sigchld(int sig)
         /* decrement child count */
         server_reap_child(s, pid);
     }
-}
 
+    s->reap_childs = 0;
+
+    u_sig_unblock(SIGCHLD);
+}
 
 static void server_recalc_hfd(server_t *s)
 {
@@ -233,7 +244,6 @@ static void server_close_fd(server_t *s, int fd)
     close(fd);
 }
 
-
 static int server_be_accept(server_t *s, backend_t *be, int* pfd)
 {
     struct sockaddr sa;
@@ -274,6 +284,58 @@ static int server_backend_detach(server_t *s, backend_t *be)
     return 0;
 }
 
+static int server_chroot(server_t *s)
+{
+    dbg_err_if(s->chroot == NULL);
+
+    dbg_err_if(chroot(s->chroot));
+
+    dbg_err_if(chdir("/"));
+
+    return 0;
+err:
+    dbg_strerror(errno);
+    return ~0;
+}
+
+static int server_drop_privileges(server_t *s)
+{
+    uid_t uid;
+    gid_t gid;
+
+    if(s->gid > 0)
+    {
+        gid = (gid_t)s->gid;;
+
+        /* remove all groups except gid */
+        dbg_err_if(setgroups(1, &gid));
+
+        /* set gid */
+        dbg_err_if(setgid(gid));
+        dbg_err_if(setegid(gid));
+
+        /* verify */
+        dbg_err_if(getgid() != gid || getegid() != gid);
+    }
+
+    if(s->uid > 0)
+    {
+        uid = (uid_t)s->uid;
+
+        /* set uid */
+        dbg_err_if(setuid(uid));
+        dbg_err_if(seteuid(uid));
+
+        /* verify */
+        dbg_err_if(getuid() != uid || geteuid() != uid);
+    }
+    
+    return 0;
+err:
+    dbg_strerror(errno);
+    return ~0;
+}
+
 static int cb_term_child(alarm_t *al, void *arg)
 {
     pid_t child = (int)arg;
@@ -298,8 +360,8 @@ static int server_fork_child(server_t *s, backend_t *be)
 
     u_unused_args(s);
 
-    if(s->nchild == SERVER_MAX_CHILD_COUNT)
-        return ~0; /* too much children */
+    /* exit on too much children */
+    dbg_return_if(s->nchild == SERVER_MAX_CHILD_COUNT, -1);
 
     /* create a parent<->child IPC channel */
     dbg_err_if(socketpair(AF_UNIX, SOCK_STREAM, 0, socks) < 0);
@@ -313,7 +375,7 @@ static int server_fork_child(server_t *s, backend_t *be)
         /* reseed the PRNG */
         srand(rand() + getpid() + time(0));
 
-        /* close on end of the channel */
+        /* close one end of the channel */
         close(socks[0]);
 
         /* save parent PPC socket and close the other */
@@ -347,18 +409,14 @@ static int server_fork_child(server_t *s, backend_t *be)
     return child;
 err:
     warn_strerror(errno);
-    return ~0;
+    return -1;
 }
 
 static int server_child_serve(server_t *s, backend_t *be, int ad)
 {
     pid_t child;
-    int socks[2];
 
     u_unused_args(s);
-
-    /* create a parent<->child IPC channel */
-    dbg_err_if(socketpair(AF_UNIX, SOCK_STREAM, 0, socks) < 0);
 
     dbg_err_if((child = server_fork_child(s, be)) < 0);
 
@@ -607,11 +665,18 @@ int server_loop(server_t *s)
     
     dbg_err_if(server_listen(s));
 
+    /* if it's configured chroot to the dst dir */
+    if(s->chroot)
+        dbg_err_if(server_chroot(s));
+
+    /* set uid/gid to non-root user */
+    dbg_err_if(server_drop_privileges(s));
+
     dbg_err_if(server_spawn_children(s));
 
     dbg("server child count: %lu", s->nchild);
 
-    /* children exit here */
+    /* children in pre-fork mode exit here */
     if(ctx->pipc)
         return 0;
 
@@ -629,6 +694,9 @@ int server_loop(server_t *s)
         if(rc == -1 && errno == EINTR)
             goto again; /* interrupted */
         dbg_err_if(rc == -1); /* select error */
+
+        if(s->reap_childs)
+            server_waitpid(s);
 
         /* call klog_flush if flush timeout has expired and select() timeouts */
         if(s->klog_flush && ctx->pipc == NULL)
@@ -655,6 +723,10 @@ int server_loop(server_t *s)
         } /* for each ready fd */
 
     } /* infinite loop */
+
+    /* children in fork mode exit here */
+    if(ctx->pipc)
+        return 0;
 
     /* shutdown all children */
     server_signal_childs(s, SIGTERM);
@@ -809,7 +881,7 @@ int server_get_backend(server_t *s, int id, backend_t **pbe)
     return ~0; /* not found */
 }
 
-int server_create(u_config_t *config, int model, server_t **ps)
+int server_create(u_config_t *config, int foreground, server_t **ps)
 {
     server_t *s = NULL;
     u_config_t *bekey = NULL, *log_c = NULL;
@@ -832,7 +904,7 @@ int server_create(u_config_t *config, int model, server_t **ps)
     *ps = s; /* we need it before backend inits */
 
     s->config = config;
-    s->model = model;
+    s->model = SERVER_MODEL_FORK; /* default */
 
     /* init fd_set */
     FD_ZERO(&s->rdfds);
@@ -861,6 +933,14 @@ int server_create(u_config_t *config, int model, server_t **ps)
     /* parse server list and build s->bes */
     list = u_config_get_subkey_value(config, "server_list");
     dbg_err_if(list == NULL);
+
+    /* chroot, uid and gid */
+    s->chroot = u_config_get_subkey_value(config, "chroot");
+    dbg_err_if(u_config_get_subkey_value_i(config, "uid", -1, &s->uid));
+    dbg_err_if(u_config_get_subkey_value_i(config, "gid", -1, &s->gid));
+
+    warn_err_ifm(!s->uid || !s->gid, 
+        "you must set uid and gid config parameters");
 
     name = n = u_zalloc(strlen(list) + 1);
     dbg_err_if(name == NULL);
@@ -891,12 +971,15 @@ int server_create(u_config_t *config, int model, server_t **ps)
         if(be->model == SERVER_MODEL_UNSET)
             be->model = s->model; /* inherit server model */
 
+        if(foreground)
+            be->model = SERVER_MODEL_ITERATIVE;
+
         /* create the log device (may fail if logging is not configured) */
         if(!u_config_get_subkey(bekey, "log", &log_c))
             dbg_if(klog_open_from_config(log_c, &be->klog));
 
         #ifdef OS_WIN
-        if(be->model == SERVER_MODEL_FORK)
+        if(be->model != SERVER_MODEL_ITERATIVE)
             warn_err("child-based server model is not "
                      "yet supported on Windows");
         #endif

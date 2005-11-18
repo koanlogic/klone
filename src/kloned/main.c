@@ -106,13 +106,8 @@ int app_term()
 
 int app_run()
 {
-    int model;
-
-    /* fork() if the server has been launched w/o -F */
-    model = ctx->daemon ? SERVER_MODEL_FORK : SERVER_MODEL_ITERATIVE;
-
     /* create a server object and start its main loop */
-    dbg_err_if(server_create(ctx->config, model, &ctx->server));
+    dbg_err_if(server_create(ctx->config, !ctx->daemon, &ctx->server));
 
     if(getenv("GATEWAY_INTERFACE"))
         dbg_err_if(server_cgi(ctx->server));

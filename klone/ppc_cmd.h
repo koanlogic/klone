@@ -5,9 +5,12 @@
 enum {
     PPC_CMD_UNKNOWN,            /* wrong command                    */
     PPC_CMD_NOP,                /* no operation                     */
+    PPC_CMD_RESPONSE_OK,        /* ppc response success             */
+    PPC_CMD_RESPONSE_ERROR,     /* ppc response error               */
 
     /* in-memory sessions ppc commands                              */
     PPC_CMD_MSES_SAVE,          /* save a session                   */
+    PPC_CMD_MSES_GET,           /* get session data                 */
     PPC_CMD_MSES_DELOLD,        /* delete the oldest ession         */
     PPC_CMD_MSES_REMOVE,        /* remove a session                 */
 

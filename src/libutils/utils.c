@@ -39,8 +39,7 @@ static struct html_entities_s
     { 0, NULL     }
 };
 
-
-int u_sig_block(int sig)
+int inline u_sig_block(int sig)
 {
     sigset_t sset;
 
@@ -53,7 +52,7 @@ err:
     return ~0;
 }
 
-int u_sig_unblock(int sig)
+int inline u_sig_unblock(int sig)
 {
     sigset_t sset;
 

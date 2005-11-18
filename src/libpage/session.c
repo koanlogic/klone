@@ -2,6 +2,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <klone/session.h>
@@ -219,6 +220,51 @@ err:
     return ~0;
 }
 
+static int session_is_good_id(const char *id)
+{
+    const char *p;
+    size_t len;
+
+    dbg_return_if(id == NULL, 0);
+
+    dbg_ifb((len = strlen(id)) != MD5_DIGEST_LEN)
+        return 0; /* wrong length */
+
+    for(p = id; len; --len, ++p)
+    {
+        /* if is hex */
+        if(! ((*p >= 'A' && *p <= 'F') || (*p >= 'a' && *p <= 'f') || 
+              (*p >= '0' && *p <= '9')) )
+        return 0; /* not safe */
+    }
+
+    return 1; /* good */
+}
+
+static int session_gen_id(session_t *ss)
+{
+    char buf[256];
+    struct timeval tv;
+
+    /* gen a new one */
+    gettimeofday(&tv, NULL);
+
+    dbg_err_if(u_snprintf(buf, 255, "%lu%d%lu%d", tv.tv_sec, getpid(), 
+        tv.tv_usec, rand()));
+
+    /* return the md5 (in hex) buf */
+    dbg_err_if(u_md5(buf, strlen(buf), ss->id));
+
+    /* set the ID cookie */
+    dbg_err_if(response_set_cookie(ss->rs, SID_NAME, ss->id, 0, NULL, 
+        NULL, 0));
+
+    return 0;
+err:
+    return ~0;
+}
+
+
 /** 
  *  \ingroup Chttp
  *  \{
@@ -244,7 +290,12 @@ int session_save(session_t *ss)
     if(vars_count(ss->vars) == 0)
         return 0; /* nothing to save */
 
+    if(!strlen(ss->id))
+        dbg_err_if(session_gen_id(ss));
+
     return ss->save(ss);
+err:
+    return ~0;
 }
 
 int session_remove(session_t *ss)
@@ -256,31 +307,8 @@ int session_remove(session_t *ss)
     return ss->remove(ss);
 }
 
-int session_set_id(session_t *ss, const char *id)
-{
-    char buf[256];
-    time_t now;
-
-    if(id == NULL)
-    {   /* gen a new one */
-        time(&now);
-
-        dbg_err_if(u_snprintf(buf, 255, "%u%d%d", now, getpid(), rand()));
-
-        dbg_err_if(u_md5(buf, strlen(buf), ss->id));
-    } else {
-        dbg_err_if(u_snprintf(ss->id, MD5_DIGEST_BUFSZ, "%s", id));
-        ss->id[MD5_DIGEST_LEN] = 0;
-    }
-
-    return 0;
-err:
-    return ~0;
-}
-
 int session_prv_init(session_t *ss, request_t *rq, response_t *rs)
 {
-    enum { DEFAULT_EXPIRE_TIME = 60*20 }; /* 20 minutes */
     const char *sid;
 
     dbg_err_if(vars_create(&ss->vars));
@@ -288,12 +316,12 @@ int session_prv_init(session_t *ss, request_t *rq, response_t *rs)
     ss->rq = rq;
     ss->rs = rs;
 
-    if((sid = request_get_cookie(rq, SID_NAME)) == NULL)
-    {
-        dbg_err_if(session_set_id(ss, NULL));
-        dbg_err_if(response_set_cookie(rs, SID_NAME, ss->id, 0, NULL, NULL, 0));
-    } else
-        dbg_err_if(session_set_id(ss, sid));
+    sid = request_get_cookie(ss->rq, SID_NAME);
+    if(sid && session_is_good_id(sid))
+    {   
+        dbg_err_if(u_snprintf(ss->id, MD5_DIGEST_BUFSZ, "%s", sid));
+        ss->id[MD5_DIGEST_LEN] = 0;
+    }
 
     return 0;
 err:

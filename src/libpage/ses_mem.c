@@ -16,7 +16,6 @@
 #include <klone/ppc_cmd.h>
 #include <u/libu.h>
 
-
 enum { SESSION_FILENAME_MAX_LENGTH = 256 };
 
 typedef struct enc_ses_mem_s
@@ -197,6 +196,53 @@ err:
     return ~0;
 }
 
+/* [parent] get session data */
+static int session_cmd_get(ppc_t *ppc, int fd, unsigned char cmd, char *data, 
+    size_t size, void *vso)
+{
+    enum { BUFSZ = 4096 };
+    session_opt_t *so = vso;
+    enc_ses_mem_t *esm = NULL;
+    atom_t *atom = NULL;
+    char buf[BUFSZ];
+    size_t esm_size;
+
+    dbg_err_if(vso == NULL || data == NULL);
+
+    dbg_err_if(strlen(data) > SESSION_FILENAME_MAX_LENGTH);
+
+    /* find the atom whose name is stored into 'data' buffer */
+    nop_err_if(atoms_get(so->atoms, data, &atom));
+
+    /* if the buffer on the stack is big enough use it, otherwise alloc a 
+       bigger one on the heap */
+    if((esm_size = sizeof(enc_ses_mem_t) + atom->size) > BUFSZ)
+    {
+        esm = u_malloc(1 + esm_size);
+        dbg_err_if(esm == NULL);
+    } else
+        esm = (enc_ses_mem_t*)buf;
+        
+    /* fill the enc_ses_mem_t struct */
+    esm->mtime = (time_t)atom->arg;
+    strncpy(esm->filename, data, SESSION_FILENAME_MAX_LENGTH);
+    esm->size = atom->size;
+    memcpy(esm->data, atom->data, atom->size);
+
+    dbg_err_if(ppc_write(ppc, fd, PPC_CMD_RESPONSE_OK, (char*)esm,
+        esm_size) <= 0);
+
+    if(esm && esm != (void*)buf)
+        u_free(esm);
+
+    return 0;
+err:
+    if(ppc)
+        ppc_write(ppc, fd, PPC_CMD_RESPONSE_ERROR, (char*)"", 1);
+    if(esm && esm != (void*)buf)
+        u_free(esm);
+    return ~0;
+}
 
 /* add an atom to the list of global atoms */
 static int session_mem_add(session_opt_t *so, const char *filename, char *buf, 
@@ -270,17 +316,47 @@ err:
 
 static int session_mem_load(session_t *ss)
 {
+    enum { BUFSZ = 4096 };
     atom_t *atom;
+    char buf[BUFSZ];
+    size_t size;
+    enc_ses_mem_t *esm;
+    ppc_t *ppc;
+    unsigned char cmd;
 
-    /* find the file into the atom list */
-    if(atoms_get(ss->so->atoms, ss->filename, &atom))
-        return ~0; /* not found */
+    /* in fork and iterative model we can get the session from the current
+       address space, in prefork we must ask the parent for a fresh copy of 
+       the session */
+    if(ctx->backend && ctx->backend->model == SERVER_MODEL_PREFORK)
+    {   /* get the session data through ppc */
+        ppc = server_get_ppc(ctx->server);
+        dbg_err_if(ppc == NULL);
 
-    /* copy stored mtime */
-    ss->mtime = (time_t)atom->arg;
+        /* send a get request */
+        dbg_err_if(ppc_write(ppc, ctx->pipc, PPC_CMD_MSES_GET, ss->filename, 
+            strlen(ss->filename) + 1) < 0);
 
-    /* load session from atom->data */
-    dbg_err_if(session_prv_load_from_buf(ss, atom->data, atom->size));
+        /* get the response from the parent */
+        dbg_err_if((size = ppc_read(ppc, ctx->pipc, &cmd, buf, BUFSZ)) <= 0);
+
+        nop_err_if(cmd != PPC_CMD_RESPONSE_OK);
+
+        /* load session from esm */
+        esm = (enc_ses_mem_t*)buf;
+        ss->mtime = esm->mtime;
+        dbg_err_if(session_prv_load_from_buf(ss, esm->data, esm->size));
+
+    } else {
+        /* find the file into the atom list */
+        if(atoms_get(ss->so->atoms, ss->filename, &atom))
+            return ~0; /* not found */
+
+        /* copy stored mtime */
+        ss->mtime = (time_t)atom->arg;
+
+        /* load session from atom->data */
+        dbg_err_if(session_prv_load_from_buf(ss, atom->data, atom->size));
+    }
 
     return 0;
 err:
@@ -315,6 +391,7 @@ static int session_mem_term(session_t *ss)
 {
     /* nothing to do */
     u_unused_args(ss);
+
     return 0;
 }
 
@@ -373,17 +450,11 @@ int session_mem_module_init(u_config_t *config, session_opt_t *so)
     /* create an atom list to store in-memory session data */
     dbg_err_if(atoms_create(&so->atoms));
 
-    /* register session_cmd_saveto be called on 's' ppc command */
-    dbg_err_if(ppc_register(ppc, PPC_CMD_MSES_SAVE, session_cmd_save, 
-        (void*)so));
-
-    /* register session_cmd_delold to be called on 'd' ppc command */
-    dbg_err_if(ppc_register(ppc, PPC_CMD_MSES_DELOLD, session_cmd_delold, 
-        (void*)so));
-
-    /* register session_cmd_remove to be called on 'r' ppc command */
-    dbg_err_if(ppc_register(ppc, PPC_CMD_MSES_REMOVE, session_cmd_remove, 
-        (void*)so));
+    /* register PPC commands callbacks */
+    dbg_err_if(ppc_register(ppc, PPC_CMD_MSES_SAVE, session_cmd_save, so));
+    dbg_err_if(ppc_register(ppc, PPC_CMD_MSES_GET, session_cmd_get, so));
+    dbg_err_if(ppc_register(ppc, PPC_CMD_MSES_DELOLD, session_cmd_delold, so));
+    dbg_err_if(ppc_register(ppc, PPC_CMD_MSES_REMOVE, session_cmd_remove, so));
 
     return 0;
 err:

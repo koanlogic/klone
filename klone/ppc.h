@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-enum { PPC_MAX_DATA_SIZE = 5 * 1024 }; /* usual 4k buffer plus 1024 overhead */
+enum { PPC_MAX_DATA_SIZE = 8192 }; 
 
 struct ppc_s;
 typedef struct ppc_s ppc_t;

@@ -57,6 +57,7 @@ typedef struct session_opt_s
     /* file session options/struct                                   */
     char path[U_FILENAME_MAX]; /* session save path                  */
     unsigned char session_key[CIPHER_KEY_SIZE]; /* session secret key*/
+    unsigned char session_iv[CIPHER_IV_SIZE];   /* session init vect */
 
     /* in-memory session options/struct                              */
     atoms_t *atoms; /* atom list used to store in-memory sessions    */

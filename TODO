@@ -13,12 +13,11 @@ FIRST RELEASE:
         - * klog_flush on timeout
         - * option to disable deflate'd transfers
 
-        - usare u_config_get_subkey_value_b && u_config_get_subkey_value_i
-          dove possibile
-
         - keepalive requests
 
         - #ifndef HAVE_FORK
+
+        - fix prefork + log.klone
 
         - prefork
             = start a new process when all children are busy (complete timeout?)
@@ -91,8 +90,9 @@ FIRST RELEASE:
                 = embedded static content (any file)
                 = embedded C/C++ dynamic HTML pages
                 = static content compression and encryption
-                = server-side and client-side sessions
-                = easy C script programming interfaces
+                = dynamic page static chunk compression
+                = server-side (in-memory and on file) and client-side sessions
+                = easy C script programming interfaces <% code %>
                 = ROMable binary
                 = intellectual property protection
                 = portable
