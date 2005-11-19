@@ -60,9 +60,6 @@ void timerm_sigalrm(int sigalrm)
         /* call the callback function */
         al->cb(al, al->arg);
 
-        /* free the alarm */
-        u_free(al);
-
         /* handle alarms with the same expiration date */
         next = TAILQ_FIRST(&timer->alist);
         if(next && next->expire == expire)
@@ -156,6 +153,7 @@ int timerm_add(int secs, alarm_cb_t cb, void *arg, alarm_t **pa)
 
     return 0;
 err:
+    dbg("[%lu] timerm_add error", getpid());
     if(timer)
     {
         timerm_free(timer);

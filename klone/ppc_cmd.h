@@ -5,6 +5,7 @@
 enum {
     PPC_CMD_UNKNOWN,            /* wrong command                    */
     PPC_CMD_NOP,                /* no operation                     */
+    PPC_CMD_FORK_CHILD,         /* launch a new child               */
     PPC_CMD_RESPONSE_OK,        /* ppc response success             */
     PPC_CMD_RESPONSE_ERROR,     /* ppc response error               */
 

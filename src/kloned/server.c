@@ -446,8 +446,33 @@ err:
     return ~0;
 }
 
+static int server_cb_spawn_child(alarm_t *al, void *arg)
+{
+    server_t *s = (server_t*)arg;
+
+    syslog(LOG_LOCAL0 | LOG_DEBUG, "%lu cb_spawn_child", getpid());
+
+    u_unused_args(al);
+
+    /* must be called by a child process */
+    dbg_err_if(ctx->backend == NULL || ctx->pipc == NULL);
+
+    /* ask the parent to create a new worker child process */
+    dbg_err_if(server_ppc_cmd_fork_child(s));
+
+    /* mark the current child process so it will die when finishes 
+       serving this page */
+    server_stop(s);
+
+    return 0;
+err:
+    return ~0;
+}
+
 static int server_be_serve(server_t *s, backend_t *be, int ad)
 {
+    alarm_t *al = NULL;
+
     switch(be->model)
     {
     case SERVER_MODEL_FORK:
@@ -457,8 +482,16 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
 
     case SERVER_MODEL_ITERATIVE:
     case SERVER_MODEL_PREFORK:
+        // FIXME small timeout value needed
+        /* if _serve takes more then 1 second spawn a new worker process */
+        dbg_err_if(timerm_add(1, server_cb_spawn_child, (void*)s, &al));
+
         /* serve the page */
         dbg_if(backend_serve(be, ad));
+
+        /* remove and free the alarm */
+        timerm_del(al);
+
         close(ad);
         break;
 
@@ -607,21 +640,39 @@ int server_cb_klog_flush(alarm_t *a, void *arg)
 
     u_unused_args(a);
 
-    /* alarmt expired, it has been free'd by timerm_t */
-    s->al_klog_flush = NULL;
-
     /* set a flag to flush the klog object in server_loop */
     s->klog_flush++;
 
     return 0;
 }
 
+int server_spawn_child(server_t *s, backend_t *be)
+{
+    size_t c;
+    int rc;
+
+    dbg_err_if((rc = server_fork_child(s, be)) < 0);
+
+    if(rc == 0)
+    {   /* child */
+
+        for(c = 0; !s->stop /* FIXME && c < be->max_rq_xchild */ ; ++c)
+        {
+            /* wait for a new client (will block on accept(2)) */
+            dbg_err_if(server_dispatch(s, be->ld));
+        }
+    }
+
+    return 0;
+err:
+    return ~0;
+}
+
 /* spawn pre-fork child processes */
 static int server_spawn_children(server_t *s)
 {
     backend_t *be;
-    size_t i, c;
-    int rc;
+    size_t i;
 
     /* spawn N child process that will sleep asap into accept(2) */
     LIST_FOREACH(be, &s->bes, np)
@@ -631,23 +682,7 @@ static int server_spawn_children(server_t *s)
 
         /* spawn be->start_child child processes */
         for(i = 0; i < be->start_child; ++i)
-        {
-            dbg_err_if((rc = server_fork_child(s, be)) < 0);
-
-            if(rc == 0)
-            {   /* child */
-
-                for(c = 0; c < be->max_rq_xchild; ++c)
-                {
-                    /* wait for a new client (will block on accept(2)) */
-                    dbg_err_if(server_dispatch(s, be->ld));
-                }
-                break;
-            } else {
-                /* parent */
-                ;
-            }
-        }
+            dbg_err_if(server_spawn_child(s, be));
     }
 
     return 0;
@@ -674,11 +709,11 @@ int server_loop(server_t *s)
 
     dbg_err_if(server_spawn_children(s));
 
-    dbg("server child count: %lu", s->nchild);
-
     /* children in pre-fork mode exit here */
     if(ctx->pipc)
         return 0;
+
+    dbg("server child count: %lu", s->nchild);
 
     for(; !s->stop; )
     {
@@ -707,10 +742,17 @@ int server_loop(server_t *s)
             /* reset the flag */
             s->klog_flush = 0; 
 
+            if(s->al_klog_flush)
+            {
+                u_free(s->al_klog_flush);
+                s->al_klog_flush = NULL;
+            }
+
             /* re-set the timer */
             dbg_err_if(timerm_add(SERVER_LOG_FLUSH_TIMEOUT, 
                 server_cb_klog_flush, s, &s->al_klog_flush));
         }
+
         /* for each signaled listening descriptor */
         for(fd = 0; rc && fd < 1 + s->hfd; ++fd)
         { 
@@ -926,6 +968,8 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
     /* register the log ppc callbacks */
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_NOP, server_ppc_cb_nop, s));
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_LOG_ADD, server_ppc_cb_log_add, s));
+    dbg_err_if(ppc_register(s->ppc, PPC_CMD_FORK_CHILD, 
+        server_ppc_cb_fork_child, s));
 
     /* redirect logs to the server_log_hook function */
     dbg_err_if(u_log_set_hook(server_log_hook, s, NULL, NULL));

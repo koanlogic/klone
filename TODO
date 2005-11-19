@@ -15,6 +15,8 @@ FIRST RELEASE:
 
         - keepalive requests
 
+        - configurable max child number
+
         - #ifndef HAVE_FORK
 
         - fix prefork + log.klone
