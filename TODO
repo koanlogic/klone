@@ -12,18 +12,21 @@ FIRST RELEASE:
         - * session.{encrypt|compress}
         - * klog_flush on timeout
         - * option to disable deflate'd transfers
+        - * configurable max child number
+        - * fork,prefork: max requests per process
+
+        - blind chroot
+
+        - tweak prefork spawn-new-child-timeout 
 
         - keepalive requests
 
-        - configurable max child number
-
         - #ifndef HAVE_FORK
+
 
         - fix prefork + log.klone
 
-        - prefork
-            = start a new process when all children are busy (complete timeout?)
-            = max request per process
+        - * prefork: start a new process when all children are busy (complete timeout?)
 
         - profiling
             + keep child to the smallest number to avoid loosing time into

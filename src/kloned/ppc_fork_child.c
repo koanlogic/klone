@@ -44,7 +44,10 @@ int server_ppc_cb_fork_child(ppc_t *ppc, int fd, unsigned char cmd, char *data,
 
     dbg("[parent] ppc spawn child");
 
-    dbg_if(server_spawn_child(ctx->server, be));
+    /* try to fork now, if we can't (resource limit or max_child exceeded) 
+       then try later */
+    if(server_spawn_child(ctx->server, be))
+        be->fork_child++; /* increase # of child to spawn when possible */
 
     return 0;
 err:

@@ -9,9 +9,11 @@ typedef struct server_s server_t;
 
 enum { 
     SERVER_LOG_FLUSH_TIMEOUT = 5,   /* min # of seconds between two log flush */
+
+    /* prefork server model limits */
     SERVER_PREFORK_MAX_CHILD = 150, /* max # of child allowed to run at once  */
-    SERVER_PREFORK_START_CHILD = 5, /* max # of child allowed to run at once  */
-    SERVER_PREFORK_MAX_RQ_CHILD = 50000 /* # of spare child to run at startup     */
+    SERVER_PREFORK_START_CHILD = 2, /* # of child to run on startup           */
+    SERVER_PREFORK_MAX_RQ_CHILD = 10000 /* max # of rq a process can serve    */
 };
 
 enum { 
@@ -20,8 +22,6 @@ enum {
     SERVER_MODEL_ITERATIVE, /* serialize responses                          */
     SERVER_MODEL_PREFORK    /* prefork a few child to serve more clients    */
 };
-
-
 
 int server_create(struct u_config_s *config, int model, server_t **ps);
 int server_free(server_t *s);

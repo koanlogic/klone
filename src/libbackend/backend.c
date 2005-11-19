@@ -74,6 +74,9 @@ int backend_create(const char *proto, u_config_t *config, backend_t **pbe)
         dbg_err_if(u_config_get_subkey_value_i(config, 
             "prefork.max_requests_per_child", SERVER_PREFORK_MAX_RQ_CHILD, 
             &be->max_rq_xchild));
+
+        /* set start_child child to be forked when possible */
+        be->fork_child = be->start_child;
     }
 
     /* call backend initialization function */

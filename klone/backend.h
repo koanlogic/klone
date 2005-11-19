@@ -28,6 +28,7 @@ struct backend_s
     size_t max_child;
     size_t start_child;;
     size_t max_rq_xchild;
+    size_t fork_child;;
     pid_t *child_pid;           /* pid of children              */
     LIST_ENTRY(backend_s) np;   /* next & prev pointers         */
 };
@@ -52,6 +53,7 @@ typedef struct backends_s backends_t; /* backend_t list        */
         0,      /* max_child    */                              \
         0,      /* start_child  */                              \
         0,      /* max_rq_xchild*/                              \
+        0,      /* fork_child   */                              \
         NULL,   /* children pids*/                              \
         LIST_ENTRY_NULL                                         \
     }

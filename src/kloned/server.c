@@ -361,7 +361,7 @@ static int server_fork_child(server_t *s, backend_t *be)
     u_unused_args(s);
 
     /* exit on too much children */
-    dbg_return_if(s->nchild == SERVER_MAX_CHILD_COUNT, -1);
+    dbg_return_if(s->nchild == be->max_child, -1);
 
     /* create a parent<->child IPC channel */
     dbg_err_if(socketpair(AF_UNIX, SOCK_STREAM, 0, socks) < 0);
@@ -449,8 +449,6 @@ err:
 static int server_cb_spawn_child(alarm_t *al, void *arg)
 {
     server_t *s = (server_t*)arg;
-
-    syslog(LOG_LOCAL0 | LOG_DEBUG, "%lu cb_spawn_child", getpid());
 
     u_unused_args(al);
 
@@ -652,16 +650,21 @@ int server_spawn_child(server_t *s, backend_t *be)
     int rc;
 
     dbg_err_if((rc = server_fork_child(s, be)) < 0);
+    if(rc > 0)
+        return 0; /* parent */
 
-    if(rc == 0)
-    {   /* child */
-
-        for(c = 0; !s->stop /* FIXME && c < be->max_rq_xchild */ ; ++c)
-        {
-            /* wait for a new client (will block on accept(2)) */
-            dbg_err_if(server_dispatch(s, be->ld));
-        }
+    /* child */
+    for(c = 0; !s->stop && c < be->max_rq_xchild; ++c)
+    {
+        /* wait for a new client (will block on accept(2)) */
+        dbg_err_if(server_dispatch(s, be->ld));
     }
+
+    /* max # of request limit:
+       ask the parent to create a new worker child process and exit */
+    dbg_err_if(server_ppc_cmd_fork_child(s));
+
+    server_stop(s);
 
     return 0;
 err:
@@ -672,17 +675,20 @@ err:
 static int server_spawn_children(server_t *s)
 {
     backend_t *be;
-    size_t i;
+    register size_t i;
 
     /* spawn N child process that will sleep asap into accept(2) */
     LIST_FOREACH(be, &s->bes, np)
     {
-        if(be->model != SERVER_MODEL_PREFORK)
+        if(be->model != SERVER_MODEL_PREFORK || be->fork_child == 0)
             continue;
 
-        /* spawn be->start_child child processes */
-        for(i = 0; i < be->start_child; ++i)
+        /* spawn be->fork_child child processes */
+        for(i = 0; i < be->fork_child; ++i)
+        {
             dbg_err_if(server_spawn_child(s, be));
+            be->fork_child--;
+        }
     }
 
     return 0;
@@ -707,16 +713,15 @@ int server_loop(server_t *s)
     /* set uid/gid to non-root user */
     dbg_err_if(server_drop_privileges(s));
 
-    dbg_err_if(server_spawn_children(s));
-
-    /* children in pre-fork mode exit here */
-    if(ctx->pipc)
-        return 0;
-
-    dbg("server child count: %lu", s->nchild);
-
     for(; !s->stop; )
     {
+        /* spawn new child if needed (may fail on resource limits) */
+        dbg_if(server_spawn_children(s));
+
+        /* children in pre-fork mode exit here */
+        if(ctx->pipc)
+            break;
+
         memcpy(&rdfds, &s->rdfds, sizeof(fd_set));
         memcpy(&wrfds, &s->wrfds, sizeof(fd_set));
         memcpy(&exfds, &s->exfds, sizeof(fd_set));
@@ -760,11 +765,11 @@ int server_loop(server_t *s)
             {
                 --rc;
                 /* dispatch the request to the right backend */
-                server_dispatch(s, fd);
+                dbg_if(server_dispatch(s, fd));
             } 
         } /* for each ready fd */
 
-    } /* infinite loop */
+    } /* !s->stop*/
 
     /* children in fork mode exit here */
     if(ctx->pipc)
@@ -777,10 +782,7 @@ int server_loop(server_t *s)
 
     /* brute kill children process */
     if(s->nchild)
-    {
-        dbg("sending SIGKILL");
         server_signal_childs(s, SIGKILL);
-    }
 
     return 0;
 err:

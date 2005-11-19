@@ -24,6 +24,7 @@ struct server_s
     int hfd;                /* highest set fd in fd_sets        */
     size_t nbackend;        /* # of servers                     */
     size_t nchild;          /* # of child (only in prefork mode)*/
+    int fork_child;         /* # of child to fork when possible */
     int stop;               /* >0 will stop the loop            */
     int model;              /* server model                     */
     int klog_flush;         /* >0 will flush the klog           */
