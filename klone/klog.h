@@ -41,9 +41,9 @@ typedef struct klog_args_s klog_args_t;
 
 #define KLOG_LN_SZ          512 /* maximum log line size */
 #define KLOG_ID_SZ          8   /* maximum log id size */
-#define KLOG_MLIMIT_DFL     250 /* maximum number of log lines (mem) */
-#define KLOG_FLIMIT_DFL     250 /* maximum number of log lines (file) */
-#define KLOG_FSPLITS_DFL    4   /* maximum number of log files (file) */
+#define KLOG_MLIMIT_DFL     250 /* default number of log lines (mem) */
+#define KLOG_FLIMIT_DFL     250 /* default number of log lines (file) */
+#define KLOG_FSPLITS_DFL    4   /* default number of log files (file) */
 
 /* a log line is at most KLOG_LN_SZ + 1 bytes long (including encoded
  * timestamp and severity) */
