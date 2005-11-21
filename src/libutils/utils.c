@@ -39,7 +39,7 @@ static struct html_entities_s
     { 0, NULL     }
 };
 
-int inline u_sig_block(int sig)
+inline int u_sig_block(int sig)
 {
     sigset_t sset;
 
@@ -52,7 +52,7 @@ err:
     return ~0;
 }
 
-int inline u_sig_unblock(int sig)
+inline int u_sig_unblock(int sig)
 {
     sigset_t sset;
 
@@ -74,7 +74,7 @@ int u_foreach_dir_item(const char *path, unsigned int mask,
     char buf[U_FILENAME_MAX];
     int rc;
 
-    /* open the spool directory */
+    /* open the given directory */
     dir = opendir(path);
     dbg_err_if(dir == NULL);
 
@@ -90,7 +90,7 @@ int u_foreach_dir_item(const char *path, unsigned int mask,
         dbg_err_if( (rc = stat(buf, &st)) == -1);
 
         /* skip if its type is not in the requested mask */
-        if(((st.st_mode & S_IFMT) == mask) && cb(de, path, arg))
+        if(((st.st_mode & S_IFMT) & mask) != 0 && cb(de, path, arg))
             break;
     }
 

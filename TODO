@@ -15,18 +15,17 @@ FIRST RELEASE:
         - * configurable max child number
         - * fork,prefork: max requests per process
 
+        - chroot and syslog (/dev/log?)
+
         - blind chroot
+        - bind sessions to client IP address
 
         - tweak prefork spawn-new-child-timeout 
-
-        - keepalive requests
+        - fix prefork + log.klone
 
         - #ifndef HAVE_FORK
 
 
-        - fix prefork + log.klone
-
-        - * prefork: start a new process when all children are busy (complete timeout?)
 
         - profiling
             + keep child to the smallest number to avoid loosing time into
@@ -43,14 +42,13 @@ FIRST RELEASE:
         - default documentation embedded site
 
         - file upload?
-
-        - bind sessions to client IP address
+        - keepalive requests?
 
         - security audit/todo
             - chroot("..."); chdir("/");
             - store sessions in a secure dir
             - disable core dumps?
-            - check if symlink output files
+            - check if output files are symlinks
             - last years apache security issues
 
         - scripts ulimit to limit memory/cpu?

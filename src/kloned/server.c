@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <netinet/tcp.h>
 #include <klone/server.h>
@@ -284,18 +286,106 @@ static int server_backend_detach(server_t *s, backend_t *be)
     return 0;
 }
 
-static int server_chroot(server_t *s)
+static int server_chroot_to(server_t *s, const char *dir)
 {
-    dbg_err_if(s->chroot == NULL);
+    dbg_err_if(dir == NULL);
 
-    dbg_err_if(chroot(s->chroot));
+    u_unused_args(s);
+
+    dbg_err_if(chroot(dir));
 
     dbg_err_if(chdir("/"));
+
+    dbg("chroot'd: %s", dir);
 
     return 0;
 err:
     dbg_strerror(errno);
     return ~0;
+}
+
+static int server_foreach_cb(struct dirent *d, const char *path, void *arg)
+{
+    int *pfound = (int*)arg;
+
+    u_unused_args(d, path);
+
+    *pfound = 1;
+
+    return ~0;
+}
+
+static int server_chroot_blind(server_t *s)
+{
+    enum { BLIND_DIR_MODE = 0100 }; /* blind dir mode must be 0100 */
+    char dir[U_PATH_MAX];
+    struct stat st;
+    int fd_dir = -1, found;
+    pid_t child;
+    unsigned int mask;
+
+    dbg_err_if(s->chroot == NULL);
+
+    dbg_err_if(u_path_snprintf(dir, U_PATH_MAX, "%s/kloned_blind_chroot_%d.dir",
+        s->chroot, getpid()));
+
+    /* create the blind dir (0100 mode) */
+    dbg_err_if(mkdir(dir, BLIND_DIR_MODE ));
+
+    /* get the fd of the dir */
+    dbg_err_if((fd_dir = open(dir, O_RDONLY, 0)) < 0);
+
+    dbg_err_if((child = fork()) < 0);
+
+    if(child == 0)
+    {   /* child */
+
+        /* delete the chroot dir and exit */
+        sleep(1); // FIXME use a lock here
+        dbg("[child] removing dir: %s\n", dir);
+        rmdir(dir);
+        _exit(0);
+    }
+    /* parent */
+
+    /* do chroot */
+    dbg_err_if(server_chroot_to(s, dir));
+
+    /* do some dir sanity checks */
+
+    /* get stat values */
+    dbg_err_if(fstat(fd_dir, &st));
+
+    /* the dir owned must be root */
+    dbg_err_if(st.st_gid || st.st_uid);
+
+    /* the dir mode must be 0100 */
+    dbg_err_if((st.st_mode & 07777) != BLIND_DIR_MODE);
+
+    /* the dir must be empty */
+    found = 0;
+    mask = S_IFIFO | S_IFCHR | S_IFDIR | S_IFBLK | S_IFREG | S_IFLNK | S_IFSOCK;
+    dbg_err_if(u_foreach_dir_item("/", mask, server_foreach_cb, &found));
+
+    /* bail out if the dir is not empty */
+    dbg_err_if(found);
+
+    close(fd_dir);
+
+    return 0;
+err:
+    if(fd_dir >= 0)
+        close(fd_dir);
+    dbg_strerror(errno);
+    return ~0;
+}
+
+static int server_chroot(server_t *s)
+{
+    if(s->blind_chroot)
+        return server_chroot_blind(s);
+    else
+        return server_chroot_to(s, s->chroot);
 }
 
 static int server_drop_privileges(server_t *s)
@@ -713,6 +803,11 @@ int server_loop(server_t *s)
     /* set uid/gid to non-root user */
     dbg_err_if(server_drop_privileges(s));
 
+    /* if allow_root is not set check that we're not running as root */
+    if(!s->allow_root)
+        warn_err_ifm(!getuid() || !geteuid() || !getgid() || !getegid(),
+            "you must set the allow_root config option to run kloned as root");
+
     for(; !s->stop; )
     {
         /* spawn new child if needed (may fail on resource limits) */
@@ -984,6 +1079,10 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
     s->chroot = u_config_get_subkey_value(config, "chroot");
     dbg_err_if(u_config_get_subkey_value_i(config, "uid", -1, &s->uid));
     dbg_err_if(u_config_get_subkey_value_i(config, "gid", -1, &s->gid));
+    dbg_err_if(u_config_get_subkey_value_b(config, "allow_root", 0, 
+        &s->allow_root));
+    dbg_err_if(u_config_get_subkey_value_b(config, "blind_chroot", 0, 
+        &s->blind_chroot));
 
     warn_err_ifm(!s->uid || !s->gid, 
         "you must set uid and gid config parameters");
