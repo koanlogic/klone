@@ -65,6 +65,21 @@ err:
     return ~0;
 }
 
+/**
+ * \brief   Apply the supplied callback to each file in a given directory
+ * 
+ * Apply the supplied callback \p cb with additional arguments \p arg to each
+ * file in directory \p path which match the given \p mask.
+ *
+ * \param   path    directory path
+ * \param   mask    matching file mask 
+ * \param   cb      function to call
+ * \param   arg     optional additional arguments
+ *
+ * \return
+ * - \c 0   successful
+ * - \c ~0  error
+ */
 int u_foreach_dir_item(const char *path, unsigned int mask,
     int (*cb)(struct dirent*, const char *, void*), void* arg)
 {
@@ -78,7 +93,7 @@ int u_foreach_dir_item(const char *path, unsigned int mask,
     dir = opendir(path);
     dbg_err_if(dir == NULL);
 
-    while( (de = readdir(dir) ) != NULL)
+    while((de = readdir(dir)) != NULL)
     {
         /* skip . and .. dirs */
         if(!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
@@ -162,6 +177,20 @@ static ssize_t u_sqlncpy_decode(char *d, const char *s, size_t slen)
     return ++wr;
 }
 
+/**
+ * \brief   Copy and SQL escape/unescape a given string 
+ *
+ * Copy and SQL escape/unescape, depending on \p flags value, the string \p s 
+ * into \p d.  The destination string, which must be at least \p slen + 1 bytes
+ * long, is NULL terminated.
+ *
+ * \param   d       the encoded/decoded string
+ * \param   s       string to process
+ * \param   slen    length of \p s
+ * \param   flags   one of \c SQLCPY_ENCODE or \c SQLCPY_DECODE
+ *
+ * \return  The number of encoded/decoded characters or \c -1 on error.
+ */
 ssize_t u_sqlncpy(char *d, const char *s, size_t slen, int flags)
 {
     switch(flags)
@@ -236,7 +265,20 @@ err:
 
 }
 
-/* d must be at least slen+1 size long */
+/**
+ * \brief   Copy and URL escape/unescape a given string 
+ *
+ * Copy an URL escaped/unescaped version of string \p s, depending on 
+ * \p flags value, into \p d.  The destination string is NULL terminated.
+ * The destination string \p d must be at least \p slen + 1 bytes long.
+ *
+ * \param   d       the encoded/decoded string
+ * \param   s       string to process
+ * \param   slen    length of \p s
+ * \param   flags   one of \c URLCPY_ENCODE or \c URLCPY_DECODE
+ *
+ * \return  The number of encoded/decoded characters or \c -1 on error.
+ */
 ssize_t u_urlncpy(char *d, const char *s, size_t slen, int flags)
 {
     switch(flags)
@@ -316,6 +358,20 @@ static ssize_t u_hexncpy_encode(char *d, const char *s, size_t slen)
     return ++t;
 }
 
+/**
+ * \brief   Copy and HEX encode/decode a given string 
+ *
+ * Copy an HEX encoded/decoded version of string \p s, depending on 
+ * \p flags value, into \p d.  The destination string \p d, which must be
+ * at least \p slen + 1 bytes long, is NULL terminated.
+ *
+ * \param   d       the encoded/decoded string
+ * \param   s       string to process
+ * \param   slen    length of \p s
+ * \param   flags   one of \c HEXCPY_ENCODE or \c HEXCPY_DECODE
+ *
+ * \return  The number of encoded/decoded characters or \c -1 on error.
+ */
 ssize_t u_hexncpy(char *d, const char *s, size_t slen, int flags)
 {
     switch(flags)
@@ -390,6 +446,20 @@ static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
     return 1 + strlen(d);
 }
 
+/**
+ * \brief   Copy and HTML escape/unescape a given string 
+ *
+ * Copy an HTML escaped/unescaped version of string \p s, depending on 
+ * \p flags value, into \p d.  The destination string is NULL terminated.
+ * The destination string \p d must be at least \p slen + 1 bytes long.
+ *
+ * \param   d       the encoded/decoded string
+ * \param   s       string to process
+ * \param   slen    length of \p s
+ * \param   flags   one of \c HTMLCPY_ENCODE or \c HTMLCPY_DECODE
+ *
+ * \return  The number of encoded/decoded characters or \c -1 on error.
+ */
 int u_htmlncpy(char *d, const char *s, size_t slen, int flags)
 {
     switch(flags)
@@ -407,7 +477,18 @@ int u_htmlncpy(char *d, const char *s, size_t slen, int flags)
     return -1;
 }
 
-/* case insensitive strstr */
+/**
+ * \brief   Locate a given substring ignoring case
+ *
+ * Locate the first occurrence of the null-terminated string \p sub in the 
+ * null-terminated string \p string, ignoring the case of both string.
+ *
+ * \param   string  string to be searched
+ * \param   sub     substring to search
+ *
+ * \return  the pointer to the found substring or NULL if \p sub occurs nowhere
+ *          in \p string
+ */
 char *u_stristr(const char *string, const char *sub)
 {
     const char *p;
@@ -422,6 +503,18 @@ char *u_stristr(const char *string, const char *sub)
     return NULL;
 }
 
+/**
+ * \brief   Locate a character in a string
+ *
+ * Locate the last occurrence of \p c in the substring of length \p len
+ * starting at \p s.
+ *
+ * \param   s       pointer to the starting of the string
+ * \param   c       the character to search
+ * \param   len     length of the string to be searched 
+ *
+ * \return  the pointer to the character, or NULL if \p c doesn't occur in \p s
+ */
 char* u_strnrchr(const char *s, char c, size_t len)
 {
     register int i = len - 1;
@@ -433,6 +526,17 @@ char* u_strnrchr(const char *s, char c, size_t len)
     return NULL;
 }
 
+/**
+ * \brief   Create a temporary \c io_t object 
+ *
+ * Create a temporary \c io_t object at \p *pio.
+ *
+ * \param   pio     pointer to the temporary \c io_t object
+ *
+ * \return
+ * - \c 0   successful
+ * - \c ~0  error
+ */
 int u_tmpfile_open(io_t **pio)
 {
     char tmp[U_FILENAME_MAX];
@@ -459,6 +563,20 @@ err:
     return ~0;
 }
 
+/**
+ * \brief   Create an \c io_t object from the file system object \p file
+ *
+ * Create an \c io_t object at \p *pio from the file system object \p file.
+ * The file is opened with the permission bits given in \p mode.
+ *
+ * \param   file    pathname of the file to open
+ * \param   flags   permission bits passed to the open syscall
+ * \param   pio     the \c io_t object associated to \p file
+ *
+ * \return
+ * - \c 0   successful
+ * - \c ~0  error
+ */
 int u_file_open(const char *file, int flags, io_t **pio)
 {
     int fmod = 0; /* flags modifier */
@@ -485,6 +603,18 @@ err:
     return ~0;
 }
 
+/**
+ * \brief   Read a line from the \c io_t object \p io
+ *
+ * Read a line and place it into \p ln from the \c io_t object \p io
+ *
+ * \param   io  an initialised \c io_t object
+ * \param   ln  the line read 
+ *
+ * \return
+ * - \c 0   successful
+ * - \c ~0  error
+ */
 int u_getline(io_t *io, u_string_t *ln)
 {
     enum { BUFSZ = 1024 };
@@ -508,6 +638,18 @@ err:
     return (rc <= 0 ? ~0 : 0);
 }
 
+/**
+ * \brief   get a line from a \c FILE object
+ *
+ * Try to get a line from the \c FILE object \p in and store it at \p ln.
+ *
+ * \param   in  the \c FILE object from which read is performed
+ * \param   ln  the \c u_string_t object where the line read is stored
+ *
+ * \return
+ * - \c 0   successful
+ * - \c ~0  error
+ */
 int u_fgetline(FILE *in, u_string_t *ln)
 {
     enum { BUFSZ = 256 };
@@ -538,45 +680,54 @@ int u_printf_ccstr(io_t *o, const char *buf, size_t sz)
     int pos = 0;
     size_t i;
 
-	for(i = 0; i < sz; ++i)
-	{
-		prev = c;
-		c = buf[i];
-		if(pos++ == 0) // first line char
-			io_putc(o, '"');
-		switch(c)
-		{
-		case CR:
-			if(prev != LF) 
-                io_printf(o, "\\n\"\n");
-			pos = 0;
-			break;
-		case LF:
-			if(prev != CR) 
-                io_printf(o, "\\n\"\n");
-			pos = 0;
-			break;
-		case '"':
-			io_printf(o, "\\\"");
-			break;
-		case '\\':
-			io_printf(o, "\\\\");
-			break;
-		default:
+    for(i = 0; i < sz; ++i)
+    {
+        prev = c;
+        c = buf[i];
+        if(pos++ == 0) // first line char
+            io_putc(o, '"');
+        switch(c)
+        {
+        case CR:
+            if(prev != LF) 
+            io_printf(o, "\\n\"\n");
+            pos = 0;
+            break;
+        case LF:
+            if(prev != CR) 
+            io_printf(o, "\\n\"\n");
+            pos = 0;
+            break;
+        case '"':
+            io_printf(o, "\\\"");
+            break;
+        case '\\':
+            io_printf(o, "\\\\");
+            break;
+        default:
             if(isprint(c))
                 io_putc(o, c);
             else {
                 io_printf(o, "\\x%c%c", u_tochex((c >> 4) & 0x0F),
-                    u_tochex(c & 0x0F));
+                u_tochex(c & 0x0F));
             }
-		}
-	}
-	if(pos)
+        }
+    }
+    if(pos)
         io_putc(o, '"');
 
     return 0;
 }
 
+/**
+ * \brief   Tell if the given file exists
+ *
+ * Tell if the given file \p fqn exists
+ *
+ * \param   fqn     the path of the (regular) file to check
+ *
+ * \return  \c 1 if the file exists and is a regular file, \c otherwise 
+ */
 int u_file_exists(const char *fqn)
 {
     struct stat st;
@@ -584,31 +735,54 @@ int u_file_exists(const char *fqn)
     return stat(fqn, &st) == 0 && S_ISREG(st.st_mode);
 }
 
-/* convert buf to hex
- * hex must be at least 2*sz
+/**
+ * \brief   Convert a given string in hexadecimal representation
+ *
+ * Convert the string \p src of lenght \p sz into its hexadecimal 
+ * representation \p hex.  The string \p hex must be at least \c 2 \c * \p sz
+ * long.
+ *
+ * \param   hex     the string holding the hexadecimal conversion of \p src
+ * \param   src     the string that has to be converted
+ * \param   sz      the length of \p src
+ *
+ * \return  nothing
  */
 void u_tohex(char *hex, const char *src, size_t sz)
 {
-	size_t c, i, t;
-	for(i = 0, t = 0; i < sz; ++i, t += 2)
-	{
-		c = src[i];
+    size_t c, i, t;
+
+    for(i = 0, t = 0; i < sz; ++i, t += 2)
+    {
+        c = src[i];
         hex[t]   = u_tochex((c >> 4) & 0x0F);
         hex[t+1] = u_tochex(c & 0x0F);
-	}
+    }
+
     hex[t] = 0; /* zero-term */
 }
 
+/**
+ * \brief   Calculate the MD5 digest over a given buffer
+ *
+ * Calculate the MD5 digest over the supplied buffer \p buf of size \p sz
+ * and place it at \p out.
+ *
+ * \param   buf     the buffer to be hashed
+ * \param   sz      length in bytes of \p buf
+ * \param   out     hexadecimal string containing the MD5 hash calculated over
+ *                  \p buf.  It must be at least \c MD5_DIGEST_BUFSZ bytes long.
+ * \return
+ * - \c 0   always successful
+ */
 int u_md5(char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ])
 {
-	md5_state_t md5ctx;
-	md5_byte_t md5_digest[16]; /* binary digest */
+    md5_state_t md5ctx;
+    md5_byte_t md5_digest[16]; /* binary digest */
 
-	md5_init(&md5ctx);
-
+    md5_init(&md5ctx);
     md5_append(&md5ctx, (md5_byte_t*)buf, sz);
-
-	md5_finish(&md5ctx, md5_digest);
+    md5_finish(&md5ctx, md5_digest);
 
     u_tohex(out, md5_digest, 16);
 
@@ -617,22 +791,35 @@ int u_md5(char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ])
     return 0;
 }
 
+/**
+ * \brief   Calculate the MD5 hash over an \c io_t stream
+ *
+ * Calculate the MD5 hash over an \c io_t stream \p io and place the result
+ * as an hexadecimal string into \p out. 
+ *
+ * \param   io      the \c io_t stream to be hashed
+ * \param   out     hexadecimal string containing the MD5 hash calculated over
+ *                  \p buf.  It must be at least \c MD5_DIGEST_BUFSZ bytes long.
+ * \return
+ * - \c 0   successful
+ * - \c ~0  error
+ */
 int u_md5io(io_t *io, char out[MD5_DIGEST_BUFSZ])
 {
-	enum { page_sz = 4096 };
-	md5_state_t md5ctx;
-	md5_byte_t md5_digest[16]; /* binary digest */
-	char buf[page_sz];
-	size_t cnt;
+    enum { page_sz = 4096 };
+    md5_state_t md5ctx;
+    md5_byte_t md5_digest[16]; /* binary digest */
+    char buf[page_sz];
+    size_t cnt;
 
     dbg_err_if(io == NULL || out == NULL);
 
-	md5_init(&md5ctx);
+    md5_init(&md5ctx);
 
     while( (cnt = io_read(io, buf, page_sz)) > 0)
-		md5_append(&md5ctx, (md5_byte_t*)buf, cnt);
+        md5_append(&md5ctx, (md5_byte_t*)buf, cnt);
 
-	md5_finish(&md5ctx, md5_digest);
+    md5_finish(&md5ctx, md5_digest);
 
     u_tohex(out, md5_digest, 16);
 
@@ -665,6 +852,15 @@ err:
     return ~0;
 }                                                             
 
+/**
+ * \brief   Get the MIME type of a file
+ *
+ * Get the MIME type of the given file \p file_name by its extension
+ *
+ * \param   file_name   the path of the file
+ *
+ * \return the found MIME map, or the first map if no match could be found
+ */
 const mime_map_t* u_get_mime_map(const char *file_name)
 {
     char *ext;
@@ -685,9 +881,19 @@ const mime_map_t* u_get_mime_map(const char *file_name)
     return mime_map; /* the first item is the default */
 }
 
+/**
+ * \brief   Guess the MIME type of a file
+ *
+ * Guess the MIME type of the given file \p file_name by its extension
+ *
+ * \param   file_name   the path of the file
+ *
+ * \return the string corresponding to the guessed MIME type, if no map could
+ *         be found "application/octet-stream" is retuned 
+ */
 const char* u_guess_mime_type(const char *file_name)
 {
-    static const char * ao = "application/octect-stream";
+    static const char * ao = "application/octet-stream";
     char *ext;
     mime_map_t *mm;
 
@@ -702,6 +908,20 @@ const char* u_guess_mime_type(const char *file_name)
 }
 
 #ifdef HAVE_LIBZ
+/**
+ * \brief   uncompress an HTML block and place it into an \c io_t object
+ *
+ * Uncompress the HTML block \p data of size \p sz and store the result into
+ * the \c io_t object \p out.
+ *
+ * \param   out     the \c io_t object where the uncompressed HTML block resides
+ * \param   data    the compressed HTML block
+ * \param   sz      the size of \p data in bytes
+ *
+ * \return
+ * - \c 0   successful
+ * - \c ~0  error
+ */
 int u_io_unzip_copy(io_t *out, const uint8_t *data, size_t sz)
 {
     codec_t *zip = NULL;
@@ -731,6 +951,25 @@ err:
 #endif
 
 #ifdef HAVE_LIBOPENSSL
+/**
+ * \brief   Encrypt a given data block
+ *
+ * Encrypt the data block \p src of size \p ssz using the encryption algorithm
+ * \p cipher, with key \p key and initialisation vector \p iv.  The result is
+ * stored at \p dst, with length \p dcount.
+ *
+ * \param   cipher  an OpenSSL \c EVP_CIPHER
+ * \param   key     encryption key string
+ * \param   iv      initialisation vector
+ * \param   dst     buffer holding the result
+ * \param   dcount  size in bytes of the result buffer
+ * \param   src     the buffer to be encrypted
+ * \param   ssz     size of \p src in bytes
+ *
+ * \return
+ * - \c 0   successful
+ * - \c ~0  error
+ */
 int u_cipher_encrypt(const EVP_CIPHER *cipher, unsigned char *key, 
     unsigned char *iv, char *dst, size_t *dcount, const char *src, size_t ssz)
 {
@@ -763,6 +1002,25 @@ err:
     return ~0;
 }
 
+/**
+ * \brief   Decrypt a given data block
+ *
+ * Decrypt the data block \p src of size \p ssz using the encryption algorithm
+ * \p cipher, with key \p key and initialisation vector \p iv.  The result is
+ * stored at \p dst, with length \p dcount.
+ *
+ * \param   cipher  an OpenSSL \c EVP_CIPHER
+ * \param   key     decryption key string
+ * \param   iv      initialisation vector
+ * \param   dst     buffer holding the result
+ * \param   dcount  size in bytes of the result buffer
+ * \param   src     the buffer to be decrypted
+ * \param   ssz     size of \p src in bytes
+ *
+ * \return
+ * - \c 0   successful
+ * - \c ~0  error
+ */
 int u_cipher_decrypt(const EVP_CIPHER *cipher, unsigned char *key, 
     unsigned char *iv, char *dst, size_t *dcount, const char *src, size_t ssz)
 {
