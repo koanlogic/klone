@@ -20,9 +20,13 @@
 #include <u/libu.h>
 
 /**
- *  \defgroup utils utils - Utility functions
+ *  \addtogroup refapi
  *  \{
- *      \par
+ */
+
+/**
+ *  \defgroup u_t u_t - Utility functions
+ *  \{
  */
 
 enum { LF = 0xA, CR = 0xD };
@@ -726,7 +730,7 @@ int u_printf_ccstr(io_t *o, const char *buf, size_t sz)
  *
  * \param   fqn     the path of the (regular) file to check
  *
- * \return  \c 1 if the file exists and is a regular file, \c otherwise 
+ * \return  \c 1 if the file exists and is a regular file, \c 0 otherwise 
  */
 int u_file_exists(const char *fqn)
 {
@@ -889,7 +893,7 @@ const mime_map_t* u_get_mime_map(const char *file_name)
  * \param   file_name   the path of the file
  *
  * \return the string corresponding to the guessed MIME type, if no map could
- *         be found "application/octet-stream" is retuned 
+ *         be found "application/octet-stream" is returned
  */
 const char* u_guess_mime_type(const char *file_name)
 {
@@ -1059,4 +1063,6 @@ err:
  *  \}
  */
 
-   
+/**
+ *  \}
+ */
