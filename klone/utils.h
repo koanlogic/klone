@@ -82,7 +82,7 @@ const char* u_guess_mime_type(const char *file_name);
 const mime_map_t* u_get_mime_map(const char *file_name);
 
 /* date time conversion funcs */
-int u_tt_to_rfc822(char *dst, time_t ts, size_t sz);
+int u_tt_to_rfc822(char dst[], time_t ts);
 int u_httpdate_to_tt(const char *str, time_t *tp);
 int u_rfc822_to_tt(const char *str, time_t *tp);
 int u_rfc850_to_tt(const char *str, time_t *tp);

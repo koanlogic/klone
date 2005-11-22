@@ -39,14 +39,16 @@ static int month_idx(const char *mon)
 }
 
 /**
- * \brief   ...
+ * \brief   Convert an asctime(3) string to \c time_t
  *
- * ...
+ * Convert the asctime(3) string \p str to its \c time_t representation \p tp.
  *
- * \param   str     ...
- * \param   tp      ...
- *
- * \return ...
+ * \param   str     the string to be converted
+ * \param   tp      the \c time_t conversion of \p str as a value-result 
+ *                  argument
+ * \return
+ * - \c 0   successful
+ * - \c ~0  failure
  */
 int u_asctime_to_tt(const char *str, time_t *tp)
 {
@@ -80,6 +82,18 @@ err:
     return ~0;
 }
 
+/**
+ * \brief   Convert an rfc850 time string to \c time_t
+ *
+ * Convert the rfc850 string \p str to its \c time_t representation \p tp.
+ *
+ * \param   str     the string to be converted
+ * \param   tp      the \c time_t conversion of \p str as a value-result 
+ *                  argument
+ * \return
+ * - \c 0   successful
+ * - \c ~0  failure
+ */
 int u_rfc850_to_tt(const char *str, time_t *tp)
 {
     enum { BUFSZ = 64 };
@@ -116,6 +130,18 @@ err:
     return ~0;
 }
 
+/**
+ * \brief   Convert an rfc822 time string to \c time_t
+ *
+ * Convert the rfc822 string \p str to its \c time_t representation \p tp.
+ *
+ * \param   str     the string to be converted
+ * \param   tp      the \c time_t conversion of \p str as a value-result 
+ *                  argument
+ * \return
+ * - \c 0   successful
+ * - \c ~0  failure
+ */
 int u_rfc822_to_tt(const char *str, time_t *tp)
 {
     enum { BUFSZ = 64 };
@@ -150,9 +176,21 @@ err:
     return ~0;
 }
 
+/**
+ * \brief   Convert an HTTP time string to \c time_t
+ *
+ * Convert the HTTP time string \p str to its \c time_t representation \p tp.
+ *
+ * \param   str     the string to be converted
+ * \param   tp      the \c time_t conversion of \p str as a value-result 
+ *                  argument
+ * \return
+ * - \c 0   successful
+ * - \c ~0  failure
+ */
 int u_httpdate_to_tt(const char *str, time_t *tp)
 {
-    dbg_err_if(str < 4);
+    dbg_err_if(strlen(str) < 4);
 
     if(str[3] == ',')
         return u_rfc822_to_tt(str, tp);
@@ -164,9 +202,21 @@ err:
     return ~0;
 }
 
-
-/* time_t to rfc822 Date convertion (Thu, 23 Jun 2005 13:06:16 GMT) */
-int u_tt_to_rfc822(char *dst, time_t ts, size_t bufsz)
+/**
+ * \brief   Convert a \c time_t value to a rfc822 time string
+ *
+ * Convert the \c time_t value \p ts to a rfc822 time string
+ *
+ * \param   dst     placeholder for the rfc822 time string.  The buffer,
+ *                  of at least RFC822_DATE_BUFSZ bytes, must be preallocated
+ *                  by the caller.
+ * \param   ts      the \c time_t value to be converted
+ *
+ * \return
+ * - \c 0   successful
+ * - \c ~0  failure
+ */
+int u_tt_to_rfc822(char dst[], time_t ts)
 {
     enum { RFC822_DATE_BUFSZ = 32 };
     char buf[RFC822_DATE_BUFSZ];
@@ -178,7 +228,6 @@ int u_tt_to_rfc822(char *dst, time_t ts, size_t bufsz)
     dbg_err_if(gmtime_r(&ts, &tm) == NULL);
 #endif
 
-    dbg_err_if(bufsz < RFC822_DATE_BUFSZ);
     dbg_err_if(tm.tm_wday > 6 || tm.tm_wday < 0);
     dbg_err_if(tm.tm_mon > 11 || tm.tm_mon < 0);
 
@@ -189,7 +238,7 @@ int u_tt_to_rfc822(char *dst, time_t ts, size_t bufsz)
                 tm.tm_hour, tm.tm_min, tm.tm_sec));
 
     /* copy out */
-    strncpy(dst, buf, bufsz);
+    u_sstrncpy(dst, buf, RFC822_DATE_BUFSZ - 1);
 
     return 0;
 err:
