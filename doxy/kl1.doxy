@@ -81,31 +81,15 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = src/title.txt \
-                         src/intro.txt \
-                         src/kl1.txt \
-                         src/tutorial.txt \                       
-                         src/api.txt \
-                         src/reference.txt \
-                         src/misc.txt \
-                         src/trouble.txt \
-                         src/appendix.txt \
-                         src/index.txt \
-                         src/header.txt \
-                         src/footer.txt \
-                         src/funcs.txt \
-                         src/login.txt \
-                         src/debug.txt \
-                         src/enter.txt \
-                         src/colour.txt \
+INPUT                  = ../klone/http.h \
                          ../src/libpage/session.c \
                          ../src/libpage/request.c \
+                         ../src/libpage/response.c \
                          ../src/libpage/header.c \
                          ../src/libpage/field.c \
                          ../src/libpage/var.c \
                          ../src/libpage/vars.c \
-                         ../src/libio/io.c \
-                         ../src/libpage/response.c
+                         ../src/libio/io.c
 FILE_PATTERNS          = *.c \
                          *.cc \
                          *.cxx \
@@ -166,7 +150,7 @@ IGNORE_PREFIX          =
 GENERATE_HTML          = YES
 HTML_OUTPUT            = html
 HTML_FILE_EXTENSION    = .html
-HTML_HEADER            = src/kl_header.html
+HTML_HEADER            = 
 HTML_FOOTER            = src/kl_footer.html
 HTML_STYLESHEET        = src/kl.css
 HTML_ALIGN_MEMBERS     = YES

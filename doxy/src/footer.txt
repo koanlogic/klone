@@ -1,9 +1,0 @@
-/*!
-<b>An example of how to write a simple HTML footer</b>
-\example footer.kl1
-
-
-
-*/
-
-

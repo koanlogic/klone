@@ -1,9 +1,0 @@
-/*!
-<b>An example of how to write a simple HTML page</b>
-\example index.kl1
-
-
-
-*/
-
-
