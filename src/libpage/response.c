@@ -20,14 +20,30 @@ struct response_s
 /** 
  *  \ingroup Vhttp
  *  \{
+ *          \defgroup response HTTP response handling
+ *          \{
+ *              \par 
+ *              Basic knowledge of the HTTP protocol is assumed. Hence only the
+ *              essential information is given. Some useful references are:
+ *                - RFC 2616 for a complete description of HTTP 1.1 header fields
+ *                - RFC 2109 for cookie format
+ *                - RFC 822 for standard data type formats
+ *                - http://www.iana.org/assignments/media-types/ for an updated
+ *                list of possible mime-types
  */
 
 /**
- *          \defgroup response HTTP response handling
- *          \{
- *              \par
+ * \brief   Set response content encoding field 
+ * 
+ * Set the \e Content-Encoding field in a response object \a rs to \a encoding.
+ * 
+ * \param rs        response object
+ * \param encoding  encoding type 
+ *
+ * \return 
+ *  - \c 0 if successful
+ *  - \c ~0 if successful
  */
-
 int response_set_content_encoding(response_t *rs, const char *encoding)
 {
     dbg_err_if(encoding == NULL);
@@ -40,17 +56,18 @@ err:
 }
 
 /**
- * \brief   One line description
- *  
- * Detailed function descrtiption.
+ * \brief    Set the value of a cookie 
  *
- * \param rs        parameter \a rs description
- * \param name      parameter \a name description
- * \param value     parameter \a value description
- * \param expire    parameter \a expire description
- * \param path      parameter \a path description
- * \param domain    parameter \a domain description
- * \param secure    parameter \a secure description
+ * Set the value of a cookie named \a name to \a value in response object \a rs.
+ * Other fields that can be set are \a expire, \a path, \a domain, \a and secure.
+ *  
+ * \param rs        response object
+ * \param name      cookie name
+ * \param value     cookie value
+ * \param expire    cookie expiration date
+ * \param path      cookie path
+ * \param domain    cookie domain
+ * \param secure    cookie secure flag
  *
  * \return
  *  - \c 0  if successful
@@ -112,7 +129,19 @@ err:
     return ~0;
 }
 
-
+/*
+ * \brief   Print the status of a response object.
+ *
+ * A string representing the status of a response object \a rs is printed to \a
+ * io. 
+ *
+ * \param rs      response object
+ * \param io      output I/O object
+ *
+ * \return
+ *  - \c 0 if successful
+ *  - \c ~0 on error
+ */
 static int response_print_status(response_t *rs, io_t *io)
 {
     dbg_err_if(io_printf(io, "HTTP/1.0 %d %s\r\n", rs->status, 
@@ -123,6 +152,19 @@ err:
     return ~0;
 }
 
+/*
+ * \brief   Print a response field.
+ *
+ * Print the name and value of a \a field of \a response to \a io.
+ *
+ * \param rs      response object
+ * \param io      output I/O object
+ * \param field   field to be printed
+ *
+ * \return
+ *  - \c 0 if successful
+ *  - \c ~0 on error
+ */
 static int response_print_field(response_t *rs, io_t *io, field_t *field)
 {
     dbg_err_if(io_printf(io, "%s: %s\r\n", field->name, field->value) < 0);
@@ -133,12 +175,13 @@ err:
 }
 
 /** 
- * \brief   One line description
+ * \brief   Set the response method
  *  
- * Detailed function descrtiption.
+ * Set the response method of \a rs to \a method. For possibile values of
+ * method, refer to http.h.
  *
- * \param rs      parameter \a rs description
- * \param method  parameter \a method description
+ * \param rs      response object
+ * \param method  response method
  *  
  * \return
  *  - nothing
@@ -149,11 +192,11 @@ void response_set_method(response_t *rs, int method)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the response method
  *  
- * Detailed function descrtiption.
+ * Get the response method of \a rs.
  *
- * \param rs    parameter \a rs description
+ * \param rs    response object
  *  
  * \return
  *  - the method of the given \a rs
@@ -190,6 +233,18 @@ size_t response_get_max_header_size(response_t *rs)
     return sz;
 }
 
+/* 
+ * \brief   Output a response header 
+ *
+ * Print the header of \a rs to \a io.
+ *
+ * \param rs    response object
+ * \param io    output I/O object
+ * 
+ * \return
+ *  - \c 0 if successful
+ *  - \c ~0 on error
+ */
 int response_print_header_to_io(response_t *rs, io_t *io)
 {
     int i, n;
@@ -213,9 +268,9 @@ err:
 }
 
 /** 
- * \brief   One line description
+ * \brief   Print a response header
  *  
- * Detailed function descrtiption.
+ * Print the header of \a rs
  *
  * \param rs    parameter \a rs description
  *  
@@ -230,13 +285,13 @@ int response_print_header(response_t *rs)
 
 
 /**
- * \brief   One line description
+ * \brief   Set a field of a response object
  *
- * Detailed function descrtiption.
+ * Set field \a name to \a value in reponse object \a rs.
  *
- * \param rs     parameter \a rs description
- * \param name   parameter \a name description
- * \param value  parameter \a value description
+ * \param rs     response object
+ * \param name   field name
+ * \param value  field value
  *
  * \return
  *  - \c 0  if successful
@@ -248,12 +303,12 @@ int response_set_field(response_t *rs, const char *name, const char *value)
 }
 
 /**
- * \brief   One line description
+ * \brief   Set the content type of a response to a mime type
  *
- * Detailed function descrtiption.
+ * Set the \e Content-Type field of response \a rs to \a mime_type.
  *
- * \param rs         parameter \a rs description
- * \param mime_type  parameter \a mime_type description
+ * \param rs         response object
+ * \param mime_type  mime type
  *
  * \return
  *  - \c 0  if successful
@@ -271,12 +326,12 @@ err:
 }
 
 /**
- * \brief   One line description
+ * \brief   Set the date field in a response header
  *
- * Detailed function descrtiption.
+ * Set the \e Date field of \a rs to \a date. 
  *
- * \param rs    parameter \a rs description
- * \param date  parameter \a date description
+ * \param rs    response object
+ * \param date  date value
  *
  * \return
  *  - \c 0  if successful
@@ -297,12 +352,12 @@ err:
 }
 
 /**
- * \brief   One line description
+ * \brief   Set the last modified field in a response header
  *
- * Detailed function descrtiption.
+ * Set the \e Last-Modified field of \a rs to \a mtime.
  *
- * \param rs     parameter \a rs description
- * \param mtime  parameter \a mtime description
+ * \param rs     response object
+ * \param mtime  last modified date value
  *
  * \return
  *  - \c 0  if successful
@@ -323,12 +378,12 @@ err:
 }
 
 /**
- * \brief   One line description
+ * \brief   Set the content length field of a response header
  *
- * Detailed function descrtiption.
+ * Set the \e Content-Length field of \a rs to \a sz.
  *
- * \param rs  parameter \a rs description
- * \param sz  parameter \a sz description
+ * \param rs  response object
+ * \param sz  number of bytes in content
  *
  * \return
  *  - \c 0  if successful
@@ -349,11 +404,11 @@ err:
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the status of a response
  *  
- * Detailed function descrtiption.
+ * Get the status of a response \a rs.
  *
- * \param rs  parameter \a rs description
+ * \param rs  response object
  *  
  * \return
  *  - the status of the given \a rs
@@ -364,11 +419,11 @@ int response_get_status(response_t *rs)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get the header of a response
  *
- * Detailed function descrtiption.
+ * Get the header of a response \a rs.
  *
- * \param rs    parameter \a rs description
+ * \param rs    response object
  *
  * \return
  *  - the child header object of the given \a rs
@@ -379,14 +434,14 @@ header_t* response_get_header(response_t *rs)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get the I/O object of a response
  *
- * Detailed function descrtiption.
+ * Get the I/O object of reponse \a rs.
  *  
- * \param rs  parameter \a rs description
+ * \param rs  response object
  *      
  * \return
- *  - the io child object of the given \a rs
+ *  - the I/O child object of the given \a rs
  */
 io_t* response_io(response_t *rs)
 {
@@ -394,9 +449,9 @@ io_t* response_io(response_t *rs)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Redirect to a given url
  *  
- * Detailed function descrtiption.
+ * Redirect to \e url by setting the \e Location field in response \a rs.
  *
  * \param rs    parameter \a rs description
  * \param url   parameter \a url description
@@ -422,9 +477,9 @@ err:
 }
 
 /** 
- * \brief   One line description
+ * \brief   Set the status of a response
  *  
- * Detailed function descrtiption.
+ * Set the \a status of response \a rs. 
  *
  * \param rs      parameter \a rs description
  * \param status  parameter \a status description
@@ -439,17 +494,16 @@ int response_set_status(response_t *rs, int status)
     return 0;
 }
 
-/** 
- * \brief   One line description
+/*
+ * \brief   Bind the response to a given I/O object
  *  
- * Detailed function descrtiption.
+ * Bind response \a rs to I/O object \a out.
  *
- * \param rs   parameter \a rs description
- * \param out  parameter \a out description
+ * \param rs     
+ * \param out  output I/O object
  *  
  * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ *  - \c 0  always
  */
 int response_bind(response_t *rs, io_t *out)
 {
@@ -458,11 +512,9 @@ int response_bind(response_t *rs, io_t *out)
     return 0;
 }
 
-/** 
- * \brief   One line description
+/*
+ * \brief   Create a response object
  *  
- * Detailed function descrtiption.
- *
  * \param http  parameter \a http description
  * \param prs   parameter \a prs description
  *  
@@ -492,12 +544,10 @@ err:
     return ~0;
 }
 
-/** 
- * \brief   One line description
+/*
+ * \brief   Free a response object
  *  
- * Detailed function descrtiption.
- *
- * \param rs parameter \a rs description
+ * \param rs response object
  *  
  * \return
  *  - \c 0  always
