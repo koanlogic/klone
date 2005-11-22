@@ -11,9 +11,8 @@
 #include <klone/utils.h>
 
 /**
- *  \defgroup utils utils - Utility functions
+ *  \addtogroup u_t u_t - Utility functions
  *  \{
- *      \par
  */
 
 const char* days3[] = { 
@@ -39,6 +38,16 @@ static int month_idx(const char *mon)
     return -1;
 }
 
+/**
+ * \brief   ...
+ *
+ * ...
+ *
+ * \param   str     ...
+ * \param   tp      ...
+ *
+ * \return ...
+ */
 int u_asctime_to_tt(const char *str, time_t *tp)
 {
     enum { BUFSZ = 64 };
@@ -190,5 +199,3 @@ err:
 /**
  *  \}
  */
-
-   
