@@ -50,7 +50,26 @@ err:
 
 int addr_set_from_sa(addr_t *addr, struct sockaddr *sa, size_t sz)
 {
-    u_unused_args(addr, sa, sz);
+    switch(sz)
+    {
+    case sizeof(struct sockaddr_in):
+        addr->type = ADDR_IPV4;
+        memcpy(&addr->sa.sin, sa, sz);
+        break;
+    case sizeof(struct sockaddr_in6):
+        addr->type = ADDR_IPV6;
+        memcpy(&addr->sa.sin6, sa, sz);
+        break;
+    #ifdef OS_UNIX
+    case sizeof(struct sockaddr_un):
+        addr->type = ADDR_UNIX;
+        memcpy(&addr->sa.sun, sa, sz);
+        break;
+    #endif  
+    default:
+        dbg("bad sockaddr size");
+        return ~0;
+    }
 
     return 0;
 }

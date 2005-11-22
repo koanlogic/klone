@@ -306,12 +306,30 @@ static int http_serve(http_t *h, int fd)
     int cgi = 0;
     const char *gwi = NULL;
     alarm_t *al = NULL;
+    addr_t *addr;
+    struct sockaddr sa;
+    int sasz;
 
     if(fd == 0 && (gwi = getenv("GATEWAY_INTERFACE")) != NULL)
         cgi++;
 
     /* create a request object */
     dbg_err_if(request_create(h, &rq));
+
+    /* save local and peer address into request/response objects */
+    dbg_err_if(addr_create(&addr));
+
+    /* set local addr */
+    sasz = sizeof(struct sockaddr);
+    dbg_err_if(getsockname(fd, &sa, &sasz));
+    dbg_err_if(addr_set_from_sa(addr, &sa, sasz));
+    dbg_err_if(request_set_addr(rq, addr));
+
+    /* set peer addr */
+    sasz = sizeof(struct sockaddr);
+    dbg_err_if(getpeername(fd, &sa, &sasz));
+    dbg_err_if(addr_set_from_sa(addr, &sa, sasz));
+    dbg_err_if(request_set_peer_addr(rq, addr));
 
     /* create a response object */
     dbg_err_if(response_create(h, &rs));

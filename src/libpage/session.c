@@ -310,17 +310,41 @@ int session_remove(session_t *ss)
 int session_prv_init(session_t *ss, request_t *rq, response_t *rs)
 {
     const char *sid;
+    addr_t *addr;
 
     dbg_err_if(vars_create(&ss->vars));
 
     ss->rq = rq;
     ss->rs = rs;
 
+
     sid = request_get_cookie(ss->rq, SID_NAME);
     if(sid && session_is_good_id(sid))
     {   
         dbg_err_if(u_snprintf(ss->id, MD5_DIGEST_BUFSZ, "%s", sid));
         ss->id[MD5_DIGEST_LEN] = 0;
+
+        dbg_err_if((addr = request_get_addr(rq)) == NULL);
+        switch(addr->type)
+        {
+        case ADDR_IPV4:
+            dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
+                "%s/klone_sess_%s_%lu", ss->so->path, ss->id, 
+                addr->sa.sin.sin_addr));
+            break;
+        case ADDR_IPV6:
+            /* FIXME: add ipv6 address in session filename */
+            dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
+                "%s/klone_sess_%s", ss->so->path, ss->id));
+            break;
+        #ifdef OS_UNIX
+        case ADDR_UNIX:
+            /* FIXME: add unix address in session filename */
+            dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
+                "%s/klone_sess_%s", ss->so->path, ss->id));
+            break;
+        #endif
+        }
     }
 
     return 0;

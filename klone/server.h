@@ -10,8 +10,10 @@ typedef struct server_s server_t;
 enum { 
     SERVER_LOG_FLUSH_TIMEOUT = 5,   /* min # of seconds between two log flush */
 
+    /* fork/prefork */
+    SERVER_MAX_CHILD = 150,         /* max # of child allowed to run at once  */
+
     /* prefork server model limits */
-    SERVER_PREFORK_MAX_CHILD = 150, /* max # of child allowed to run at once  */
     SERVER_PREFORK_START_CHILD = 2, /* # of child to run on startup           */
     SERVER_PREFORK_MAX_RQ_CHILD = 10000 /* max # of rq a process can serve    */
 };

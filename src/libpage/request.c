@@ -4,6 +4,7 @@
 #include <klone/utils.h>
 #include <klone/io.h>
 #include <klone/http.h>
+#include <klone/addr.h>
 #include <klone/vars.h>
 #include <u/libu.h>
 
@@ -31,6 +32,8 @@ struct request_s
     char *content_encoding;     /* 7bit/8bit/base64/qp, etc          */
 	size_t content_length;      /* content-length http header field  */
     time_t if_modified_since;   /* time_t IMS header                 */
+
+    addr_t local_addr, peer_addr; /* local and perr address          */
 };
 
 #define RQ_FREE(s) if(s) { u_free(s); s = NULL; } 
@@ -865,6 +868,28 @@ int request_free(request_t *rq)
     u_free(rq);
 
     return 0;
+}
+
+int request_set_addr(request_t *rq, addr_t *addr)
+{
+    memcpy(&rq->local_addr, addr, sizeof(addr_t));
+    return 0;
+}
+
+int request_set_peer_addr(request_t *rq, addr_t *addr)
+{
+    memcpy(&rq->peer_addr, addr, sizeof(addr_t));
+    return 0;
+}
+
+addr_t* request_get_addr(request_t *rq)
+{
+    return &rq->local_addr;
+}
+
+addr_t* request_get_peer_addr(request_t *rq)
+{
+    return &rq->peer_addr;
 }
 
 /**

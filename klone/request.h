@@ -5,6 +5,7 @@
 #include <klone/io.h>
 #include <klone/http.h>
 #include <klone/vars.h>
+#include <klone/addr.h>
 
 struct request_s;
 typedef struct request_s request_t;
@@ -30,6 +31,9 @@ int request_get_method(request_t *rq);
 size_t request_get_content_length(request_t *rq);
 time_t request_get_if_modified_since(request_t *rq);
 
+addr_t* request_get_addr(request_t *rq);
+addr_t* request_get_peer_addr(request_t *rq);
+
 int request_is_encoding_accepted(request_t *rq, const char *encoding);
 
 int request_set_field(request_t *rq, const char *name, const char *value);
@@ -42,6 +46,9 @@ int request_set_path_info(request_t *rq, const char *path_info);
 int request_set_query_string(request_t *rq, const char *query);
 int request_set_resolved_filename(request_t *rq, const char *resolved);
 int request_set_resolved_path_info(request_t *rq, const char *resolved);
+
+int request_set_addr(request_t *rq, addr_t *addr);
+int request_set_peer_addr(request_t *rq, addr_t *addr);
 
 void request_clear_uri(request_t *rq);
 

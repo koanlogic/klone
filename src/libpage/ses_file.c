@@ -73,6 +73,7 @@ int session_file_create(session_opt_t *so, request_t *rq, response_t *rs,
 {
     session_t *ss = NULL;
     struct stat st;
+    addr_t *addr;
 
     ss = u_zalloc(sizeof(session_t));
     dbg_err_if(ss == NULL);
@@ -84,9 +85,6 @@ int session_file_create(session_opt_t *so, request_t *rq, response_t *rs,
     ss->so = so;
 
     dbg_err_if(session_prv_init(ss, rq, rs));
-
-    dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, "%s/klone_sess_%s", 
-        so->path, ss->id));
 
     if(stat(ss->filename, &st))
         ss->mtime = time(0); /* file not found or err */
@@ -100,7 +98,6 @@ err:
     if(ss)
         session_free(ss);
     return ~0;
-
 }
 
 int session_file_module_term(session_opt_t *so)
