@@ -90,7 +90,8 @@ INPUT                  = ../klone/http.h \
                          ../src/libpage/var.c \
                          ../src/libpage/vars.c \
                          ../src/libio/io.c \
-                         ../src/libutils/utils.c
+                         ../src/libutils/utils.c \
+                         ../src/libutils/date.c
 FILE_PATTERNS          = *.c \
                          *.cc \
                          *.cxx \
