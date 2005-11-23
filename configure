@@ -1,8 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.22 2005/11/23 11:52:50 tat Exp $
-
-export makl_conf_h=klone_conf.h
+# $Id: configure,v 1.23 2005/11/23 12:03:42 tho Exp $
 
 export makl_conf_h=klone_conf.h
 
@@ -40,7 +38,6 @@ makl_pkg_version
 
 # be sure that the libu is installed
 makl_require        "lib"       "u"   "-I`pwd`/libu"  "`pwd`/libu/src/libu.a"
-makl_add_var_mk     "CFLAGS"    "-I`pwd`" "-I`pwd`/libu"
 
 case `makl_os_name` in
 
