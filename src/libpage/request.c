@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.13 2005/11/23 17:44:16 stewy Exp $
+ * $Id: request.c,v 1.14 2005/11/23 18:04:06 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -47,7 +47,6 @@ struct request_s
     addr_t local_addr, peer_addr; /* local and perr address          */
 };
 
-#define RQ_FREE(s) if(s) { u_free(s); s = NULL; } 
 #define REQUEST_SET_STRING_FIELD(lval, rval)        \
     do {                                            \
         if(lval)                                    \
@@ -415,16 +414,16 @@ err:
  */
 void request_clear_uri(request_t *rq)
 {
-    RQ_FREE(rq->uri);
-    RQ_FREE(rq->protocol);
-    RQ_FREE(rq->path_info);
-    RQ_FREE(rq->query);
-    RQ_FREE(rq->filename);
-    RQ_FREE(rq->host);
-    RQ_FREE(rq->resolved_path_info);
-    RQ_FREE(rq->resolved_filename);
-    RQ_FREE(rq->content_type);
-    RQ_FREE(rq->content_encoding);
+    U_FREE(rq->uri);
+    U_FREE(rq->protocol);
+    U_FREE(rq->path_info);
+    U_FREE(rq->query);
+    U_FREE(rq->filename);
+    U_FREE(rq->host);
+    U_FREE(rq->resolved_path_info);
+    U_FREE(rq->resolved_filename);
+    U_FREE(rq->content_type);
+    U_FREE(rq->content_encoding);
 }
 
 /**
