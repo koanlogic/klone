@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: parser.c,v 1.7 2005/11/23 18:07:14 tho Exp $
+ * $Id: parser.c,v 1.8 2005/11/23 20:33:49 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -33,6 +33,9 @@ enum { LF = 0xA, CR = 0xD };
 
 static int parser_on_block(parser_t *p, const char *buf, size_t sz)
 {
+    dbg_err_if (p == NULL);
+    dbg_err_if (buf == NULL);
+
     for(;;)
     {
         switch(p->state)
@@ -85,6 +88,8 @@ int parser_run(parser_t *p)
     size_t idx = 0;
     ssize_t rc;
 
+    dbg_err_if (p == NULL);
+    
     buf[0] = 0;
 	prev = 0;
 
@@ -92,7 +97,6 @@ int parser_run(parser_t *p)
 
     fetch_next_char();
 
-	//while(c > 0)
     while(rc > 0)
 	{
 		prev = c;
@@ -187,6 +191,7 @@ int parser_run(parser_t *p)
 
         fetch_next_char();
 	}
+
     if(idx)
     {
         buf[idx] = 0;
@@ -201,21 +206,25 @@ err:
 
 void parser_set_cb_code(parser_t *p, parser_cb_code_t cb)
 {
+    dbg_return_if (p == NULL, );
     p->cb_code = cb;
 }
 
 void parser_set_cb_html(parser_t *p, parser_cb_html_t cb)
 {
+    dbg_return_if (p == NULL, );
     p->cb_html = cb;
 }
 
 void parser_set_cb_arg(parser_t *p, void *opaque)
 {
+    dbg_return_if (p == NULL, );
     p->cb_arg = opaque;
 }
 
 void parser_set_io(parser_t *p, io_t *in, io_t *out)
 {
+    dbg_return_if (p == NULL, );
     p->in = in;
     p->out = out;
 }
@@ -223,12 +232,13 @@ void parser_set_io(parser_t *p, io_t *in, io_t *out)
 int parser_free(parser_t *t)
 {
     U_FREE(t);
-
     return 0;
 }
 
 int parser_reset(parser_t *p)
 {
+    dbg_return_if (p == NULL, ~0);
+
     p->line = 1;
     p->state = p->prev_state = S_START;
     p->cmd_code = 0;
@@ -238,12 +248,14 @@ int parser_reset(parser_t *p)
 
 int parser_create(parser_t **pt)
 {
-    parser_t * p = NULL;
+    parser_t *p = NULL;
 
+    dbg_return_if (pt == NULL, ~0);
+    
     p = (parser_t*)u_zalloc(sizeof(parser_t));
     dbg_err_if(p == NULL);
 
-    parser_reset(p);
+    (void) parser_reset(p);
 
     *pt = p;
 
@@ -252,6 +264,4 @@ err:
     if(p)
         parser_free(p);
     return ~0;
-
 }
-
