@@ -5,8 +5,9 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: timer.c,v 1.9 2005/11/23 20:36:12 tat Exp $
+ * $Id: timer.c,v 1.10 2005/11/23 23:16:17 tho Exp $
  */
+
 #include "klone_conf.h"
 #include <time.h>
 #include <unistd.h>
@@ -39,12 +40,12 @@ struct timerm_s
 
     timerm_cb_t handler;        /* function to call on timeouts */
 
-    #ifdef OS_WIN
+#ifdef OS_WIN
     CRITICAL_SECTION cs;
     time_t next;                /* next timestamp               */
     HANDLE hthread;             /* thread handle                */
     DWORD tid;                  /* thread id                    */
-    #endif
+#endif
 };
 
 /* this must be a singleton */
@@ -52,17 +53,17 @@ static timerm_t *timer = NULL;
 
 static int timerm_set_alarm(int timeout)
 {
-    #ifdef OS_UNIX
+#ifdef OS_UNIX
     /* if timeout == 0 disable the alarm */
     alarm(timeout);
-    #else
+#else
     timer->next = time(0) + timeout;
-    #endif
+#endif
 
     return 0;
 }
 
-static int timerm_set_next()
+static int timerm_set_next(void)
 {
     alarm_t *al = NULL;
     time_t now = time(0);
@@ -115,11 +116,13 @@ err:
 
 static int timerm_set_handler(void (*func)(int))
 {
+    dbg_err_if (func == NULL);
+    
     timer->handler = func;
 
-    #ifdef OS_UNIX
+#ifdef OS_UNIX
     dbg_err_if(u_signal(SIGALRM, timer->handler));
-    #endif
+#endif
 
     return 0;
 err:
@@ -128,13 +131,13 @@ err:
 
 static int timerm_block_alarms(void)
 {
-    #ifdef OS_UNIX
+#ifdef OS_UNIX
     dbg_err_if(u_sig_block(SIGALRM));
-    #endif
+#endif
 
-    #ifdef OS_WIN
+#ifdef OS_WIN
     EnterCriticalSection(&timer->cs);
-    #endif
+#endif
 
     return 0;
 err:
@@ -143,19 +146,18 @@ err:
 
 static int timerm_unblock_alarms(void)
 {
-    #ifdef OS_UNIX
+#ifdef OS_UNIX
     dbg_err_if(u_sig_unblock(SIGALRM));
-    #endif
+#endif
 
-    #ifdef OS_WIN
+#ifdef OS_WIN
     LeaveCriticalSection(&timer->cs);
-    #endif
+#endif
 
     return 0;
 err:
     return ~0;
 }
-
 
 #if OS_WIN
 static int timerm_wait_next_alarm(void)
@@ -180,6 +182,8 @@ static int timerm_free(timerm_t *t)
 {
     alarm_t *a = NULL;
 
+    dbg_return_if (t == NULL, ~0);
+    
     if(t)
     {
         while((a = TAILQ_FIRST(&t->alist)) != NULL)
@@ -199,22 +203,23 @@ static DWORD WINAPI thread_func(LPVOID param)
 }
 #endif
 
-
 static int timerm_create(timerm_t **pt)
 {
     timerm_t *t = NULL;
+
+    dbg_return_if (pt == NULL, ~0);
 
     t = u_zalloc(sizeof(timerm_t));
     dbg_err_if(t == NULL);
 
     TAILQ_INIT(&t->alist);
 
-    #ifdef OS_WIN
+#ifdef OS_WIN
     InitializeCriticalSection(&timer->cs);
 
     dbg_err_if((timer->hthread = CreateThread(NULL, 0, thread_func, NULL, 0, 
         &timer->tid)) == NULL); 
-    #endif
+#endif
 
     *pt = t;
 
@@ -224,13 +229,15 @@ err:
         timerm_free(t);
     return ~0;
 }
+
 int timerm_add(int secs, alarm_cb_t cb, void *arg, alarm_t **pa)
 {
     alarm_t *al = NULL;
     alarm_t *item = NULL;
     time_t now = time(0);
 
-    dbg_err_if(cb == NULL || pa == NULL);
+    dbg_return_if (cb == NULL, ~0);
+    dbg_return_if (pa == NULL, ~0);
 
     if(timer == NULL)
     {
@@ -271,7 +278,7 @@ err:
     dbg("[%lu] timerm_add error", getpid());
     if(timer)
     {
-        timerm_free(timer);
+        (void) timerm_free(timer);
         timer = NULL;
     }
     if(al)
@@ -284,7 +291,7 @@ err:
 
 int timerm_del(alarm_t *a)
 {
-    dbg_err_if(a == NULL);
+    dbg_return_if(a == NULL, ~0);
 
     dbg_err_if(timerm_block_alarms());
 
@@ -302,4 +309,3 @@ err:
     dbg_err_if(timerm_unblock_alarms());
     return ~0;
 }
-

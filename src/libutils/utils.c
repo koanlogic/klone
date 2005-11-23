@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.31 2005/11/23 17:44:16 stewy Exp $
+ * $Id: utils.c,v 1.32 2005/11/23 23:16:17 tho Exp $
  */
 
 #include <stdlib.h>
@@ -75,7 +75,7 @@ inline int u_sig_unblock(int sig)
 err:
     return ~0;
 }
-#endif
+#endif /* OS_UNIX */
 
 /**
  * \brief   Apply the supplied callback to each file in a given directory
@@ -101,6 +101,9 @@ int u_foreach_dir_item(const char *path, unsigned int mask,
     char buf[U_FILENAME_MAX];
     int rc;
 
+    dbg_return_if (path == NULL, ~0);
+    dbg_return_if (cb == NULL, ~0);
+    
     /* open the given directory */
     dir = opendir(path);
     dbg_err_if(dir == NULL);
@@ -147,6 +150,9 @@ static ssize_t u_sqlncpy_encode(char *d, const char *s, size_t slen)
     ssize_t wr = 0;
     int c;
 
+    dbg_return_if (d == NULL, -1);
+    dbg_return_if (s == NULL, -1);
+
     for(; slen; --slen)
     {
         c = *d++ = *s++;
@@ -170,6 +176,9 @@ static ssize_t u_sqlncpy_decode(char *d, const char *s, size_t slen)
 {
     int c, last = 0;
     ssize_t wr = 0;
+    
+    dbg_return_if (d == NULL, -1);
+    dbg_return_if (s == NULL, -1);
 
     for(; slen; --slen)
     {
@@ -205,6 +214,9 @@ static ssize_t u_sqlncpy_decode(char *d, const char *s, size_t slen)
  */
 ssize_t u_sqlncpy(char *d, const char *s, size_t slen, int flags)
 {
+    dbg_return_if (d == NULL, -1);
+    dbg_return_if (s == NULL, -1);
+
     switch(flags)
     {
     case SQLCPY_ENCODE:
@@ -225,6 +237,9 @@ static ssize_t u_urlncpy_encode(char *d, const char *s, size_t slen)
     const char hexc[] = "0123456789ABCDEF";
     ssize_t wr = 0;
     int c;
+
+    dbg_return_if (d == NULL, -1);
+    dbg_return_if (s == NULL, -1);
 
     for(; slen; --slen)
     {
@@ -251,6 +266,9 @@ static ssize_t u_urlncpy_decode(char *d, const char *s, size_t slen)
 {
     short c;
     ssize_t wr = 0;
+
+    dbg_return_if (d == NULL, -1);
+    dbg_return_if (s == NULL, -1);
 
     for(; slen; --slen, ++wr)
     {
@@ -293,6 +311,9 @@ err:
  */
 ssize_t u_urlncpy(char *d, const char *s, size_t slen, int flags)
 {
+    dbg_return_if (d == NULL, -1);
+    dbg_return_if (s == NULL, -1);
+
     switch(flags)
     {
     case URLCPY_ENCODE:
@@ -342,6 +363,9 @@ static ssize_t u_hexncpy_decode(char *d, const char *s, size_t slen)
 {
 	size_t i, t;
 
+    dbg_return_if (d == NULL, -1);
+    dbg_return_if (s == NULL, -1);
+
     /* slen must be multiple of 2 */
     dbg_err_if((slen % 2) != 0);
 
@@ -358,6 +382,9 @@ err:
 static ssize_t u_hexncpy_encode(char *d, const char *s, size_t slen)
 {
 	size_t c, i, t;
+
+    dbg_return_if (d == NULL, -1);
+    dbg_return_if (s == NULL, -1);
 
 	for(i = 0, t = 0; i < slen; ++i, t += 2)
 	{
@@ -386,6 +413,9 @@ static ssize_t u_hexncpy_encode(char *d, const char *s, size_t slen)
  */
 ssize_t u_hexncpy(char *d, const char *s, size_t slen, int flags)
 {
+    dbg_err_if (d == NULL);
+    dbg_err_if (s == NULL);
+
     switch(flags)
     {
     case HEXCPY_ENCODE:
@@ -398,6 +428,7 @@ ssize_t u_hexncpy(char *d, const char *s, size_t slen, int flags)
         return slen + 1;
     }
 
+err:
     return -1;
 }
 
@@ -408,6 +439,9 @@ static ssize_t u_htmlncpy_encode(char *d, const char *s, size_t slen)
     size_t elen;
     int c;
     ssize_t wr = 0;
+
+    dbg_return_if (d == NULL, -1);
+    dbg_return_if (s == NULL, -1);
 
     /* build the map table (could be static but it wouldn't be thread-safe) */
     memset(map, 0, sizeof(map));
@@ -442,6 +476,9 @@ static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
     struct html_entities_s *p;
     char *found, *after;
 
+    dbg_return_if (d == NULL, -1);
+    dbg_return_if (s == NULL, -1);
+
     strncpy(d, s, slen);
     d[slen] = 0;
 
@@ -474,6 +511,9 @@ static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
  */
 ssize_t u_htmlncpy(char *d, const char *s, size_t slen, int flags)
 {
+    dbg_err_if (d == NULL);
+    dbg_err_if (s == NULL);
+
     switch(flags)
     {
     case HTMLCPY_ENCODE:
@@ -485,7 +525,7 @@ ssize_t u_htmlncpy(char *d, const char *s, size_t slen, int flags)
         d[slen] = 0; /* zero-term */
         return slen + 1;
     }
-
+err:
     return -1;
 }
 
@@ -506,12 +546,17 @@ char *u_stristr(const char *string, const char *sub)
     const char *p;
     size_t len;
 
+    dbg_err_if (sub == NULL);
+    dbg_err_if (string == NULL);
+
     len = strlen(sub);
     for(p = string; *p; ++p)
     {
         if(strncasecmp(p, sub, len) == 0)
             return p;
     }
+
+err: /* fall through */
     return NULL;
 }
 
@@ -531,10 +576,13 @@ char* u_strnrchr(const char *s, char c, size_t len)
 {
     register int i = len - 1;
 
+    dbg_err_if (s == NULL);
+    dbg_err_if (c == NULL);
+    
     for(; i >= 0; --i)
         if(s[i] == c)
             return (char*)s + i; /* found */
-
+err:
     return NULL;
 }
 
@@ -555,6 +603,8 @@ int u_tmpfile_open(io_t **pio)
     io_t *io = NULL;
     int max = 10;
 
+    dbg_return_if (pio == NULL, ~0);
+    
     for(; max; --max) /* try just 'max' times */
     {
         if(tmpnam(tmp) != NULL)
@@ -594,9 +644,12 @@ int u_file_open(const char *file, int flags, io_t **pio)
     int fmod = 0; /* flags modifier */
     int fd;
 
-    #ifdef OS_WIN
+#ifdef OS_WIN
     fmod = _O_BINARY;
-    #endif
+#endif
+    
+    dbg_return_if (file == NULL, ~0);
+    dbg_return_if (pio == NULL, ~0);
     
     fd = open(file, fmod | flags, 0600);
     dbg_err_if(fd < 0);
@@ -633,6 +686,9 @@ int u_getline(io_t *io, u_string_t *ln)
     char buf[BUFSZ];
     ssize_t len, rc;
 
+    dbg_return_if (io == NULL, ~0);
+    dbg_return_if (ln == NULL, ~0);
+    
     u_string_clear(ln);
 
     while((rc = len = io_gets(io, buf, BUFSZ)) > 0)
@@ -668,6 +724,9 @@ int u_fgetline(FILE *in, u_string_t *ln)
     char buf[BUFSZ];
     size_t len;
 
+    dbg_return_if (in == NULL, ~0);
+    dbg_return_if (ln == NULL, ~0);
+    
     u_string_clear(ln);
 
     while(!ferror(in) && !feof(in) && fgets(buf, BUFSZ, in))
@@ -692,6 +751,9 @@ int u_printf_ccstr(io_t *o, const char *buf, size_t sz)
     int pos = 0;
     size_t i;
 
+    dbg_return_if (o == NULL, ~0);
+    dbg_return_if (buf == NULL, ~0);
+    
     for(i = 0; i < sz; ++i)
     {
         prev = c;
@@ -744,6 +806,8 @@ int u_file_exists(const char *fqn)
 {
     struct stat st;
 
+    dbg_return_if (fqn == NULL, 0);
+    
     return stat(fqn, &st) == 0 && S_ISREG(st.st_mode);
 }
 
@@ -764,6 +828,9 @@ void u_tohex(char *hex, const char *src, size_t sz)
 {
     size_t c, i, t;
 
+    dbg_return_if (hex == NULL, );
+    dbg_return_if (src == NULL, );
+    
     for(i = 0, t = 0; i < sz; ++i, t += 2)
     {
         c = src[i];
@@ -792,6 +859,9 @@ int u_md5(char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ])
     md5_state_t md5ctx;
     md5_byte_t md5_digest[16]; /* binary digest */
 
+    dbg_return_if (buf == NULL, ~0);
+    dbg_return_if (out == NULL, ~0);
+    
     md5_init(&md5ctx);
     md5_append(&md5ctx, (md5_byte_t*)buf, sz);
     md5_finish(&md5ctx, md5_digest);
@@ -824,11 +894,12 @@ int u_md5io(io_t *io, char out[MD5_DIGEST_BUFSZ])
     char buf[page_sz];
     size_t cnt;
 
-    dbg_err_if(io == NULL || out == NULL);
+    dbg_err_if (io == NULL);
+    dbg_err_if (out == NULL);
 
     md5_init(&md5ctx);
 
-    while( (cnt = io_read(io, buf, page_sz)) > 0)
+    while((cnt = io_read(io, buf, page_sz)) > 0)
         md5_append(&md5ctx, (md5_byte_t*)buf, cnt);
 
     md5_finish(&md5ctx, md5_digest);
@@ -873,10 +944,12 @@ err:
  *
  * \return the found MIME map, or the first map if no match could be found
  */
-const mime_map_t* u_get_mime_map(const char *file_name)
+const mime_map_t *u_get_mime_map(const char *file_name)
 {
     char *ext;
     mime_map_t *mm;
+
+    dbg_goto_if (file_name == NULL, notfound);
 
     if((ext = strrchr(file_name, '.')) != NULL)
     {
@@ -889,7 +962,7 @@ const mime_map_t* u_get_mime_map(const char *file_name)
         }
     }
 
-    /* not found */
+notfound:
     return mime_map; /* the first item is the default */
 }
 
@@ -900,15 +973,16 @@ const mime_map_t* u_get_mime_map(const char *file_name)
  *
  * \param   file_name   the path of the file
  *
- * \return the string corresponding to the guessed MIME type, if no map could
- *         be found "application/octet-stream" is returned
+ * \return the string corresponding to the guessed MIME type, or
+ *         "application/octet-stream" in case no map could be found
  */
-const char* u_guess_mime_type(const char *file_name)
+const char *u_guess_mime_type(const char *file_name)
 {
-    static const char * ao = "application/octet-stream";
     char *ext;
     mime_map_t *mm;
 
+    dbg_goto_if (file_name == NULL, notfound);
+    
     if((ext = strrchr(file_name, '.')) != NULL)
     {
         ++ext; /* skip '.' */
@@ -916,7 +990,9 @@ const char* u_guess_mime_type(const char *file_name)
             if(strcmp(mm->ext, ext) == 0)
                 return mm->mime_type;
     }
-    return ao;
+
+notfound:
+    return "application/octet-stream";
 }
 
 #ifdef HAVE_LIBZ
@@ -939,6 +1015,9 @@ int u_io_unzip_copy(io_t *out, const uint8_t *data, size_t sz)
     codec_t *zip = NULL;
     io_t *ios = NULL;
 
+    dbg_return_if (out == NULL, ~0);
+    dbg_return_if (data == NULL, ~0);
+    
     /* create an io_t around the HTML block */
     dbg_err_if(io_mem_create(data, sz, 0, &ios));
 
@@ -968,12 +1047,14 @@ err:
  *
  * Encrypt the data block \p src of size \p ssz using the encryption algorithm
  * \p cipher, with key \p key and initialisation vector \p iv.  The result is
- * stored at \p dst, with length \p dcount.
+ * stored at \p dst, a preallocated buffer with a size of at least 
+ * \c CODEC_CIPHER_BLOCK_SIZE - \c 1 + the length in bytes of \p src.
+ * The length of the encrypted buffer is stored at \p *dcount.
  *
  * \param   cipher  an OpenSSL \c EVP_CIPHER
  * \param   key     encryption key string
  * \param   iv      initialisation vector
- * \param   dst     buffer holding the result
+ * \param   dst     buffer holding the result 
  * \param   dcount  size in bytes of the result buffer
  * \param   src     the buffer to be encrypted
  * \param   ssz     size of \p src in bytes
@@ -989,6 +1070,13 @@ int u_cipher_encrypt(const EVP_CIPHER *cipher, unsigned char *key,
     ssize_t dlen = 0;  /* dst buffer length */
     int wr;
 
+    dbg_return_if (cipher == NULL, ~0);
+    dbg_return_if (key == NULL, ~0);
+    dbg_return_if (iv == NULL, ~0);
+    dbg_return_if (dcount == NULL, ~0);
+    dbg_return_if (src == NULL, ~0);
+    dbg_return_if (dst == NULL, ~0);
+    
     /* init the context */
     EVP_CIPHER_CTX_init(&ctx);
 
@@ -1039,6 +1127,13 @@ int u_cipher_decrypt(const EVP_CIPHER *cipher, unsigned char *key,
     EVP_CIPHER_CTX ctx;
     ssize_t dlen = 0;  /* dst buffer length */
     int wr;
+
+    dbg_return_if (cipher == NULL, ~0);
+    dbg_return_if (key == NULL, ~0);
+    dbg_return_if (iv == NULL, ~0);
+    dbg_return_if (dcount == NULL, ~0);
+    dbg_return_if (src == NULL, ~0);
+    dbg_return_if (dst == NULL, ~0);
 
     /* init the context */
     EVP_CIPHER_CTX_init(&ctx);

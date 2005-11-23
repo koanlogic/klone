@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: version.c,v 1.2 2005/11/23 17:27:02 tho Exp $
+ * $Id: version.c,v 1.3 2005/11/23 23:16:17 tho Exp $
  */
 
 #include <stdio.h>
@@ -32,9 +32,6 @@ const char *klone_version(void)
     return KLONE_VERSION;
 }
 
-
 /**
  *  \}
  */
-
-   

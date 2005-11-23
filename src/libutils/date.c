@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: date.c,v 1.6 2005/11/23 18:58:51 tat Exp $
+ * $Id: date.c,v 1.7 2005/11/23 23:16:17 tho Exp $
  */
 
 #include <stdlib.h>
@@ -41,6 +41,8 @@ static int month_idx(const char *mon)
 {
     int i;
 
+    dbg_return_if (mon == NULL, -1);
+    
     for(i = 0; i < 12; ++i)
         if(strcasecmp(months[i], mon) == 0)
             return i;
@@ -68,7 +70,9 @@ int u_asctime_to_tt(const char *str, time_t *tp)
     struct tm tm;
     int i;
 
-    dbg_err_if(strlen(str) >= BUFSZ);
+    dbg_return_if (str == NULL, ~0);
+    dbg_return_if (tp == NULL, ~0);
+    dbg_return_if (strlen(str) >= BUFSZ, ~0);
 
     dbg_err_if((i = sscanf(str, "%s %s %u %u:%u:%u %u", wday, 
         mon, &day, &hour, &min, &sec, &year)) != 7);
@@ -113,7 +117,9 @@ int u_rfc850_to_tt(const char *str, time_t *tp)
     int i;
     char c;
 
-    dbg_err_if(strlen(str) >= BUFSZ);
+    dbg_return_if (str == NULL, ~0);
+    dbg_return_if (tp == NULL, ~0);
+    dbg_return_if (strlen(str) >= BUFSZ, ~0);
 
     dbg_err_if((i = sscanf(str, "%[^,], %u%c%[^-]%c%u %u:%u:%u %s", wday, 
         &day, &c, mon, &c, &year, &hour, &min, &sec, tzone)) != 10);
@@ -130,10 +136,10 @@ int u_rfc850_to_tt(const char *str, time_t *tp)
 
     dbg_err_if(tm.tm_mon < 0);
 
-    #ifdef OS_UNIX
+#ifdef OS_UNIX
     /* time zone */
     tm.tm_zone = tzone;
-    #endif
+#endif
 
     *tp = timegm(&tm);
 
@@ -161,7 +167,9 @@ int u_rfc822_to_tt(const char *str, time_t *tp)
     unsigned int day, year, hour, min, sec;
     struct tm tm;
 
-    dbg_err_if(strlen(str) >= BUFSZ);
+    dbg_return_if (str == NULL, ~0);
+    dbg_return_if (tp == NULL, ~0);
+    dbg_return_if (strlen(str) >= BUFSZ, ~0);
 
     dbg_err_if(sscanf(str, "%[^,], %u %s %u %u:%u:%u %s", wday, 
         &day, mon, &year, &hour, &min, &sec, tzone) != 8);
@@ -178,10 +186,10 @@ int u_rfc822_to_tt(const char *str, time_t *tp)
 
     dbg_err_if(tm.tm_mon < 0);
 
-    #ifdef OS_UNIX
+#ifdef OS_UNIX
     /* time zone */
     tm.tm_zone = tzone;
-    #endif
+#endif
 
     *tp = timegm(&tm);
 
@@ -204,7 +212,9 @@ err:
  */
 int u_httpdate_to_tt(const char *str, time_t *tp)
 {
-    dbg_err_if(strlen(str) < 4);
+    dbg_return_if (str == NULL, ~0);
+    dbg_return_if (tp == NULL, ~0);
+    dbg_return_if (strlen(str) < 4, ~0);
 
     if(str[3] == ',')
         return u_rfc822_to_tt(str, tp);
@@ -212,8 +222,6 @@ int u_httpdate_to_tt(const char *str, time_t *tp)
         return u_asctime_to_tt(str, tp);
 
     return u_rfc850_to_tt(str, tp);
-err:
-    return ~0;
 }
 
 /**
@@ -235,6 +243,8 @@ int u_tt_to_rfc822(char dst[], time_t ts)
     enum { RFC822_DATE_BUFSZ = 32 };
     char buf[RFC822_DATE_BUFSZ];
     struct tm tm;
+
+    dbg_return_if (dst == NULL, ~0);
 
 #ifdef OS_WIN
     memcpy(&tm, gmtime(&ts), sizeof(tm));
