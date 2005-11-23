@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.12 2005/11/23 17:27:02 tho Exp $
+ * $Id: request.c,v 1.13 2005/11/23 17:44:16 stewy Exp $
  */
 
 #include "klone_conf.h"
@@ -64,22 +64,17 @@ struct request_s
 
 
 
-/** 
- *  \ingroup Chttp
- *  \{
- */
-
 /**
- *          \defgroup request HTTP request handling
- *          \{
- *              \par
- *              Basic knowledge of the HTTP protocol is assumed. Hence only the
- *              essential information is given. Some useful references are:
- *                - RFC 2616 for a complete description of HTTP 1.1 header fields
- *                - RFC 2109 for cookie format
- *                - RFC 822 for standard data type formats
- *                - http://www.iana.org/assignments/media-types/ for an updated
- *                list of possible mime-types
+ *  \defgroup request_t request_t - request handling
+ *  \{
+ *      \par
+ *      Basic knowledge of the HTTP protocol is assumed. Hence only the
+ *      essential information is given. Some useful references are:
+ *        - RFC 2616 for a complete description of HTTP 1.1 header fields
+ *        - RFC 2109 for cookie format
+ *        - RFC 822 for standard data type formats
+ *        - http://www.iana.org/assignments/media-types/ for an updated
+ *        list of possible mime-types
  */
 
 int request_is_encoding_accepted(request_t *rq, const char *encoding)

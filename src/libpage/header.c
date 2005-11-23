@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.c,v 1.6 2005/11/23 17:27:01 tho Exp $
+ * $Id: header.c,v 1.7 2005/11/23 17:44:16 stewy Exp $
  */
 
 #include "klone_conf.h"
@@ -14,15 +14,10 @@
 #include <klone/header.h>
 #include <klone/utils.h>
 
-/** 
- *  \ingroup Chttp
- *  \{
- */
-
 /**
- *          \defgroup header HTTP header handling
- *          \{
- *              \par
+ *  \defgroup header_t header_t - header manipulation
+ *  \{
+ *      \par
  */
 
 /**

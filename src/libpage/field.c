@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: field.c,v 1.5 2005/11/23 17:27:01 tho Exp $
+ * $Id: field.c,v 1.6 2005/11/23 17:44:16 stewy Exp $
  */
 
 #include "klone_conf.h"
@@ -14,15 +14,11 @@
 #include <klone/utils.h>
 #include <u/libu.h>
 
-/** 
- *  \ingroup Chttp
- *  \{
- */
 
 /**
- *          \defgroup field HTTP header fields handling
- *          \{
- *              \par
+ *  \defgroup field_t field_t - field manipulation
+ *  \{
+ *      \par
  */
 
 /**

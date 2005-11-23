@@ -5,14 +5,14 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: codec.c,v 1.5 2005/11/23 17:27:01 tho Exp $
+ * $Id: codec.c,v 1.6 2005/11/23 17:44:16 stewy Exp $
  */
 
 #include <klone/codec.h>
 #include <u/libu.h>
 
 /**
- *  \addtogroup CODEC
+ *  \addtogroup codec_t codec_t codec funtions
  *  \{
  */
 

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.11 2005/11/23 17:27:02 tho Exp $
+ * $Id: vars.c,v 1.12 2005/11/23 17:44:16 stewy Exp $
  */
 
 #include "klone_conf.h"
@@ -25,15 +25,10 @@ struct vars_s
 };
 
 
-/** 
- *  \ingroup Vhttp Chttp
- *  \{
- */
-
 /**
- *          \defgroup vars HTTP variables handling
- *          \{
- *              \par
+ *  \defgroup vars_t vars_t - variables handling
+ *  \{
+ *      \par
  */
 
 /**

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.21 2005/11/23 17:27:01 tho Exp $
+ * $Id: io.c,v 1.22 2005/11/23 17:44:16 stewy Exp $
  */
 
 #include "klone_conf.h"
@@ -27,8 +27,7 @@ enum {
 static inline int io_transform_codec_buffer(io_t *,codec_t *, char *, size_t *);
 
 /**
- *  \defgroup io_t io_t - Input/Output abstraction object
- *  \ingroup refapi
+ *  \defgroup io_t io_t - input/output abstraction object
  *  \{
  *      \par
  */

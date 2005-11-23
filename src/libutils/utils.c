@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.30 2005/11/23 17:27:02 tho Exp $
+ * $Id: utils.c,v 1.31 2005/11/23 17:44:16 stewy Exp $
  */
 
 #include <stdlib.h>
@@ -31,12 +31,7 @@
 #include <u/libu.h>
 
 /**
- *  \addtogroup refapi
- *  \{
- */
-
-/**
- *  \defgroup u_t u_t - Utility functions
+ *  \defgroup u_t u_t - utility functions
  *  \{
  */
 

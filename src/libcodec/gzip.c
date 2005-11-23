@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: gzip.c,v 1.19 2005/11/23 17:27:01 tho Exp $
+ * $Id: gzip.c,v 1.20 2005/11/23 17:44:16 stewy Exp $
  */
 
 #include "klone_conf.h"
@@ -15,7 +15,7 @@
 #include <klone/utils.h>
 
 /**
- *  \addtogroup CODEC
+ *  \addtogroup codec_t
  *  \{
  */
 
