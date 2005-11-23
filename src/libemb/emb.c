@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.c,v 1.10 2005/11/23 17:27:01 tho Exp $
+ * $Id: emb.c,v 1.11 2005/11/23 19:31:09 tho Exp $
  */
 
 #include <klone/emb.h>
@@ -14,14 +14,14 @@
 #include <u/libu.h>
 
 /* these are klone-site autogen functions */
-int register_pages();
-int unregister_pages();
+int register_pages(void);
+int unregister_pages(void);
 
 static struct emblist_s list;   /* list of emb resources     */
 static size_t nres;             /* num of emb resources      */
 static int init = 0;
 
-int emb_init()
+int emb_init(void)
 {
     if(init++ == 0)
     {
@@ -35,7 +35,7 @@ int emb_init()
     return 0;
 }
 
-int emb_term()
+int emb_term(void)
 {
     dbg_err_if(init == 0);
 
@@ -80,7 +80,9 @@ int emb_lookup(const char *filename, embres_t **pr)
 {
     embres_t *res;
 
-    dbg_err_if(init == 0 || filename == NULL || pr == NULL ||!strlen(filename));
+    dbg_err_if (init == 0);
+    dbg_err_if (filename == NULL || !strlen(filename));
+    dbg_err_if (pr == NULL);
 
     LIST_FOREACH(res, &list, np)
     {
@@ -98,9 +100,9 @@ err:
     return ~0;
 }
 
-int emb_count()
+int emb_count(void)
 {
-    dbg_err_if(init == 0);
+    dbg_err_if (init == 0);
 
     return nres;
 err:
@@ -111,7 +113,9 @@ int emb_getn(size_t n, embres_t **pr)
 {
     embres_t *res = NULL;
 
-    dbg_err_if(init == 0 || n >= nres);
+    dbg_err_if (init == 0);
+    dbg_err_if (n >= nres);
+    dbg_err_if (pr == NULL);
 
     LIST_FOREACH(res, &list, np)
     {
@@ -132,18 +136,21 @@ int emb_open(const char *file, io_t **pio)
     codec_t *gzip = NULL;
     io_t *io;
 
+    dbg_return_if (pio == NULL, ~0);
+    dbg_return_if (file == NULL, ~0);
+    
     dbg_err_if(emb_lookup(file, (embres_t**)&e) || e->res.type != ET_FILE);
 
     dbg_err_if(io_mem_create(e->data, e->size, 0, &io));
 
-    #ifdef HAVE_LIBZ
+#ifdef HAVE_LIBZ
     if(e->comp)
     {
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gzip));
         dbg_err_if(io_codec_add_tail(io, (codec_t*)gzip));
         gzip = NULL;
     }
-    #endif
+#endif
 
     *pio = io;
 
