@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: gzip.c,v 1.21 2005/11/23 18:07:14 tho Exp $
+ * $Id: gzip.c,v 1.22 2005/11/23 18:40:39 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -21,7 +21,7 @@
 
 #include <zlib.h>
 
-typedef struct codec_gzip_s
+struct codec_gzip_s
 {
     codec_t codec;              /* parent structure block           */
     int action;                 /* GZIP_COMPRESS or GZIP_UNCOMPRESS */
@@ -30,17 +30,25 @@ typedef struct codec_gzip_s
     int (*op)(z_streamp, int);  /* inflate or deflate               */
     int (*opEnd)(z_streamp);    /* inflateEnd or deflateEnd         */
     char dummy;                 /* ZLIB < 1.2 workaround dummy byte */
-} codec_gzip_t;
+};
+
+typedef struct codec_gzip_s codec_gzip_t;
 
 static ssize_t gzip_flush(codec_t *codec, char *dst, size_t *dcount)
 {
-    codec_gzip_t *iz = (codec_gzip_t*)codec;
+    codec_gzip_t *iz;
 
+    dbg_return_if (codec == NULL, -1);
+    dbg_return_if (dst == NULL, -1);
+    dbg_return_if (dcount == NULL, -1);
+
+    iz = (codec_gzip_t*)codec;
+    
     /* can't set it to NULL even if zlib must not use it (avail_in == 0) */
     iz->zstr.next_in = (char*)0xDEADBEEF;
     iz->zstr.avail_in = 0;
 
-    #if !defined(ZLIB_VERNUM) || ZLIB_VERNUM < 0x1200
+#if !defined(ZLIB_VERNUM) || ZLIB_VERNUM < 0x1200
     /* zlib < 1.2.0 workaround: push a dummy byte at the end of the 
        stream when inflating (see zlib ChangeLog) */
     if(iz->action == GZIP_UNCOMPRESS && iz->dummy == 0)
@@ -49,7 +57,7 @@ static ssize_t gzip_flush(codec_t *codec, char *dst, size_t *dcount)
         iz->zstr.avail_in = 1; 
         iz->dummy++;
     }
-    #endif
+#endif
 
     iz->zstr.next_out = dst;
     iz->zstr.avail_out = *dcount;
@@ -74,11 +82,17 @@ err:
 static ssize_t gzip_transform(codec_t *codec, char *dst, size_t *dcount, 
         const char *src, size_t src_sz)
 {
-    codec_gzip_t *iz = (codec_gzip_t*)codec;
+    codec_gzip_t *iz;
     size_t consumed;
-    
-    dbg_err_if(src == NULL || dst == NULL || *dcount == 0 || src_sz == 0);
+ 
+    dbg_return_if (codec == NULL, -1);
+    dbg_return_if (src == NULL, -1);
+    dbg_return_if (dst == NULL, -1); 
+    dbg_return_if (dcount == NULL || *dcount == 0, -1);
+    dbg_return_if (src_sz == 0, -1);
 
+    iz = (codec_gzip_t*)codec;
+    
     iz->zstr.next_out = dst;
     iz->zstr.avail_out = *dcount;
 
@@ -99,11 +113,13 @@ err:
 
 static int gzip_free(codec_t *codec)
 {
-    codec_gzip_t *iz = (codec_gzip_t*)codec;
+    codec_gzip_t *iz;
     int err;
 
+    nop_return_if (codec == NULL, 0);
+    
+    iz = (codec_gzip_t*)codec;
     dbg_err_if((err = iz->opEnd(&iz->zstr)) != Z_OK);
-
     U_FREE(iz);
 
     return 0;
@@ -126,6 +142,8 @@ err:
 int codec_gzip_create(int op, codec_t **piz)
 {
     codec_gzip_t *iz = NULL;
+
+    dbg_return_if (piz == NULL, ~0);
 
     iz = u_zalloc(sizeof(codec_gzip_t));
     dbg_err_if(iz == NULL);
@@ -156,8 +174,7 @@ int codec_gzip_create(int op, codec_t **piz)
 
     return 0;
 err:
-    if(iz)
-        U_FREE(iz);
+    U_FREE(iz);
     return ~0;
 }
 

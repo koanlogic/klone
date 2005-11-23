@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: cipher.c,v 1.7 2005/11/23 18:07:14 tho Exp $
+ * $Id: cipher.c,v 1.8 2005/11/23 18:40:39 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -21,16 +21,18 @@ typedef int (*EVP_Update_t)(EVP_CIPHER_CTX *ctx, unsigned char *out,
 typedef int (*EVP_Final_ex_t)(EVP_CIPHER_CTX *ctx, unsigned char *out,
     int *outl);
 
-typedef struct codec_cipher_s
+struct codec_cipher_s
 {
     codec_t codec;
-    const EVP_CIPHER *cipher;   /* encryption cipher algorithm          */
-    EVP_CIPHER_CTX cipher_ctx;  /* encrypt context                      */
+    const EVP_CIPHER *cipher;   /* encryption cipher algorithm */
+    EVP_CIPHER_CTX cipher_ctx;  /* encrypt context */
     char *cbuf;
     size_t coff, ccount, cbuf_size;
-    EVP_Update_t update;        /* EVP_{Encrypt,Decrypt}Update func ptr     */
-    EVP_Final_ex_t final;       /* EVP_{Encrypt,Decrypt}Final_ex func ptr   */
-} codec_cipher_t;
+    EVP_Update_t update;        /* EVP_{Encrypt,Decrypt}Update func ptr */
+    EVP_Final_ex_t final;       /* EVP_{Encrypt,Decrypt}Final_ex func ptr */
+};
+
+typedef struct codec_cipher_s codec_cipher_t;
 
 static void codec_cbufcpy(codec_cipher_t *cc, char *dst, size_t *dcount)
 {
@@ -49,9 +51,15 @@ static void codec_cbufcpy(codec_cipher_t *cc, char *dst, size_t *dcount)
 
 static ssize_t cipher_flush(codec_t *codec, char *dst, size_t *dcount)
 {
-    codec_cipher_t *cc = (codec_cipher_t*)codec;
+    codec_cipher_t *cc;
     int wr;
 
+    dbg_err_if (codec == NULL);
+    dbg_err_if (dst == NULL);
+    dbg_err_if (dcount == NULL);
+
+    cc = (codec_cipher_t*)codec;
+    
     for(;;)
     {
         if(cc->ccount)
@@ -83,11 +91,17 @@ err:
 static ssize_t cipher_transform(codec_t *codec, char *dst, size_t *dcount, 
         const char *src, size_t src_sz)
 {
-    codec_cipher_t *cc = (codec_cipher_t*)codec;
+    codec_cipher_t *cc;
     ssize_t c;
     int wr;
 
-    dbg_err_if(src == NULL || dst == NULL || *dcount == 0 || src_sz == 0);
+    dbg_err_if (codec == NULL);
+    dbg_err_if (src == NULL);
+    dbg_err_if (dst == NULL); 
+    dbg_err_if (dcount == NULL || *dcount == 0); 
+    dbg_err_if (src_sz == 0);
+
+    cc = (codec_cipher_t*)codec;
 
     c = 0;
     for(;;)
@@ -122,13 +136,13 @@ err:
 
 static int cipher_free(codec_t *codec)
 {
-    codec_cipher_t *cc = (codec_cipher_t*)codec;
+    codec_cipher_t *cc;
+       
+    nop_return_if (codec == NULL, 0);   
+        
+    cc = (codec_cipher_t*)codec;
 
-    /* EVP_CIPHER_CTX_cleanup(&cc->cipher_ctx); Final_ex already clean the ctx*/
-
-    if(cc->cbuf)
-        U_FREE(cc->cbuf);
-
+    U_FREE(cc->cbuf);
     U_FREE(cc);
 
     return 0;
@@ -159,6 +173,11 @@ int codec_cipher_create(int op, const EVP_CIPHER *cipher,
     unsigned char *key, unsigned char *iv, codec_t **pcc)
 {
     codec_cipher_t *cc = NULL;
+
+    dbg_return_if (cipher == NULL, ~0);
+    dbg_return_if (key == NULL, ~0);
+    dbg_return_if (iv == NULL, ~0);
+    dbg_return_if (pcc == NULL, ~0);
 
     cc = u_zalloc(sizeof(codec_cipher_t));
     dbg_err_if(cc == NULL);
@@ -203,8 +222,7 @@ int codec_cipher_create(int op, const EVP_CIPHER *cipher,
 
     return 0;
 err:
-    if(cc)
-        U_FREE(cc);
+    U_FREE(cc);
     return ~0;
 }
 

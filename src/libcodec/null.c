@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: null.c,v 1.10 2005/11/23 18:07:14 tho Exp $
+ * $Id: null.c,v 1.11 2005/11/23 18:40:39 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -19,10 +19,12 @@
  *  \{
  */
 
-typedef struct codec_null_s
+struct codec_null_s
 {
     codec_t codec;
-} codec_null_t;
+};
+
+typedef struct codec_null_s codec_null_t;
 
 static ssize_t null_flush(codec_t *cn, char *dst, size_t *dcount)
 {
@@ -68,6 +70,8 @@ static int null_free(codec_t *cn)
  */ 
 int codec_null_create(codec_t **pcn)
 {
+    dbg_return_if (pcn == NULL, ~0);
+
     codec_null_t *cn = NULL;
 
     cn = u_zalloc(sizeof(codec_null_t));
@@ -81,8 +85,7 @@ int codec_null_create(codec_t **pcn)
 
     return 0;
 err:
-    if(cn)
-        U_FREE(cn);
+    U_FREE(cn);
     return ~0;
 }
 
