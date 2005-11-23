@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include "klone_conf.h"
 #include <klone/klone.h>
 #include <klone/os.h>
 #include <klone/io.h>
@@ -43,6 +44,7 @@ static struct html_entities_s
     { 0, NULL     }
 };
 
+#ifdef OS_UNIX
 inline int u_sig_block(int sig)
 {
     sigset_t sset;
@@ -68,6 +70,7 @@ inline int u_sig_unblock(int sig)
 err:
     return ~0;
 }
+#endif
 
 /**
  * \brief   Apply the supplied callback to each file in a given directory
@@ -464,7 +467,7 @@ static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
  *
  * \return  The number of encoded/decoded characters or \c -1 on error.
  */
-int u_htmlncpy(char *d, const char *s, size_t slen, int flags)
+ssize_t u_htmlncpy(char *d, const char *s, size_t slen, int flags)
 {
     switch(flags)
     {
