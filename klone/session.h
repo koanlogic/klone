@@ -1,9 +1,10 @@
 #ifndef _KLONE_SESSION_H_
 #define _KLONE_SESSION_H_
+
+#include <u/libu.h>
 #include <klone/request.h>
 #include <klone/response.h>
 #include <klone/vars.h>
-#include <u/libu.h>
 
 struct session_s;
 typedef struct session_s session_t;

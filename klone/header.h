@@ -1,5 +1,6 @@
 #ifndef _KLONE_HEADER_H_
 #define _KLONE_HEADER_H_
+
 #include <klone/field.h>
 #include <klone/io.h>
 

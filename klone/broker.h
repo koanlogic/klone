@@ -12,5 +12,4 @@ int broker_free(broker_t* b);
 int broker_is_valid_uri(broker_t *b, const char *buf, size_t len);
 int broker_serve(broker_t *b, request_t *rq, response_t *rs);
 
-
 #endif

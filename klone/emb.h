@@ -1,16 +1,17 @@
 #ifndef _KLONE_EMB_H_
 #define _KLONE_EMB_H_
+
 #include "klone_conf.h"
+#include <sys/stat.h>
 #ifdef HAVE_STDINT
 #include <stdint.h>
 #endif /* HAVE_STDINT */
-#include <sys/stat.h>
+#include <u/libu.h>
 #include <klone/request.h>
 #include <klone/response.h>
 #include <klone/session.h>
 #include <klone/io.h>
 #include <klone/codecs.h>
-#include <u/libu.h>
 
 /* supported embedded resource type */
 enum {
@@ -59,4 +60,3 @@ int emb_getn(size_t n, embres_t **pr);
 int emb_open(const char *file, io_t **pio);
 
 #endif
-

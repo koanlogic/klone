@@ -1,17 +1,14 @@
 #ifndef _KLONE_IO_H_ 
 #define _KLONE_IO_H_
-#include <stdio.h>
+
+#include "klone_conf.h"
 #include <sys/types.h>
-#include <klone/codec.h>
-
-#ifdef HAVE_CONFIG_H
-#include "conf.h"
-#endif
-
+#include <stdio.h>
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#endif 
+#endif /* HAVE_LIBOPENSSL */
+#include <klone/codec.h>
 
 struct io_s;
 typedef struct io_s io_t;

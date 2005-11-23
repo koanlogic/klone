@@ -1,13 +1,13 @@
 #ifndef _KLONE_PAGE_H_
 #define _KLONE_PAGE_H_
 
-#include "conf.h"
+#include "klone_conf.h"
 #ifdef HAVE_STDINT
 #include <stdint.h>
 #endif /* HAVE_STDINT */
+#include <u/libu.h>
 #include <klone/response.h>
 #include <klone/request.h>
-#include <u/libu.h>
 
 typedef void (*page_run_t)(request_t*, response_t*);
 

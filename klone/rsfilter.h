@@ -1,5 +1,6 @@
 #ifndef _KLONE_RSFILTER_H_
 #define _KLONE_RSFILTER_H_
+
 #include <klone/codec.h>
 
 /* the filter will buffer the first RFBUFSZ bytes printed so page developers

@@ -1,8 +1,9 @@
 #ifndef _KLONE_PARSER_H_
 #define _KLONE_PARSER_H_
+
+#include <sys/types.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
 #include <klone/io.h>
 
 struct parser_s;

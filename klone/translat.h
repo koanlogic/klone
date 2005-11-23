@@ -1,8 +1,9 @@
 #ifndef _KLONE_TRANSLAT_H_
 #define _KLONE_TRANSLAT_H_
+
+#include <u/libu.h>
 #include <klone/io.h>
 #include <klone/codecs.h>
-#include <u/libu.h>
 
 enum { URI_BUFSZ = 1024, MIME_BUFSZ = 256, EMSG_BUFSZ = 512 };
 

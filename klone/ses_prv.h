@@ -1,6 +1,13 @@
 #ifndef _KLONE_SESPRV_H_
 #define _KLONE_SESPRV_H_
+
 #include "klone_conf.h"
+#ifdef HAVE_LIBOPENSSL
+#include <openssl/hmac.h>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
+#endif /* HAVE_LIBOPENSSL */
+#include <u/libu.h>
 #include <klone/session.h>
 #include <klone/request.h>
 #include <klone/response.h>
@@ -8,13 +15,6 @@
 #include <klone/http.h>
 #include <klone/atom.h>
 #include <klone/md5.h>
-#include <u/libu.h>
-
-#ifdef HAVE_LIBOPENSSL
-#include <openssl/hmac.h>
-#include <openssl/evp.h>
-#include <openssl/rand.h>
-#endif
 
 typedef int (*session_load_t)(session_t*);
 typedef int (*session_save_t)(session_t*);

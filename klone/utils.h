@@ -1,23 +1,20 @@
 #ifndef _KLONE_UTILS_H_
 #define _KLONE_UTILS_H_
 
-#include "conf.h"
-
+#include "klone_conf.h"
 #ifdef HAVE_STDINT
 #include <stdint.h>
 #endif /* HAVE_STDINT */
-
 #include <stdarg.h>
 #include <stdio.h>
 #include <limits.h>
 #include <time.h>
 #include <signal.h>
+#include <u/libu.h>
 #include <klone/io.h>
 #include <klone/md5.h>
 #include <klone/os.h>
 #include <klone/mime_map.h>
-
-#include <u/libu.h>
 
 #ifndef MIN
 #define MIN(a,b)    (a < b ? a : b)

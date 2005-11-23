@@ -15,7 +15,6 @@ typedef struct addr_s
     } sa;
 } addr_t;
 
-
 int addr_create(addr_t **pa);
 int addr_set_from_config(addr_t *a, u_config_t *c);
 int addr_set_from_sa(addr_t *a, struct sockaddr *sa, size_t sz);

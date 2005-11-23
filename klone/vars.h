@@ -1,7 +1,8 @@
 #ifndef _KLONE_VARLIST_H_
 #define _KLONE_VARLIST_H_
-#include <klone/var.h>
+
 #include <u/libu.h>
+#include <klone/var.h>
 
 struct vars_s;
 typedef struct vars_s vars_t;

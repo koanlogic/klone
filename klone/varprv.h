@@ -1,5 +1,6 @@
 #ifndef _KLONE_VAR_PRV_H_
 #define _KLONE_VAR_PRV_H_
+
 #include <u/libu.h>
 
 struct var_s

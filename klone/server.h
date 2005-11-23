@@ -1,5 +1,6 @@
 #ifndef _KLONE_SERVER_H_
 #define _KLONE_SERVER_H_
+
 #include <klone/ppc.h>
 #include <klone/klog.h>
 

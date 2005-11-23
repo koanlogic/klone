@@ -1,8 +1,8 @@
 #ifndef _KLONE_CODEC_H_
 #define _KLONE_CODEC_H_
+#include <sys/types.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <sys/types.h>
 #include <u/libu.h>
 
 enum { CODEC_FLUSH_COMPLETE, CODEC_FLUSH_CHUNK };

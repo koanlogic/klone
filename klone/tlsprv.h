@@ -1,6 +1,6 @@
 #ifndef _KLONE_TLS_PRV_H_
 #define _KLONE_TLS_PRV_H_
-#include "conf.h"
+#include "klone_conf.h"
 #ifdef  HAVE_LIBOPENSSL
 
 /* used by tls.c */

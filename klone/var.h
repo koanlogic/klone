@@ -1,5 +1,6 @@
 #ifndef _KLONE_VAR_H_
 #define _KLONE_VAR_H_
+
 #include <sys/types.h>
 #include <u/libu.h>
 

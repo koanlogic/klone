@@ -1,11 +1,11 @@
-/* $Id: tls.h,v 1.4 2005/10/11 14:22:52 tat Exp $ */
+/* $Id: tls.h,v 1.5 2005/11/23 12:00:21 tho Exp $ */
 
 #ifndef _KLONE_TLS_H_
 #define _KLONE_TLS_H_
 
-#include "conf.h"
-#ifdef HAVE_LIBOPENSSL
+#include "klone_conf.h"
 #include <u/libu.h>
+#ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
 
 /* (pseudo) unique data to feed the PRNG */

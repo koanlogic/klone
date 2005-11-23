@@ -1,7 +1,8 @@
 #ifndef _KLONE_OS_H_
 #define _KLONE_OS_H_
-#include <stdarg.h>
+
 #include "klone_conf.h"
+#include <stdarg.h>
 
 /* OS compatibility layer */
 #ifdef OS_WIN

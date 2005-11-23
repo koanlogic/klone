@@ -1,11 +1,12 @@
 #ifndef _KLONE_CONTEXT_H_
 #define _KLONE_CONTEXT_H_
+
+#include "klone_conf.h"
+#include <u/libu.h>
 #include <klone/klone.h>
 #include <klone/server.h>
 #include <klone/backend.h>
 #include <klone/os.h>
-#include <u/libu.h>
-#include "klone_conf.h"
 
 /* global applicaton context */
 typedef struct context_s

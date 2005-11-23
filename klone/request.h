@@ -1,5 +1,6 @@
 #ifndef _KLONE_REQUEST_H_
 #define _KLONE_REQUEST_H_
+
 #include <sys/types.h>
 #include <klone/header.h>
 #include <klone/io.h>
