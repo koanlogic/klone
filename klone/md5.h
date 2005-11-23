@@ -1,4 +1,14 @@
 /*
+ * Copyright (c) 2005 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * All rights reserved.
+ *
+ * This file is part of KLone, and as such it is subject to the license stated
+ * in the LICENSE file which you have received as part of this distribution.
+ *
+ * $Id: md5.h,v 1.2 2005/11/23 17:27:01 tho Exp $
+ */
+
+/*
   Copyright (C) 1999, 2002 Aladdin Enterprises.  All rights reserved.
 
   This software is provided 'as-is', without any express or implied
@@ -21,7 +31,7 @@
   ghost@aladdin.com
 
  */
-/* $Id: md5.h,v 1.1 2005/09/09 15:26:13 tat Exp $ */
+/* $Id: md5.h,v 1.2 2005/11/23 17:27:01 tho Exp $ */
 /*
   Independent implementation of MD5 (RFC 1321).
 

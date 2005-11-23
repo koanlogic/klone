@@ -1,4 +1,14 @@
 /*
+ * Copyright (c) 2005 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * All rights reserved.
+ *
+ * This file is part of KLone, and as such it is subject to the license stated
+ * in the LICENSE file which you have received as part of this distribution.
+ *
+ * $Id: tls_glue.c,v 1.10 2005/11/23 17:27:02 tho Exp $
+ */
+
+/*
  * This product includes software developed by Ralf S. Engelschall 
  * <rse@engelschall.com> for use in the mod_ssl project (http://www.modssl.org/)
  * 
