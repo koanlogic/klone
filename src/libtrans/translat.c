@@ -1,9 +1,13 @@
+#include "klone_conf.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
+#ifdef HAVE_LIBOPENSSL
+#include <openssl/evp.h>
+#endif /* HAVE_LIBOPENSSL */
 #include <klone/klone.h>
 #include <klone/translat.h>
 #include <klone/parser.h>
@@ -12,9 +16,6 @@
 #include <klone/io.h>
 #include <klone/codec.h>
 #include <klone/codecs.h>
-#ifdef HAVE_LIBOPENSSL
-#include <openssl/evp.h>
-#endif
 
 static int preprocess(io_t *in, io_t *out);
 
