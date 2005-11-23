@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: timer.c,v 1.10 2005/11/23 23:16:17 tho Exp $
+ * $Id: timer.c,v 1.11 2005/11/23 23:30:51 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -38,8 +38,6 @@ struct timerm_s
 {
     alarm_list_t alist;         /* alarm list                   */
 
-    timerm_cb_t handler;        /* function to call on timeouts */
-
 #ifdef OS_WIN
     CRITICAL_SECTION cs;
     time_t next;                /* next timestamp               */
@@ -57,7 +55,10 @@ static int timerm_set_alarm(int timeout)
     /* if timeout == 0 disable the alarm */
     alarm(timeout);
 #else
-    timer->next = time(0) + timeout;
+    if(timeout > 0)
+        timer->next = time(0) + timeout;
+    else
+        timer->next = NULL;
 #endif
 
     return 0;
@@ -114,21 +115,6 @@ err:
     return;
 }
 
-static int timerm_set_handler(void (*func)(int))
-{
-    dbg_err_if (func == NULL);
-    
-    timer->handler = func;
-
-#ifdef OS_UNIX
-    dbg_err_if(u_signal(SIGALRM, timer->handler));
-#endif
-
-    return 0;
-err:
-    return ~0;
-}
-
 static int timerm_block_alarms(void)
 {
 #ifdef OS_UNIX
@@ -159,25 +145,6 @@ err:
     return ~0;
 }
 
-#if OS_WIN
-static int timerm_wait_next_alarm(void)
-{
-    int elapse;
-
-    dbg_err_if(timer->next == 0);
-
-    elapse = timer->next - time(0);
-
-    Sleep(elapse);
-
-    timer->handler(0);
-
-    return 0;
-err:
-    return ~0;
-}
-#endif
-
 static int timerm_free(timerm_t *t)
 {
     alarm_t *a = NULL;
@@ -198,8 +165,16 @@ static int timerm_free(timerm_t *t)
 #ifdef OS_WIN
 static DWORD WINAPI thread_func(LPVOID param)
 {
-    for(;;)
-        timerm_wait_next_alarm();
+    for(;;Sleep(250))
+    {
+        if(timer->next == NULL)
+            continue;
+
+        if((timer->next - time(0)) <= 0)
+            timerm_sigalrm(0);  /* raise the alarm */
+    }
+
+    return 0;
 }
 #endif
 
@@ -215,10 +190,10 @@ static int timerm_create(timerm_t **pt)
     TAILQ_INIT(&t->alist);
 
 #ifdef OS_WIN
-    InitializeCriticalSection(&timer->cs);
+    InitializeCriticalSection(&t->cs);
 
-    dbg_err_if((timer->hthread = CreateThread(NULL, 0, thread_func, NULL, 0, 
-        &timer->tid)) == NULL); 
+    dbg_err_if((t->hthread = CreateThread(NULL, 0, thread_func, NULL, 0, 
+        &t->tid)) == NULL); 
 #endif
 
     *pt = t;
@@ -242,8 +217,9 @@ int timerm_add(int secs, alarm_cb_t cb, void *arg, alarm_t **pa)
     if(timer == NULL)
     {
         dbg_err_if(timerm_create(&timer));
-        /* set the signal handler */
-        dbg_err_if(timerm_set_handler(timerm_sigalrm));
+        #ifdef OS_UNIX
+        dbg_err_if(u_signal(SIGALRM, timerm_sigalrm));
+        #endif
     }
 
     al = (alarm_t*)u_zalloc(sizeof(alarm_t));
