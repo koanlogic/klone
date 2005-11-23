@@ -1,11 +1,13 @@
+#include "klone_conf.h"
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/dir.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/dir.h>
 #include <unistd.h>
+#include <u/libu.h>
 #include <klone/klone.h>
 #include <klone/request.h>
 #include <klone/response.h>
@@ -14,8 +16,6 @@
 #include <klone/run.h>
 #include <klone/mime_map.h>
 #include <klone/version.h>
-#include <u/libu.h>
-#include "klone_conf.h"
 
 int facility = LOG_LOCAL0;
 
