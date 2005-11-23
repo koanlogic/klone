@@ -1,8 +1,8 @@
+#include "conf.h"
+#include <u/libu.h>
 #include <klone/codec.h>
 #include <klone/ccipher.h>
 #include <klone/utils.h>
-#include <u/libu.h>
-#include "conf.h"
 
 enum { CODEC_CIPHER_MAX_INPUT = 4096 /* max src block size for transform() */ };
 

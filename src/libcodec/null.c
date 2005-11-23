@@ -1,8 +1,8 @@
+#include "conf.h"
+#include <u/libu.h>
 #include <klone/codec.h>
 #include <klone/cnull.h>
 #include <klone/utils.h>
-#include <u/libu.h>
-#include "conf.h"
 
 /**
  *  \addtogroup CODEC
