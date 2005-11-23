@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.21 2005/11/23 20:36:12 tat Exp $
+ * $Id: trans_c.c,v 1.22 2005/11/23 21:43:41 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -138,7 +138,6 @@ static int print_var_definition(parser_t *p, int comp, const char *varname,
     unsigned char c;
 
     dbg_err_if(p == NULL);
-    dbg_err_if(p->out == NULL);
     dbg_err_if(varname == NULL);
     dbg_err_if(buf == NULL);
 
@@ -185,7 +184,6 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
     code_block_list_t *head;
 
     dbg_return_if (p == NULL, );
-    dbg_return_if (p->out == NULL, );
     dbg_return_if (ctx == NULL, );
 
     io_printf(p->out, 
@@ -278,7 +276,6 @@ static void print_register_block(io_t *out, lang_c_ctx_t *ctx)
 static int print_c_line(parser_t *p, lang_c_ctx_t *ctx)
 {
     dbg_err_if (p == NULL);
-    dbg_err_if (p->out == NULL);
     dbg_err_if (ctx == NULL);
     dbg_err_if (ctx->ti == NULL);
 
@@ -296,7 +293,6 @@ static int process_declaration(parser_t *p, void *arg, const char *buf,
     u_unused_args(arg);
 
     dbg_err_if (p == NULL);
-    dbg_err_if (p->out == NULL);
 
     dbg_err_if(io_write(p->out, buf, sz) < 0);
 

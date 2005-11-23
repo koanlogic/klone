@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.16 2005/11/23 17:27:02 tho Exp $
+ * $Id: translat.c,v 1.17 2005/11/23 21:43:41 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -34,7 +34,7 @@ static int is_a_script(const char *filename)
     const char *script_ext = ".klone";
     const char *fn, *ext;
 
-    if(!strlen(filename))
+    if(filename == NULL || !strlen(filename))
         return 0;
 
     fn = filename + strlen(filename) - 1;
@@ -47,12 +47,15 @@ static int is_a_script(const char *filename)
     return 1;
 }
 
-static int process_directive_include(parser_t* p, char *inc_file)
+static int process_directive_include(parser_t *p, char *inc_file)
 {
     enum { BUFSZ = 4096 };
     char buf[U_FILENAME_MAX], *pc;
     char file[U_FILENAME_MAX];
     io_t *io = NULL;
+
+    dbg_return_if (p == NULL, ~0);
+    dbg_return_if (inc_file == NULL, ~0);
 
     dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
     dbg_err_if(io_name_get(p->in, buf, U_FILENAME_MAX));
@@ -84,9 +87,12 @@ err:
     return ~0;
 }
 
-static int process_directive(parser_t* p, char* buf)
+static int process_directive(parser_t *p, char *buf)
 {
     char *tok, *pp;
+
+    dbg_return_if (p == NULL, ~0);
+    dbg_return_if (buf == NULL, ~0);
 
     /* get preprocessor command */
     dbg_err_if((tok = strtok_r(buf, " \t", &pp)) == NULL);
@@ -106,13 +112,16 @@ err:
     return ~0;
 }
 
-static int parse_directive(parser_t* p, void *arg, const char* buf, size_t sz)
+static int parse_directive(parser_t *p, void *arg, const char *buf, size_t sz)
 {
     enum { LINE_BUFSZ = 1024 };
     char line[LINE_BUFSZ];
     io_t *io = NULL;
 
     u_unused_args(arg);
+
+    dbg_return_if (p == NULL, ~0);
+    dbg_return_if (buf == NULL, ~0);
     
     dbg_err_if(io_mem_create(buf, sz, 0, &io));
 
@@ -128,9 +137,11 @@ err:
     return ~0;
 }
 
-static int cb_pre_html_block(parser_t* p, void *arg, const char* buf, size_t sz)
+static int cb_pre_html_block(parser_t *p, void *arg, const char *buf, size_t sz)
 {
     u_unused_args(arg);
+
+    dbg_err_if (p == NULL);
 
     dbg_err_if(io_write(p->out, buf, sz) < 0);
 
@@ -139,13 +150,15 @@ err:
     return ~0;
 }
 
-static int cb_pre_code_block(parser_t* p, int cmd, void *arg, const char* buf, 
-    size_t sz)
+static int cb_pre_code_block(parser_t *p, int cmd, void *arg, const char *buf, 
+        size_t sz)
 {
     char file[U_FILENAME_MAX];
 
+    dbg_err_if (p == NULL);
+
     if(cmd == '@')
-    { /* do preprocess */
+    {   /* do preprocess */
         dbg_err_if(parse_directive(p, arg, buf, sz));
     } else {
         dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
@@ -194,6 +207,8 @@ int translate(trans_info_t *pti)
     codec_t *gzip = NULL, *aes = NULL;
     char tname[U_FILENAME_MAX];
 
+    dbg_return_if (pti == NULL, ~0);
+    
     /* open the input file */
     dbg_err_if(u_file_open(pti->file_in, O_RDONLY, &in));
 
@@ -225,7 +240,7 @@ int translate(trans_info_t *pti)
         unlink(tname);
     } else  {
         /* check if compression is requested */
-        #ifdef HAVE_LIBZ
+#ifdef HAVE_LIBZ
         if(pti->comp)
         {
             /* set a compression filter to the input stream */
@@ -233,8 +248,8 @@ int translate(trans_info_t *pti)
             dbg_err_if(io_codec_add_tail(in, gzip));
             gzip = NULL;
         }
-        #endif
-        #ifdef HAVE_LIBOPENSSL
+#endif
+#ifdef HAVE_LIBOPENSSL
         /* check if encryption is requested */
         if(pti->encrypt)
         {
@@ -244,7 +259,7 @@ int translate(trans_info_t *pti)
             dbg_err_if(io_codec_add_tail(in, aes));
             aes = NULL;
         }
-        #endif
+#endif
         dbg_err_if(translate_opaque_to_c(in, out, pti));
     }
 
@@ -265,4 +280,3 @@ err:
         io_free(out);
     return ~0;
 }
-
