@@ -93,10 +93,10 @@ INPUT                  = ../klone/response.h \
                          ../src/libio/io.c \
                          ../src/libutils/utils.c \
                          ../src/libutils/date.c \
-                         ../src/libcodec/codec.c \
                          ../src/libcodec/null.c \
                          ../src/libcodec/gzip.c \
-                         ../src/libcodec/cipher.c
+                         ../src/libcodec/cipher.c \
+                         ../src/libcodec/codec.c
 FILE_PATTERNS          = *.c 
                          *.cc \
                          *.cxx \
