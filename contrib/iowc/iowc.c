@@ -25,12 +25,6 @@ typedef struct ctx_s
 
 context_t context, *ctx = &context;
 
-static void error(const char *msg)
-{
-    fprintf(stderr, "err: %s", msg);
-    exit(1);
-}
-
 static void usage()
 {
     fprintf(stderr, 

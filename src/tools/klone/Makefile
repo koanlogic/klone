@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.9 2005/11/23 18:58:51 tat Exp $
+# $Id: Makefile,v 1.10 2005/11/23 19:57:24 tat Exp $
 include ../../../Makefile.conf
 
 PROG = klone
@@ -19,7 +19,8 @@ LDADD += ../../libtrans/libtrans.a  \
 LDADD += ../../../libu/src/libu.a
 
 ifdef OS_WIN
-LDADD += ${WIN_LDFLAGS}
+# win libs must be after any lib*.a
+POST_LDADD += ${WIN_LDFLAGS}
 endif
 
 include prog.mk
