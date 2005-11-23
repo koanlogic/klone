@@ -873,7 +873,7 @@ const mime_map_t* u_get_mime_map(const char *file_name)
     if((ext = strrchr(file_name, '.')) != NULL)
     {
         ++ext; /* skip '.' */
-        // FIXME binary search here
+        /* FIXME binary search here */
         for(mm = mime_map; mm->ext && mm->mime_type; ++mm)
         {
             if(strcasecmp(mm->ext, ext) == 0)

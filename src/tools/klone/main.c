@@ -296,7 +296,7 @@ static int command_trans(void)
     if((mm = u_get_mime_map(ctx->file_in)) != NULL)
         strncpy(ti.mime_type, mm->mime_type, MIME_BUFSZ);
     else
-        strncpy(ti.mime_type, "application/octect-stream", MIME_BUFSZ);
+        strncpy(ti.mime_type, "application/octet-stream", MIME_BUFSZ);
 
     /* compress if requested and the file is compressable (by MIME type) */
     if(ctx->compress)

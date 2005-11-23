@@ -877,26 +877,50 @@ int request_free(request_t *rq)
     return 0;
 }
 
+/* save the local address struct (ip and port) in the request obj */
 int request_set_addr(request_t *rq, addr_t *addr)
 {
     memcpy(&rq->local_addr, addr, sizeof(addr_t));
     return 0;
 }
 
+/* save the peer address struct (ip and port) in the request obj */
 int request_set_peer_addr(request_t *rq, addr_t *addr)
 {
     memcpy(&rq->peer_addr, addr, sizeof(addr_t));
     return 0;
 }
 
+/* return the local socket address */
 addr_t* request_get_addr(request_t *rq)
 {
     return &rq->local_addr;
 }
 
+/* return the peer address */
 addr_t* request_get_peer_addr(request_t *rq)
 {
     return &rq->peer_addr;
+}
+
+/* return the header obj */
+header_t* request_get_header(request_t *rq)
+{
+    return rq->header;
+}
+
+/* return a field obj of the field named 'name' or NULL if the field does not 
+   exist */
+field_t* request_get_field(request_t *rq, const char *name)
+{
+    return header_get_field(rq->header, name);
+}
+
+/* return the string value of the field named 'name' or NULL if the field does
+   not exist */
+const char* request_get_field_value(request_t *rq, const char *name)
+{
+    return header_get_field_value(rq->header, name);
 }
 
 /**

@@ -522,13 +522,8 @@ static int server_child_serve(server_t *s, backend_t *be, int ad)
         /* close client socket and die */
         close(ad);
         server_stop(be->server); 
-
-    } else {
-        /* parent */
-
-        /* close the accepted socket */
-        close(ad);
     }
+    /* parent */
 
     return 0;
 err:
@@ -568,9 +563,7 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
         dbg_err_if(server_child_serve(s, be, ad));
         break;
 
-    case SERVER_MODEL_ITERATIVE:
-    case SERVER_MODEL_PREFORK:
-        // FIXME small timeout value needed
+    case SERVER_MODEL_PREFORK: /* FIXME lower timeout value needed */
         /* if _serve takes more then 1 second spawn a new worker process */
         dbg_err_if(timerm_add(1, server_cb_spawn_child, (void*)s, &al));
 
@@ -578,17 +571,23 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
         dbg_if(backend_serve(be, ad));
 
         /* remove and free the alarm */
-        timerm_del(al);
+        timerm_del(al); /* prefork */
 
-        close(ad);
+    case SERVER_MODEL_ITERATIVE:
+        /* serve the page */
+        dbg_if(backend_serve(be, ad));
         break;
 
     default:
         warn_err_if("server model not supported");
     }
 
+    /* close the accepted (already served) socket */
+    close(ad);
+
     return 0;
 err:
+    close(ad);
     return ~0;
 }
 

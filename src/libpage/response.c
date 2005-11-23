@@ -99,7 +99,7 @@ int response_set_cookie(response_t *rs, const char *name, const char *value,
         /* expiration date */
         if(expire)
         {
-            dbg_err_if(u_tt_to_rfc822(date, expire, DATESZ));
+            dbg_err_if(u_tt_to_rfc822(date, expire));
 
             dbg_err_if(u_snprintf(buf + strlen(buf), BUFSZ - strlen(buf), 
                         "; expire=%s", date));
@@ -346,7 +346,7 @@ int response_set_date(response_t *rs, time_t date)
     enum { BUFSZ = 64 };
     char buf[BUFSZ];
 
-    dbg_err_if(u_tt_to_rfc822(buf, date, BUFSZ));
+    dbg_err_if(u_tt_to_rfc822(buf, date));
 
     dbg_err_if(header_set_field(rs->header, "Date", buf));
 
@@ -372,7 +372,7 @@ int response_set_last_modified(response_t *rs, time_t mtime)
     enum { BUFSZ = 64 };
     char buf[BUFSZ];
 
-    dbg_err_if(u_tt_to_rfc822(buf, mtime, BUFSZ));
+    dbg_err_if(u_tt_to_rfc822(buf, mtime));
 
     dbg_err_if(header_set_field(rs->header, "Last-Modified", buf));
 

@@ -16,15 +16,17 @@ FIRST RELEASE:
         - * fork,prefork: max requests per process
         - * fork.max_child
         - * blind chroot
+        - * bind sessions to client IP address
+
+        - child keep-alive ppc cmd to avoid infinite wait in blocking
+          calls (for ex. into write())?
 
         - test cgi
-        
+
         - move security options into per-server params
 
         - chroot and syslog [openlog(); chroot(); syslog()...;?]
         - fix prefork + log.klone
-
-        - bind sessions to client IP address
 
         - tweak prefork spawn-new-child-timeout 
 
