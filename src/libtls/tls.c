@@ -1,5 +1,3 @@
-/* $Id: tls.c,v 1.5 2005/11/23 11:42:38 tho Exp $ */
-
 #include "klone_conf.h"
 #include <sys/types.h>
 #include <sys/time.h>

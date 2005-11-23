@@ -1,5 +1,3 @@
-/* $Id: tls_glue.c,v 1.8 2005/11/23 11:42:38 tho Exp $ */
-
 /*
  * This product includes software developed by Ralf S. Engelschall 
  * <rse@engelschall.com> for use in the mod_ssl project (http://www.modssl.org/)
