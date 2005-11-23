@@ -27,15 +27,16 @@ struct vars_s
  */
 
 /**
- * \brief   One line description
+ * \brief   Get u_string_t value of a variable
  *
- * Detailed function descrtiption.
+ * Return an u_string_t containing the value of variable with \a name in
+ * variable list \a vs.
  *  
- * \param pvs  parameter \a pvs description
+ * \param vs    variable list
+ * \param name  name of variable
  *      
  * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ *  - the variable value 
  */     
 u_string_t* vars_get_value_s(vars_t *vs, const char *name)
 {
@@ -48,7 +49,7 @@ err:
     return NULL;
 }
 
-/**
+/*
  * \brief   One line description
  *
  * Detailed function descrtiption.
@@ -77,7 +78,7 @@ err:
     return ~0;
 }
 
-/**
+/*
  * \brief   One line description
  *
  * Detailed function descrtiption.
@@ -105,7 +106,7 @@ int vars_free(vars_t *vs)
     return 0;
 }
 
-/**
+/*
  * \brief   One line description
  *
  * Detailed function descrtiption.
@@ -124,7 +125,7 @@ int vars_add(vars_t *vs, var_t *v)
     return 0;
 }
 
-/**
+/*
  * \brief   One line description
  *
  * Detailed function descrtiption.
@@ -144,12 +145,12 @@ int vars_del(vars_t *vs, var_t *v)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get ith variable
  *
- * Detailed function descrtiption.
+ * Return the var_t at index \a i in list \a vs.
  *
- * \param vs  parameter \a vs description
- * \param i   parameter \a i description
+ * \param vs  variable list
+ * \param i   index
  *
  * \return
  *  - the ith var
@@ -172,11 +173,11 @@ var_t* vars_getn(vars_t *vs, size_t i)
 }
 
 /**
- * \brief   One line description
+ * \brief   Count the number of variables
  *
- * Detailed function descrtiption.
+ * Return a size_t with the number of variables in a list.
  *
- * \param vs  parameter \a vs description
+ * \param vs  variable list
  *
  * \return
  *  - the number of elements in \a vs
@@ -186,8 +187,8 @@ size_t vars_count(vars_t *vs)
     return vs->count;
 }
 
-/**
- * \brief   One line description
+/*
+ * \brief   Add an URL variable
  *
  * Parse the "name=value" string \a str, url-decode name and value and push 
  * it into \a vs.
@@ -269,7 +270,7 @@ err:
 }
 
 
-/**
+/*
  * \brief   One line description
  *
  * Parse the "name=value" string \a str, create a var_t and push it to \a vs.
@@ -313,13 +314,13 @@ err:
 }
 
 /**
- * \brief   One line description
+ * \brief   Get ith variable with given name
  *
- * Detailed function descrtiption.
+ * Return the var_t at index \a i with name \a var_name in list \a vs.
  *
- * \param vs        parameter \a path description
- * \param var_name  parameter \a rs description
- * \param i         parameter \a pss description
+ * \param vs        variable list
+ * \param var_name  variable name
+ * \param i         index
  *
  * \return
  *  - the var_t object found
@@ -342,12 +343,12 @@ var_t* vars_get_ith(vars_t *vs, const char *var_name, size_t i)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get a variable with given name
  *
- * Detailed function descrtiption.
+ * Return a var_t of the variable with \a name in list \a vs.
  *
- * \param vs        parameter \a vs description
- * \param var_name  parameter \a var_name description
+ * \param vs        variable list
+ * \param var_name  variable name
  *
  * \return
  *  - the var_t object found
@@ -359,13 +360,14 @@ var_t* vars_get(vars_t *vs, const char *var_name)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get int value of variable with given name and index
  *
- * Detailed function descrtiption.
+ * Get the int value of variable with given \a name and index \a ith in list \a
+ * vs.
  *
- * \param vs    parameter \a vs description
- * \param name  parameter \a name description
- * \param ith   parameter \a ith description
+ * \param vs    variable list
+ * \param name  variable name
+ * \param ith   index 
  *
  * \return
  *  - the integer value of \a name
@@ -383,12 +385,12 @@ int vars_get_ith_value_i(vars_t *vs, const char *name, size_t ith)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get int value of variable with given name.
  *
- * Detailed function descrtiption.
+ * Return the int value of the variable with \a name in list \a vs.
  *
- * \param vs    parameter \a vs description
- * \param name  parameter \a name description
+ * \param vs    variable list
+ * \param name  variable name
  *
  * \return
  *  - the integer value of \a name
@@ -400,13 +402,14 @@ int vars_get_value_i(vars_t *vs, const char *name)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get the value of the variable at a given index. 
  *
- * Detailed function descrtiption.
+ * Return the string value of the variable with \a name and index \a ith in list
+ * \a vs.
  *
- * \param vs    parameter \a vs description
- * \param name  parameter \a name description
- * \param ith   parameter \a ith description
+ * \param vs    variable list
+ * \param name  variable name
+ * \param ith   index
  *
  * \return
  *  - the value string corresponding to \a name at i-th position
@@ -422,12 +425,12 @@ const char* vars_get_ith_value(vars_t *vs, const char *name, size_t ith)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get the value of the variable with given name.
  *
- * Detailed function descrtiption.
+ * Return the string value of the variable with \a name in list \a vs.
  *
- * \param vs    parameter \a vs description
- * \param name  parameter \a name description
+ * \param vs    variable list
+ * \param name  variable name
  *
  * \return
  *  - the value string corresponding to \a name
@@ -439,13 +442,13 @@ const char* vars_get_value(vars_t *vs, const char *name)
 }
 
 /**
- * \brief   One line description
+ * \brief   Execute a function on all variables.
  *
- * Detailed function descrtiption.
+ * Execute function \a foreach on 
  *
- * \param vs       parameter \a vs description
- * \param foreach  parameter \a foreach description
- * \param arg      parameter \a arg description
+ * \param vs       variable list
+ * \param foreach  function pointer
+ * \param arg      argument to function
  *
  * \return
  *  - nothing

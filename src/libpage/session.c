@@ -428,7 +428,7 @@ err:
 }
 
 
-/** 
+/*
  * \brief   One line description
  *  
  * Detailed function descrtiption.
@@ -455,11 +455,11 @@ int session_free(session_t *ss)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get session variables
  *  
- * Detailed function descrtiption.
+ * Return a vars_t containing the session variables.
  *
- * \param ss  parameter \a ss description
+ * \param ss  session object
  *  
  * \return
  *  - the variables' list of the given \a ss
@@ -470,12 +470,12 @@ vars_t *session_get_vars(session_t *ss)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get session variable with given name
  *
- * Detailed function descrtiption.
+ * Return a string representation of variable in \a ss with given \a name.
  *
- * \param ss    parameter \a ss description
- * \param name  parameter \a name description
+ * \param ss    session object
+ * \param name  session variable name
  * 
  * \return
  *  - the variable value corresponding to the given \a name
@@ -489,13 +489,13 @@ const char *session_get(session_t *ss, const char *name)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Set session variable with given name to a value
  *  
- * Detailed function descrtiption.
+ * Put variable with \a name and \a value into \a ss.
  *
- * \param ss     parameter \a ss description
- * \param name   parameter \a name description
- * \param value  parameter \a value description
+ * \param ss     session object
+ * \param name   session variable name
+ * \param value  session variable value
  *  
  * \return
  *  - \c 0  if successful
@@ -525,14 +525,14 @@ err:
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the amount of time a session has been inactive
  *  
- * Detailed function descrtiption.
+ * Return the number of seconds since the session was last modified.
  *
- * \param ss  parameter \a path description
+ * \param ss  session object
  *  
  * \return
- *  - the number of seconds ...
+ *  - the number of seconds since last modification
  *  - \c -1 on error
  */
 int session_age(session_t *ss)
@@ -548,9 +548,9 @@ int session_age(session_t *ss)
 /** 
  * \brief   Remove all session variables
  *  
- * Detailed function descrtiption.
+ * Remove all session variables from \a ss.
  *
- * \param ss  parameter \a ss description
+ * \param ss  session object
  *  
  * \return
  *  - \c 0  if successful
@@ -571,13 +571,13 @@ err:
     return ~0;
 }
 
-/** 
- * \brief   One line description
+/**
+ * \brief   Delete session variable given a name
  *  
- * Detailed function descrtiption.
+ * Delete session variable \a name in \a ss.
  *
- * \param ss    parameter \a ss description
- * \param name  parameter \a name description
+ * \param ss    session object
+ * \param name  session variable name
  *  
  * \return
  *  - \c 0  if successful

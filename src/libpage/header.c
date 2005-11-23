@@ -16,13 +16,13 @@
  */
 
 /**
- * \brief   One line description
+ * \brief   Set the value of a field in a header
  *
- * Detailed function descrtiption.
+ * Set the value of field \a name to \a value in header \a h.
  *
- * \param h     parameter \a h description
- * \param name  parameter \a name description
- * \param value parameter \a value description
+ * \param h     header object
+ * \param name  name of the field
+ * \param value value of the field
  *
  * \return
  *  - \c 0  if successful
@@ -48,14 +48,14 @@ err:
 }
 
 /**
- * \brief   One line description
+ * \brief   Clear a header
  *
- * Detailed function descrtiption.
+ * Clear all items in header \a h.
  *
- * \param h    parameter \a h description
+ * \param h    header object
  *
  * \return
- *  - the number of fields found in \a h
+ *  - \c 0 always 
  */
 int header_clear(header_t *h)
 {
@@ -72,11 +72,11 @@ int header_clear(header_t *h)
 }
 
 /**
- * \brief   One line description
+ * \brief   Count fields in a header
  *
- * Detailed function descrtiption.
+ * Return a size_t with the number of fields in header \a h.
  *
- * \param h    parameter \a h description
+ * \param h    header object
  *
  * \return
  *  - the number of fields found in \a h
@@ -87,12 +87,12 @@ size_t header_field_count(header_t *h)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get ith field in a header
  *  
- * Detailed function descrtiption.
+ * Return the field_t at index \a idx in header \a h.
  *
- * \param h    parameter \a h description
- * \param idx  parameter \a idx description
+ * \param h    header object
+ * \param idx  index
  *  
  * \return
  *  - \c NULL  if no field could be found
@@ -116,14 +116,13 @@ field_t* header_get_fieldn(header_t *h, size_t idx)
     return NULL;
 }
 
-
 /** 
- * \brief   One line description
+ * \brief   Get a field given a name
  *  
- * Detailed function descrtiption.
+ * Return a field_t field with \a name in header \a h.
  *
- * \param h     parameter \a h description
- * \param name  parameter \a name description
+ * \param h     header object
+ * \param name  name of the field
  *  
  * \return
  *  - \c NULL if no field could be found
@@ -141,12 +140,12 @@ field_t* header_get_field(header_t *h, const char *name)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get a field given a name as a string
  *  
- * Detailed function descrtiption.
+ * Return a string representation of the field with \a name in header \a h.
  *
- * \param h     parameter \a h description
- * \param name  parameter \a name description
+ * \param h     header object
+ * \param name  name of the field
  *  
  * \return
  *  - \c NULL if no field could be found
@@ -162,12 +161,12 @@ const char* header_get_field_value(header_t *h, const char *name)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Delete a field in a header
  *  
- * Detailed function descrtiption.
+ * Delete a field \a f in header \a h.
  *
- * \param h  parameter \a h description
- * \param f  parameter \a f description
+ * \param h  header object
+ * \param f  field to be deleted
  *  
  * \return
  *  - \c 0  always
@@ -181,12 +180,12 @@ int header_del_field(header_t *h, field_t *f)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Add a field to a header
  *  
- * Detailed function descrtiption.
+ * Add a field \a f to header \a h.
  *
- * \param h  parameter \a h description
- * \param f  parameter \a f description
+ * \param h  header object
+ * \param f  field to be added
  *  
  * \return
  *  - \c 0  always
@@ -226,7 +225,7 @@ err:
     return ~0;
 }
 
-/** 
+/*
  * \brief   One line description
  *  
  * Detailed function descrtiption.
@@ -291,7 +290,7 @@ err:
     return ~0;
 }
 
-/** 
+/*
  * \brief   One line description
  *  
  * Detailed function descrtiption.
@@ -318,7 +317,7 @@ err:
     return ~0;
 }
 
-/** 
+/*
  * \brief   One line description
  *  
  * Detailed function descrtiption.

@@ -18,17 +18,14 @@
  */
 
 /**
- * \brief   One line description
+ * \brief   Get name u_string_t of a variable
  *
- * Detailed function descrtiption.
+ * Return an u_string_t containing the name string of variable \a v.
  *
- * \param name   parameter \a name description
- * \param value  parameter \a value description
- * \param pv     parameter \a pv description
+ * \param v   variable object
  *
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ * \return 
+ *  - the name string of \a v
  */
 u_string_t* var_get_name_s(var_t *v)
 {
@@ -38,17 +35,14 @@ u_string_t* var_get_name_s(var_t *v)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get u_string_t value of a variable
  *
- * Detailed function descrtiption.
+ * Return an u_string_t containing the name string of variable \a v.
  *
- * \param name   parameter \a name description
- * \param value  parameter \a value description
- * \param pv     parameter \a pv description
+ * \param v   variable object
  *
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ * \return 
+ *  - the value string of \a v
  */
 u_string_t* var_get_value_s(var_t *v)
 {
@@ -91,12 +85,8 @@ int var_create(const char* name, const char *value, var_t**pv)
     return var_bin_create(name, value, strlen(value) + 1, pv);
 }
 
-/**
- * \brief   One line description
- *
- * Detailed function descrtiption.
- *
- * \param v  parameter \a v description
+/*
+ * \brief   Free a variable
  *
  * \return
  *  - \c 0  always
@@ -118,11 +108,11 @@ int var_free(var_t *v)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get the name of a variable
  *
- * Detailed function descrtiption.
+ * Return a char* containing the name of variable \a v.
  *
- * \param v  parameter \a v description
+ * \param v  variable object
  *
  * \return
  *  - the name string of the given \a v
@@ -133,11 +123,11 @@ const char* var_get_name(var_t *v)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get the value of a variable
  *
- * Detailed function descrtiption.
+ * Return a char* containing the value of variable \a v.
  *
- * \param v  parameter \a v description
+ * \param v  variable object
  *
  * \return
  *  - the value string of the given \a v
@@ -147,19 +137,29 @@ const char* var_get_value(var_t *v)
     return v->data;
 }
 
+/**
+ * \brief   Get the size of a variable value
+ * 
+ * Return a size_t with the value size of variable \a v.
+ * 
+ * \param v   variable object
+ *
+ * \return 
+ * - the size of the variable value
+ */
 size_t var_get_value_size(var_t *v)
 {
     return v->size;
 }
 
 /** 
- * \brief   One line description
+ * \brief   Set the name and value of a variable
  *  
- * Detailed function descrtiption.
+ * Set variable \a var to \a name and \a value.
  *
- * \param var   parameter \a var description
- * \param name  parameter \a name description
- * \param value parameter \a value description
+ * \param var   variable object
+ * \param name  string name (null-terminated)
+ * \param value string value (null-terminated)
  *  
  * \return
  *  - \c 0  if successful
@@ -177,12 +177,12 @@ err:
 }
 
 /**
- * \brief   One line description
+ * \brief   Set the name of a variable
  *
- * Detailed function descrtiption.
+ * Set the name of variable \a v
  *
- * \param v     parameter \a v description
- * \param name  parameter \a name description
+ * \param v     variable object
+ * \param name  variable name (null-terminated)
  *
  * \return
  *  - \c 0  if successful
@@ -207,13 +207,14 @@ int var_set_value(var_t *v, const char *value)
     return var_set_bin_value(v, value, strlen(value) + 1);
 }
 
-/**
- * \brief   One line description
+/*
+ * \brief   Set binary value of a variable
  *
- * Detailed function descrtiption.
+ * Set binary value of variable \a v.
  *
- * \param v      parameter \a v description
- * \param value  parameter \a value description
+ * \param v      variable object
+ * \param value  value data
+ * \param size   value size
  *
  * \return
  *  - \c 0  if successful

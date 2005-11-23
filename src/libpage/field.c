@@ -16,13 +16,13 @@
  */
 
 /**
- * \brief   One line description
+ * \brief   Set a field
  *
- * Detailed function descrtiption.
+ * Set field \a f to have \a name and \a value.
  *  
- * \param f     parameter \a f description
- * \param name  parameter \a name description
- * \param value parameter \a value description
+ * \param f     field object
+ * \param name  field name
+ * \param value field value
  *      
  * \return
  *  - \c 0  if successful
@@ -57,12 +57,13 @@ err:
 }
 
 /**
- * \brief   One line description
+ * \brief   Set a field from a line
  *
- * Detailed function descrtiption.
+ * Set the name and value of field \a f. Name and value must be separated by 
+ * \e ":".
  * 
- * \param f     parameter \a f description
- * \param ln    parameter \a ln description
+ * \param f     field object
+ * \param ln    line
  *  
  * \return
  *  - \c 0  if successful
@@ -97,14 +98,14 @@ err:
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the name of a field
  *  
- * Detailed function descrtiption.
+ * Return the string value of field \a f.
  *
- * \param f parameter \a f description
+ * \param f field object
  *  
  * \return
- *  - the string corresponding to the field name ...
+ *  - the string corresponding to the field name (null-terminated)
  */
 const char* field_get_name(field_t *f)
 {
@@ -112,14 +113,14 @@ const char* field_get_name(field_t *f)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the value of a field
  *  
- * Detailed function descrtiption.
+ * Return the string value of field \a f.
  *
- * \param f parameter \a f description
+ * \param f field object
  *  
  * \return
- *  - the string corresponding to the field value ...
+ *  - the string corresponding to the field value (null-terminated)
  */
 const char* field_get_value(field_t *f)
 {
@@ -127,13 +128,13 @@ const char* field_get_value(field_t *f)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Create a field
  *  
- * Detailed function descrtiption.
+ * Create a field from \a name and \a value into \a pf.
  *
- * \param name  parameter \a name description
- * \param value parameter \a value description
- * \param pf    parameter \a pf description
+ * \param name  field name
+ * \param value field value
+ * \param pf    address of field pointer
  *  
  * \return
  *  - \c 0  if successful
@@ -162,11 +163,11 @@ err:
 }
 
 /** 
- * \brief   One line description
+ * \brief   Free a field
  *  
- * Detailed function descrtiption.
+ * Free field \a f.
  *
- * \param f parameter \a f description
+ * \param f field object
  *  
  * \return
  *  - \c 0  always
