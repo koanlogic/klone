@@ -5,14 +5,12 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.31 2005/11/23 18:07:14 tho Exp $
+ * $Id: server.c,v 1.32 2005/11/23 18:58:51 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/socket.h>
-#include <netinet/tcp.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
@@ -83,6 +81,8 @@ err:
     return ~0;
 }
 
+
+#ifdef OS_UNIX
 /* remove a child process whose pid is 'pid' to children list */
 static void server_reap_child(server_t *s, pid_t child)
 {
@@ -143,14 +143,28 @@ static void server_signal_childs(server_t *s, int sig)
 
         if(i == SERVER_MAX_CHILD_COUNT)
             return; /* no child found */
-
-        dbg_err_if(s->nchild == 0);
-        s->nchild--; /* decrement child count */
     }
 
     return;
 err:
     dbg_strerror(errno);
+}
+#endif
+
+static void server_term_children(server_t *s)
+{
+    #ifdef OS_UNIX
+    server_signal_childs(s, SIGTERM);
+    #endif
+    return;
+}
+
+static void server_kill_children(server_t *s)
+{
+    #ifdef OS_UNIX
+    server_signal_childs(s, SIGKILL);
+    #endif
+    return;
 }
 
 static void server_sigint(int sig)
@@ -169,6 +183,7 @@ static void server_sigterm(int sig)
         server_stop(ctx->server);
 }
 
+#ifdef OS_UNIX
 static void server_sigchld(int sig)
 {
     server_t *s = ctx->server;
@@ -202,6 +217,7 @@ static void server_waitpid(server_t *s)
 
     u_sig_unblock(SIGCHLD);
 }
+#endif
 
 static void server_recalc_hfd(server_t *s)
 {
@@ -297,6 +313,7 @@ static int server_backend_detach(server_t *s, backend_t *be)
     return 0;
 }
 
+#ifdef OS_UNIX
 static int server_chroot_to(server_t *s, const char *dir)
 {
     dbg_err_if(dir == NULL);
@@ -359,8 +376,10 @@ static int server_chroot_blind(server_t *s)
     }
     /* parent */
 
+    #ifdef OS_UNIX
     /* do chroot */
     dbg_err_if(server_chroot_to(s, dir));
+    #endif
 
     /* do some dir sanity checks */
 
@@ -431,22 +450,6 @@ static int server_drop_privileges(server_t *s)
         dbg_err_if(getuid() != uid || geteuid() != uid);
     }
     
-    return 0;
-err:
-    dbg_strerror(errno);
-    return ~0;
-}
-
-static int cb_term_child(alarm_t *al, void *arg)
-{
-    pid_t child = (int)arg;
-
-    u_unused_args(al);
-    
-    dbg("sending SIGTERM to child [%d]", child);
-
-    dbg_err_if(kill(child, SIGTERM) == -1);
-
     return 0;
 err:
     dbg_strerror(errno);
@@ -562,6 +565,7 @@ static int server_cb_spawn_child(alarm_t *al, void *arg)
 err:
     return ~0;
 }
+#endif
 
 static int server_be_serve(server_t *s, backend_t *be, int ad)
 {
@@ -569,12 +573,14 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
 
     switch(be->model)
     {
+    #ifdef OS_UNIX
     case SERVER_MODEL_FORK:
         /* spawn a child to handle the request */
         dbg_err_if(server_child_serve(s, be, ad));
         break;
 
-    case SERVER_MODEL_PREFORK: /* FIXME lower timeout value needed */
+    case SERVER_MODEL_PREFORK: 
+        /* FIXME lower timeout value needed */
         /* if _serve takes more then 1 second spawn a new worker process */
         dbg_err_if(timerm_add(1, server_cb_spawn_child, (void*)s, &al));
 
@@ -583,6 +589,8 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
 
         /* remove and free the alarm */
         timerm_del(al); /* prefork */
+        break;
+    #endif
 
     case SERVER_MODEL_ITERATIVE:
         /* serve the page */
@@ -744,6 +752,7 @@ int server_cb_klog_flush(alarm_t *a, void *arg)
     return 0;
 }
 
+#ifdef OS_UNIX
 int server_spawn_child(server_t *s, backend_t *be)
 {
     size_t c;
@@ -795,6 +804,7 @@ static int server_spawn_children(server_t *s)
 err:
     return ~0;
 }
+#endif
 
 int server_loop(server_t *s)
 {
@@ -806,6 +816,7 @@ int server_loop(server_t *s)
     
     dbg_err_if(server_listen(s));
 
+    #ifdef OS_UNIX
     /* if it's configured chroot to the dst dir */
     if(s->chroot)
         dbg_err_if(server_chroot(s));
@@ -817,11 +828,14 @@ int server_loop(server_t *s)
     if(!s->allow_root)
         warn_err_ifm(!getuid() || !geteuid() || !getgid() || !getegid(),
             "you must set the allow_root config option to run kloned as root");
+    #endif
 
     for(; !s->stop; )
     {
+        #ifdef OS_UNIX
         /* spawn new child if needed (may fail on resource limits) */
         dbg_if(server_spawn_children(s));
+        #endif
 
         /* children in pre-fork mode exit here */
         if(ctx->pipc)
@@ -840,8 +854,10 @@ int server_loop(server_t *s)
             goto again; /* interrupted */
         dbg_err_if(rc == -1); /* select error */
 
+        #ifdef OS_UNIX
         if(s->reap_childs)
             server_waitpid(s);
+        #endif
 
         /* call klog_flush if flush timeout has expired and select() timeouts */
         if(s->klog_flush && ctx->pipc == NULL)
@@ -881,13 +897,13 @@ int server_loop(server_t *s)
         return 0;
 
     /* shutdown all children */
-    server_signal_childs(s, SIGTERM);
+    server_term_children(s);
 
     sleep(1);
 
     /* brute kill children process */
     if(s->nchild)
-        server_signal_childs(s, SIGKILL);
+        server_kill_children(s);
 
     return 0;
 err:
@@ -1075,8 +1091,10 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
     /* register the log ppc callbacks */
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_NOP, server_ppc_cb_nop, s));
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_LOG_ADD, server_ppc_cb_log_add, s));
+    #ifdef OS_FORK
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_FORK_CHILD, 
         server_ppc_cb_fork_child, s));
+    #endif
 
     /* redirect logs to the server_log_hook function */
     dbg_err_if(u_log_set_hook(server_log_hook, s, NULL, NULL));

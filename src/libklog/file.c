@@ -5,12 +5,11 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: file.c,v 1.15 2005/11/23 18:07:14 tho Exp $
+ * $Id: file.c,v 1.16 2005/11/23 18:58:51 tat Exp $
  */
 
 #include <sys/param.h>
 #include <sys/types.h>
-#include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>

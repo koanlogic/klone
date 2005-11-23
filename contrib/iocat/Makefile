@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2005/10/26 15:24:10 tat Exp $
+# $Id: Makefile,v 1.2 2005/11/23 18:58:51 tat Exp $
 
 include ../../Makefile.conf
 
@@ -19,5 +19,9 @@ LDADD += ../../src/libhttp/libhttp.a        \
          ../../site/libsite.a
 
 LDADD += ../../libu/src/libu.a
+
+ifdef OS_WIN
+LDADD += ${WIN_LDFLAGS}
+endif
 
 include prog.mk

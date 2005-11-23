@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: klog.c,v 1.21 2005/11/23 17:27:01 tho Exp $
+ * $Id: klog.c,v 1.22 2005/11/23 18:58:51 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -69,10 +69,12 @@ int klog_args (u_config_t *ls, klog_args_t **pka)
     if ((cs = u_config_get_subkey_value(ls, "file.splits")) != NULL)
         ka->fsplits = atoi(cs);
 
+    #ifdef HAVE_SYSLOG
     ka->sfacility = 
         klog_facility(u_config_get_subkey_value(ls, "syslog.facility"));
 
     ka->soptions = klog_logopt(u_config_get_subkey_value(ls, "syslog.options"));
+    #endif
 
     dbg_return_if (klog_args_check(ka), ~0);
 
@@ -115,9 +117,11 @@ int klog_open (klog_args_t *ka, klog_t **pkl)
         case KLOG_TYPE_FILE:
             rv = klog_open_file(kl, ka->fbasename, ka->fsplits, ka->flimit);
             break;
+        #ifdef HAVE_SYSLOG
         case KLOG_TYPE_SYSLOG:
             rv = klog_open_syslog(kl, ka->sfacility, ka->soptions);
             break;
+        #endif
         default:
             return ~0;
     }
@@ -376,6 +380,7 @@ static int klog_threshold (const char *threshold)
     return KLOG_LEVEL_UNKNOWN;
 }
 
+#ifdef HAVE_SYSLOG
 /* map threshold directive to the internal representation */
 static int klog_logopt (const char *options)
 {
@@ -410,6 +415,7 @@ err:
     U_FREE(o2);
     return 0;
 }
+#endif
 
 /* map LOG_LOCAL[0-7] strings into syslog(3) #define'd values */
 static int klog_facility (const char *fac)
