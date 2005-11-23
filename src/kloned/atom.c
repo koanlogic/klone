@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: atom.c,v 1.7 2005/11/23 18:07:14 tho Exp $
+ * $Id: atom.c,v 1.8 2005/11/23 23:25:19 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -39,21 +39,16 @@ err:
     return ~0;
 }
 
-int atom_free(atom_t* atom)
+int atom_free(atom_t *atom)
 {
-    dbg_err_if(atom == NULL);
-
-    if(atom->id)
+    if (atom)
+    {
         U_FREE(atom->id);
-
-    if(atom->data)
         U_FREE(atom->data);
-
-    U_FREE(atom);
+        U_FREE(atom);
+    }
 
     return 0;
-err:
-    return ~0;
 }
 
 /* sum of atoms size field */
@@ -164,8 +159,7 @@ int atoms_create(atoms_t **pas)
 
     return 0;
 err:
-    if(as)
-        U_FREE(as);
+    U_FREE(as);
     return ~0;
 }
 

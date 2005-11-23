@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.34 2005/11/23 22:58:11 tat Exp $
+ * $Id: server.c,v 1.35 2005/11/23 23:25:19 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -872,11 +872,7 @@ int server_loop(server_t *s)
             /* reset the flag */
             s->klog_flush = 0; 
 
-            if(s->al_klog_flush)
-            {
-                U_FREE(s->al_klog_flush);
-                s->al_klog_flush = NULL;
-            }
+            U_FREE(s->al_klog_flush);
 
             /* re-set the timer */
             dbg_err_if(timerm_add(SERVER_LOG_FLUSH_TIMEOUT, 
@@ -1178,8 +1174,7 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
 
     return 0;
 err:
-    if(n)
-        U_FREE(n);
+    U_FREE(n);
     if(s)
     {
         server_free(s);
