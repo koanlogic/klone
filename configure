@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.23 2005/11/23 12:03:42 tho Exp $
+# $Id: configure,v 1.24 2005/11/23 12:23:04 tho Exp $
 
 export makl_conf_h=klone_conf.h
 
@@ -38,6 +38,7 @@ makl_pkg_version
 
 # be sure that the libu is installed
 makl_require        "lib"       "u"   "-I`pwd`/libu"  "`pwd`/libu/src/libu.a"
+makl_add_var_mk     "CFLAGS"    "-I`pwd`/libu"
 
 case `makl_os_name` in
 
@@ -63,8 +64,6 @@ makl_add_var_mk "CFLAGS" "-W -Wall -Wpointer-arith -Wno-uninitialized" \
                          "-Wreturn-type -Wcast-qual -Wwrite-strings" \
                          "-Wswitch -Wshadow" \
                          "-DHAVE_CONF_H"
-
-
 
 # Binary dependencies
 makl_optional           1   "featx"  "doxygen"  "PATH_DOXYGEN" 
