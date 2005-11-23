@@ -124,6 +124,27 @@ static int cipher_free(codec_t *codec)
     return 0;
 }
 
+/**
+ *  \addtogroup CODEC
+ *  \{
+ */
+
+/**
+ * \brief   Create a cipher \c codec_t object 
+ *
+ * Create a cipher \c codec_t object at \p *pcc suitable for encryption or
+ * decryption (depending on \p op).  The \p cipher, \p key and \p iv parameters
+ * hold the algorithm, key and initialisation vector respectively, used for
+ * the data transforms.
+ *
+ * \param   op      one of \c CIPHER_ENCRYPT or \c CIPHER_DECRYPT
+ * \param   cipher  an OpenSSL \c EVP_CIPHER object 
+ * \param   key     the encryption/decryption key
+ * \param   iv      the initialisation vector
+ * \param   pcc     the created codec as a value-result arguement
+ *
+ * \return \c 0 on success, \c ~0 otherwise
+ */
 int codec_cipher_create(int op, const EVP_CIPHER *cipher, 
     unsigned char *key, unsigned char *iv, codec_t **pcc)
 {
@@ -177,3 +198,6 @@ err:
     return ~0;
 }
 
+/**
+ *  \}
+ */

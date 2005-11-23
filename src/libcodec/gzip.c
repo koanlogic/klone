@@ -98,6 +98,22 @@ err:
     return ~0;
 }
 
+/**
+ *  \addtogroup CODEC
+ *  \{
+ */
+
+/**
+ * \brief   Create a cipher \c codec_t object 
+ *  
+ * Create a gzip \c codec_t object at \p *piz suitable for compression or
+ * decompression (depending on \p op).  
+ *  
+ * \param   op      one of \c GZIP_COMPRESS or \c GZIP_UNCOMPRESS
+ * \param   piz     the created codec as a value-result arguement
+ *  
+ * \return \c 0 on success, \c ~0 otherwise
+ */
 int codec_gzip_create(int op, codec_t **piz)
 {
     codec_gzip_t *iz = NULL;
@@ -135,6 +151,10 @@ err:
         u_free(iz);
     return ~0;
 }
+
+/**
+ *  \}
+ */
 
 #else /* zlib not found */
 
@@ -201,3 +221,4 @@ err:
 #endif
 
 #endif /* if HAVE_LIBZ */
+

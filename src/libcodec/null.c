@@ -4,6 +4,11 @@
 #include <u/libu.h>
 #include "conf.h"
 
+/**
+ *  \addtogroup CODEC
+ *  \{
+ */
+
 typedef struct codec_null_s
 {
     codec_t codec;
@@ -42,7 +47,15 @@ static int null_free(codec_t *cn)
     return 0;
 }
 
-
+/** 
+ * \brief   Create a cipher \c codec_t object 
+ *      
+ * Create a null \c codec_t object at \p *pcn.
+ *  
+ * \param   pcn     the created codec as a value-result arguement
+ *  
+ * \return \c 0 on success, \c ~0 otherwise
+ */ 
 int codec_null_create(codec_t **pcn)
 {
     codec_null_t *cn = NULL;
@@ -63,3 +76,6 @@ err:
     return ~0;
 }
 
+/**
+ *  \}
+ */
