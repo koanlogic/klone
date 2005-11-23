@@ -1,7 +1,8 @@
 #ifndef _KLONE_IO_PRV_H_
 #define _KLONE_IO_PRV_H_
 
-#include "conf.h"
+#include "klone_conf.h"
+
 #ifdef HAVE_STDINT
 #include <stdint.h>
 #endif /* HAVE_STDINT */

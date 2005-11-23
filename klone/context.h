@@ -5,7 +5,7 @@
 #include <klone/backend.h>
 #include <klone/os.h>
 #include <u/libu.h>
-#include "conf.h"
+#include "klone_conf.h"
 
 /* global applicaton context */
 typedef struct context_s

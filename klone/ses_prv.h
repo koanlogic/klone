@@ -1,5 +1,6 @@
 #ifndef _KLONE_SESPRV_H_
 #define _KLONE_SESPRV_H_
+#include "klone_conf.h"
 #include <klone/session.h>
 #include <klone/request.h>
 #include <klone/response.h>
@@ -8,7 +9,6 @@
 #include <klone/atom.h>
 #include <klone/md5.h>
 #include <u/libu.h>
-#include "conf.h"
 
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/hmac.h>
