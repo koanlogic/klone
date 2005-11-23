@@ -1,6 +1,8 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.19 2005/11/17 15:04:35 stewy Exp $
+# $Id: configure,v 1.20 2005/11/23 11:14:02 tho Exp $
+
+export makl_conf_h=klone_conf.h
 
 # Be sure MAKL_DIR is there.
 # If not found assume MaKL has been embedded in the package.
@@ -20,7 +22,6 @@ fi
 
 # Preprocess arguments
 makl_args_init "$@"
-
 
 # Custom arguments ...
 makl_args_def   "enable_debug"      "" ""   "enables debugging"

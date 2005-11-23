@@ -1,4 +1,4 @@
-/* $Id: tls_glue.c,v 1.6 2005/10/11 14:22:53 tat Exp $ */
+/* $Id: tls_glue.c,v 1.7 2005/11/23 11:14:02 tho Exp $ */
 
 /*
  * This product includes software developed by Ralf S. Engelschall 
@@ -8,7 +8,7 @@
  * for use in the OpenSSL Toolkit (http://www.openssl.org/)"
  */
 
-#include "conf.h"
+#include "klone_conf.h"
 #include <klone/io.h>
 #include <u/libu.h>
 

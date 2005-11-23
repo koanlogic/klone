@@ -8,7 +8,7 @@
 #include <klone/utils.h>
 #include <klone/codecs.h>
 #include <u/libu.h>
-#include "conf.h"
+#include "klone_conf.h"
 
 struct code_block_s;
 

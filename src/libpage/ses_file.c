@@ -11,7 +11,7 @@
 #include <klone/utils.h>
 #include <klone/ses_prv.h>
 #include <u/libu.h>
-#include "conf.h"
+#include "klone_conf.h"
 
 static int session_file_save(session_t *ss)
 {

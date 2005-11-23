@@ -1,4 +1,4 @@
-#include "conf.h"
+#include "klone_conf.h"
 #ifdef HAVE_LIBOPENSSL
 #include <unistd.h>
 #include <klone/io.h>

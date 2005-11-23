@@ -1,4 +1,4 @@
-#include "conf.h"
+#include "klone_conf.h"
 #include <u/libu.h>
 #include <klone/codec.h>
 #include <klone/ccipher.h>

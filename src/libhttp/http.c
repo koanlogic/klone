@@ -1,6 +1,12 @@
+#include "klone_conf.h"
+#include <sys/types.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/types.h>
+#ifdef HAVE_LIBOPENSSL
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#endif  /* HAVE_LIBOPENSSL */
+#include <u/libu.h>
 #include <klone/utils.h>
 #include <klone/klone.h>
 #include <klone/server.h>
@@ -13,14 +19,7 @@
 #include <klone/timer.h>
 #include <klone/tls.h>
 #include <klone/ses_prv.h>
-#include <u/libu.h>
-#include "conf.h"
 #include "http_s.h"
-
-#ifdef HAVE_LIBOPENSSL
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#endif 
 
 struct http_status_map_s
 {

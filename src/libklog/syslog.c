@@ -2,7 +2,7 @@
  * (c)opyright 2005 - KoanLogic S.r.l.
  */
 
-#include "conf.h"
+#include "klone_conf.h"
 #include <time.h>
 #include <u/libu.h>
 #include <klone/klog.h>

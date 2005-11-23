@@ -12,7 +12,7 @@
 #include <klone/context.h>
 #include <klone/utils.h>
 #include <u/libu.h>
-#include "conf.h"
+#include "klone_conf.h"
 #include "main.h"
 #include "server_s.h"
 

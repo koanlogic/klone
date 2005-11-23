@@ -4,7 +4,7 @@
 #include <klone/klone.h>
 #include <klone/server.h>
 #include <klone/os.h>
-#include "conf.h"
+#include "klone_conf.h"
 #include <klone/context.h>
 #include <klone/utils.h>
 #include <u/libu.h>

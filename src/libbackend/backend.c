@@ -4,7 +4,7 @@
 #include <klone/klog.h>
 #include <klone/context.h>
 #include <u/libu.h>
-#include "conf.h"
+#include "klone_conf.h"
 
 extern backend_t be_http;
 

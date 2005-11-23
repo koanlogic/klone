@@ -13,7 +13,7 @@
 #include <klone/ses_prv.h>
 #include <klone/codecs.h>
 #include <u/libu.h>
-#include "conf.h"
+#include "klone_conf.h"
 
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/hmac.h>

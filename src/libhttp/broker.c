@@ -1,7 +1,8 @@
+#include "klone_conf.h"
+#include <u/libu.h>
 #include <klone/supplier.h>
 #include <klone/broker.h>
 #include <klone/request.h>
-#include <u/libu.h>
 
 enum { AVAIL_SUP_COUNT = 2 }; /* number of existing supplier types */
 

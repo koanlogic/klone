@@ -1,4 +1,4 @@
-#include "conf.h"
+#include "klone_conf.h"
 #ifdef HAVE_LIBOPENSSL
 #ifndef HEADER_DH_H
 #include <openssl/dh.h>

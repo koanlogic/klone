@@ -4,7 +4,7 @@
 #include <klone/broker.h>
 #include <klone/ses_prv.h>
 #include <u/libu.h>
-#include "conf.h"
+#include "klone_conf.h"
 
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>

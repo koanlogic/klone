@@ -4,7 +4,7 @@
 #include <klone/io.h>
 #include <klone/ioprv.h>
 #include <u/libu.h>
-#include "conf.h"
+#include "klone_conf.h"
 
 typedef struct io_fd_s
 {

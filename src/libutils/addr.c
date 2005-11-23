@@ -1,4 +1,4 @@
-#include "conf.h"
+#include "klone_conf.h"
 #include <stdlib.h>
 #ifdef HAVE_STDINT
 #include <stdint.h>

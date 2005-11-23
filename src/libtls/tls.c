@@ -1,10 +1,10 @@
-/* $Id: tls.c,v 1.3 2005/10/11 14:22:53 tat Exp $ */
+/* $Id: tls.c,v 1.4 2005/11/23 11:14:02 tho Exp $ */
 
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <strings.h>
-#include "conf.h"
+#include "klone_conf.h"
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
 #include <openssl/rand.h>

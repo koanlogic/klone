@@ -15,7 +15,7 @@
 #include <klone/mime_map.h>
 #include <klone/version.h>
 #include <u/libu.h>
-#include "conf.h"
+#include "klone_conf.h"
 
 int facility = LOG_LOCAL0;
 

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2005/10/04 10:27:57 stewy Exp $
+# $Id: Makefile,v 1.6 2005/11/23 11:14:02 tho Exp $
 include ../../Makefile.conf
 
 LIB = tls
@@ -11,7 +11,7 @@ endif
 include lib.mk
 
 #tls_dh_autogen.c:
-#	echo "#include "conf.h"" > $@
+#	echo "#include "klone_conf.h"" > $@
 #	echo "#ifdef HAVE_LIBOPENSSL" >> $@
 #	openssl dhparam 1024 -C -noout >> $@
 #	echo "#endif" >> $@
