@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: rsfilter.c,v 1.9 2005/11/23 18:07:14 tho Exp $
+ * $Id: rsfilter.c,v 1.10 2005/11/23 23:38:38 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -190,7 +190,6 @@ int response_filter_create(response_t *rs, codec_t **prf)
 
     return 0;
 err:
-    if(rf)
-        U_FREE(rf);
+    U_FREE(rf);
     return ~0;
 }

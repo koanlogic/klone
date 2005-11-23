@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_mem.c,v 1.21 2005/11/23 18:07:14 tho Exp $
+ * $Id: ses_mem.c,v 1.22 2005/11/23 23:38:38 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -297,8 +297,7 @@ static int session_mem_add(session_opt_t *so, const char *filename, char *buf,
 
     return 0;
 err:
-    if(esm)
-        U_FREE(esm);
+    U_FREE(esm);
     if(atom)
         atom_free(atom);
     return ~0;
@@ -320,8 +319,7 @@ static int session_mem_save(session_t *ss)
 
     return 0;
 err:
-    if(buf)
-        U_FREE(buf);
+    U_FREE(buf);
     return ~0;
 }
 

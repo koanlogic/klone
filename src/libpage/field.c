@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: field.c,v 1.7 2005/11/23 18:07:14 tho Exp $
+ * $Id: field.c,v 1.8 2005/11/23 23:38:38 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -44,21 +44,17 @@ int field_set(field_t* f, const char *name, const char *value)
     v = u_strdup(value);
     dbg_err_if(v == NULL);
 
-    if(f->name)
-        U_FREE(f->name);
-
-    if(f->value)
-        U_FREE(f->value);
+    U_FREE(f->name);
+    U_FREE(f->value);
 
     f->name = n;
     f->value = v;
 
     return 0;
 err:
-    if(n)
-        U_FREE(n);
-    if(v)
-        U_FREE(v);
+    U_FREE(n);
+    U_FREE(v);
+
     return ~0;
 }
 
@@ -93,13 +89,11 @@ int field_set_from_line(field_t* f, const char *ln)
 
     dbg_err_if(field_set(f, name, p));
 
-    if(name)
-        U_FREE(name);
+    U_FREE(name);
 
     return 0;
 err:
-    if(name)
-        U_FREE(name);
+    U_FREE(name);
     return ~0;
 }
 
@@ -182,10 +176,8 @@ int field_free(field_t *f)
 {
     if(f)
     {
-        if(f->name)
-            U_FREE(f->name);
-        if(f->value)
-            U_FREE(f->value);
+        U_FREE(f->name);
+        U_FREE(f->value);
         U_FREE(f);
     }
 

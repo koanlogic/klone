@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.15 2005/11/23 18:07:14 tho Exp $
+ * $Id: request.c,v 1.16 2005/11/23 23:38:38 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -49,11 +49,7 @@ struct request_s
 
 #define REQUEST_SET_STRING_FIELD(lval, rval)        \
     do {                                            \
-        if(lval)                                    \
-        {                                           \
-            U_FREE(lval);                           \
-            lval = NULL;                            \
-        }                                           \
+        U_FREE(lval);                               \
         if(rval)                                    \
         {                                           \
             lval = u_strdup(rval);                  \
@@ -104,8 +100,7 @@ int request_is_encoding_accepted(request_t *rq, const char *encoding)
 
     return rc;
 err:
-    if(buf)
-        U_FREE(buf);
+    U_FREE(buf);
     return 0;
 }
 
@@ -532,8 +527,7 @@ int request_set_uri(request_t *rq, const char *uri,
 
     return 0;
 err:
-    if(cp)
-        U_FREE(cp);
+    U_FREE(cp);
     return ~0;
 }
 
@@ -638,8 +632,7 @@ static int request_parse_args(request_t *rq)
 
     return 0;
 err:
-    if(query)
-        U_FREE(query);
+    U_FREE(query);
     return ~0;
 }
 
