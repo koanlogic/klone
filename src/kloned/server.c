@@ -1,11 +1,13 @@
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <fcntl.h>
+#include "klone_conf.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <netinet/tcp.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <u/libu.h>
 #include <klone/server.h>
 #include <klone/backend.h>
 #include <klone/os.h>
@@ -16,7 +18,6 @@
 #include <klone/addr.h>
 #include <klone/utils.h>
 #include <klone/klog.h>
-#include <u/libu.h>
 #include "server_s.h"
 #include "server_ppc_cmd.h"
 

@@ -1,5 +1,6 @@
-#include <klone/ppc.h>
+#include "klone_conf.h"
 #include <u/libu.h>
+#include <klone/ppc.h>
 
 typedef struct ppc_header_s
 {

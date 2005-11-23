@@ -1,6 +1,7 @@
+#include "klone_conf.h"
+#include <u/libu.h>
 #include <klone/utils.h>
 #include <klone/atom.h>
-#include <u/libu.h>
 
 int atom_create(const char *id, const char *data, size_t size, void* arg, 
     atom_t **patom)
