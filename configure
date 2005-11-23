@@ -1,6 +1,8 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.21 2005/11/23 11:42:38 tho Exp $
+# $Id: configure,v 1.22 2005/11/23 11:52:50 tat Exp $
+
+export makl_conf_h=klone_conf.h
 
 export makl_conf_h=klone_conf.h
 
@@ -42,27 +44,25 @@ makl_add_var_mk     "CFLAGS"    "-I`pwd`" "-I`pwd`/libu"
 
 case `makl_os_name` in
 
-    *-*-mingw*)
+    *mingw* | *MINGW*)
         makl_set_var_h      "OS_WIN"
-        makl_set_var_h      "CONFIG_SERVER_MODEL"   "CONFIG_SERVER_THREAD"
         makl_add_var_mk     "LIBS"      "-lwsock32 -L/c/WINDOWS" 
         ;;
 
     freebsd4*)
         makl_set_var_h      "OS_UNIX"
-        makl_set_var_h      "CONFIG_SERVER_MODEL"   "CONFIG_SERVER_FORK"
         makl_require        "lib"       "openssl"   ""  "-lssl -lcrypto"
         ;;
 
     *)
         makl_set_var_h      "OS_UNIX"
-        makl_set_var_h      "CONFIG_SERVER_MODEL"   "CONFIG_SERVER_FORK"
         makl_require        "lib"       "openssl"   ""  "-lssl -lcrypto"
         makl_checkheader    1           "stdint"    "<stdint.h>"
         ;;
 esac
 
 makl_add_var_mk "CFLAGS" "-W -Wall -Wpointer-arith -Wno-uninitialized" \
+                         "-I`pwd`" \
                          "-Wreturn-type -Wcast-qual -Wwrite-strings" \
                          "-Wswitch -Wshadow" \
                          "-DHAVE_CONF_H"
@@ -76,12 +76,7 @@ makl_optional           1   "featx"  "doxygen"  "PATH_DOXYGEN"
 makl_optional           1   "lib"       "z"  
 
 # Function dependencies
-makl_checktype          1   "pid_t"     "<sys/types.h>" 
-makl_checkfunc          1   "getpid"
-makl_checkfunc          1   "unlink"
-makl_checkfunc          1   "strtok_r"
-makl_checkfunc          1   "syslog"
-makl_func_strerror_r    1
+makl_checktype          0   "pid_t"     "<sys/types.h>" 
 
 # Handle command-line arguments
 makl_args_handle "$@"
