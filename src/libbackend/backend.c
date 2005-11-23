@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: backend.c,v 1.16 2005/11/23 18:07:14 tho Exp $
+ * $Id: backend.c,v 1.17 2005/11/23 18:15:10 tho Exp $
  */
 
 #include <unistd.h>
@@ -24,14 +24,17 @@ extern backend_t be_https;
 
 backend_t *backend_list[] = { 
     &be_http, 
-    #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
     &be_https, 
-    #endif
+#endif
     0 };
 
 
 static int backend_set_model(backend_t *be, const char *v)
 {
+    dbg_return_if (v == NULL, ~0);
+    dbg_return_if (be == NULL, ~0);
+
     if(!strcasecmp(v, "fork"))
         be->model = SERVER_MODEL_FORK;
     else if(!strcasecmp(v, "iterative"))
@@ -51,6 +54,10 @@ int backend_create(const char *proto, u_config_t *config, backend_t **pbe)
     backend_t *be = NULL, **pp;
     const char *v;
 
+    dbg_return_if (proto == NULL, ~0);
+    dbg_return_if (config == NULL, ~0);
+    dbg_return_if (pbe == NULL, ~0);
+    
     be = u_zalloc(sizeof(backend_t));
     dbg_err_if(be == NULL);
 
@@ -103,13 +110,15 @@ int backend_create(const char *proto, u_config_t *config, backend_t **pbe)
 
     return 0;
 err:
-    if(be)
-        U_FREE(be);
+    U_FREE(be);
     return ~0;
 }
 
 int backend_serve(backend_t *be, int fd)
 {
+    dbg_return_if (be == NULL, ~0);
+    dbg_return_if (fd < 0, ~0);
+    
     dbg_err_if(be->cb_serve == NULL);
 
     be->cb_serve(be, fd);
