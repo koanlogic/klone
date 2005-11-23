@@ -4,7 +4,11 @@
 #include <u/libu.h>
 #include "conf.h"
 
-#ifdef HAVE_LIBZ
+/**
+ *  \addtogroup CODEC
+ *  \{
+ */
+
 #include <zlib.h>
 
 typedef struct codec_gzip_s
@@ -15,7 +19,7 @@ typedef struct codec_gzip_s
     z_stream zstr;              /* zlib internal structure          */
     int (*op)(z_streamp, int);  /* inflate or deflate               */
     int (*opEnd)(z_streamp);    /* inflateEnd or deflateEnd         */
-    char dummy;                 /* ZLIB < 1.2 workaround dunny byte */
+    char dummy;                 /* ZLIB < 1.2 workaround dummy byte */
 } codec_gzip_t;
 
 static ssize_t gzip_flush(codec_t *codec, char *dst, size_t *dcount)
@@ -99,11 +103,6 @@ err:
 }
 
 /**
- *  \addtogroup CODEC
- *  \{
- */
-
-/**
  * \brief   Create a cipher \c codec_t object 
  *  
  * Create a gzip \c codec_t object at \p *piz suitable for compression or
@@ -155,70 +154,3 @@ err:
 /**
  *  \}
  */
-
-#else /* zlib not found */
-
-#if 0
-typedef struct codec_gzip_s
-{
-    codec_t codec;
-} codec_gzip_t;
-
-static ssize_t gzip_flush(codec_t *iz, char *dst, size_t *dcount)
-{
-    u_unused_args(iz, dst);
-    *dcount = 0;
-    return CODEC_FLUSH_COMPLETE;
-}
-
-static ssize_t gzip_transform(codec_t *iz, char *dst, size_t *dcount, 
-        const char *src, size_t src_sz)
-{
-    ssize_t wr;
-    
-    dbg_err_if(src == NULL || dst == NULL || *dcount == 0 || src_sz == 0);
-
-    u_unused_args(iz);
-
-    wr = MIN(src_sz, *dcount); 
-    memcpy(dst, src, wr);
-    *dcount = wr;
-
-    dbg_err_if(wr == 0);
-    return wr;
-err:
-    return -1;
-}
-
-static int gzip_free(codec_t *iz)
-{
-    u_free(iz);
-
-    return 0;
-}
-
-int codec_gzip_create(int op, codec_t **piz)
-{
-    codec_gzip_t *iz = NULL;
-
-    u_unused_args(op);
-
-    iz = u_zalloc(sizeof(codec_gzip_t));
-    dbg_err_if(iz == NULL);
-
-    iz->codec.transform = gzip_transform;
-    iz->codec.flush = gzip_flush;
-    iz->codec.free = gzip_free;
-
-    *piz = (codec_t*)iz;
-
-    return 0;
-err:
-    if(iz)
-        u_free(iz);
-    return ~0;
-}
-#endif
-
-#endif /* if HAVE_LIBZ */
-
