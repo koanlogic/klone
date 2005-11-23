@@ -1,6 +1,8 @@
+#include "klone_conf.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <u/libu.h>
 #include <klone/supplier.h>
 #include <klone/io.h>
 #include <klone/page.h>
@@ -9,7 +11,6 @@
 #include <klone/codecs.h>
 #include <klone/ses_prv.h>
 #include <klone/rsfilter.h>
-#include <u/libu.h>
 #include "http_s.h"
 
 static int supemb_is_valid_uri(const char* uri, size_t len, time_t *mtime)

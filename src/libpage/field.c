@@ -1,3 +1,4 @@
+#include "klone_conf.h"
 #include <string.h>
 #include <klone/field.h>
 #include <klone/utils.h>

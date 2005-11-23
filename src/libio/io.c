@@ -1,10 +1,10 @@
+#include "klone_conf.h"
 #include <unistd.h>
+#include <u/libu.h>
 #include <klone/io.h>
 #include <klone/io.h>
 #include <klone/ioprv.h>
 #include <klone/codec.h>
-
-#include <u/libu.h>
 
 enum { 
     IO_RD_BUFSZ = 4096, 
@@ -482,7 +482,7 @@ err:
 ssize_t io_read(io_t *io, char *buf, size_t size)
 {
     char *out = buf;
-    size_t sz, wr;
+    size_t wr;
     ssize_t c;
 
     if(io->eof)

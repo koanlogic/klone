@@ -1,8 +1,9 @@
+#include "klone_conf.h"
 #include <unistd.h>
+#include <u/libu.h>
 #include <klone/io.h>
 #include <klone/io.h>
 #include <klone/ioprv.h>
-#include <u/libu.h>
 
 typedef struct
 {
@@ -100,7 +101,7 @@ int io_mem_create(char *buf, size_t size, int flags, io_t **pio)
     return 0;
 err:
     if(im)
-        io_free(im);
+        io_free((io_t *)im);
     return ~0;
 }
 

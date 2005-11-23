@@ -1,11 +1,12 @@
+#include "klone_conf.h"
 #include <time.h>
+#include <u/libu.h>
 #include <klone/response.h>
 #include <klone/utils.h>
 #include <klone/io.h>
 #include <klone/codec.h>
 #include <klone/http.h>
 #include <klone/rsfilter.h>
-#include <u/libu.h>
 
 struct response_s
 {
@@ -15,7 +16,6 @@ struct response_s
     int status;             /* http status code         */
     int method;             /* HTTP request method      */
 };
-
 
 /** 
  *  \ingroup Vhttp

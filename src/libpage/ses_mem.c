@@ -1,9 +1,11 @@
-#include <stdlib.h>
-#include <time.h>
+#include "klone_conf.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <u/libu.h>
 #include <klone/session.h>
 #include <klone/request.h>
 #include <klone/context.h>
@@ -14,7 +16,6 @@
 #include <klone/ses_prv.h>
 #include <klone/ppc.h>
 #include <klone/ppc_cmd.h>
-#include <u/libu.h>
 
 enum { SESSION_FILENAME_MAX_LENGTH = 256 };
 

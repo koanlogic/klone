@@ -1,10 +1,18 @@
-#include <stdlib.h>
-#include <time.h>
+#include "klone_conf.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
+#ifdef HAVE_LIBOPENSSL
+#include <openssl/hmac.h>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
+#include <klone/ccipher.h>
+#endif /* HAVE_LIBOPENSSL */
+#include <u/libu.h>
 #include <klone/session.h>
 #include <klone/request.h>
 #include <klone/response.h>
@@ -12,15 +20,6 @@
 #include <klone/utils.h>
 #include <klone/ses_prv.h>
 #include <klone/codecs.h>
-#include <u/libu.h>
-#include "klone_conf.h"
-
-#ifdef HAVE_LIBOPENSSL
-#include <openssl/hmac.h>
-#include <openssl/evp.h>
-#include <openssl/rand.h>
-#include <klone/ccipher.h>
-#endif
 
 enum { DEFAULT_SESSION_EXPIRATION = 60*20 }; /* 20 minutes */
 static const char SID_NAME[] = "klone_sid";

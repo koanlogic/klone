@@ -1,6 +1,7 @@
-#ifndef _KLONE_CODEC_CIPHER_H__
-#define _KLONE_CODEC_CIPHER_H__
-#include "conf.h"
+#ifndef _KLONE_CODEC_CIPHER_H_
+#define _KLONE_CODEC_CIPHER_H_
+#include "klone_conf.h"
+#include <klone/codec.h>
 
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/evp.h>
@@ -25,6 +26,6 @@ enum {
     CODEC_CIPHER_BLOCK_SIZE = 0
 };
 
-#endif
+#endif /* HAVE_LIBOPENSSL */
 
-#endif
+#endif /* !_KLONE_CODEC_CIPHER_H_ */

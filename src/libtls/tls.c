@@ -1,18 +1,18 @@
-/* $Id: tls.c,v 1.4 2005/11/23 11:14:02 tho Exp $ */
+/* $Id: tls.c,v 1.5 2005/11/23 11:42:38 tho Exp $ */
 
+#include "klone_conf.h"
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <strings.h>
-#include "klone_conf.h"
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
+#include <u/libu.h>
 #include <klone/tls.h>
 #include <klone/utils.h>
 #include <klone/tlsprv.h>
-#include <u/libu.h>
 
 static int tls_sid = 1;
 static int tls_inited = 0; 

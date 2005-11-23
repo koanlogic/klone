@@ -1,6 +1,8 @@
 /*
  * (c)opyright 2005 - KoanLogic S.r.l.
  */
+
+#include "klone_conf.h"
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/mman.h>

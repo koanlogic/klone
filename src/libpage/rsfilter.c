@@ -1,4 +1,6 @@
+#include "klone_conf.h"
 #include <time.h>
+#include <u/libu.h>
 #include <klone/response.h>
 #include <klone/utils.h>
 #include <klone/io.h>
@@ -6,7 +8,6 @@
 #include <klone/http.h>
 #include <klone/response.h>
 #include <klone/rsfilter.h>
-#include <u/libu.h>
 
 /* this filter prints the HTTP header before any body part of the web page. 
  * the first RFBUFSZ bytes (at most) of the response will be buffered to 

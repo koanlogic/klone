@@ -1,12 +1,13 @@
+#include "klone_conf.h"
 #include <stdlib.h>
 #include <string.h>
+#include <u/libu.h>
 #include <klone/request.h>
 #include <klone/utils.h>
 #include <klone/io.h>
 #include <klone/http.h>
 #include <klone/addr.h>
 #include <klone/vars.h>
-#include <u/libu.h>
 
 struct request_s
 {

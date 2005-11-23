@@ -336,7 +336,7 @@ static int cb_code_block(parser_t* p, int cmd, void *arg, const char* buf,
     size_t sz)
 {
     lang_c_ctx_t *ctx = (lang_c_ctx_t *)arg;
-    trans_info_t *ti = ctx->ti;
+    //trans_info_t *ti = ctx->ti;
 
 	switch(cmd)
 	{

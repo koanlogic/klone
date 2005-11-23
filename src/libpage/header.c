@@ -1,8 +1,8 @@
+#include "klone_conf.h"
+#include <u/libu.h>
 #include <klone/klone.h>
 #include <klone/header.h>
 #include <klone/utils.h>
-#include <u/libu.h>
-
 
 /** 
  *  \ingroup Chttp
@@ -14,7 +14,6 @@
  *          \{
  *              \par
  */
-
 
 /**
  * \brief   One line description

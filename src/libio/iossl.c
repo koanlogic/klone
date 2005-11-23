@@ -1,12 +1,10 @@
 #include "klone_conf.h"
-#ifdef HAVE_LIBOPENSSL
 #include <unistd.h>
 #include <klone/io.h>
 #include <klone/ioprv.h>
 #include <u/libu.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-
 
 typedef struct io_ssl_s
 {
@@ -103,9 +101,6 @@ err:
         SSL_set_shutdown(io_ssl->ssl, SSL_SENT_SHUTDOWN|SSL_RECEIVED_SHUTDOWN);
     }
     if(io_ssl)
-        io_free(io_ssl);
+        io_free((io_t *)io_ssl);
     return ~0;
 }
-
-#endif
-

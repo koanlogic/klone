@@ -1,9 +1,10 @@
-#include <stdlib.h>
+#include "klone_conf.h"
 #include <sys/types.h>
+#include <stdlib.h>
+#include <u/libu.h>
 #include <klone/vars.h>
 #include <klone/varprv.h>
 #include <klone/utils.h>
-#include <u/libu.h>
 
 TAILQ_HEAD(var_list_s, var_s);
 

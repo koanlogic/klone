@@ -40,7 +40,6 @@ int backend_create(const char *proto, u_config_t *config, backend_t **pbe)
 {
     backend_t *be = NULL, **pp;
     const char *v;
-    int vi;
 
     be = u_zalloc(sizeof(backend_t));
     dbg_err_if(be == NULL);
@@ -64,23 +63,23 @@ int backend_create(const char *proto, u_config_t *config, backend_t **pbe)
     {
         /* max # of child allowed to run at once */
         dbg_err_if(u_config_get_subkey_value_i(config, "fork.max_child", 
-            SERVER_MAX_CHILD, &be->max_child));
+            SERVER_MAX_CHILD, (int *)&be->max_child));
     }
 
     if(be->model == SERVER_MODEL_PREFORK)
     {
         /* max # of child allowed to run at once */
         dbg_err_if(u_config_get_subkey_value_i(config, "prefork.max_child", 
-            SERVER_MAX_CHILD, &be->max_child));
+            SERVER_MAX_CHILD, (int *)&be->max_child));
         
         /* # of child to run at startup */
         dbg_err_if(u_config_get_subkey_value_i(config, "prefork.start_child", 
-            SERVER_PREFORK_START_CHILD, &be->start_child));
+            SERVER_PREFORK_START_CHILD, (int *)&be->start_child));
 
         /* max # of requests a child process will handle before it dies */
         dbg_err_if(u_config_get_subkey_value_i(config, 
             "prefork.max_requests_per_child", SERVER_PREFORK_MAX_RQ_CHILD, 
-            &be->max_rq_xchild));
+            (int *)&be->max_rq_xchild));
 
         /* set start_child child to be forked when possible */
         be->fork_child = be->start_child;
