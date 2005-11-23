@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: cipher.c,v 1.6 2005/11/23 17:44:16 stewy Exp $
+ * $Id: cipher.c,v 1.7 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -127,9 +127,9 @@ static int cipher_free(codec_t *codec)
     /* EVP_CIPHER_CTX_cleanup(&cc->cipher_ctx); Final_ex already clean the ctx*/
 
     if(cc->cbuf)
-        u_free(cc->cbuf);
+        U_FREE(cc->cbuf);
 
-    u_free(cc);
+    U_FREE(cc);
 
     return 0;
 }
@@ -204,7 +204,7 @@ int codec_cipher_create(int op, const EVP_CIPHER *cipher,
     return 0;
 err:
     if(cc)
-        u_free(cc);
+        U_FREE(cc);
     return ~0;
 }
 

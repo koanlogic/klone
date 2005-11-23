@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_mem.c,v 1.20 2005/11/23 17:27:02 tho Exp $
+ * $Id: ses_mem.c,v 1.21 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -244,14 +244,14 @@ static int session_cmd_get(ppc_t *ppc, int fd, unsigned char cmd, char *data,
         esm_size) <= 0);
 
     if(esm && esm != (void*)buf)
-        u_free(esm);
+        U_FREE(esm);
 
     return 0;
 err:
     if(ppc)
         ppc_write(ppc, fd, PPC_CMD_RESPONSE_ERROR, (char*)"", 1);
     if(esm && esm != (void*)buf)
-        u_free(esm);
+        U_FREE(esm);
     return ~0;
 }
 
@@ -285,7 +285,7 @@ static int session_mem_add(session_opt_t *so, const char *filename, char *buf,
         dbg_err_if(ppc_write(ppc, ctx->pipc, PPC_CMD_MSES_SAVE, 
             (char*)esm, esize) < 0);
 
-        u_free(esm);
+        U_FREE(esm);
 
         /* add it to the local copy of atom list */
         dbg_err_if(so_atom_add(so, filename, buf, size, (void*)mtime));
@@ -298,7 +298,7 @@ static int session_mem_add(session_opt_t *so, const char *filename, char *buf,
     return 0;
 err:
     if(esm)
-        u_free(esm);
+        U_FREE(esm);
     if(atom)
         atom_free(atom);
     return ~0;
@@ -316,12 +316,12 @@ static int session_mem_save(session_t *ss)
     /* add the session to the in-memory session list */
     dbg_err_if(session_mem_add(ss->so, ss->filename, buf, sz, time(0)));
 
-    u_free(buf);
+    U_FREE(buf);
 
     return 0;
 err:
     if(buf)
-        u_free(buf);
+        U_FREE(buf);
     return ~0;
 }
 

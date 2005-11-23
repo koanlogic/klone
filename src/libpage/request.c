@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.14 2005/11/23 18:04:06 tho Exp $
+ * $Id: request.c,v 1.15 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -51,7 +51,7 @@ struct request_s
     do {                                            \
         if(lval)                                    \
         {                                           \
-            u_free(lval);                           \
+            U_FREE(lval);                           \
             lval = NULL;                            \
         }                                           \
         if(rval)                                    \
@@ -99,13 +99,13 @@ int request_is_encoding_accepted(request_t *rq, const char *encoding)
             }
         }
 
-        u_free(buf);
+        U_FREE(buf);
     }
 
     return rc;
 err:
     if(buf)
-        u_free(buf);
+        U_FREE(buf);
     return 0;
 }
 
@@ -528,12 +528,12 @@ int request_set_uri(request_t *rq, const char *uri,
         }
     }
 
-    u_free(cp);
+    U_FREE(cp);
 
     return 0;
 err:
     if(cp)
-        u_free(cp);
+        U_FREE(cp);
     return ~0;
 }
 
@@ -634,12 +634,12 @@ static int request_parse_args(request_t *rq)
         dbg_err_if(vars_add_urlvar(rq->args, tok, NULL));
     }
 
-    u_free(query);
+    U_FREE(query);
 
     return 0;
 err:
     if(query)
-        u_free(query);
+        U_FREE(query);
     return ~0;
 }
 
@@ -877,7 +877,7 @@ int request_free(request_t *rq)
     if(rq->args)
         vars_free(rq->args);
 
-    u_free(rq);
+    U_FREE(rq);
 
     return 0;
 }

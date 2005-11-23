@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: gzip.c,v 1.20 2005/11/23 17:44:16 stewy Exp $
+ * $Id: gzip.c,v 1.21 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -104,7 +104,7 @@ static int gzip_free(codec_t *codec)
 
     dbg_err_if((err = iz->opEnd(&iz->zstr)) != Z_OK);
 
-    u_free(iz);
+    U_FREE(iz);
 
     return 0;
 err:
@@ -157,7 +157,7 @@ int codec_gzip_create(int op, codec_t **piz)
     return 0;
 err:
     if(iz)
-        u_free(iz);
+        U_FREE(iz);
     return ~0;
 }
 

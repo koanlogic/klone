@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: broker.c,v 1.6 2005/11/23 17:27:01 tho Exp $
+ * $Id: broker.c,v 1.7 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -113,7 +113,7 @@ int broker_free(broker_t *b)
         b->sup_list[i]->term();
 
     if(b)
-        u_free(b);
+        U_FREE(b);
 
     return 0;
 }

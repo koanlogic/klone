@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: codec.c,v 1.6 2005/11/23 17:44:16 stewy Exp $
+ * $Id: codec.c,v 1.7 2005/11/23 18:07:14 tho Exp $
  */
 
 #include <klone/codec.h>
@@ -32,7 +32,7 @@ int codec_free(codec_t *codec)
         if(codec->free)
             codec->free(codec);
         else
-            u_free(codec);
+            U_FREE(codec);
     }
     return 0;
 }

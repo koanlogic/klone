@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: addr.c,v 1.9 2005/11/23 17:27:02 tho Exp $
+ * $Id: addr.c,v 1.10 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -19,7 +19,7 @@
 
 int addr_free(addr_t *a)
 {
-    u_free(a);
+    U_FREE(a);
     return 0;
 }
 

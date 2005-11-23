@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.12 2005/11/23 17:44:16 stewy Exp $
+ * $Id: vars.c,v 1.13 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -105,7 +105,7 @@ int vars_free(vars_t *vs)
             vars_del(vs, v);
             var_free(v);
         }
-        u_free(vs);
+        U_FREE(vs);
     }
 
     return 0;
@@ -252,23 +252,23 @@ int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **v)
 
     /* if the buffer has been alloc'd on the heap then free it */
     if(value && value != svalue)
-        u_free(value);
+        U_FREE(value);
 
     if(name && name != sname)
-        u_free(name);
+        U_FREE(name);
 
-    u_free(str);
+    U_FREE(str);
 
     return 0;
 err:
     if(value && value != svalue)
-        u_free(value);
+        U_FREE(value);
     if(name && name != sname)
-        u_free(name);
+        U_FREE(name);
     if(cstr)
         dbg("%s", cstr);
     if(str)
-        u_free(str);
+        U_FREE(str);
     if(var)
         var_free(var);
     return ~0;
@@ -304,7 +304,7 @@ int vars_add_strvar(vars_t *vs, const char *str)
     /* create a new var obj */
     dbg_err_if(var_create(dups, eq+1, &var));
 
-    u_free(dups);
+    U_FREE(dups);
 
     /* push into the cookie list */
     dbg_err_if(vars_add(vs, var));
@@ -312,7 +312,7 @@ int vars_add_strvar(vars_t *vs, const char *str)
     return 0;
 err:
     if(dups)
-        u_free(dups);
+        U_FREE(dups);
     if(var)
         var_free(var);
     return ~0;

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: backend.c,v 1.15 2005/11/23 17:27:01 tho Exp $
+ * $Id: backend.c,v 1.16 2005/11/23 18:07:14 tho Exp $
  */
 
 #include <unistd.h>
@@ -104,7 +104,7 @@ int backend_create(const char *proto, u_config_t *config, backend_t **pbe)
     return 0;
 err:
     if(be)
-        u_free(be);
+        U_FREE(be);
     return ~0;
 }
 
@@ -128,7 +128,7 @@ int backend_free(backend_t *be)
             klog_close(be->klog);
         if(be->cb_term)
             be->cb_term(be);
-        u_free(be);
+        U_FREE(be);
     }
     return 0;
 }

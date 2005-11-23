@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: timer.c,v 1.6 2005/11/23 17:27:02 tho Exp $
+ * $Id: timer.c,v 1.7 2005/11/23 18:07:14 tho Exp $
  */
 
 #include <time.h>
@@ -95,7 +95,7 @@ static int timerm_free(timerm_t *t)
         while((a = TAILQ_FIRST(&t->alist)) != NULL)
             dbg_if(timerm_del(a));
 
-        u_free(t);
+        U_FREE(t);
     }
 
     return 0;
@@ -170,7 +170,7 @@ err:
         timer = NULL;
     }
     if(al)
-        u_free(al);
+        U_FREE(al);
 
     u_sig_unblock(SIGALRM);
 
@@ -190,7 +190,7 @@ int timerm_del(alarm_t *a)
 
     dbg_if(u_sig_unblock(SIGALRM));
 
-    u_free(a);
+    U_FREE(a);
 
     return 0;
 err:

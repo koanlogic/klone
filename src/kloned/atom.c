@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: atom.c,v 1.6 2005/11/23 17:27:01 tho Exp $
+ * $Id: atom.c,v 1.7 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -44,12 +44,12 @@ int atom_free(atom_t* atom)
     dbg_err_if(atom == NULL);
 
     if(atom->id)
-        u_free(atom->id);
+        U_FREE(atom->id);
 
     if(atom->data)
-        u_free(atom->data);
+        U_FREE(atom->data);
 
-    u_free(atom);
+    U_FREE(atom);
 
     return 0;
 err:
@@ -165,7 +165,7 @@ int atoms_create(atoms_t **pas)
     return 0;
 err:
     if(as)
-        u_free(as);
+        U_FREE(as);
     return ~0;
 }
 
@@ -183,7 +183,7 @@ int atoms_free(atoms_t *as)
         dbg_err_if(atoms_remove(as, atom));
     }
 
-    u_free(as);
+    U_FREE(as);
 
     return 0;
 err:

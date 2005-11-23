@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.27 2005/11/23 17:44:16 stewy Exp $
+ * $Id: session.c,v 1.28 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -43,7 +43,7 @@ typedef struct save_cb_params_s
 int session_module_term(session_opt_t *so)
 {
     if(so)
-        u_free(so);
+        U_FREE(so);
 
     return 0;
 }
@@ -137,7 +137,7 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     return 0;
 err:
     if(so)
-        u_free(so);
+        U_FREE(so);
     return ~0;
 }
 
@@ -225,7 +225,7 @@ err:
     if(io)
         io_free(io);
     if(buf)
-        u_free(buf);
+        U_FREE(buf);
     return ~0;
 }
 
@@ -454,7 +454,7 @@ int session_free(session_t *ss)
     if(ss->vars)
         vars_free(ss->vars);
 
-    u_free(ss);
+    U_FREE(ss);
 
     return 0;
 }
@@ -710,10 +710,10 @@ int session_prv_save_var(var_t *v, void *vp)
 err:
     /* free heap buffers */
     if(uname && uname != sname)
-        u_free(uname);
+        U_FREE(uname);
 
     if(uvalue && uvalue != svalue)
-        u_free(uvalue);
+        U_FREE(uvalue);
 
     return rc;
 }

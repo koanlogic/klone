@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.18 2005/11/23 17:27:02 tho Exp $
+ * $Id: trans_c.c,v 1.19 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -47,10 +47,10 @@ static void free_code_block(code_block_t *node)
     {
         if(node->buf)
         {
-            u_free(node->buf);
+            U_FREE(node->buf);
             node->buf = NULL;
         }
-        u_free(node);
+        U_FREE(node);
     }
 }
 

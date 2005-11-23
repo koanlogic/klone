@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.22 2005/11/23 17:44:16 stewy Exp $
+ * $Id: io.c,v 1.23 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -403,18 +403,18 @@ int io_free(io_t *io)
     dbg_if(io->term(io));
 
     if(io->rbuf)
-        u_free(io->rbuf);
+        U_FREE(io->rbuf);
 
     if(io->ubuf)
-        u_free(io->ubuf);
+        U_FREE(io->ubuf);
 
     if(io->wbuf)
-        u_free(io->wbuf);
+        U_FREE(io->wbuf);
 
     if(io->name)
-        u_free(io->name);
+        U_FREE(io->name);
 
-    u_free(io);
+    U_FREE(io);
 
     return 0;
 err:
@@ -560,7 +560,7 @@ ssize_t io_printf(io_t *io, const char *fmt, ...)
 
         va_end(ap2);
 
-        u_free(bbuf);
+        U_FREE(bbuf);
     } else if(sz > 0) {
         dbg_err_if(io_write(io, buf, sz) < 0);
     }
@@ -847,7 +847,7 @@ int io_name_set(io_t *io, const char *name)
     dbg_err_if(n == NULL);
 
     if(io->name)
-        u_free(io->name);
+        U_FREE(io->name);
 
     io->name = n;
 
@@ -910,7 +910,7 @@ int io_prv_create(size_t dev_sz, io_t **pio)
     return 0;
 err:
     if(io)
-        u_free(io);
+        U_FREE(io);
     return -1;
 }
 

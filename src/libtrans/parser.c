@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: parser.c,v 1.6 2005/11/23 17:27:02 tho Exp $
+ * $Id: parser.c,v 1.7 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -222,7 +222,7 @@ void parser_set_io(parser_t *p, io_t *in, io_t *out)
 
 int parser_free(parser_t *t)
 {
-    u_free(t);
+    U_FREE(t);
 
     return 0;
 }

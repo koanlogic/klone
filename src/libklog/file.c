@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: file.c,v 1.14 2005/11/23 17:27:01 tho Exp $
+ * $Id: file.c,v 1.15 2005/11/23 18:07:14 tho Exp $
  */
 
 #include <sys/param.h>
@@ -272,7 +272,7 @@ static void klog_file_head_free (klog_file_t *klf)
         return;
 
     U_FCLOSE(klf->wfp);
-    u_free(klf);
+    U_FREE(klf);
     
     return;
 }

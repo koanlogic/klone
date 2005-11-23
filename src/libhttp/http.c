@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.21 2005/11/23 17:27:01 tho Exp $
+ * $Id: http.c,v 1.22 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -122,11 +122,11 @@ int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
 
             /* dbg("resolved %s in %s", filename, dst); */
 
-            u_free(v); 
+            U_FREE(v); 
             return 0;
         }
 
-        u_free(v); v = NULL;
+        U_FREE(v); v = NULL;
     }
 
     /* prepend dir_root */
@@ -135,7 +135,7 @@ int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
     return 0;
 err:
     if(v)
-        u_free(v);
+        U_FREE(v);
     return ~0;
 }
 
@@ -420,7 +420,7 @@ static int http_free(http_t *h)
     if(h->broker)
         broker_free(h->broker);
 
-    u_free(h);
+    U_FREE(h);
 
     return 0;
 err:

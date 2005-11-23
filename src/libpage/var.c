@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: var.c,v 1.9 2005/11/23 17:44:16 stewy Exp $
+ * $Id: var.c,v 1.10 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -106,8 +106,8 @@ int var_free(var_t *v)
         if(v->svalue)
             u_string_free(v->svalue);
         if(v->data)
-            u_free(v->svalue);
-        u_free(v);
+            U_FREE(v->svalue);
+        U_FREE(v);
     }
 
     return 0;
@@ -229,7 +229,7 @@ int var_set_value(var_t *v, const char *value)
 int var_set_bin_value(var_t *v, const char *data, size_t size)
 {
     if(v->data)
-        u_free(v->data);
+        U_FREE(v->data);
 
     if(data && size)
     {

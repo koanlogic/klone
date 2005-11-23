@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.30 2005/11/23 17:27:01 tho Exp $
+ * $Id: server.c,v 1.31 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -854,7 +854,7 @@ int server_loop(server_t *s)
 
             if(s->al_klog_flush)
             {
-                u_free(s->al_klog_flush);
+                U_FREE(s->al_klog_flush);
                 s->al_klog_flush = NULL;
             }
 
@@ -935,7 +935,7 @@ int server_free(server_t *s)
     WSACleanup();
 #endif
 
-    u_free(s);
+    U_FREE(s);
     return 0;
 err:
     return ~0;
@@ -1144,7 +1144,7 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
         dbg_err_if(server_setup_backend(s, be));
     }
 
-    u_free(n);
+    U_FREE(n);
 
     /* init done, set signal handlers */
     dbg_err_if(u_signal(SIGINT, server_sigint));
@@ -1157,7 +1157,7 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
     return 0;
 err:
     if(n)
-        u_free(n);
+        U_FREE(n);
     if(s)
     {
         server_free(s);

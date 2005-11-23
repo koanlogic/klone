@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iomem.c,v 1.5 2005/11/23 17:27:01 tho Exp $
+ * $Id: iomem.c,v 1.6 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -81,7 +81,7 @@ static int io_mem_term(io_mem_t *im)
 {
     if(im->flags & IO_MEM_FREE_BUF)
     {
-        u_free(im->buf);
+        U_FREE(im->buf);
         im->buf = NULL;
         im->size = im->off = 0;
     }

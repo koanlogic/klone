@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.c,v 1.7 2005/11/23 17:44:16 stewy Exp $
+ * $Id: header.c,v 1.8 2005/11/23 18:07:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -336,7 +336,7 @@ int header_free(header_t *h)
 {
     header_clear(h);
 
-    u_free(h);
+    U_FREE(h);
 
     return 0;
 }
