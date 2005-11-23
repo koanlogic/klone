@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.22 2005/11/23 18:07:14 tho Exp $
+ * $Id: http.c,v 1.23 2005/11/23 20:36:12 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -97,12 +97,13 @@ int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
     char *src, *res, *v = NULL,*pp = NULL;
 
     /* for each dir_alias config item */
-    for(i = 0; !u_config_get_subkey_nth(h->config, "dir_alias", i, &config); ++i)
+    for(i = 0; !u_config_get_subkey_nth(h->config, "dir_alias", i, &config); 
+        ++i)
     {
         if((value = u_config_get_value(config)) == NULL)
             continue; /* empty key */
 
-        /* otherwise strtok_r will modify it */
+        /* otherwise strtok_r will modify 'value' */
         v = u_strdup(value);
         dbg_err_if(v == NULL);
 

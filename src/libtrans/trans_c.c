@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.20 2005/11/23 20:33:49 tho Exp $
+ * $Id: trans_c.c,v 1.21 2005/11/23 20:36:12 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -43,6 +43,17 @@ struct lang_c_ctx_s
 };
 
 typedef struct lang_c_ctx_s lang_c_ctx_t;
+
+static const char copyright_hdr[] =
+    "/*\n"
+    " * Copyright (c) 2005 by KoanLogic s.r.l. <http://www.koanlogic.com>\n"
+    " * All rights reserved.\n"
+    " *\n"
+    " * This file is part of KLone, and as such it is subject to the license\n"
+    " * stated in the LICENSE file which you have received as part of this\n"
+    " * distribution\n"
+    " *\n"
+    " */\n";
 
 static void free_code_block(code_block_t *node)
 {
@@ -107,6 +118,7 @@ static void print_header(parser_t *p, lang_c_ctx_t *ctx)
 
     (void)ctx;
 
+    io_printf(p->out, "%s", copyright_hdr);
     io_printf(p->out, "#include <klone/emb.h>\n");
 
     file = ctx->ti->uri + strlen(ctx->ti->uri) - 1;
@@ -442,6 +454,7 @@ int translate_opaque_to_c(io_t *in, io_t *out, trans_info_t *ti)
     TAILQ_INIT(&ctx.code_blocks);
     ctx.ti = ti;
 
+    io_printf(out, "%s", copyright_hdr);
     io_printf(out, "#include <klone/emb.h>\n");
 
     io_printf(out, "static uint8_t data[] = {\n");

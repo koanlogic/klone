@@ -5,15 +5,16 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.21 2005/11/23 18:58:51 tat Exp $
+ * $Id: main.c,v 1.22 2005/11/23 20:36:12 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <sys/stat.h>
-#include <sys/types.h>
+#include <sys/dir.h>
 #ifdef OS_UNIX
 #include <sys/dir.h>
 #endif
+#include <sys/types.h>
 #include <dirent.h>
 #include <stdlib.h>
 #include <ctype.h>

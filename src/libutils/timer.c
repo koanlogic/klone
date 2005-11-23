@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: timer.c,v 1.8 2005/11/23 18:58:51 tat Exp $
+ * $Id: timer.c,v 1.9 2005/11/23 20:36:12 tat Exp $
  */
 #include "klone_conf.h"
 #include <time.h>
@@ -115,7 +115,7 @@ err:
 
 static int timerm_set_handler(void (*func)(int))
 {
-    timer->handler = timerm_sigalrm;
+    timer->handler = func;
 
     #ifdef OS_UNIX
     dbg_err_if(u_signal(SIGALRM, timer->handler));
@@ -211,10 +211,10 @@ static int timerm_create(timerm_t **pt)
 
     #ifdef OS_WIN
     InitializeCriticalSection(&timer->cs);
-    #endif
 
     dbg_err_if((timer->hthread = CreateThread(NULL, 0, thread_func, NULL, 0, 
         &timer->tid)) == NULL); 
+    #endif
 
     *pt = t;
 
