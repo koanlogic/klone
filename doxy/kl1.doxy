@@ -83,8 +83,6 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 INPUT                  = ../klone/response.h \
                          ../klone/http.h \
-                         ../klone/var.h \
-                         ../klone/vars.h \
                          ../src/libpage/session.c \
                          ../src/libpage/request.c \
                          ../src/libpage/response.c \
@@ -99,7 +97,7 @@ INPUT                  = ../klone/response.h \
                          ../src/libcodec/gzip.c \
                          ../src/libcodec/cipher.c \
                          ../src/libcodec/codec.c
-FILE_PATTERNS          = *.c 
+FILE_PATTERNS          = *.c \
                          *.cc \
                          *.cxx \
                          *.kl1 \

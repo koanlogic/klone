@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.23 2005/11/23 18:07:14 tho Exp $
+ * $Id: io.c,v 1.24 2005/11/23 18:25:25 stewy Exp $
  */
 
 #include "klone_conf.h"
@@ -761,7 +761,7 @@ err:
  *
  *
  * \param io    the IO object
- * \param codec the codec to append
+ * \param c     the codec to append
  *
  * \return 0 on success, not zero on error
  *
@@ -781,7 +781,7 @@ int io_codec_add_head(io_t *io, codec_t* c)
  *
  *
  * \param io    the IO object
- * \param codec the codec to append
+ * \param c     the codec to append
  *
  * \return 0 on success, not zero on error
  *
