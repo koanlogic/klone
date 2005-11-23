@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.28 2005/11/23 18:07:14 tho Exp $
+ * $Id: session.c,v 1.29 2005/11/23 22:58:11 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -333,19 +333,19 @@ int session_prv_init(session_t *ss, request_t *rq, response_t *rs)
         {
         case ADDR_IPV4:
             dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
-                "%s/klone_sess_%s_%lu", ss->so->path, ss->id, 
+                U_PATH_SEPARATOR, "%s/klone_sess_%s_%lu", ss->so->path, ss->id, 
                 addr->sa.sin.sin_addr));
             break;
         case ADDR_IPV6:
             /* FIXME: add ipv6 address in session filename */
             dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
-                "%s/klone_sess_%s", ss->so->path, ss->id));
+                U_PATH_SEPARATOR, "%s/klone_sess_%s", ss->so->path, ss->id));
             break;
         #ifdef OS_UNIX
         case ADDR_UNIX:
             /* FIXME: add unix address in session filename */
             dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
-                "%s/klone_sess_%s", ss->so->path, ss->id));
+                U_PATH_SEPARATOR, "%s/klone_sess_%s", ss->so->path, ss->id));
             break;
         #endif
         }

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: file.c,v 1.16 2005/11/23 18:58:51 tat Exp $
+ * $Id: file.c,v 1.17 2005/11/23 22:58:11 tat Exp $
  */
 
 #include <sys/param.h>
@@ -206,7 +206,8 @@ static int klog_file_head_load (const char *base, klog_file_t **pklf)
     dbg_return_if (base == NULL, ~0);
     dbg_return_if (pklf == NULL, ~0);
     
-    dbg_err_if (u_path_snprintf(hf, U_FILENAME_MAX, "%s%s", base, ".head"));
+    dbg_err_if (u_path_snprintf(hf, U_FILENAME_MAX, U_PATH_SEPARATOR, "%s%s", 
+        base, ".head"));
     dbg_err_if ((hfp = fopen(hf, "r")) == NULL);
     dbg_err_if (fread(&hfs, sizeof hfs, 1, hfp) != 1);
     U_FCLOSE(hfp);
@@ -230,7 +231,7 @@ static int klog_file_head_dump (klog_file_t *klf)
     
     dbg_return_if (klf == NULL, ~0);
 
-    dbg_err_if (u_path_snprintf(hf, U_FILENAME_MAX, "%s.%s", 
+    dbg_err_if (u_path_snprintf(hf, U_FILENAME_MAX, U_PATH_SEPARATOR, "%s.%s", 
                                 klf->basename, "head"));
     dbg_err_if ((hfp = fopen(hf, "w")) == NULL);
     dbg_err_if (fwrite(klf, sizeof(klog_file_t), 1, hfp) != 1);
@@ -283,8 +284,8 @@ static int klog_file_shift_page (klog_file_t *klf)
     dbg_return_if (klf == NULL, ~0);
 
     U_FCLOSE(klf->wfp);
-    dbg_err_if (u_path_snprintf(wf, U_FILENAME_MAX, "%s.%d", klf->basename,
-                                (klf->wpageid + 1)%klf->npages));
+    dbg_err_if (u_path_snprintf(wf, U_FILENAME_MAX, U_PATH_SEPARATOR, "%s.%d", 
+        klf->basename, (klf->wpageid + 1)%klf->npages));
     dbg_err_if ((klf->wfp = fopen(wf, "w")) == NULL);
 
     klf->offset = 0;                                /* reset offset counter */
@@ -301,7 +302,7 @@ static int klog_file_open_page (klog_file_t *klf)
 
     dbg_return_if (klf == NULL, ~0);
 
-    dbg_err_if (u_path_snprintf(wf, U_FILENAME_MAX, "%s.%d", 
+    dbg_err_if (u_path_snprintf(wf, U_FILENAME_MAX, U_PATH_SEPARATOR, "%s.%d", 
                                 klf->basename, klf->wpageid));
     dbg_err_if ((klf->wfp = fopen(wf, "a")) == NULL);
     

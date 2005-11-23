@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.23 2005/11/23 20:36:12 tat Exp $
+ * $Id: http.c,v 1.24 2005/11/23 22:58:11 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -118,7 +118,7 @@ int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
             res = strtok_r(NULL, WP, &pp);
             dbg_err_if(res == NULL);
 
-            dbg_err_if(u_path_snprintf(dst, sz, "%s/%s", res, 
+            dbg_err_if(u_path_snprintf(dst, sz, '/', "%s/%s", res, 
                         filename + strlen(src)));
 
             /* dbg("resolved %s in %s", filename, dst); */
@@ -131,7 +131,7 @@ int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
     }
 
     /* prepend dir_root */
-    dbg_err_if(u_path_snprintf(dst, sz, "%s/%s", h->dir_root, filename));
+    dbg_err_if(u_path_snprintf(dst, sz, '/', "%s/%s", h->dir_root, filename));
 
     return 0;
 err:
@@ -186,8 +186,8 @@ static int http_set_index_request(http_t *h, request_t *rq)
         for(pg = indexes; *pg; ++pg)
         {
             resolved[0] = 0;  /* for valgrind's happyness */
-            u_path_snprintf(resolved, U_FILENAME_MAX, "%s/%s", 
-                    request_get_resolved_filename(rq), *pg);
+            dbg_err_if(u_path_snprintf(resolved, U_FILENAME_MAX, '/', "%s/%s", 
+                    request_get_resolved_filename(rq), *pg));
 
             if(broker_is_valid_uri(h->broker, resolved, strlen(resolved)))
             {
@@ -204,6 +204,8 @@ static int http_set_index_request(http_t *h, request_t *rq)
     http_resolv_request(h, rq);
 
     return 0;
+err:
+    return ~0;
 }
 
 static int http_add_default_header(http_t *h, response_t *rs)
@@ -376,7 +378,7 @@ static int http_serve(http_t *h, int fd)
         http_resolv_request(h, rq);
 
     if(strcmp(request_get_filename(rq), "/") == 0)
-        http_set_index_request(h, rq); /* serve an index page if any */
+        dbg_err_if(http_set_index_request(h, rq)); /* set the index page */
 
     /* request_print(rq); */
 

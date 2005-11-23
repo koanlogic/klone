@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.33 2005/11/23 20:36:12 tat Exp $
+ * $Id: server.c,v 1.34 2005/11/23 22:58:11 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -358,8 +358,8 @@ static int server_chroot_blind(server_t *s)
 
     dbg_err_if(s->chroot == NULL);
 
-    dbg_err_if(u_path_snprintf(dir, U_PATH_MAX, "%s/kloned_blind_chroot_%d.dir",
-        s->chroot, getpid()));
+    dbg_err_if(u_path_snprintf(dir, U_PATH_MAX, U_PATH_SEPARATOR,
+        "%s/kloned_blind_chroot_%d.dir", s->chroot, getpid()));
 
     /* create the blind dir (0100 mode) */
     dbg_err_if(mkdir(dir, BLIND_DIR_MODE ));
