@@ -1,7 +1,3 @@
-/*  
- * (c)opyright 2005 - KoanLogic S.r.l.
- */
-
 #ifndef _KLONE_LOG_H_
 #define _KLONE_LOG_H_
 

@@ -1,4 +1,3 @@
-/* this header is included by all embedded pages */
 #ifndef _KLONE_EMB_PAGE_H_
 #define _KLONE_EMB_PAGE_H_
 

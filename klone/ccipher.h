@@ -1,5 +1,6 @@
 #ifndef _KLONE_CODEC_CIPHER_H_
 #define _KLONE_CODEC_CIPHER_H_
+
 #include "klone_conf.h"
 #include <klone/codec.h>
 

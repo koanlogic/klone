@@ -2,7 +2,6 @@
 #define _KLONE_IO_PRV_H_
 
 #include "klone_conf.h"
-
 #ifdef HAVE_STDINT
 #include <stdint.h>
 #endif /* HAVE_STDINT */

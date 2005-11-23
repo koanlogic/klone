@@ -1,5 +1,6 @@
 #ifndef _KLONE_CODEC_H_
 #define _KLONE_CODEC_H_
+
 #include <sys/types.h>
 #include <stdlib.h>
 #include <stdarg.h>

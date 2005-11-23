@@ -1,5 +1,6 @@
 #ifndef _KLONE_ATOM_H_
 #define _KLONE_ATOM_H_
+
 #include <stdlib.h>
 #include <u/libu.h>
 
