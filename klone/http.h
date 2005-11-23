@@ -2,14 +2,17 @@
 #define _KLONE_HTTP_H_
 #include <u/libu.h>
 
+/** \file */
+
+/** HTTP Methods */
 enum http_method_e
 { 
-    HM_UNKNOWN, 
-    HM_GET, 
-    HM_HEAD, 
-    HM_POST, 
-    HM_PUT, 
-    HM_DELETE 
+    HM_UNKNOWN,   /**< unknown value */
+    HM_GET,       /**< retrieve data at URI */
+    HM_HEAD,      /**< ~HM_GET with headers only */
+    HM_POST,      /**< create new object subordinate to specified object */
+    HM_PUT,       /**< data in body is to be stored under URL */
+    HM_DELETE     /**< deletion request at given URL */
 };
 
 struct http_s;

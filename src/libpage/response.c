@@ -20,6 +20,9 @@ struct response_s
 /** 
  *  \ingroup Vhttp
  *  \{
+ */
+
+/**
  *          \defgroup response HTTP response handling
  *          \{
  *              \par 
@@ -177,7 +180,7 @@ err:
 /** 
  * \brief   Set the response method
  *  
- * Set the response method of \a rs to \a method. For possibile values of
+ * Set the response method of \a rs to \a method. For possible values of
  * method, refer to http.h.
  *
  * \param rs      response object
@@ -194,7 +197,8 @@ void response_set_method(response_t *rs, int method)
 /** 
  * \brief   Get the response method
  *  
- * Get the response method of \a rs.
+ * Get the response method of \a rs. For possibile values of method, refer to
+ * http.h.
  *
  * \param rs    response object
  *  
@@ -406,7 +410,8 @@ err:
 /** 
  * \brief   Get the status of a response
  *  
- * Get the status of a response \a rs.
+ * Get the status of a response \a rs. For possible values of status refer to
+ * response.h.
  *
  * \param rs  response object
  *  
@@ -479,7 +484,8 @@ err:
 /** 
  * \brief   Set the status of a response
  *  
- * Set the \a status of response \a rs. 
+ * Set the \a status of response \a rs. For possible values of status
+ * refer to response.h.
  *
  * \param rs      parameter \a rs description
  * \param status  parameter \a status description

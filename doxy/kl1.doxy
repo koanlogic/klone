@@ -81,7 +81,8 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = ../klone/http.h \
+INPUT                  = ../klone/response.h \
+                         ../klone/http.h \
                          ../src/libpage/session.c \
                          ../src/libpage/request.c \
                          ../src/libpage/response.c \

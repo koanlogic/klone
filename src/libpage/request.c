@@ -62,6 +62,13 @@ struct request_s
  *          \defgroup request HTTP request handling
  *          \{
  *              \par
+ *              Basic knowledge of the HTTP protocol is assumed. Hence only the
+ *              essential information is given. Some useful references are:
+ *                - RFC 2616 for a complete description of HTTP 1.1 header fields
+ *                - RFC 2109 for cookie format
+ *                - RFC 822 for standard data type formats
+ *                - http://www.iana.org/assignments/media-types/ for an updated
+ *                list of possible mime-types
  */
 
 int request_is_encoding_accepted(request_t *rq, const char *encoding)
@@ -102,7 +109,7 @@ err:
  *
  * Return the I/O object (io_t) used by the request object passed as 
  * parameter. The io_t object is bound to the socket connected to the
- * client (the web browser)
+ * client (the web browser).
  *
  * \param rq    request object
  *
@@ -150,11 +157,11 @@ const char *request_get_cookie(request_t *rq, const char *name)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get request arguments
  *
- * Detailed function descrtiption.
+ * Return get/post arguments of request \a rq in a vars_t.
  *
- * \param rq  parameter \a rq description
+ * \param rq  request object
  *
  * \return
  *  - the arguments' list of the given \a rq
@@ -165,12 +172,12 @@ vars_t *request_get_args(request_t *rq)
 }
 
 /**
- * \brief   One line description
+ * \brief   Get a request argument
  *
- * Detailed function descrtiption.
+ * Return the string value of argument \a name in request \a rq.
  *
- * \param rq    parameter \a rq description
- * \param name  parameter \a name description
+ * \param rq    request object
+ * \param name  name of the argument
  *
  * \return
  *  - \c NULL if there's no argument \a name
@@ -185,13 +192,13 @@ const char *request_get_arg(request_t *rq, const char *name)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Set a request field
  *  
- * Detailed function descrtiption.
+ * Set field \a name to \a value in request \a rq
  *
- * \param rq     parameter \a rq description
- * \param name   parameter \a rs description
- * \param value  parameter \a pss description
+ * \param rq     request object
+ * \param name   name of the argument
+ * \param value  value of the argument
  *  
  * \return
  *  - \c 0  if successful
@@ -203,14 +210,14 @@ int request_set_field(request_t *rq, const char *name, const char *value)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the URI field of a request
  *  
- * Detailed function descrtiption.
+ * Return the string value of the URI in request \a rq.
  *
- * \param rq    parameter \a rq description
+ * \param rq    request object
  *  
  * \return
- *  - the uri child object of the given \a rq
+ *  - the URI child object of the given \a rq
  */
 const char *request_get_uri(request_t *rq)
 {
@@ -218,14 +225,14 @@ const char *request_get_uri(request_t *rq)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the filename field of a request
  *  
- * Detailed function descrtiption.
+ * Return the string value of the filename field in request \a rq.
  *
- * \param rq    parameter \a rq description
+ * \param rq    request object
  *  
  * \return
- *  - the file name binded to the \a rq 
+ *  - the file name bound to \a rq 
  */
 const char *request_get_filename(request_t *rq)
 {
@@ -233,12 +240,12 @@ const char *request_get_filename(request_t *rq)
 }
 
 /**
- * \brief   One line description
+ * \brief   Set the filename field of a request
  *
- * Detailed function descrtiption.
+ * Set the filename field of request \a rq to \a filename.
  *
- * \param rq        parameter \a rq description
- * \param filename  parameter \a filename description
+ * \param rq        request object
+ * \param filename  filename string
  *
  * \return
  *  - \c 0  if successful
@@ -254,14 +261,14 @@ err:
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the query string field of a request
  *  
- * Detailed function descrtiption.
+ * Return the query string field of request \a rq.
  *
- * \param rq    parameter \a rq description
+ * \param rq    request object
  *  
  * \return
- *  - the query string bind to the request \a rq
+ *  - the query string bound to \a rq
  */
 const char *request_get_query_string(request_t *rq)
 {
@@ -269,14 +276,14 @@ const char *request_get_query_string(request_t *rq)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the path info field of a request
  *  
- * Detailed function descrtiption.
+ * Return the path info field of request \a rq.
  *
- * \param rq    parameter \a rq description
+ * \param rq    request object
  *  
  * \return
- *  - the path info of the given \a rq
+ *  - the path info of \a rq
  */
 const char *request_get_path_info(request_t *rq)
 {
@@ -300,12 +307,11 @@ err: /* ignore if it's not formatted properly */
 
 
 /**
- * \brief   One line description
+ * \brief   Get IMS field of a request
  *
- * Detailed function descrtiption.
+ * Return the time_t value of the IMS field of request \a rq
  *
- * \param rq          parameter \a rq description
- * \param resolved_fn parameter \a resolved_fn description
+ * \param rq      request object
  *
  * \return
  *  - \c 0  if successful
@@ -317,12 +323,12 @@ time_t request_get_if_modified_since(request_t *rq)
 }
 
 /**
- * \brief   One line description
+ * \brief   Set the resolved filename field of a request
  *
- * Detailed function descrtiption.
+ * Set the resolved filename field of request \a rq to \a resolved_fn
  *
- * \param rq          parameter \a rq description
- * \param resolved_fn parameter \a resolved_fn description
+ * \param rq          request object
+ * \param resolved_fn resolved filename
  *
  * \return
  *  - \c 0  if successful
@@ -338,11 +344,11 @@ err:
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the HTTP server handle of a request
  *  
- * Detailed function descrtiption.
+ * Get the http_t object containing the HTTP server handle of request \a rq.
  *
- * \param rq    parameter \a rq description
+ * \param rq    request object
  *  
  * \return
  *  - the child http object of the given \a rq
@@ -353,12 +359,12 @@ http_t* request_get_http(request_t *rq)
 }
 
 /**
- * \brief   One line description
+ * \brief   Bind request I/O to a given I/O. 
  *  
- * Detailed function descrtiption.
+ * Bind the I/O of request \a rq to \a in.
  *
- * \param rq    parameter \a rq description
- * \param in    parameter \a in description
+ * \param rq    request object
+ * \param in    input I/O object
  *
  * \return
  *  - \c 0  always
@@ -371,12 +377,12 @@ int request_bind(request_t *rq, io_t *in)
 }
 
 /**
- * \brief   One line description
+ * \brief   Set the query string of a request
  *
  * Parse \a query string and build the \a rq->args list.
  *
- * \param rq     parameter \a rq description
- * \param query  parameter \a query description
+ * \param rq     request object
+ * \param query  query string 
  *
  * \return
  *  - \c 0  if successful
@@ -392,11 +398,11 @@ err:
 }
 
 /**
- * \brief   One line description
+ * \brief   Clear the URI field of a request
  *
- * Detailed function descrtiption.
+ * Clear the URI field of request \a rq.
  *
- * \param rq  parameter \a rq description
+ * \param rq  request object
  *
  * \return
  *  - nothing
@@ -416,12 +422,12 @@ void request_clear_uri(request_t *rq)
 }
 
 /**
- * \brief   One line description
+ * \brief   Set the path info field of a request
  *
- * Detailed function descrtiption.
+ * Set the path info field of request \a rq to \a path_info.
  *
- * \param rq         parameter \a rq description
- * \param path_info  parameter \a path_info description
+ * \param rq         request object
+ * \param path_info  path info
  *
  * \return
  *  - \c 0  if successful
@@ -437,12 +443,12 @@ err:
 }
 
 /**
- * \brief   One line description
+ * \brief   Set the resolved path info field of a request
  *
- * Detailed function descrtiption.
+ * Set the resolved path info field of request \a rq to \a resolved_pi.
  *
- * \param rq           parameter \a rq description
- * \param resolved_pi  parameter \a resolved_pi description
+ * \param rq           request object
+ * \param resolved_pi  resolved path info
  *
  * \return
  *  - \c 0  if successful
@@ -457,15 +463,15 @@ err:
     return ~0;
 }
 
-/**
- * \brief   One line description
+/*
+ * \brief   Set the URI field of a request
  *
- * Detailed function descrtiption.
+ * Set the URI field of request \a rq to \a uri given 
  *
- * \param rq           parameter \a rq description
- * \param uri          parameter \a uri description
- * \param is_valid_uri parameter \a is_valid_uri description
- * \param arg          parameter \a arg description
+ * \param rq           request object
+ * \param uri          URI string
+ * \param is_valid_uri URI validation function 
+ * \param arg          argument to is_valid_uri
  *
  * \return
  *  - \c 0  if successful
@@ -536,12 +542,12 @@ err:
 }
 
 /**
- * \brief   One line description
+ * \brief   Set the method of a request
  *
- * Detailed function descrtiption.
+ * Set the \a method of request \a rq. Refer to http.h for possible methods.
  *
- * \param rq     parameter \a rq description
- * \param method parameter \a method description
+ * \param rq     request object
+ * \param method the method 
  *
  * \return
  *  - \c 0  if successful
@@ -633,11 +639,12 @@ err:
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the content length of a request
  *  
- * Detailed function descrtiption.
+ * Retrieve a size_t corresponding to the \e Content-Length field of request 
+ * \a rq
  *
- * \param rq    parameter \a rq description
+ * \param rq    request object
  *  
  * \return
  *  - the content length of the given \a rq
@@ -647,14 +654,14 @@ size_t request_get_content_length(request_t *rq)
     return rq->content_length;
 }
 
-/** 
- * \brief   One line description
+/*
+ * \brief   Parse a request object
  *  
- * Detailed function descrtiption.
+ * Parse request object \a rq.
  *
- * \param rq            parameter \a rq description
- * \param is_valid_uri  parameter \a is_valid_uri description
- * \param arg           parameter \a arg description
+ * \param rq            request object
+ * \param is_valid_uri  URI validation function
+ * \param arg           argument to is_valid_uri
  *
  * \return
  *  - \c 0  if successful
@@ -734,11 +741,11 @@ err:
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the method of a request
  *  
- * Detailed function descrtiption.
+ * Return the method of request \a rq. Refer to http.h for possible methods.
  *
- * \param rq    parameter \a rq description
+ * \param rq    request object
  *  
  * \return
  *  - the method of the given \a rq  
@@ -749,14 +756,14 @@ int request_get_method(request_t *rq)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get resolved filename of a request
  *  
- * Detailed function descrtiption.
+ * Return a string representing the resolved filename of request \a rq.
  *
- * \param rq    parameter \a rq description
+ * \param rq    request object
  *  
  * \return
- *  - the resolved file name binded to the \a rq
+ *  - the resolved file name bound to the \a rq
  */
 const char *request_get_resolved_filename(request_t *rq)
 {
@@ -764,11 +771,11 @@ const char *request_get_resolved_filename(request_t *rq)
 }
 
 /** 
- * \brief   One line description
+ * \brief   Get the resolved path info of a request.
  *  
- * Detailed function descrtiption.
+ * Return a string representing the resolved path info of request \a rq.
  *
- * \param rq    parameter \a rq description
+ * \param rq    request object
  *  
  * \return
  *  - the resolved path info of the given \a rq
@@ -778,12 +785,12 @@ const char *request_get_resolved_path_info(request_t *rq)
     return rq->resolved_path_info;
 }
 
-/**
+/*
  * \brief   One line description
  *
  * Detailed function descrtiption.
  *
- * \param rq  parameter \a rq description
+ * \param rq  request object
  *
  * \return
  *  - \c 0  always
@@ -802,13 +809,13 @@ int request_print(request_t *rq)
     return 0;
 }
 
-/** 
+/*
  * \brief   One line description
  *  
  * Detailed function descrtiption.
  *
  * \param http  parameter \a http description
- * \param prq   parameter \a prq description
+ * \param prq   request object
  *  
  * \return
  *  - \c 0  if successful
@@ -839,7 +846,7 @@ err:
     return ~0;
 }
 
-/** 
+/*
  * \brief   One line description
  *  
  * Detailed function descrtiption.
