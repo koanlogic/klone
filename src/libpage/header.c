@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.c,v 1.8 2005/11/23 18:07:14 tho Exp $
+ * $Id: header.c,v 1.9 2005/11/24 16:00:53 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -23,19 +23,21 @@
 /**
  * \brief   Set the value of a field in a header
  *
- * Set the value of field \a name to \a value in header \a h.
+ * Set the value of field \p name to \p value in header \p h.
  *
  * \param h     header object
  * \param name  name of the field
  * \param value value of the field
  *
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ * \return \c 0 if successful, non-zero on error
  */
 int header_set_field(header_t *h, const char *name, const char *value)
 {
     field_t* n = NULL, *ex;
+
+    dbg_err_if (h == NULL);
+    dbg_err_if (name == NULL);
+    dbg_err_if (value == NULL);
 
     /* modify existing field if already set */
     if((ex = header_get_field(h, name)) == NULL)
@@ -55,17 +57,18 @@ err:
 /**
  * \brief   Clear a header
  *
- * Clear all items in header \a h.
+ * Clear all items in header \p h.
  *
  * \param h    header object
  *
- * \return
- *  - \c 0 always 
+ * \return \c 0 if successful, non-zero on error
  */
 int header_clear(header_t *h)
 {
     field_t *f;
-
+    
+    dbg_return_if (h == NULL, ~0);
+    
     /* free all items */
     while((f = TAILQ_FIRST(&h->fields)) != NULL)
     {
@@ -79,37 +82,36 @@ int header_clear(header_t *h)
 /**
  * \brief   Count fields in a header
  *
- * Return a size_t with the number of fields in header \a h.
+ * Return the number of fields in header \p h.
  *
  * \param h    header object
  *
- * \return
- *  - the number of fields found in \a h
+ * \return the number of fields found in \p h
  */
 size_t header_field_count(header_t *h)
 {
+    dbg_return_if (h == NULL, 0);
+
     return h->nfields;
 }
 
 /** 
  * \brief   Get ith field in a header
  *  
- * Return the field_t at index \a idx in header \a h.
+ * Return the \c field_t object at index \p idx in header \p h.
  *
  * \param h    header object
  * \param idx  index
  *  
- * \return
- *  - \c NULL  if no field could be found
- *  - the pointer to the field found 
+ * \return the pointer to the field or \c NULL if no field could be found
  */
-field_t* header_get_fieldn(header_t *h, size_t idx)
+field_t *header_get_fieldn(header_t *h, size_t idx)
 {
     field_t *f;
     size_t i = 0;
 
-    if(idx >= h->nfields)
-        return NULL;
+    dbg_goto_if (h == NULL, notfound);
+    dbg_goto_if (idx >= h->nfields, notfound);
 
     TAILQ_FOREACH(f, &h->fields, np)
     {
@@ -118,66 +120,76 @@ field_t* header_get_fieldn(header_t *h, size_t idx)
         ++i;
     }
 
+notfound:
     return NULL;
 }
 
 /** 
  * \brief   Get a field given a name
  *  
- * Return a field_t field with \a name in header \a h.
+ * Return the first matching \c field_t object with name \p name in header \p h
  *
  * \param h     header object
- * \param name  name of the field
+ * \param name  name of the field to be searched
  *  
  * \return
+ *  - the field string corresponding to \p name
  *  - \c NULL if no field could be found
- *  - the field string corresponding to \a name
  */
-field_t* header_get_field(header_t *h, const char *name)
+field_t *header_get_field(header_t *h, const char *name)
 {
     field_t *f = NULL;
+
+    dbg_goto_if (h == NULL, notfound);
+    dbg_goto_if (name == NULL, notfound);
 
     TAILQ_FOREACH(f, &h->fields, np)
         if(strcasecmp(f->name, name) == 0)
             return f;
 
+notfound:
     return NULL;
 }
 
 /** 
- * \brief   Get a field given a name as a string
+ * \brief   Get field value
  *  
- * Return a string representation of the field with \a name in header \a h.
+ * Return a string representation of the field with name \p name in header \p h
  *
  * \param h     header object
  * \param name  name of the field
  *  
  * \return
+ *  - the field string corresponding to \p name
  *  - \c NULL if no field could be found
- *  - the field string corresponding to \a name
  */
-const char* header_get_field_value(header_t *h, const char *name)
+const char *header_get_field_value(header_t *h, const char *name)
 {
     field_t *f;
 
+    dbg_return_if (h == NULL, NULL);
+    dbg_return_if (name == NULL, NULL);
+    
     f = header_get_field(h, name);
 
     return f ? field_get_value(f) : NULL;
 }
 
 /** 
- * \brief   Delete a field in a header
+ * \brief   Delete a field from a header
  *  
- * Delete a field \a f in header \a h.
+ * Delete the supplied field \p f in header \p h.
  *
  * \param h  header object
  * \param f  field to be deleted
  *  
- * \return
- *  - \c 0  always
+ * \return \c 0 on success, non-zero otherwise
  */
 int header_del_field(header_t *h, field_t *f)
 {
+    dbg_return_if (h == NULL, ~0);
+    dbg_return_if (f == NULL, ~0);
+
     TAILQ_REMOVE(&h->fields, f, np);
     h->nfields--;
 
@@ -187,16 +199,18 @@ int header_del_field(header_t *h, field_t *f)
 /** 
  * \brief   Add a field to a header
  *  
- * Add a field \a f to header \a h.
+ * Add a field \p f to header \p h.
  *
  * \param h  header object
  * \param f  field to be added
  *  
- * \return
- *  - \c 0  always
+ * \return \c 0 on success, non-zero otherwise
  */
 int header_add_field(header_t *h, field_t *f)
 {
+    dbg_return_if (h == NULL, ~0);
+    dbg_return_if (f == NULL, ~0);
+
     TAILQ_INSERT_TAIL(&h->fields, f, np);
     h->nfields++;
 
@@ -208,6 +222,9 @@ static int header_process_line(header_t *h, u_string_t *line)
     field_t *f = NULL;
     const char *p;
 
+    dbg_err_if (h == NULL);
+    dbg_err_if (line == NULL);
+    
     if(!u_string_len(line))
         return 0;
 
@@ -230,25 +247,14 @@ err:
     return ~0;
 }
 
-/*
- * \brief   One line description
- *  
- * Detailed function descrtiption.
- *
- * \param h  parameter \a h description
- * \param io parameter \a io description
- *  
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
- */
 int header_load(header_t *h , io_t *io)
 {
     u_string_t *line = NULL, *unfolded = NULL;
     const char *ln;
     size_t len;
 
-    dbg_err_if(h == NULL || io == NULL);
+    dbg_err_if (h == NULL);
+    dbg_err_if (io == NULL);
 
     dbg_err_if(u_string_create(NULL, 0, &line));
     dbg_err_if(u_string_create(NULL, 0, &unfolded));
@@ -295,20 +301,11 @@ err:
     return ~0;
 }
 
-/*
- * \brief   One line description
- *  
- * Detailed function descrtiption.
- *
- * \param ph  parameter \a ph description
- *  
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
- */
 int header_create(header_t **ph)
 {
     header_t *h = NULL;
+
+    dbg_err_if (ph == NULL);
 
     h = u_zalloc(sizeof(header_t));
     dbg_err_if(h == NULL);
@@ -322,29 +319,17 @@ err:
     return ~0;
 }
 
-/*
- * \brief   One line description
- *  
- * Detailed function descrtiption.
- *
- * \param h  parameter \a h description
- *  
- * \return
- *  - \c 0  always
- */
 int header_free(header_t *h)
 {
-    header_clear(h);
-
-    U_FREE(h);
+    if (h)
+    {
+        (void) header_clear(h);
+        U_FREE(h);
+    }
 
     return 0;
 }
 
 /**
- *          \}
- */
-
-/**
  *  \}
- */ 
+ */

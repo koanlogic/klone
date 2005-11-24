@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.14 2005/11/23 23:38:38 tho Exp $
+ * $Id: vars.c,v 1.15 2005/11/24 16:00:53 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -24,7 +24,6 @@ struct vars_s
     size_t count;               /* # of vars in the list     */
 };
 
-
 /**
  *  \defgroup vars_t vars_t - variables handling
  *  \{
@@ -32,20 +31,22 @@ struct vars_s
  */
 
 /**
- * \brief   Get u_string_t value of a variable
+ * \brief   Get \c u_string_t value of a variable
  *
- * Return an u_string_t containing the value of variable with \a name in
- * variable list \a vs.
+ * Return an \c u_string_t containing the value of variable with \p name in
+ * variable list \p vs.
  *  
  * \param vs    variable list
  * \param name  name of variable
  *      
- * \return
- *  - the variable value 
+ * \return the variable value (may be \c NULL)
  */     
-u_string_t* vars_get_value_s(vars_t *vs, const char *name)
+u_string_t *vars_get_value_s(vars_t *vs, const char *name)
 {
     var_t *v = NULL;
+
+    dbg_err_if (vs == NULL);
+    dbg_err_if (name == NULL);
 
     dbg_err_if((v = vars_get(vs, name)) == NULL);
 
@@ -54,20 +55,11 @@ err:
     return NULL;
 }
 
-/*
- * \brief   One line description
- *
- * Detailed function descrtiption.
- *  
- * \param pvs  parameter \a pvs description
- *      
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
- */     
-int vars_create(vars_t ** pvs)
+int vars_create(vars_t **pvs)
 {
     vars_t *vs = NULL;
+
+    dbg_err_if (pvs == NULL);
 
     vs = u_zalloc(sizeof(vars_t));
     dbg_err_if(vs == NULL);
@@ -83,16 +75,6 @@ err:
     return ~0;
 }
 
-/*
- * \brief   One line description
- *
- * Detailed function descrtiption.
- *
- * \param vs  parameter \a vs description
- *
- * \return
- *  - \c 0  always
- */
 int vars_free(vars_t *vs)
 {
     var_t *v;
@@ -111,17 +93,6 @@ int vars_free(vars_t *vs)
     return 0;
 }
 
-/*
- * \brief   One line description
- *
- * Detailed function descrtiption.
- *
- * \param vs  parameter \a vs description
- * \param v   parameter \a v description
- *
- * \return
- *  - \c 0  always
- */
 int vars_add(vars_t *vs, var_t *v)
 {
     TAILQ_INSERT_TAIL(&vs->list, v, np);
@@ -130,19 +101,11 @@ int vars_add(vars_t *vs, var_t *v)
     return 0;
 }
 
-/*
- * \brief   One line description
- *
- * Detailed function descrtiption.
- *
- * \param vs  parameter \a vs description
- * \param v   parameter \a v description
- *
- * \return
- *  - \c 0  always
- */
 int vars_del(vars_t *vs, var_t *v)
 {
+    dbg_return_if (vs == NULL, ~0);
+    dbg_return_if (v == NULL, ~0);
+   
     TAILQ_REMOVE(&vs->list, v, np);
     vs->count--;
 
@@ -152,21 +115,19 @@ int vars_del(vars_t *vs, var_t *v)
 /**
  * \brief   Get ith variable
  *
- * Return the var_t at index \a i in list \a vs.
+ * Return the \c var_t at index \p i in list \p vs.
  *
  * \param vs  variable list
  * \param i   index
  *
- * \return
- *  - the ith var
- *  - \c NULL if there's no ith var in \a vs
+ * \return the ith variable or \c NULL if there's no ith var in \p vs
  */
-var_t* vars_getn(vars_t *vs, size_t i)
+var_t *vars_getn(vars_t *vs, size_t i)
 {
     var_t *v;
 
-    if(i >= vs->count)
-        return NULL; /* out of bounds */
+    dbg_goto_if (vs == NULL, notfound);
+    dbg_goto_if (i >= vs->count, notfound); /* out of bounds */
 
     TAILQ_FOREACH(v, &vs->list, np)
     {
@@ -174,36 +135,37 @@ var_t* vars_getn(vars_t *vs, size_t i)
             return v;
     }
 
+notfound:
     return NULL;
 }
 
 /**
  * \brief   Count the number of variables
  *
- * Return a size_t with the number of variables in a list.
+ * Return a the number of variables in a list
  *
  * \param vs  variable list
  *
- * \return
- *  - the number of elements in \a vs
+ * \return the number of elements in \p vs
  */
 size_t vars_count(vars_t *vs)
 {
+    dbg_return_if (vs == NULL, 0);
+
     return vs->count;
 }
 
-/*
+/**
  * \brief   Add an URL variable
  *
- * Parse the "name=value" string \a str, url-decode name and value and push 
- * it into \a vs.
+ * Parse the "name=value" string \p cstr, url-decode name and value and push 
+ * it into \p vs.  The variable is returned at \p *v.
  *
- * \param vs   parameter \a vs description
- * \param str  parameter \a str description
+ * \param vs    variables' list where the variable is pushed
+ * \param str   URL string to parse
+ * \param v     the generated variable as a value-result argument
  *
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ * \return \c 0 if successful, non-zero on error
  */
 int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **v)
 {
@@ -213,6 +175,10 @@ int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **v)
     var_t *var = NULL;
     size_t vsz;
 
+    dbg_return_if (vs == NULL, ~0);
+    dbg_return_if (cstr == NULL, ~0);
+    dbg_return_if (v == NULL, ~0);
+        
     /* dup the string so we can modify it */
     str = u_strdup(cstr);
     dbg_err_if(str == NULL);
@@ -273,23 +239,13 @@ err:
     return ~0;
 }
 
-
-/*
- * \brief   One line description
- *
- * Parse the "name=value" string \a str, create a var_t and push it to \a vs.
- *
- * \param vs   parameter \a vs description
- * \param str  parameter \a str description
- *
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
- */
 int vars_add_strvar(vars_t *vs, const char *str)
 {
     char *eq, *dups = NULL;
     var_t *var = NULL;
+
+    dbg_err_if (vs == NULL);
+    dbg_err_if (str == NULL);
 
     /* dup the string (str is const) */
     dups = u_strdup(str);
@@ -319,19 +275,22 @@ err:
 /**
  * \brief   Get ith variable with given name
  *
- * Return the var_t at index \a i with name \a var_name in list \a vs.
+ * Return the \c var_t object at index \p i with name \p var_name in list \p vs.
  *
  * \param vs        variable list
  * \param var_name  variable name
  * \param i         index
  *
  * \return
- *  - the var_t object found
- *  - \c NULL if there's no i-th variable called \a var_name in \a vs
+ *  - the \c var_t object found
+ *  - \c NULL if there's no i-th variable called \p var_name in \p vs
  */
-var_t* vars_get_ith(vars_t *vs, const char *var_name, size_t i)
+var_t *vars_get_ith(vars_t *vs, const char *var_name, size_t i)
 {
     var_t *v;
+
+    dbg_goto_if (vs == NULL, notfound);
+    dbg_goto_if (var_name == NULL, notfound);
 
     TAILQ_FOREACH(v, &vs->list, np)
     {
@@ -342,43 +301,50 @@ var_t* vars_get_ith(vars_t *vs, const char *var_name, size_t i)
         }
     }
 
+notfound:
     return NULL;
 }
 
 /**
  * \brief   Get a variable with given name
  *
- * Return a var_t of the variable with \a name in list \a vs.
+ * Return a \c var_t object with name \p name in list \p vs.
  *
  * \param vs        variable list
  * \param var_name  variable name
  *
  * \return
- *  - the var_t object found
- *  - \c NULL if there's no variable called \a var_name in \a vs
+ *  - the \c var_t object found
+ *  - \c NULL if there's no variable called \p var_name in \p vs
  */
-var_t* vars_get(vars_t *vs, const char *var_name)
+var_t *vars_get(vars_t *vs, const char *var_name)
 {
+    dbg_return_if (vs == NULL, NULL);
+    dbg_return_if (var_name == NULL, NULL);
+
     return vars_get_ith(vs, var_name, 0);
 }
 
 /**
- * \brief   Get int value of variable with given name and index
+ * \brief   Get the integer value of a variable with a given name and index
  *
- * Get the int value of variable with given \a name and index \a ith in list \a
- * vs.
+ * Get the integer value of the variable with name \p name and index \p ith 
+ * in list \p vs.
  *
  * \param vs    variable list
  * \param name  variable name
  * \param ith   index 
  *
  * \return
- *  - the integer value of \a name
+ *  - the integer value of \p name
  *  - \c 0 if no value could be found
  */
 int vars_get_ith_value_i(vars_t *vs, const char *name, size_t ith)
 {
     const char *v;
+
+    dbg_return_if (vs == NULL, 0);
+    dbg_return_if (name == NULL, 0);
 
     v = vars_get_ith_value(vs, name, ith);
     if(v == NULL)
@@ -388,40 +354,46 @@ int vars_get_ith_value_i(vars_t *vs, const char *name, size_t ith)
 }
 
 /**
- * \brief   Get int value of variable with given name.
+ * \brief   Get the integer value of a variable with a given name.
  *
- * Return the int value of the variable with \a name in list \a vs.
+ * Return the integer value of the variable with name \p name in list \p vs.
  *
  * \param vs    variable list
  * \param name  variable name
  *
  * \return
- *  - the integer value of \a name
+ *  - the integer value of \p name
  *  - \c 0 if no value could be found
  */
 int vars_get_value_i(vars_t *vs, const char *name)
 {
+    dbg_return_if (vs == NULL, 0);
+    dbg_return_if (name == NULL, 0);
+
     return vars_get_ith_value_i(vs, name, 0);
 }
 
 /**
  * \brief   Get the value of the variable at a given index. 
  *
- * Return the string value of the variable with \a name and index \a ith in list
- * \a vs.
+ * Return the string value of the variable with name \p name and index \p ith 
+ * in list \p vs.
  *
- * \param vs    variable list
- * \param name  variable name
- * \param ith   index
+ * \param vs    variable list that is scanned
+ * \param name  variable name to search
+ * \param ith   index of the searched variable
  *
  * \return
- *  - the value string corresponding to \a name at i-th position
+ *  - the value string corresponding to \p name at i-th position
  *  - \c NULL if no value could be found 
  */
-const char* vars_get_ith_value(vars_t *vs, const char *name, size_t ith)
+const char *vars_get_ith_value(vars_t *vs, const char *name, size_t ith)
 {
     var_t *v;
 
+    dbg_return_if (vs == NULL, NULL);
+    dbg_return_if (name == NULL, NULL);
+    
     v = vars_get_ith(vs, name, ith);
 
     return  v ? var_get_value(v) : NULL;
@@ -430,48 +402,50 @@ const char* vars_get_ith_value(vars_t *vs, const char *name, size_t ith)
 /**
  * \brief   Get the value of the variable with given name.
  *
- * Return the string value of the variable with \a name in list \a vs.
+ * Return the string value of the variable with name \p name in list \p vs.
  *
- * \param vs    variable list
- * \param name  variable name
+ * \param vs    variable list that is scanned
+ * \param name  variable name to search
  *
  * \return
- *  - the value string corresponding to \a name
- *  - NULL if no value could be found
+ *  - the value string corresponding to \p name
+ *  - \c NULL if no value could be found
  */
-const char* vars_get_value(vars_t *vs, const char *name)
+const char *vars_get_value(vars_t *vs, const char *name)
 {
+    dbg_return_if (vs == NULL, NULL);
+    dbg_return_if (name == NULL, NULL);
+
     return vars_get_ith_value(vs, name, 0);
 }
 
 /**
- * \brief   Execute a function on all variables.
+ * \brief   Execute a function on a list of variables
  *
- * Execute function \a foreach on 
+ * Execute function \p cb with optional arguments \p arg on all variables 
+ * in list \p vs
  *
- * \param vs       variable list
- * \param foreach  function pointer
- * \param arg      argument to function
+ * \param vs    variable list
+ * \param cb    function to be called on each variable (see prototype)
+ * \param arg   argument to \p cb
  *
- * \return
- *  - nothing
+ * \return nothing
  */
-void vars_foreach(vars_t *vs, int (*foreach)(var_t*, void*), void *arg)
+void vars_foreach(vars_t *vs, int (*cb)(var_t *, void *), void *arg)
 {
     var_t *v;
 
+    dbg_return_if (vs == NULL, );
+    dbg_return_if (cb == NULL, );
+
     TAILQ_FOREACH(v, &vs->list, np)
     {
-        if(foreach(v, arg))
+        if(cb(v, arg))
             break;
     }
 
     return;
 }
-
-/**
- *          \}
- */
 
 /**
  *  \}

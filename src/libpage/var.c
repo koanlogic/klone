@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: var.c,v 1.11 2005/11/23 23:38:38 tho Exp $
+ * $Id: var.c,v 1.12 2005/11/24 16:00:53 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -16,7 +16,6 @@
 #include <klone/utils.h>
 #include <klone/varprv.h>
 
-
 /**
  *   \defgroup var_t var_t - variable handling
  *   \{
@@ -26,16 +25,15 @@
 /**
  * \brief   Get name u_string_t of a variable
  *
- * Return an u_string_t containing the name string of variable \a v.
+ * Return an u_string_t containing the name string of variable \p v.
  *
  * \param v   variable object
  *
- * \return 
- *  - the name string of \a v
+ * \return the name string of \p v (may be \c NULL)
  */
-u_string_t* var_get_name_s(var_t *v)
+u_string_t *var_get_name_s(var_t *v)
 {
-    dbg_return_if(v == NULL, NULL);
+    dbg_return_if (v == NULL, NULL);
 
     return v->sname; /* may be NULL */
 }
@@ -43,16 +41,15 @@ u_string_t* var_get_name_s(var_t *v)
 /**
  * \brief   Get u_string_t value of a variable
  *
- * Return an u_string_t containing the name string of variable \a v.
+ * Return an u_string_t containing the name string of variable \p v.
  *
  * \param v   variable object
  *
- * \return 
- *  - the value string of \a v
+ * \return the value string of \p v (may be \c NULL)
  */
-u_string_t* var_get_value_s(var_t *v)
+u_string_t *var_get_value_s(var_t *v)
 {
-    dbg_return_if(v == NULL, NULL);
+    dbg_return_if (v == NULL, NULL);
 
     if(v->svalue == NULL)
         dbg_err_if(u_string_create(v->data, v->size, &v->svalue));
@@ -62,11 +59,13 @@ err:
     return NULL;
 }
 
-int var_bin_create(const char* name, const char *data, size_t size, var_t**pv)
+int var_bin_create(const char *name, const char *data, size_t size, var_t **pv)
 {
     var_t *v = NULL;
 
-    dbg_return_if(name == NULL, ~0);
+    dbg_return_if (name == NULL, ~0);
+    dbg_return_if (data == NULL, ~0);
+    dbg_return_if (pv == NULL, ~0);
 
     v = u_zalloc(sizeof(var_t));
     dbg_err_if(v == NULL);
@@ -86,7 +85,8 @@ err:
 
 int var_create(const char* name, const char *value, var_t**pv)
 {
-    dbg_return_if(name == NULL || value == NULL, ~0);
+    dbg_return_if (name == NULL, ~0);
+    dbg_return_if (value == NULL, ~0);
 
     return var_bin_create(name, value, strlen(value) + 1, pv);
 }
@@ -94,8 +94,7 @@ int var_create(const char* name, const char *value, var_t**pv)
 /*
  * \brief   Free a variable
  *
- * \return
- *  - \c 0  always
+ * \return \c 0, always
  */
 int var_free(var_t *v)
 {
@@ -115,65 +114,69 @@ int var_free(var_t *v)
 /**
  * \brief   Get the name of a variable
  *
- * Return a char* containing the name of variable \a v.
+ * Return a \c char* containing the name of variable \p v.
  *
  * \param v  variable object
  *
- * \return
- *  - the name string of the given \a v
+ * \return the name string of the given \p v (may be \c NULL)
  */
-const char* var_get_name(var_t *v)
+const char *var_get_name(var_t *v)
 {
+    dbg_return_if (v == NULL, NULL);
+
     return u_string_c(v->sname);
 }
 
 /**
  * \brief   Get the value of a variable
  *
- * Return a char* containing the value of variable \a v.
+ * Return a \c char* containing the value of variable \p v.
  *
  * \param v  variable object
  *
- * \return
- *  - the value string of the given \a v
+ * \return the value string of the given \p v (may be \c NULL)
  */
-const char* var_get_value(var_t *v)
+const char *var_get_value(var_t *v)
 {
+    dbg_return_if (v == NULL, NULL);
+
     return v->data;
 }
 
 /**
  * \brief   Get the size of a variable value
  * 
- * Return a size_t with the value size of variable \a v.
+ * Return a size_t with the value size of variable \p v.
  * 
  * \param v   variable object
  *
- * \return 
- * - the size of the variable value
+ * \return the size of the variable value 
  */
 size_t var_get_value_size(var_t *v)
 {
+    dbg_return_if (v == NULL, 0);   /* XXX should be (ssize_t) '-1' */
+
     return v->size;
 }
 
 /** 
  * \brief   Set the name and value of a variable
  *  
- * Set variable \a var to \a name and \a value.
+ * Set variable \p var to \p name and \p value.
  *
  * \param var   variable object
  * \param name  string name (null-terminated)
  * \param value string value (null-terminated)
  *  
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ * \return \c 0 if successful, non-zero on error
  */ 
-int var_set(var_t* var, const char *name, const char *value)
+int var_set(var_t *var, const char *name, const char *value)
 {
+    dbg_err_if (var == NULL);
+    dbg_err_if (name == NULL);
+    dbg_err_if (value == NULL);
+    
     dbg_err_if(var_set_name(var, name));
-
     dbg_err_if(var_set_value(var, value));
 
     return 0;
@@ -184,18 +187,17 @@ err:
 /**
  * \brief   Set the name of a variable
  *
- * Set the name of variable \a v
+ * Set the name of variable \p v
  *
  * \param v     variable object
  * \param name  variable name (null-terminated)
  *
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ * \return \c 0 if successful, non-zero on error
  */
 int var_set_name(var_t *v, const char *name)
 {
-    dbg_return_if(name == NULL, ~0);
+    dbg_err_if (v == NULL);
+    dbg_err_if (name == NULL);
 
     dbg_err_if(u_string_set(v->sname, name, strlen(name)));
 
@@ -206,27 +208,29 @@ err:
 
 int var_set_value(var_t *v, const char *value)
 {
-    dbg_return_if(value == NULL, ~0);
+    dbg_return_if (v == NULL, ~0);
+    dbg_return_if (value == NULL, ~0);
 
     /* copy the string and the trailing '\0' */
     return var_set_bin_value(v, value, strlen(value) + 1);
 }
 
-/*
+/**
  * \brief   Set binary value of a variable
  *
- * Set binary value of variable \a v.
+ * Set binary value of variable \p v.
  *
  * \param v      variable object
  * \param value  value data
  * \param size   value size
  *
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ * \return \c 0 if successful, non-zero on error
  */
 int var_set_bin_value(var_t *v, const char *data, size_t size)
 {
+    dbg_err_if (v == NULL);
+    dbg_err_if (data == NULL);
+    
     U_FREE(v->data);
 
     if(data && size)
@@ -249,11 +253,6 @@ int var_set_bin_value(var_t *v, const char *data, size_t size)
 err:
     return ~0;
 }
-
-
-/**
- *          \}
- */
 
 /**
  *  \}

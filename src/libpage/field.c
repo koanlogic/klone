@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: field.c,v 1.8 2005/11/23 23:38:38 tho Exp $
+ * $Id: field.c,v 1.9 2005/11/24 16:00:53 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -13,7 +13,6 @@
 #include <klone/field.h>
 #include <klone/utils.h>
 #include <u/libu.h>
-
 
 /**
  *  \defgroup field_t field_t - field manipulation
@@ -24,19 +23,21 @@
 /**
  * \brief   Set a field
  *
- * Set field \a f to have \a name and \a value.
+ * Set field \p f to have \p name and \p value.
  *  
  * \param f     field object
  * \param name  field name
  * \param value field value
  *      
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ * \return \c 0 if successful, non-zero on error
  */     
-int field_set(field_t* f, const char *name, const char *value)
+int field_set(field_t *f, const char *name, const char *value)
 {
     char *n = NULL, *v = NULL;
+
+    dbg_err_if (f == NULL);
+    dbg_err_if (name == NULL);
+    dbg_err_if (value == NULL);
 
     n = u_strdup(name);
     dbg_err_if(n == NULL);
@@ -61,22 +62,22 @@ err:
 /**
  * \brief   Set a field from a line
  *
- * Set the name and value of field \a f. Name and value must be separated by 
- * \e ":".
+ * Set the name and value of field \p f.  Name and value must be separated by 
+ * \c ":".
  * 
  * \param f     field object
  * \param ln    line
  *  
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ * \return \c 0 if successful, non-zero on error
  */ 
-int field_set_from_line(field_t* f, const char *ln)
+int field_set_from_line(field_t *f, const char *ln)
 {
     enum { BUFSZ = 256 };
     char *p, *name = NULL;
 
-    dbg_err_if(!ln || !strlen(ln));
+    dbg_err_if (f == NULL);
+    dbg_err_if (ln == NULL);
+    dbg_err_if (!strlen(ln));
 
     dbg_err_if((p = strchr(ln, ':')) == NULL);
 
@@ -100,49 +101,53 @@ err:
 /** 
  * \brief   Get the name of a field
  *  
- * Return the string value of field \a f.
+ * Return the string value of field \p f.
  *
- * \param f field object
+ * \param f     field object
  *  
- * \return
- *  - the string corresponding to the field name (null-terminated)
+ * \return the (null-terminated) string corresponding to the field name
  */
 const char* field_get_name(field_t *f)
 {
+    dbg_return_if (f == NULL, NULL);
+
     return f->name; /* may be null */
 }
 
 /** 
  * \brief   Get the value of a field
  *  
- * Return the string value of field \a f.
+ * Return the string value of field \p f.
  *
- * \param f field object
+ * \param f     field object
  *  
- * \return
- *  - the string corresponding to the field value (null-terminated)
+ * \return the (null-terminated) string corresponding to the field value
  */
 const char* field_get_value(field_t *f)
 {
+    dbg_return_if (f == NULL, NULL);
+
     return f->value; /* may be null */
 }
 
 /** 
  * \brief   Create a field
  *  
- * Create a field from \a name and \a value into \a pf.
+ * Create a field from \p name and \p value into \p *pf.
  *
  * \param name  field name
  * \param value field value
  * \param pf    address of field pointer
  *  
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ * \return \c 0 if successful, non-zero on error
  */
 int field_create(const char *name, const char *value, field_t **pf)
 {
     field_t *f = NULL;
+
+    dbg_err_if (name == NULL);
+    dbg_err_if (value == NULL);
+    dbg_err_if (pf == NULL);
 
     f = u_zalloc(sizeof(field_t));
     dbg_err_if(f == NULL);
@@ -165,12 +170,11 @@ err:
 /** 
  * \brief   Free a field
  *  
- * Free field \a f.
+ * Free field \p f.
  *
- * \param f field object
+ * \param f     field object
  *  
- * \return
- *  - \c 0  always
+ * \return \c 0, always
  */
 int field_free(field_t *f)
 {
@@ -183,10 +187,6 @@ int field_free(field_t *f)
 
     return 0;
 }
-
-/**
- *          \}
- */
 
 /**
  *  \}

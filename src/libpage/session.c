@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.30 2005/11/23 23:38:38 tho Exp $
+ * $Id: session.c,v 1.31 2005/11/24 16:00:53 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -34,11 +34,13 @@
 enum { DEFAULT_SESSION_EXPIRATION = 60*20 }; /* 20 minutes */
 static const char SID_NAME[] = "klone_sid";
 
-typedef struct save_cb_params_s
+struct save_cb_params_s
 {
     session_t *ss;
     io_t *io;
-} save_cb_params_t;
+};
+
+typedef struct save_cb_params_s save_cb_params_t;
 
 int session_module_term(session_opt_t *so)
 {
@@ -53,6 +55,9 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     u_config_t *c;
     const char *v;
     int max_age;
+
+    dbg_err_if (config == NULL);
+    dbg_err_if (pso == NULL);
 
     so = u_zalloc(sizeof(session_opt_t));
     dbg_err_if(so == NULL);
@@ -77,10 +82,10 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
             so->type = SESSION_TYPE_MEMORY;
         } else if(!strcasecmp(v, "file")) {
             so->type = SESSION_TYPE_FILE;
-        #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
         } else if(!strcasecmp(v, "client")) {
             so->type = SESSION_TYPE_CLIENT;
-        #endif
+#endif
         } else
            warn_err("config error: bad session type (typo or missing library)");
     }
@@ -95,17 +100,17 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     /* set encryption flag */
     dbg_err_if(u_config_get_subkey_value_b(c, "encrypt", 0, &so->encrypt));
 
-    #ifndef HAVE_LIBZ
+#ifndef HAVE_LIBZ
     if(so->compress)
         warn_err("config error: compression is enabled but libz is not "
                  "linked");
-    #endif
+#endif
 
-    #ifndef HAVE_LIBOPENSSL
+#ifndef HAVE_LIBOPENSSL
     if(so->encrypt)
         warn_err("config error: encryption is enabled but OpenSSL is not "
                  "linked");
-    #else
+#else
     /* init cipher EVP algo, the random key and IV */
     so->cipher = EVP_aes_256_cbc(); /* use AES-256 in CBC mode */
 
@@ -119,17 +124,17 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     dbg_err_if(!RAND_bytes(so->session_key, CIPHER_KEY_SIZE));
     dbg_err_if(!RAND_pseudo_bytes(so->session_iv, CIPHER_IV_SIZE));
 
-    #endif
+#endif
 
     /* per-type configuration init */
     if(so->type == SESSION_TYPE_MEMORY)
         dbg_err_if(session_mem_module_init(c, so));
     else if(so->type == SESSION_TYPE_FILE)
         dbg_err_if(session_file_module_init(c, so));
-    #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
     else if(so->type == SESSION_TYPE_CLIENT)
         dbg_err_if(session_client_module_init(c, so));
-    #endif
+#endif
 
     *pso = so;
 
@@ -144,14 +149,16 @@ int session_prv_calc_maxsize(var_t *v, void *p)
     const char *value = NULL;
     size_t *psz = (size_t*)p;
 
-    dbg_err_if(v == NULL || var_get_name(v) == NULL || psz == NULL);
+    dbg_err_if (v == NULL);
+    dbg_err_if (var_get_name(v) == NULL);
+    dbg_err_if (psz == NULL);
 
-    #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
     if(*psz == 0)
     {   /* first time here */
         *psz = CODEC_CIPHER_BLOCK_SIZE;
     }
-    #endif
+#endif
 
     /* name= */
     *psz += 3 * strlen(var_get_name(v)) + 3;
@@ -168,6 +175,9 @@ err:
 int session_prv_load_from_buf(session_t *ss, char *buf, size_t size)
 {
     io_t *io = NULL;
+
+    dbg_err_if (ss == NULL);
+    dbg_err_if (buf == NULL);
 
     /* build an io_t around the buffer */
     dbg_err_if(io_mem_create(buf, size, 0, &io));
@@ -190,6 +200,10 @@ int session_prv_save_to_buf(session_t *ss, char **pbuf, size_t *psz)
     char *buf = NULL;
     size_t sz = 0;
 
+    dbg_err_if (ss == NULL);
+    dbg_err_if (pbuf == NULL);
+    dbg_err_if (psz == NULL);
+ 
     /* calc the maximum session data size (exact calc requires url encoding and
        codec transformation knowledge) */
     vars_foreach(ss->vars, session_prv_calc_maxsize, (void*)&sz);
@@ -231,7 +245,7 @@ static int session_is_good_id(const char *id)
     const char *p;
     size_t len;
 
-    dbg_return_if(id == NULL, 0);
+    dbg_return_if (id == NULL, 0);
 
     dbg_ifb((len = strlen(id)) != MD5_DIGEST_LEN)
         return 0; /* wrong length */
@@ -252,6 +266,8 @@ static int session_gen_id(session_t *ss)
     char buf[256];
     struct timeval tv;
 
+    dbg_err_if (ss == NULL);
+    
     /* gen a new one */
     gettimeofday(&tv, NULL);
 
@@ -270,7 +286,6 @@ err:
     return ~0;
 }
 
-
 /**
  *  \defgroup session_t session_t - session handling
  *  \{
@@ -279,14 +294,16 @@ err:
 
 int session_load(session_t *ss)
 {
-    dbg_return_if(ss->load == NULL, ~0);
+    dbg_return_if (ss == NULL, ~0);
+    dbg_return_if (ss->load == NULL, ~0);
 
     return ss->load(ss);
 }
 
 int session_save(session_t *ss)
 {
-    dbg_return_if(ss->save == NULL, ~0);
+    dbg_err_if (ss == NULL);
+    dbg_err_if (ss->save == NULL);
 
     if(vars_count(ss->vars) == 0)
         return 0; /* nothing to save */
@@ -301,7 +318,8 @@ err:
 
 int session_remove(session_t *ss)
 {
-    dbg_return_if(ss->remove == NULL, ~0);
+    dbg_return_if (ss == NULL, ~0);
+    dbg_return_if (ss->remove == NULL, ~0);
 
     ss->removed = 1;
 
@@ -313,11 +331,14 @@ int session_prv_init(session_t *ss, request_t *rq, response_t *rs)
     const char *sid;
     addr_t *addr;
 
+    dbg_err_if (ss == NULL);
+    dbg_err_if (rq == NULL);
+    dbg_err_if (rs == NULL);
+    
     dbg_err_if(vars_create(&ss->vars));
 
     ss->rq = rq;
     ss->rs = rs;
-
 
     sid = request_get_cookie(ss->rq, SID_NAME);
     if(sid && session_is_good_id(sid))
@@ -338,13 +359,13 @@ int session_prv_init(session_t *ss, request_t *rq, response_t *rs)
             dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
                 U_PATH_SEPARATOR, "%s/klone_sess_%s", ss->so->path, ss->id));
             break;
-        #ifdef OS_UNIX
+#ifdef OS_UNIX
         case ADDR_UNIX:
             /* FIXME: add unix address in session filename */
             dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
                 U_PATH_SEPARATOR, "%s/klone_sess_%s", ss->so->path, ss->id));
             break;
-        #endif
+#endif
         }
     }
 
@@ -361,8 +382,10 @@ int session_prv_load_from_io(session_t *ss, io_t *io)
     unsigned char key[CODEC_CIPHER_KEY_SIZE];
     size_t ksz;
 
+    dbg_return_if (ss == NULL, ~0);
+    dbg_return_if (io == NULL, ~0);
 
-    #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
     if(ss->so->encrypt)
     {
         dbg_err_if(codec_cipher_create(CIPHER_DECRYPT, ss->so->cipher, 
@@ -370,18 +393,18 @@ int session_prv_load_from_io(session_t *ss, io_t *io)
         dbg_err_if(io_codec_add_tail(io, decrypt));
         decrypt = NULL; /* io_t owns it after io_codec_add_tail */
     }
-    #else
+#else
     u_unused_args(key, ksz);
-    #endif
+#endif
 
-    #ifdef HAVE_LIBZ
+#ifdef HAVE_LIBZ
     if(ss->so->compress)
     {
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &unzip));
         dbg_err_if(io_codec_add_tail(io, unzip));
         unzip = NULL; /* io_t owns it after io_codec_add_tail */
     }
-    #endif
+#endif
 
     dbg_err_if(u_string_create(NULL, 0, &line));
 
@@ -391,7 +414,7 @@ int session_prv_load_from_io(session_t *ss, io_t *io)
         {
             dbg_err_if(vars_add_urlvar(ss->vars, u_string_c(line), &v));
 
-            #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
             if(!strcmp(var_get_name(v), "KLONE_CIPHER_KEY"))
             {
                 /* decrypt key and save it to key */
@@ -407,7 +430,7 @@ int session_prv_load_from_io(session_t *ss, io_t *io)
                     dbg_err_if(var_set_bin_value(v, key, ksz));
                 }
             }
-            #endif
+#endif
         }
     }
 
@@ -429,29 +452,21 @@ err:
     return ~0;
 }
 
-
-/*
- * \brief   One line description
- *  
- * Detailed function descrtiption.
- *
- * \param ss  parameter \a ss description
- *
- * \return
- *  - \c 0  always
- */
 int session_free(session_t *ss)
 {
-    if(!ss->removed)
-        dbg_if(session_save(ss));
+    if (ss)
+    { 
+        if(!ss->removed)
+            dbg_if(session_save(ss));
 
-    /* driver cleanup */
-    dbg_if(ss->term(ss));
+        /* driver cleanup */
+        dbg_if(ss->term(ss));
 
-    if(ss->vars)
-        vars_free(ss->vars);
+        if(ss->vars)
+            vars_free(ss->vars);
 
-    U_FREE(ss);
+        U_FREE(ss);
+    }
 
     return 0;
 }
@@ -463,29 +478,33 @@ int session_free(session_t *ss)
  *
  * \param ss  session object
  *  
- * \return
- *  - the variables' list of the given \a ss
+ * \return the variables' list of the given \p ss (may be \c NULL)
  */
 vars_t *session_get_vars(session_t *ss)
 {
+    dbg_return_if (ss == NULL, NULL);
+
     return ss->vars;
 }
 
 /**
  * \brief   Get session variable with given name
  *
- * Return a string representation of variable in \a ss with given \a name.
+ * Return a string representation of variable in \p ss with given \p name.
  *
  * \param ss    session object
  * \param name  session variable name
  * 
- * \return
- *  - the variable value corresponding to the given \a name
+ * \return the variable value corresponding to the given \p name (may be 
+ *         \c NULL)
  */
 const char *session_get(session_t *ss, const char *name)
 {
     var_t *v;
 
+    dbg_return_if (ss == NULL, NULL);
+    dbg_return_if (name == NULL, NULL);
+    
     v = vars_get(ss->vars, name);
     return v ? var_get_value(v): NULL;
 }
@@ -493,19 +512,21 @@ const char *session_get(session_t *ss, const char *name)
 /** 
  * \brief   Set session variable with given name to a value
  *  
- * Put variable with \a name and \a value into \a ss.
+ * Put variable with \p name and \p value into \p ss.
  *
  * \param ss     session object
  * \param name   session variable name
  * \param value  session variable value
  *  
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ * \return \c 0 if successful, non-zero on error
  */
-int session_set(session_t *ss, const char *name, const char* value)
+int session_set(session_t *ss, const char *name, const char *value)
 {
     var_t *v = NULL;
+
+    dbg_err_if (ss == NULL);
+    dbg_err_if (name == NULL);
+    dbg_err_if (value == NULL);
 
     if((v = vars_get(ss->vars, name)) == NULL)
     {
@@ -541,6 +562,8 @@ int session_age(session_t *ss)
 {
     time_t now;
 
+    dbg_return_if (ss == NULL, -1);
+
     now = time(0);
 
     /* ss->mtime must has been set into session_X_create funcs */
@@ -550,17 +573,17 @@ int session_age(session_t *ss)
 /** 
  * \brief   Remove all session variables
  *  
- * Remove all session variables from \a ss.
+ * Remove all session variables from \p ss.
  *
  * \param ss  session object
  *  
- * \return
- *  - \c 0  if successful
- *  - \c ~0 on error
+ * \return \c 0 if successful, non-zero on error
  */
 int session_clean(session_t *ss)
 {
     var_t *v = NULL;
+
+    dbg_err_if (ss == NULL);
 
     while((v = vars_getn(ss->vars, 0)) != NULL)
     {
@@ -576,7 +599,7 @@ err:
 /**
  * \brief   Delete session variable given a name
  *  
- * Delete session variable \a name in \a ss.
+ * Delete session variable \p name in \p ss.
  *
  * \param ss    session object
  * \param name  session variable name
@@ -589,10 +612,11 @@ int session_del(session_t *ss, const char *name)
 {
     var_t *v = NULL;
 
+    dbg_err_if (ss == NULL);
+    dbg_err_if (name == NULL);
+    
     dbg_err_if((v = vars_get(ss->vars, name)) == NULL);
-
     dbg_err_if(vars_del(ss->vars, v));
-
     var_free(v);
 
     return 0;
@@ -605,18 +629,19 @@ int session_prv_save_to_io(session_t *ss, io_t *out)
     save_cb_params_t prm; 
     codec_t *zip = NULL, *cencrypt = NULL;
 
-    dbg_err_if(ss == NULL || out == NULL);
+    dbg_err_if (ss == NULL);
+    dbg_err_if (out == NULL);
 
-    #ifdef HAVE_LIBZ
+#ifdef HAVE_LIBZ
     if(ss->so->compress)
     {
         dbg_err_if(codec_gzip_create(GZIP_COMPRESS, &zip));
         dbg_err_if(io_codec_add_tail(out, zip));
         zip = NULL; /* io_t owns it after io_codec_add_tail */
     }
-    #endif
+#endif
 
-    #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
     if(ss->so->encrypt)
     {
         dbg_err_if(codec_cipher_create(CIPHER_ENCRYPT, ss->so->cipher, 
@@ -624,7 +649,7 @@ int session_prv_save_to_io(session_t *ss, io_t *out)
         dbg_err_if(io_codec_add_tail(out, cencrypt));
         cencrypt = NULL; /* io_t owns it after io_codec_add_tail */
     }
-    #endif
+#endif
 
     /* pass io and session poiters to the callback function */
     prm.io = out;
@@ -658,16 +683,19 @@ int session_prv_save_var(var_t *v, void *vp)
     size_t eksz, nsz, vsz;
     int rc = ~0;
 
+    dbg_err_if (v == NULL);
+    //dbg_err_if (vp == NULL);
+
     /* buffers must be at least three times the src data to URL-encode  */
     nsz = 1 + 3 * strlen(var_get_name(v));  /* name buffer size  */
     vsz = 1 + 3 * var_get_value_size(v);    /* value buffer size */
 
-    #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
     vsz += CODEC_CIPHER_BLOCK_SIZE; /* encryption may enlarge the content up 
                                        to CODEC_CIPHER_BLOCK_SIZE -1         */
-    #else
+#else
     u_unused_args(ekey, eksz);
-    #endif
+#endif
 
     /* if the buffer on the stack is too small alloc a bigger one */
     if(NAMESZ <= nsz)
@@ -683,7 +711,7 @@ int session_prv_save_var(var_t *v, void *vp)
         if(VALSZ <= vsz)
             dbg_err_if((uvalue = u_zalloc(vsz)) == NULL);
 
-        #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
         if(!strcmp(var_get_name(v), "KLONE_CIPHER_KEY"))
         {
             /* encrypt key and save it to ekey */
@@ -694,7 +722,7 @@ int session_prv_save_var(var_t *v, void *vp)
             /* save it to the var list */
             dbg_err_if(var_set_bin_value(v, ekey, eksz));
         }
-        #endif
+#endif
 
         dbg_err_if(u_urlncpy(uvalue, var_get_value(v), var_get_value_size(v), 
             URLCPY_ENCODE) <= 0);
@@ -720,7 +748,10 @@ int session_create(session_opt_t *so, request_t *rq, response_t *rs,
 {
     session_t *ss = NULL;
 
-    dbg_err_if(so == NULL || rq == NULL || rs == NULL || pss == NULL);
+    dbg_err_if (so == NULL);
+    dbg_err_if (rq == NULL);
+    dbg_err_if (rs == NULL);
+    dbg_err_if (pss == NULL);
 
     switch(so->type)
     {
@@ -730,11 +761,11 @@ int session_create(session_opt_t *so, request_t *rq, response_t *rs,
     case SESSION_TYPE_MEMORY:
         dbg_err_if(session_mem_create(so, rq, rs, &ss));
         break;
-    #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
     case SESSION_TYPE_CLIENT:
         dbg_err_if(session_client_create(so, rq, rs, &ss));
         break;
-    #endif
+#endif
     default:
         warn_err("bad session type");
     }
@@ -756,11 +787,6 @@ err:
         session_free(ss);
     return ~0;
 }
-
-
-/**
- *          \}
- */
 
 /**
  *  \}

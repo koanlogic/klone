@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_client.c,v 1.24 2005/11/24 15:16:07 tat Exp $
+ * $Id: ses_client.c,v 1.25 2005/11/24 16:00:53 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -41,6 +41,12 @@ static int session_client_hmac(HMAC_CTX *ctx, char *hmac, size_t hmac_sz,
     char mac[EVP_MAX_MD_SIZE];
     int mac_len;
 
+    dbg_err_if (ctx == NULL);
+    dbg_err_if (hmac == NULL);
+    dbg_err_if (data == NULL);
+    dbg_err_if (sid == NULL);
+    dbg_err_if (mtime == NULL);
+    
     /* hmac must be at least 'EVP_MAX_MD_SIZE*2 + 1' (it will be hex encoded) */
     dbg_err_if(hmac_sz < EVP_MAX_MD_SIZE*2 + 1);
 
@@ -70,6 +76,8 @@ static int session_client_save(session_t *ss)
     char hmac[HMAC_HEX_SIZE], ebuf[BUF_SIZE], mtime[MTIME_SIZE];
     char *buf = NULL;
     size_t sz;
+
+    dbg_err_if (ss == NULL);
 
     /* save the session data to freshly alloc'd buf of size sz */
     dbg_err_if(session_prv_save_to_buf(ss, &buf, &sz));
@@ -108,6 +116,8 @@ static int session_client_load(session_t *ss)
     char hmac[HMAC_HEX_SIZE], buf[COOKIE_MAX_SIZE];
     const char *cli_ebuf, *cli_hmac, *cli_mtime;
     ssize_t c;
+
+    dbg_err_if (ss == NULL);
 
     /* extract session data, mtime and hmac from cookies */
     cli_ebuf = request_get_cookie(ss->rq, KL1_CLISES_DATA);
@@ -156,6 +166,8 @@ static int session_client_term(session_t *ss)
 
 static int session_client_remove(session_t *ss)
 {
+    dbg_err_if (ss == NULL);
+    
     /* removes all clises-related cookies */
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_DATA, NULL, 0, NULL, 
         NULL, 0));
@@ -173,6 +185,11 @@ int session_client_create(session_opt_t *so, request_t *rq, response_t *rs,
         session_t **pss)
 {
     session_t *ss = NULL;
+
+    dbg_err_if (rq == NULL);
+    dbg_err_if (rs == NULL);
+    dbg_err_if (pss == NULL);
+    dbg_err_if (so == NULL);
 
     ss = u_zalloc(sizeof(session_t));
     dbg_err_if(ss == NULL);
@@ -201,7 +218,10 @@ int session_client_module_init(u_config_t *config, session_opt_t *so)
     u_config_t *c;
     const char *v;
 
-    /* defaults */
+    dbg_err_if (config == NULL);
+    dbg_err_if (so == NULL);
+    
+    /* default */
     so->hash = EVP_sha1(); 
 
     /* always enable encryption for client-side sessions */

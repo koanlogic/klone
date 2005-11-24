@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: rsfilter.c,v 1.10 2005/11/23 23:38:38 tho Exp $
+ * $Id: rsfilter.c,v 1.11 2005/11/24 16:00:53 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -21,8 +21,7 @@
 
 /* this filter prints the HTTP header before any body part of the web page. 
  * the first RFBUFSZ bytes (at most) of the response will be buffered to 
- * postpone the header printing (the header can be modified until filter 
- * flush)
+ * postpone the header printing (the header can be modified until filter flush)
  */
 
 enum { 
@@ -45,6 +44,8 @@ static int rf_init_iob(response_filter_t *rf)
     char *h;
     size_t hsz, htell;
 
+    dbg_err_if (rf == NULL);
+    
     hsz = response_get_max_header_size(rf->rs) + rf->off;
 
     h = (char *)u_zalloc(hsz);
@@ -80,6 +81,10 @@ static int rf_flush(codec_t *codec, char *dst, size_t *dcount)
     response_filter_t *rf = (response_filter_t*)codec;
     ssize_t c;
 
+    dbg_err_if (codec == NULL);
+    dbg_err_if (dst == NULL);
+    dbg_err_if (dcount == NULL);
+    
     if(rf->state == RFS_BUFFERING)
     {
         rf->state = RFS_FLUSHING;
@@ -113,6 +118,11 @@ static ssize_t rf_transform(codec_t *codec,
     response_filter_t *rf = (response_filter_t*)codec;
     size_t max;
     ssize_t c;
+
+    dbg_err_if (codec == NULL);
+    dbg_err_if (dst == NULL);
+    dbg_err_if (dcount == NULL);
+    dbg_err_if (src == NULL);
 
     /* if this's a HEAD request don't print the body of the page */
     if(response_get_method(rf->rs) == HM_HEAD)
@@ -162,8 +172,12 @@ err:
 
 static int rf_free(codec_t *codec)
 {
-    response_filter_t *rf = (response_filter_t*)codec;
+    response_filter_t *rf;
 
+    dbg_return_if (codec == NULL, 0);   /* it's ok */
+
+    rf = (response_filter_t*)codec;
+ 
     if(rf->iob)
         io_free(rf->iob);
 
@@ -176,6 +190,9 @@ int response_filter_create(response_t *rs, codec_t **prf)
 {
     response_filter_t *rf = NULL;
 
+    dbg_err_if (rs == NULL);
+    dbg_err_if (prf == NULL);
+    
     rf = u_zalloc(sizeof(response_filter_t));
     dbg_err_if(rf == NULL);
 
