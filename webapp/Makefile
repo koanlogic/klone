@@ -1,10 +1,11 @@
-# $Id: Makefile,v 1.1 2005/11/24 14:54:01 stewy Exp $ 
+# $Id: Makefile,v 1.2 2005/11/24 22:25:20 stewy Exp $ 
 
 include ../Makefile.conf
 include Makefile-webapp
 
-CFLAGS += ${WEBAPP_CFLAGS}
 SRCS = ${WEBAPP_SRCS}
+CFLAGS += ${WEBAPP_CFLAGS}
+LDADD += ${WEBAPP_LDADD}
 
 LIB = webapp
 
