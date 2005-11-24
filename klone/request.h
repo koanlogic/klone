@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.h,v 1.5 2005/11/23 17:27:01 tho Exp $
+ * $Id: request.h,v 1.6 2005/11/24 17:02:51 tho Exp $
  */
 
 #ifndef _KLONE_REQUEST_H_
@@ -42,7 +42,7 @@ const char *request_get_query_string(request_t *rq);
 const char *request_get_path_info(request_t *rq);
 const char *request_get_resolved_path_info(request_t *rq);
 int request_get_method(request_t *rq);
-size_t request_get_content_length(request_t *rq);
+ssize_t request_get_content_length(request_t *rq);
 time_t request_get_if_modified_since(request_t *rq);
 
 int request_is_encoding_accepted(request_t *rq, const char *encoding);
