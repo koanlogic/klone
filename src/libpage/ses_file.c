@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_file.c,v 1.15 2005/11/24 16:00:53 tho Exp $
+ * $Id: ses_file.c,v 1.16 2005/11/24 16:53:36 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -89,7 +89,6 @@ int session_file_create(session_opt_t *so, request_t *rq, response_t *rs,
 {
     session_t *ss = NULL;
     struct stat st;
-    addr_t *addr;
 
     dbg_err_if (so == NULL);
     dbg_err_if (rq == NULL);

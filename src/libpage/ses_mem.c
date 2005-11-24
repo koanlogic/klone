@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_mem.c,v 1.22 2005/11/23 23:38:38 tho Exp $
+ * $Id: ses_mem.c,v 1.23 2005/11/24 16:53:36 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -29,18 +29,22 @@
 
 enum { SESSION_FILENAME_MAX_LENGTH = 256 };
 
-typedef struct enc_ses_mem_s
+struct enc_ses_mem_s
 {
-    time_t mtime;               /* modification time    */
-    char filename[SESSION_FILENAME_MAX_LENGTH];    /* session filename     */
-    size_t size;                /* data size            */
-    char data[1];               /* data block           */
-} enc_ses_mem_t;
+    time_t mtime;                                   /* modification time    */
+    char filename[SESSION_FILENAME_MAX_LENGTH];     /* session filename     */
+    size_t size;                                    /* data size            */
+    char data[1];                                   /* data block           */
+};
+
+typedef struct enc_ses_mem_s enc_ses_mem_t;
 
 static int so_atom_delete_oldest(session_opt_t *so)
 {
     atom_t *atom, *oldest;
     size_t count, i;
+
+    dbg_err_if (so == NULL);
 
     count = atoms_count(so->atoms);
     nop_err_if(count == 0);
@@ -66,6 +70,8 @@ static int session_delete_oldest(session_opt_t *so)
 {
     ppc_t *ppc;
 
+    dbg_err_if (so == NULL);
+
     if(ctx->pipc)
     {   /* children context, delete parent atom */
         ppc = server_get_ppc(ctx->server);
@@ -89,6 +95,9 @@ static int so_atom_remove(session_opt_t *so, const char *id)
 {
     atom_t *atom = NULL;
 
+    dbg_err_if (so == NULL);
+    dbg_err_if (id == NULL);
+
     /* find the atom bound to this session */
     if(atoms_get(so->atoms, id, &atom))
         return 0;
@@ -105,10 +114,14 @@ err:
 
 
 static int so_atom_add(session_opt_t *so, const char *id, char *buf, 
-    size_t size, void* arg)
+    size_t size, void *arg)
 {
     atom_t *atom = NULL, *old = NULL;
     size_t new_size, old_found = 0;
+
+    dbg_err_if (so == NULL);
+    dbg_err_if (id == NULL);
+    dbg_err_if (buf == NULL);
 
     /* get the old atom associated to this id */
     if(!atoms_get(so->atoms, id, &old))
@@ -164,6 +177,9 @@ static int session_cmd_remove(ppc_t *ppc, int fd, unsigned char cmd,
 
     u_unused_args(ppc, fd, cmd, size);
 
+    dbg_err_if (data == NULL);
+    dbg_err_if (vso == NULL);
+
     dbg_err_if(so_atom_remove(so, data /* filename */));
 
     return 0;
@@ -179,9 +195,9 @@ static int session_cmd_delold(ppc_t *ppc, int fd, unsigned char cmd,
 
     u_unused_args(ppc, fd, cmd, data, size);
 
-    dbg_err_if(so == NULL);
+    dbg_err_if (vso == NULL);
 
-    dbg_err_if(so_atom_delete_oldest(so));
+    dbg_err_if (so_atom_delete_oldest(so));
 
     return 0;
 err:
@@ -197,7 +213,8 @@ static int session_cmd_save(ppc_t *ppc, int fd, unsigned char cmd, char *data,
 
     u_unused_args(ppc, fd, cmd, size);
 
-    dbg_err_if(vso == NULL || data == NULL);
+    dbg_err_if (vso == NULL);
+    dbg_err_if (data == NULL);
 
     dbg_err_if(so_atom_add(so, esm->filename, esm->data, esm->size, 
         (void*)esm->mtime));
@@ -218,9 +235,12 @@ static int session_cmd_get(ppc_t *ppc, int fd, unsigned char cmd, char *data,
     char buf[BUFSZ];
     size_t esm_size;
 
-    dbg_err_if(vso == NULL || data == NULL);
+    u_unused_args(cmd, size);
 
-    dbg_err_if(strlen(data) > SESSION_FILENAME_MAX_LENGTH);
+    dbg_err_if (ppc == NULL);
+    dbg_err_if (vso == NULL);
+    dbg_err_if (data == NULL);
+    dbg_err_if (strlen(data) > SESSION_FILENAME_MAX_LENGTH);
 
     /* find the atom whose name is stored into 'data' buffer */
     nop_err_if(atoms_get(so->atoms, data, &atom));
@@ -249,8 +269,8 @@ static int session_cmd_get(ppc_t *ppc, int fd, unsigned char cmd, char *data,
     return 0;
 err:
     if(ppc)
-        ppc_write(ppc, fd, PPC_CMD_RESPONSE_ERROR, (char*)"", 1);
-    if(esm && esm != (void*)buf)
+        ppc_write(ppc, fd, PPC_CMD_RESPONSE_ERROR, (char *)"", 1);
+    if(esm && esm != (void *)buf)
         U_FREE(esm);
     return ~0;
 }
@@ -263,6 +283,10 @@ static int session_mem_add(session_opt_t *so, const char *filename, char *buf,
     enc_ses_mem_t *esm = NULL;
     ppc_t *ppc;
     size_t esize;
+
+    dbg_err_if (so == NULL);
+    dbg_err_if (filename == NULL);
+    dbg_err_if (buf == NULL);
 
     if(ctx->pipc)
     {   /* children context */
@@ -309,6 +333,8 @@ static int session_mem_save(session_t *ss)
     char *buf = NULL;
     size_t sz;
 
+    dbg_err_if (ss == NULL);
+    
     /* save the session data to freshly alloc'd buf of size sz */
     dbg_err_if(session_prv_save_to_buf(ss, &buf, &sz));
 
@@ -332,6 +358,8 @@ static int session_mem_load(session_t *ss)
     enc_ses_mem_t *esm;
     ppc_t *ppc;
     unsigned char cmd;
+
+    dbg_err_if (ss == NULL);
 
     /* in fork and iterative model we can get the session from the current
        address space, in prefork we must ask the parent for a fresh copy of 
@@ -376,6 +404,8 @@ static int session_mem_remove(session_t *ss)
 {
     ppc_t *ppc;
 
+    dbg_err_if (ss == NULL);
+    
     if(ctx->pipc)
     {   /* children context */
         ppc = server_get_ppc(ctx->server);
@@ -400,7 +430,6 @@ static int session_mem_term(session_t *ss)
 {
     /* nothing to do */
     u_unused_args(ss);
-
     return 0;
 }
 
@@ -408,6 +437,11 @@ int session_mem_create(session_opt_t *so, request_t *rq, response_t *rs,
         session_t **pss)
 {
     session_t *ss = NULL;
+
+    dbg_err_if (so == NULL);
+    dbg_err_if (rq == NULL);
+    dbg_err_if (rs == NULL);
+    dbg_err_if (pss == NULL);
 
     ss = u_zalloc(sizeof(session_t));
     dbg_err_if(ss == NULL);
@@ -436,6 +470,9 @@ int session_mem_module_init(u_config_t *config, session_opt_t *so)
     ppc_t *ppc;
     u_config_t *c;
     const char *v;
+
+    dbg_err_if (config == NULL);
+    dbg_err_if (so == NULL);
 
     /* defaults */
     so->max_count = 0;  /* no limits */

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.c,v 1.17 2005/11/23 18:07:14 tho Exp $
+ * $Id: response.c,v 1.18 2005/11/24 16:53:36 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -176,6 +176,8 @@ err:
  */
 static int response_print_field(response_t *rs, io_t *io, field_t *field)
 {
+    u_unused_args(rs);
+
     dbg_err_if(io_printf(io, "%s: %s\r\n", field->name, field->value) < 0);
     
     return 0;
