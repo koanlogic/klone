@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.25 2005/11/23 23:38:38 tho Exp $
+ * $Id: http.c,v 1.26 2005/11/24 21:35:18 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -55,27 +55,26 @@ struct http_status_map_s
 
 };
 
-
 /* in cgi.c */
 int cgi_set_request(request_t *rq);
 
-session_opt_t *http_get_session_opt(http_t* http)
+session_opt_t *http_get_session_opt(http_t *http)
 {
-    dbg_return_if(!http, NULL);
+    dbg_return_if (http == NULL, NULL);
 
     return http->sess_opt;
 }
 
 u_config_t *http_get_config(http_t* http)
 {
-    dbg_return_if(!http, NULL);
+    dbg_return_if (http == NULL, NULL);
 
     return http->config;
 }
 
-const char* http_get_status_desc(int status)
+const char *http_get_status_desc(int status)
 {
-    struct http_status_map_s* map = http_status_map;
+    struct http_status_map_s *map = http_status_map;
     const char *msg = "Unknown Status Code";
 
     for( ; map->status; ++map)
@@ -95,6 +94,10 @@ int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
     int i;
     const char *value;
     char *src, *res, *v = NULL,*pp = NULL;
+
+    dbg_err_if (h == NULL);
+    dbg_err_if (dst == NULL);
+    dbg_err_if (filename == NULL);
 
     /* for each dir_alias config item */
     for(i = 0; !u_config_get_subkey_nth(h->config, "dir_alias", i, &config); 
@@ -139,12 +142,15 @@ err:
     return ~0;
 }
 
-static int http_is_valid_uri(void* arg, const char *buf, size_t len)
+static int http_is_valid_uri(void *arg, const char *buf, size_t len)
 {
     enum { URI_MAX = 2048 };
     char resolved[U_FILENAME_MAX], uri[URI_MAX];
     http_t *h = (http_t*)arg;
 
+    dbg_err_if (arg == NULL);
+    dbg_err_if (buf == NULL);
+    
     strncpy(uri, buf, len);
     uri[len] = 0;
 
@@ -160,6 +166,9 @@ static void http_resolv_request(http_t *h, request_t *rq)
     const char *cstr;
     char resolved[U_FILENAME_MAX];
 
+    dbg_return_if (h == NULL, );
+    dbg_return_if (rq == NULL, );
+    
     /* unalias rq->filename */
     cstr = request_get_filename(rq);
     if(cstr && !http_alias_resolv(h, resolved, cstr, U_FILENAME_MAX))
@@ -177,6 +186,9 @@ static int http_set_index_request(http_t *h, request_t *rq)
         "/index.html", "/index.htm", NULL };
     const char **pg;
     char resolved[U_FILENAME_MAX];
+
+    dbg_err_if (h == NULL);
+    dbg_err_if (rq == NULL);
 
     /* user provided index page list (FIXME add list support) */
     if(h->index == NULL)
@@ -211,6 +223,9 @@ static int http_add_default_header(http_t *h, response_t *rs)
 {
     time_t now;
 
+    dbg_err_if (h == NULL);
+    dbg_err_if (rs == NULL);
+    
     /* set server signature */
     dbg_err_if(response_set_field(rs, "Server", h->server_sig));
 
@@ -229,6 +244,10 @@ static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
     char buf[BUFSZ];
     int  status;
 
+    dbg_err_if (h == NULL);
+    dbg_err_if (rq == NULL);
+    dbg_err_if (rs == NULL);
+    
     /* add default header fields */
     dbg_err_if(http_add_default_header(h, rs));
 
@@ -308,7 +327,6 @@ static int http_cb_close_fd(alarm_t *al, void *arg)
     return 0;
 }
 
-
 static int http_serve(http_t *h, int fd)
 {
     request_t *rq = NULL;
@@ -321,6 +339,9 @@ static int http_serve(http_t *h, int fd)
     struct sockaddr sa;
     int sasz;
 
+    dbg_err_if (h == NULL);
+    dbg_err_if (fd < 0);
+    
     if(fd == 0 && (gwi = getenv("GATEWAY_INTERFACE")) != NULL)
         cgi++;
 
@@ -414,10 +435,9 @@ err:
     return ~0;
 }
 
-
 static int http_free(http_t *h)
 {
-    dbg_err_if(h == NULL);
+    dbg_return_if (h == NULL, 0);   /* it's ok */
 
     if(h->broker)
         broker_free(h->broker);
@@ -425,8 +445,6 @@ static int http_free(http_t *h)
     U_FREE(h);
 
     return 0;
-err:
-    return ~0;
 }
 
 static int http_set_config_opt(http_t *http)
@@ -434,6 +452,8 @@ static int http_set_config_opt(http_t *http)
     u_config_t *c = http->config;
     const char *v;
 
+    dbg_err_if (http == NULL);
+    
     /* defaults */
     http->idle_timeout = HTTP_DEFAULT_IDLE_TIMEOUT;
     http->server_sig = "klone/" KLONE_VERSION;
@@ -470,7 +490,8 @@ static int http_create(u_config_t *config, http_t **ph)
 {
     http_t *h = NULL;
 
-    dbg_err_if(!config || !ph);
+    dbg_err_if (config == NULL);
+    dbg_err_if (ph == NULL);
 
     h = u_zalloc(sizeof(http_t));
     dbg_err_if(h == NULL);
@@ -493,21 +514,31 @@ err:
 
 int http_backend_serve(struct backend_s *be, int fd)
 {
-    http_t *h = (http_t*)be->arg;
+    http_t *h;
     int rc;
 
+    dbg_err_if (be == NULL);
+    dbg_err_if (be->arg == NULL)
+    dbg_err_if (fd < 0);
+    
+    h = (http_t *) be->arg;
+    
     /* new connection accepted on http listening socket, handle it */
     dbg_if((rc = http_serve(h, fd)) != 0);
 
     return rc;
+err:
+    return ~0;
 }
 
 int http_backend_term(struct backend_s *be)
 {
-    http_t *http = (http_t*)be->arg;
+    http_t *http;
 
-    if(http == NULL)
-        return 0;
+    dbg_return_if (be == NULL, 0);
+    dbg_return_if (be->arg == NULL, 0);
+
+    http = (http_t *) be->arg;
 
     dbg_err_if(session_module_term(http->sess_opt));
 
@@ -523,6 +554,8 @@ int http_backend_init(struct backend_s *be)
     http_t *http = NULL;
     broker_t *broker = NULL;
 
+    dbg_err_if (be == NULL);
+ 
     dbg_err_if(http_create(be->config, &http));
 
     be->arg = http;
@@ -536,7 +569,6 @@ err:
     if(broker)
         broker_free(broker);
     return ~0;
-    
 }
 
 #ifdef HAVE_LIBOPENSSL
@@ -545,9 +577,11 @@ int https_backend_init(struct backend_s *be)
     http_t *https;
     tls_ctx_args_t *cargs;
 
+    dbg_err_if (be == NULL);
+
     dbg_err_if(http_backend_init(be));
 
-    https = (http_t*) be->arg;
+    https = (http_t *) be->arg;
 
     /* turn on SSL encryption */
     https->ssl = 1;
@@ -565,9 +599,12 @@ err:
 
 int https_backend_term(struct backend_s *be)
 {
-    http_t *https = (http_t*)be->arg;
+    http_t *https;
 
-    if(https == NULL)
+    dbg_err_if (be == NULL);
+
+    https = (http_t *) be->arg;
+    if (https == NULL)
         return 0;
 
     dbg_err_if(session_module_term(https->sess_opt));
@@ -585,12 +622,11 @@ backend_t be_https =
         https_backend_init, 
         http_backend_serve, 
         https_backend_term );
-#endif
+#endif /* HAVE_LIBOPENSSL */
 
 backend_t be_http =
     BACKEND_STATIC_INITIALIZER( "http", 
         http_backend_init, 
         http_backend_serve, 
         http_backend_term );
-
 
