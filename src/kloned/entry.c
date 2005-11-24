@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: entry.c,v 1.13 2005/11/24 22:26:04 tho Exp $
+ * $Id: entry.c,v 1.14 2005/11/24 23:13:00 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -61,11 +61,11 @@ static void usage()
 static int parse_opt(int argc, char **argv)
 {
     int ret;
-    #ifdef OS_WIN
+#ifdef OS_WIN
         #define CMDLINE_FORMAT "hVFdiuf:"
-    #else
+#else
         #define CMDLINE_FORMAT "hVFdf:"
-    #endif
+#endif
 
     /* set defaults */
     ctx->daemon++;
@@ -92,7 +92,7 @@ static int parse_opt(int argc, char **argv)
             u_print_version_and_exit();
             break;
 
-        #ifdef OS_WIN
+#ifdef OS_WIN
         case 'i':   /* install kloned service and exit */
             ctx->serv_op = SERV_INSTALL;
             break;
@@ -101,7 +101,7 @@ static int parse_opt(int argc, char **argv)
             ctx->serv_op = SERV_REMOVE;
             break;
 
-        #endif
+#endif
 
         default:
         case 'h': 
@@ -121,7 +121,7 @@ err:
 
 /* install the service with the service manager. after successful installation
    you can run the service from ControlPanel->AdminTools->Services */
-int InstallService() 
+int InstallService(void) 
 {
     SC_HANDLE hSCM, hService;
     char szModulePathname[_MAX_PATH];
@@ -159,9 +159,8 @@ err:
     return ~0;
 }
 
-
 /* uninstall this service from the system */
-int RemoveService() 
+int RemoveService(void) 
 {
     SC_HANDLE hSCM, hService;
     int rc;
@@ -241,7 +240,8 @@ DWORD WINAPI HandlerEx(DWORD dwControl, DWORD dwEventType,
     {
         /* user defined control code */
         dbg("SERVICE_CONTROL_USER_DEFINED");
-    } 
+    }
+
     return ERROR_CALL_NOT_IMPLEMENTED;
 }
 
@@ -415,7 +415,4 @@ err:
 #else
     #error unsupported platform
 #endif
-
-
-
 

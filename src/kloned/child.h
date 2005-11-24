@@ -7,7 +7,7 @@
 
 struct child_s
 {
-    TAILQ_ENTRY(child_s) np;    /* next & prev pointers         */
+    TAILQ_ENTRY(child_s) np;    /* next & prev pointers */
     pid_t pid;
     backend_t *be;
     time_t birth;
@@ -34,6 +34,5 @@ int children_del(children_t *cs, child_t *child);
 int children_add(children_t *cs, child_t *child);
 int children_getn(children_t *cs, size_t i, child_t **pc);
 int children_get_by_pid(children_t *cs, pid_t pid, child_t **pc);
-
 
 #endif
