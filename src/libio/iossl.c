@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iossl.c,v 1.7 2005/11/23 17:27:01 tho Exp $
+ * $Id: iossl.c,v 1.8 2005/11/24 09:55:46 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -16,13 +16,15 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-typedef struct io_ssl_s
+struct io_ssl_s
 {
     struct io_s io; /* must be the first item */
     SSL *ssl;
     int fd;
     int flags;
-} io_ssl_t;
+};
+
+typedef struct io_ssl_s io_ssl_t;
 
 static ssize_t io_ssl_read(io_ssl_t *io, char *buf, size_t size);
 static ssize_t io_ssl_write(io_ssl_t *io, const char *buf, size_t size);
@@ -31,6 +33,9 @@ static int io_ssl_term(io_ssl_t *io);
 static ssize_t io_ssl_read(io_ssl_t *io_ssl, char *buf, size_t size)
 {
     ssize_t c;
+
+    dbg_err_if (io_ssl == NULL);
+    dbg_err_if (buf == NULL);
 
 again:
     c = SSL_read(io_ssl->ssl, buf, size);
@@ -47,6 +52,9 @@ err:
 static ssize_t io_ssl_write(io_ssl_t *io_ssl, const char *buf, size_t size)
 {
     ssize_t c;
+
+    dbg_err_if (io_ssl == NULL);
+    dbg_err_if (buf == NULL);
 
 again:
     c = SSL_write(io_ssl->ssl, buf, size);
@@ -80,7 +88,8 @@ int io_ssl_create(int fd, int flags, SSL_CTX *ssl_ctx, io_t **pio)
 {
     io_ssl_t *io_ssl = NULL;
 
-    dbg_err_if(ssl_ctx == NULL);
+    dbg_return_if (pio == NULL, ~0);
+    dbg_return_if (ssl_ctx == NULL, ~0);
 
     dbg_err_if(io_create(io_ssl_t, (io_t**)&io_ssl));
 
@@ -93,10 +102,10 @@ int io_ssl_create(int fd, int flags, SSL_CTX *ssl_ctx, io_t **pio)
     /* assign a working descriptor to the SSL stream */
     dbg_err_if(SSL_set_fd(io_ssl->ssl, fd) == 0);
 
-    io_ssl->io.read     = (io_read_op) io_ssl_read;
-    io_ssl->io.write    = (io_write_op) io_ssl_write;
-    io_ssl->io.term     = (io_term_op) io_ssl_term; 
-    io_ssl->io.size     = NULL;
+    io_ssl->io.read = (io_read_op) io_ssl_read;
+    io_ssl->io.write = (io_write_op) io_ssl_write;
+    io_ssl->io.term = (io_term_op) io_ssl_term; 
+    io_ssl->io.size = NULL;
     
     /* start a SSL connection */
     dbg_err_if(SSL_accept(io_ssl->ssl) <= 0);

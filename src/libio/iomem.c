@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iomem.c,v 1.6 2005/11/23 18:07:14 tho Exp $
+ * $Id: iomem.c,v 1.7 2005/11/24 09:55:46 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -15,14 +15,16 @@
 #include <klone/io.h>
 #include <klone/ioprv.h>
 
-typedef struct
+struct io_mem_s
 {
     struct io_s io; /* must be the first item */
     char *buf;
     size_t size;
     size_t off;
     int flags;
-} io_mem_t;
+};
+
+typedef struct io_mem_s io_mem_t;
 
 static ssize_t io_mem_read(io_mem_t *io, char *buf, size_t size);
 static ssize_t io_mem_write(io_mem_t *io, const char *buf, size_t size);
@@ -32,11 +34,15 @@ static int io_mem_term(io_mem_t *io);
 
 static ssize_t io_mem_tell(io_mem_t *im)
 {
+    dbg_return_if (im == NULL, -1);
+
     return im->off;
 }
 
 static ssize_t io_mem_seek(io_mem_t *im, size_t off)
 {
+    dbg_return_if (im == NULL, -1);
+    
     if(off >= im->size)
         return -1;
 
@@ -49,6 +55,9 @@ static ssize_t io_mem_read(io_mem_t *im, char *buf, size_t size)
 {
     char *ptr;
     size_t sz;
+
+    dbg_return_if (im == NULL, -1);
+    dbg_return_if (buf == NULL, -1);
 
     sz = MIN(size, im->size - im->off);
     if(sz)
@@ -66,6 +75,9 @@ static ssize_t io_mem_write(io_mem_t *im, const char *buf, size_t size)
     char *ptr;
     size_t sz;
 
+    dbg_return_if (im == NULL, -1);
+    dbg_return_if (buf == NULL, -1);
+
     sz = MIN(size, im->size - im->off);
     if(sz)
     {
@@ -79,6 +91,8 @@ static ssize_t io_mem_write(io_mem_t *im, const char *buf, size_t size)
 
 static int io_mem_term(io_mem_t *im)
 {
+    dbg_return_if (im == NULL, ~0);
+
     if(im->flags & IO_MEM_FREE_BUF)
     {
         U_FREE(im->buf);
@@ -93,18 +107,20 @@ int io_mem_create(char *buf, size_t size, int flags, io_t **pio)
 {
     io_mem_t *im = NULL;
 
+    dbg_err_if (buf == NULL);
+    dbg_err_if (pio == NULL);
+    
     dbg_err_if(io_create(io_mem_t, (io_t**)&im));
 
     im->buf = buf;
     im->size = size;
     im->flags = flags;
     im->off = 0;
-
-    im->io.read     = (io_read_op) io_mem_read;
-    im->io.write    = (io_write_op) io_mem_write;
-    im->io.seek     = (io_seek_op) io_mem_seek;
-    im->io.tell     = (io_tell_op) io_mem_tell;
-    im->io.term     = (io_term_op) io_mem_term; 
+    im->io.read = (io_read_op) io_mem_read;
+    im->io.write = (io_write_op) io_mem_write;
+    im->io.seek = (io_seek_op) io_mem_seek;
+    im->io.tell = (io_tell_op) io_mem_tell;
+    im->io.term = (io_term_op) io_mem_term; 
 
     *pio = (io_t*)im;
 
@@ -114,5 +130,3 @@ err:
         io_free((io_t *)im);
     return ~0;
 }
-
-
