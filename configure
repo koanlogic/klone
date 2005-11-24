@@ -1,20 +1,13 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.26 2005/11/23 20:36:12 tat Exp $
+# $Id: configure,v 1.27 2005/11/24 23:22:13 stewy Exp $
 
 export makl_conf_h=klone_conf.h
 
 # Be sure MAKL_DIR is there.
-# If not found assume MaKL has been embedded in the package.
-if [ -z "${MAKL_DIR}" ]
-then
-    if [ -d `pwd`/makl ]
-    then
-        export MAKL_DIR=`pwd`/makl
-    else
-        echo "MaKL MUST be installed and MAKL_DIR set in the environment"
-        exit 1
-    fi
+if [ -z "${MAKL_DIR}" ]; then
+  echo "Could not find MaKL! Type: '. klone.env' to source the environment."
+  exit 1
 fi
 
 # MaKL preamble
@@ -36,8 +29,7 @@ __makl_enable_sup_fs ()     { makl_set_var_h    "ENABLE_SUP_FS" ; }
 makl_pkg_name           "klone"
 makl_pkg_version
 
-# be sure that the libu is installed
-makl_require        "lib"       "u"   "-I`pwd`/libu"  "`pwd`/libu/src/libu.a"
+# Add local 3rd party flags
 makl_add_var_mk     "CFLAGS"    "-I`pwd`/libu"
 
 case `makl_os_name` in
