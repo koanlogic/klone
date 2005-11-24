@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: cgi.c,v 1.5 2005/11/23 17:27:01 tho Exp $
+ * $Id: cgi.c,v 1.6 2005/11/24 18:16:11 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -18,6 +18,8 @@ int cgi_set_request(request_t *rq)
 {
     /* clear uri-related request fields */
     request_clear_uri(rq);
+
+    dbg_err_if (rq == NULL);
 
     dbg_err_if(request_set_filename(rq, getenv("SCRIPT_NAME")));
     dbg_err_if(request_set_path_info(rq, getenv("PATH_INFO")));
