@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.35 2005/11/23 23:25:19 tho Exp $
+ * $Id: server.c,v 1.36 2005/11/24 15:16:07 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -32,6 +32,7 @@
 #include <klone/klog.h>
 #include "server_s.h"
 #include "server_ppc_cmd.h"
+#include "child.h"
 
 #define SERVER_MAX_BACKENDS 8
 
@@ -88,70 +89,61 @@ err:
 
 #ifdef OS_UNIX
 /* remove a child process whose pid is 'pid' to children list */
-static void server_reap_child(server_t *s, pid_t child)
+static int server_reap_child(server_t *s, pid_t pid)
 {
-    pid_t *pid;
-    register int i;
+    child_t *child;
+    backend_t *be;
 
-    if(s->nchild)
-    {
-        pid = s->child_pid;
-        for(i = 0; i < SERVER_MAX_CHILD_COUNT; ++i, ++pid)
-        {
-            if(*pid == child)
-            {
-                *pid = 0;
-                s->nchild--; /* decrement child count */
-                break;
-            }
-        }
-    }
+    /* get the child object */
+    dbg_err_if(children_get_by_pid(s->children, pid, &child));
+
+    /* remove the child from the list */
+    dbg_err_if(children_del(s->children, child));
+    be = child->be;
+
+    /* check that the minimum number of process are active */
+    be->nchild--;
+    if(be->nchild < be->start_child)
+        be->fork_child = be->start_child - be->nchild;
+
+    U_FREE(child);
+
+    return 0;
+err:
+    return ~0;
 }
 
 /* add a child to the list */
-static void server_add_child(server_t *s, pid_t child)
+static int server_add_child(server_t *s, pid_t pid, backend_t *be)
 {
-    pid_t *pid;
-    register int i;
+    child_t *child = NULL;
 
-    pid = s->child_pid;
-    for(i = 0; i < SERVER_MAX_CHILD_COUNT; ++i, ++pid)
-    {
-        if(*pid == 0)
-        {   /* found an empty slot */
-            /* dbg("new child [%lu]", child); */
-            *pid = child;
-            s->nchild++;
-            break;
-        }
-    }
+    dbg_err_if(child_create(pid, be, &child));
+
+    dbg_err_if(children_add(s->children, child));
+
+    be->nchild++;
+
+    return 0;
+err:
+    return ~0;
 }
 
 /* send 'sig' signal to all children process */
-static void server_signal_childs(server_t *s, int sig)
+static int server_signal_childs(server_t *s, int sig)
 {
-    pid_t *pid;
-    register int i;
+    child_t *child;
 
-    if(s->nchild)
+    if(children_count(s->children))
     {
-        pid = s->child_pid;
-        for(i = 0; i < SERVER_MAX_CHILD_COUNT; ++i, ++pid)
-        {
-            if(*pid != 0)
-            {
-                dbg("killing child [%lu]", *pid);
-                dbg_err_if(kill(*pid, sig) < 0);
-            }
-        }
-
-        if(i == SERVER_MAX_CHILD_COUNT)
-            return; /* no child found */
+        while(!children_getn(s->children, 0, &child))
+            dbg_err_if(kill(child->pid, sig) < 0);
     }
 
-    return;
+    return 0;
 err:
     dbg_strerror(errno);
+    return ~0;
 }
 #endif
 
@@ -469,7 +461,8 @@ static int server_fork_child(server_t *s, backend_t *be)
     u_unused_args(s);
 
     /* exit on too much children */
-    dbg_return_if(s->nchild == be->max_child, -1);
+    dbg_return_if(children_count(s->children) == s->max_child, -1);
+    dbg_return_if(be->nchild == be->max_child, -1);
 
     /* create a parent<->child IPC channel */
     dbg_err_if(socketpair(AF_UNIX, SOCK_STREAM, 0, socks) < 0);
@@ -499,11 +492,14 @@ static int server_fork_child(server_t *s, backend_t *be)
             obe->ld = -1;
         }
 
+        /* clear child copy of children list */
+        dbg_err_if(children_clear(s->children));
+
     } else if(child > 0) {
         /* parent */
 
         /* save child pid and increment child count */
-        server_add_child(s, child);
+        server_add_child(s, child, be);
 
         /* close one end of the channel */
         close(socks[1]);
@@ -559,7 +555,7 @@ static int server_cb_spawn_child(alarm_t *al, void *arg)
     dbg_err_if(ctx->backend == NULL || ctx->pipc == NULL);
 
     /* ask the parent to create a new worker child process */
-    dbg_err_if(server_ppc_cmd_fork_child(s));
+    dbg_err_if(server_ppc_cmd_fork_child(s, ctx->backend));
 
     /* mark the current child process so it will die when finishes 
        serving this page */
@@ -775,7 +771,7 @@ int server_spawn_child(server_t *s, backend_t *be)
 
     /* max # of request limit:
        ask the parent to create a new worker child process and exit */
-    dbg_err_if(server_ppc_cmd_fork_child(s));
+    dbg_err_if(server_ppc_cmd_fork_child(s, be));
 
     server_stop(s);
 
@@ -929,11 +925,12 @@ int server_free(server_t *s)
 
     if(s->klog)
     {
-        /* child processes cann't close klog when in 'file' mode, because 
+        /* child processes must not close klog when in 'file' mode, because 
            klog_file_t will flush data that the parent already flushed 
            (children inherit a "used" FILE* that will usually contain, on close,
-           not-empty buffer that fclose flushes). same thing may happen with
-           different log devices when buffers are used.  */
+           not-empty buffer that fclose (called by exit()) flushes). same 
+           thing may happens with different log devices when buffers are used.
+         */
         if(ctx->pipc == NULL)
             klog_close(s->klog);
         s->klog = NULL;
@@ -946,6 +943,8 @@ int server_free(server_t *s)
     }
 
     dbg_if(ppc_free(s->ppc));
+
+    dbg_if(children_free(s->children));
 
 #ifdef OS_WIN
     WSACleanup();
@@ -1030,7 +1029,7 @@ int server_get_logger(server_t *s, klog_t **pkl)
     return 0;
 }
 
-int server_get_backend(server_t *s, int id, backend_t **pbe)
+int server_get_backend_by_id(server_t *s, int id, backend_t **pbe)
 {
     backend_t *be;
 
@@ -1053,7 +1052,7 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
     backend_t *be = NULL;
     const char *list, *type;
     char *n = NULL, *name = NULL;
-    int i, id;
+    int i, id, iv;
 
 #ifdef OS_WIN
     WORD ver;
@@ -1070,6 +1069,8 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
 
     s->config = config;
     s->model = SERVER_MODEL_FORK; /* default */
+
+    dbg_err_if(children_create(&s->children));
 
     /* init fd_set */
     FD_ZERO(&s->rdfds);
@@ -1114,6 +1115,10 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
 
     warn_err_ifm(!s->uid || !s->gid, 
         "you must set uid and gid config parameters");
+
+    dbg_err_if(u_config_get_subkey_value_i(config, "max_child", 
+        SERVER_MAX_CHILD, &iv));
+    s->max_child = iv;
 
     name = n = u_zalloc(strlen(list) + 1);
     dbg_err_if(name == NULL);

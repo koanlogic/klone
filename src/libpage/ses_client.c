@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_client.c,v 1.23 2005/11/23 17:27:02 tho Exp $
+ * $Id: ses_client.c,v 1.24 2005/11/24 15:16:07 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -114,7 +114,7 @@ static int session_client_load(session_t *ss)
     cli_mtime = request_get_cookie(ss->rq, KL1_CLISES_MTIME);
     cli_hmac = request_get_cookie(ss->rq, KL1_CLISES_HMAC);
 
-    dbg_err_if(cli_ebuf == NULL || cli_mtime == NULL || cli_hmac == NULL);
+    nop_err_if(cli_ebuf == NULL || cli_mtime == NULL || cli_hmac == NULL);
 
     /* calc the HMAC */
     dbg_err_if(session_client_hmac(&so->hmac_ctx, hmac, HMAC_HEX_SIZE, 

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server_ppc_cmd.h,v 1.4 2005/11/23 17:27:01 tho Exp $
+ * $Id: server_ppc_cmd.h,v 1.5 2005/11/24 15:16:07 tat Exp $
  */
 
 #ifndef _KLONE_PPC_COMMAND_H_
@@ -24,7 +24,7 @@ int server_ppc_cmd_log_add(server_t *s, int level, const char *str);
 int server_ppc_cb_log_add(ppc_t *ppc, int fd, unsigned char cmd, char *data, 
     size_t size, void *vso);
 
-int server_ppc_cmd_fork_child(server_t *s);
+int server_ppc_cmd_fork_child(server_t *s, backend_t *be);
 int server_ppc_cb_fork_child(ppc_t *ppc, int fd, unsigned char cmd, char *data,
     size_t size, void *vso);
 

@@ -18,7 +18,12 @@ FIRST RELEASE:
         - * blind chroot
         - * bind sessions to client IP address
 
+        - auto configure (makl/libu/klone)
+
+        - man kloned.conf: per-server max_child
+
         - [win] inmem session first save lost
+        - s/s->nchild/be->nchild/, s->nchild = be0->nchild + ... + beN->nchild
 
         - child keep-alive ppc cmd to avoid infinite wait in blocking
           calls (for ex. into write())?
@@ -31,8 +36,6 @@ FIRST RELEASE:
         - fix prefork + log.klone
 
         - tweak prefork spawn-new-child-timeout 
-
-        - #ifndef HAVE_FORK
 
         - profiling
             + keep child to the smallest number to avoid loosing time into
