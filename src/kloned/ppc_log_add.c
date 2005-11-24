@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc_log_add.c,v 1.8 2005/11/24 15:16:07 tat Exp $
+ * $Id: ppc_log_add.c,v 1.9 2005/11/24 23:42:19 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -19,12 +19,14 @@
 #include "server_ppc_cmd.h"
 
 /* struct used for ppc command PPC_CMD_LOG_ADD */
-typedef struct ppc_log_add_s
+struct ppc_log_add_s
 {
     int bid;                        /* calling backend ID       */
     int level;                      /* log level                */
     char log[U_MAX_LOG_LENGTH];     /* log line                 */
-} ppc_log_add_t;
+};
+
+typedef struct ppc_log_add_s ppc_log_add_t;
 
 int syslog_to_klog(int level)
 {
@@ -51,7 +53,9 @@ int server_ppc_cmd_log_add(server_t *s, int level, const char *str)
 {
     ppc_log_add_t la;
 
-    nop_err_if(s->ppc == NULL);
+    nop_err_if (s == NULL);
+    nop_err_if (s->ppc == NULL);
+    nop_err_if (str == NULL);
 
     la.bid = ctx->backend->id;
     la.level = level;
@@ -71,12 +75,18 @@ err:
 int server_ppc_cb_log_add(ppc_t *ppc, int fd, unsigned char cmd, char *data, 
     size_t size, void *vso)
 {
-    server_t *s = (server_t *)vso;
-    ppc_log_add_t *pla = (ppc_log_add_t*)data;
+    server_t *s;
+    ppc_log_add_t *pla;
     backend_t *be;
     klog_t *kl;
 
     u_unused_args(ppc, fd, cmd, size);
+
+    dbg_err_if (vso == NULL);
+    dbg_err_if (data == NULL);
+
+    pla = (ppc_log_add_t *) data;
+    s = (server_t *) vso;
 
     /* by default use server logger */
     kl = s->klog;
@@ -93,5 +103,4 @@ int server_ppc_cb_log_add(ppc_t *ppc, int fd, unsigned char cmd, char *data,
 err:
     return ~0;
 }
-
 

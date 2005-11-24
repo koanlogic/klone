@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.36 2005/11/24 15:16:07 tat Exp $
+ * $Id: server.c,v 1.37 2005/11/24 23:42:19 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -53,6 +53,9 @@ static int server_be_listen(backend_t *be)
     int d = 0, backlog = 0, val = 1;
     u_config_t *subkey;
 
+    dbg_return_if (be == NULL, ~0);
+    dbg_return_if (be->addr == NULL, ~0);
+
     switch(be->addr->type)
     {
         case ADDR_IPV4:
@@ -94,6 +97,8 @@ static int server_reap_child(server_t *s, pid_t pid)
     child_t *child;
     backend_t *be;
 
+    dbg_err_if (s == NULL);
+    
     /* get the child object */
     dbg_err_if(children_get_by_pid(s->children, pid, &child));
 
@@ -118,6 +123,9 @@ static int server_add_child(server_t *s, pid_t pid, backend_t *be)
 {
     child_t *child = NULL;
 
+    dbg_err_if (s == NULL);
+    dbg_err_if (be == NULL);
+
     dbg_err_if(child_create(pid, be, &child));
 
     dbg_err_if(children_add(s->children, child));
@@ -134,6 +142,8 @@ static int server_signal_childs(server_t *s, int sig)
 {
     child_t *child;
 
+    dbg_return_if (s == NULL, ~0);
+    
     if(children_count(s->children))
     {
         while(!children_getn(s->children, 0, &child))
@@ -149,17 +159,19 @@ err:
 
 static void server_term_children(server_t *s)
 {
-    #ifdef OS_UNIX
+    dbg_return_if (s == NULL, );
+#ifdef OS_UNIX
     server_signal_childs(s, SIGTERM);
-    #endif
+#endif
     return;
 }
 
 static void server_kill_children(server_t *s)
 {
-    #ifdef OS_UNIX
+    dbg_return_if (s == NULL, );
+#ifdef OS_UNIX
     server_signal_childs(s, SIGKILL);
-    #endif
+#endif
     return;
 }
 
@@ -194,6 +206,8 @@ static void server_waitpid(server_t *s)
     pid_t pid = -1;
     int status;
 
+    dbg_return_if (s == NULL, );
+    
     u_sig_block(SIGCHLD);
 
     /* detach from child processes */
@@ -220,6 +234,8 @@ static void server_recalc_hfd(server_t *s)
     register int i;
     fd_set *prdfds, *pwrfds, *pexfds;
 
+    dbg_return_if (s == NULL, );
+    
     prdfds = &s->rdfds;
     pwrfds = &s->wrfds;
     pexfds = &s->exfds;
@@ -237,6 +253,8 @@ static void server_recalc_hfd(server_t *s)
 
 static void server_clear_fd(server_t *s, int fd, unsigned int mode)
 {
+    dbg_return_if (s == NULL, );
+
     if(mode & WATCH_FD_READ)
         FD_CLR(fd, &s->rdfds);
 
@@ -251,6 +269,9 @@ static void server_clear_fd(server_t *s, int fd, unsigned int mode)
 
 static void server_watch_fd(server_t *s, int fd, unsigned int mode)
 {
+    dbg_return_if (s == NULL, );
+    dbg_return_if (fd < 0, );
+
     if(mode & WATCH_FD_READ)
         FD_SET(fd, &s->rdfds);
 
@@ -265,17 +286,22 @@ static void server_watch_fd(server_t *s, int fd, unsigned int mode)
 
 static void server_close_fd(server_t *s, int fd)
 {
+    dbg_return_if (s == NULL, );
+    dbg_return_if (fd < 0, );
+
     server_clear_fd(s, fd, WATCH_FD_READ | WATCH_FD_WRITE | WATCH_FD_EXCP);
     close(fd);
 }
 
-static int server_be_accept(server_t *s, backend_t *be, int* pfd)
+static int server_be_accept(server_t *s, backend_t *be, int *pfd)
 {
     struct sockaddr sa;
     int sa_len = sizeof(struct sockaddr);
     int ad;
 
     u_unused_args(s);
+    dbg_return_if (be == NULL, ~0);
+    dbg_return_if (pfd == NULL, ~0);
 
 again:
     ad = accept(be->ld, &sa, &sa_len);
@@ -296,6 +322,9 @@ static int server_backend_detach(server_t *s, backend_t *be)
 {
     s->nbackend--;
 
+    dbg_return_if (s == NULL, ~0);
+    dbg_return_if (be == NULL, ~0);
+
     addr_free(be->addr);
     be->server = NULL;
     be->addr = NULL;
@@ -312,7 +341,8 @@ static int server_backend_detach(server_t *s, backend_t *be)
 #ifdef OS_UNIX
 static int server_chroot_to(server_t *s, const char *dir)
 {
-    dbg_err_if(dir == NULL);
+    dbg_return_if (s == NULL, ~0);
+    dbg_return_if (dir == NULL, ~0);
 
     u_unused_args(s);
 

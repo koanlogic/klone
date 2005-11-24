@@ -5,18 +5,20 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc.c,v 1.9 2005/11/23 18:07:14 tho Exp $
+ * $Id: ppc.c,v 1.10 2005/11/24 23:42:19 tho Exp $
  */
 
 #include "klone_conf.h"
 #include <u/libu.h>
 #include <klone/ppc.h>
 
-typedef struct ppc_header_s
+struct ppc_header_s
 {
     unsigned char cmd;
     size_t size;
-} ppc_header_t;
+};
+
+typedef struct ppc_header_s ppc_header_t;
 
 struct ppc_s
 {
@@ -26,7 +28,8 @@ struct ppc_s
 
 int ppc_register(ppc_t *ppc, unsigned char cmd, ppc_cb_t cb, void *arg)
 {
-    dbg_err_if(ppc == NULL || cb == NULL);
+    dbg_err_if (ppc == NULL);
+    dbg_err_if (cb == NULL);
 
     ppc->ftb[cmd] = cb;
     ppc->arg[cmd] = arg;
@@ -40,6 +43,9 @@ static ssize_t ppc_do_read(int fd, char *data, size_t size)
 {
     ssize_t n;
 
+    dbg_return_if (fd < 0, -1);
+    dbg_return_if (data == NULL, -1);
+
 again:
     n = read(fd, data, size);
     if(n < 0 && errno == EINTR)
@@ -51,6 +57,9 @@ again:
 static ssize_t ppc_do_write(int fd, char *data, size_t size)
 {
     ssize_t n;
+
+    dbg_return_if (fd < 0, -1);
+    dbg_return_if (data == NULL, -1);
 
 again:
     n = write(fd, data, size);
@@ -66,7 +75,9 @@ ssize_t ppc_write(ppc_t *ppc, int fd, unsigned char cmd, char *data,
     ssize_t n;
     ppc_header_t h;
 
-    dbg_return_if(ppc == NULL || data == NULL || fd < 0, -1);
+    dbg_return_if (ppc == NULL, -1);
+    dbg_return_if (data == NULL, -1);
+    dbg_return_if (fd < 0, -1);
 
     h.cmd = cmd;
     h.size = size;
@@ -88,7 +99,10 @@ ssize_t ppc_read(ppc_t *ppc, int fd, unsigned char *pcmd, char *data,
     ppc_header_t h;
     ssize_t n;
 
-    dbg_return_if(ppc == NULL || pcmd == NULL || data == NULL || fd < 0, -1);
+    dbg_return_if (ppc == NULL, -1);
+    dbg_return_if (pcmd == NULL, -1);
+    dbg_return_if (data == NULL, -1);
+    dbg_return_if (fd < 0, -1);
 
     n = ppc_do_read(fd, (char*)&h, sizeof(ppc_header_t));
     if(n <= 0) /* error or eof */
@@ -110,7 +124,8 @@ ssize_t ppc_read(ppc_t *ppc, int fd, unsigned char *pcmd, char *data,
 
 int ppc_dispatch(ppc_t *ppc, int fd, unsigned char cmd, char *data, size_t size)
 {
-    dbg_err_if(ppc == NULL || ppc->ftb[cmd] == NULL);
+    dbg_err_if (ppc == NULL);
+    dbg_err_if (ppc->ftb[cmd] == NULL);
 
     ppc->ftb[cmd](ppc, fd, cmd, data, size, ppc->arg[cmd]);
 
@@ -122,7 +137,6 @@ err:
 int ppc_free(ppc_t *ppc)
 {
     U_FREE(ppc);
-
     return 0;
 }
 
@@ -130,6 +144,8 @@ int ppc_create(ppc_t **pppc)
 {
     ppc_t *ppc = NULL;
 
+    dbg_err_if (pppc == NULL);
+    
     ppc = u_zalloc(sizeof(ppc_t));
     dbg_err_if(ppc == NULL);
 
@@ -139,5 +155,4 @@ int ppc_create(ppc_t **pppc)
 err:
     return ~0;
 }
-
 

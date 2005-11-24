@@ -5,14 +5,14 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.h,v 1.2 2005/11/23 17:27:01 tho Exp $
+ * $Id: main.h,v 1.3 2005/11/24 23:42:19 tho Exp $
  */
 
 #ifndef _KLONE_MAIN_H_
 #define _KLONE_MAIN_H_
 
-int app_init();
-int app_run();
-int app_term();
+int app_init(void);
+int app_run(void);
+int app_term(void);
 
 #endif

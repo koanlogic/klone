@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc_nop.c,v 1.3 2005/11/23 17:27:01 tho Exp $
+ * $Id: ppc_nop.c,v 1.4 2005/11/24 23:42:19 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -19,16 +19,19 @@
 #include "server_ppc_cmd.h"
 
 /* struct used for ppc command PPC_CMD_NOP */
-typedef struct ppc_nop_s
+struct ppc_nop_s
 {
     int dummy;
-} ppc_nop_t;
+};
+
+typedef struct ppc_nop_s ppc_nop_t;
 
 /* client function */
 int server_ppc_cmd_nop(server_t *s)
 {
     ppc_nop_t nop;
 
+    nop_err_if(s == NULL);
     nop_err_if(s->ppc == NULL);
 
     /* send the command request */
@@ -49,5 +52,4 @@ int server_ppc_cb_nop(ppc_t *ppc, int fd, unsigned char cmd, char *data,
     dbg("ppc nop cmd callback");
     return 0;
 }
-
 

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc_fork_child.c,v 1.5 2005/11/24 15:16:07 tat Exp $
+ * $Id: ppc_fork_child.c,v 1.6 2005/11/24 23:42:19 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -20,17 +20,21 @@
 #include "server_ppc_cmd.h"
 
 /* struct used for ppc command PPC_CMD_NOP */
-typedef struct ppc_fork_child_s
+struct ppc_fork_child_s
 {
     int bid; /* backend id */
-} ppc_fork_child_t;
+};
+
+typedef struct ppc_fork_child_s ppc_fork_child_t;
 
 /* client function */
 int server_ppc_cmd_fork_child(server_t *s, backend_t *be)
 {
     ppc_fork_child_t pfc;
 
-    nop_err_if(s->ppc == NULL);
+    nop_err_if (s == NULL);
+    nop_err_if (s->ppc == NULL);
+    nop_err_if (be == NULL);
 
     pfc.bid = be->id;
 
@@ -48,9 +52,13 @@ int server_ppc_cb_fork_child(ppc_t *ppc, int fd, unsigned char cmd, char *data,
     size_t size, void *vso)
 {
     backend_t *be = NULL;
-    ppc_fork_child_t *ppfc = (void*)data;
+    ppc_fork_child_t *ppfc;
 
-    u_unused_args(ppc, fd, cmd, data, size, vso);
+    u_unused_args(ppc, fd, cmd, size, vso);
+
+    dbg_err_if (data == NULL);
+
+    ppfc = (void *) data;
 
     dbg_err_if(server_get_backend_by_id(ctx->server, ppfc->bid, &be) || 
         be == NULL);
@@ -66,5 +74,4 @@ int server_ppc_cb_fork_child(ppc_t *ppc, int fd, unsigned char cmd, char *data,
 err:
     return ~0;
 }
-
 
