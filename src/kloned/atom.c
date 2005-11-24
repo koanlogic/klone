@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: atom.c,v 1.8 2005/11/23 23:25:19 tho Exp $
+ * $Id: atom.c,v 1.9 2005/11/24 22:26:04 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -75,7 +75,7 @@ err:
 int atoms_getn(atoms_t *as, size_t n, atom_t **patom)
 {
     atom_t *atom;
-    int i = 0;
+    size_t i = 0;
 
     dbg_err_if(as == NULL || n >= as->count || patom == NULL);
 

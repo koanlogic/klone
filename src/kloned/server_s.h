@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server_s.h,v 1.9 2005/11/24 15:16:07 tat Exp $
+ * $Id: server_s.h,v 1.10 2005/11/24 22:26:04 tho Exp $
  */
 
 #ifndef _KLONE_SERVER_S_H_
@@ -30,7 +30,7 @@ struct server_s
     alarm_t *al_klog_flush; /* klog flush alarm                             */
     children_t *children;   /* children list                                */
     fd_set rdfds, wrfds, exfds;
-    char *chroot;           /* server chroot dir                            */
+    const char *chroot;     /* server chroot dir                            */
     int uid, gid;           /* uid/gid used to run the server               */
     int hfd;                /* highest set fd in fd_sets                    */
     size_t nbackend;        /* # of servers                                 */

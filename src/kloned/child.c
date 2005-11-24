@@ -81,7 +81,8 @@ int children_get_by_pid(children_t *cs, pid_t pid, child_t **pc)
 {
     child_t *c;
 
-    dbg_return_if(cs == NULL || pc == NULL, ~0);
+    dbg_goto_if (cs == NULL, notfound);
+    dbg_goto_if (pc == NULL, notfound);
 
     TAILQ_FOREACH(c, &cs->clist, np)
     {
@@ -92,7 +93,7 @@ int children_get_by_pid(children_t *cs, pid_t pid, child_t **pc)
         }
     }
 
-err:
+notfound:
     return ~0; /* not found */
 }
 
