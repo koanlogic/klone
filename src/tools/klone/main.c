@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.25 2005/11/24 22:37:49 tho Exp $
+ * $Id: main.c,v 1.26 2005/11/24 22:41:26 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -520,7 +520,10 @@ static int command_import(void)
     dbg_err_if(root_dir == NULL);
 
     if((base_uri = ctx->base_uri) == NULL)
-        base_uri = strdup("");
+    {
+        base_uri = u_strdup("");
+        dbg_err_if (base_uri == NULL);
+    }
 
     dbg_err_if(trans_site(root_dir, base_uri));
 
