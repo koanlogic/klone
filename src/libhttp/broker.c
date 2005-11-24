@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: broker.c,v 1.8 2005/11/23 23:38:38 tho Exp $
+ * $Id: broker.c,v 1.9 2005/11/24 18:15:11 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -29,10 +29,14 @@ int broker_is_valid_uri(broker_t *b, const char *buf, size_t len)
     int i;
     time_t mtime;
 
+    dbg_goto_if (b == NULL, notfound);
+    dbg_goto_if (buf == NULL, notfound);
+    
     for(i = 0; b->sup_list[i]; ++i)
         if(b->sup_list[i]->is_valid_uri(buf, len, &mtime))
             return 1; /* found */
 
+notfound:
     return 0;
 }
 
@@ -42,6 +46,10 @@ int broker_serve(broker_t *b, request_t *rq, response_t *rs)
     int i;
     time_t mtime, ims;
 
+    dbg_err_if (b == NULL);
+    dbg_err_if (rq == NULL);
+    dbg_err_if (rs == NULL);
+    
     file_name = request_get_resolved_filename(rq);
     for(i = 0; b->sup_list[i]; ++i)
     {   
@@ -71,6 +79,8 @@ static u_config_t* broker_get_request_config(request_t *rq)
     u_config_t *config = NULL;
     http_t *http;
 
+    dbg_return_if (rq == NULL, NULL);
+
     http = request_get_http(rq);
     if(http)
         config = http_get_config(http);
@@ -82,6 +92,8 @@ int broker_create(broker_t **pb)
 {
     broker_t *b = NULL;
     int i;
+
+    dbg_err_if (pb == NULL);
 
     b = u_zalloc(sizeof(broker_t));
     dbg_err_if(b == NULL);
@@ -109,10 +121,13 @@ int broker_free(broker_t *b)
 {
     int i;
 
-    for(i = 0; b->sup_list[i]; ++i)
-        b->sup_list[i]->term();
+    if (b)
+    {
+        for(i = 0; b->sup_list[i]; ++i)
+            b->sup_list[i]->term();
 
-    U_FREE(b);
+        U_FREE(b);
+    }
 
     return 0;
 }
