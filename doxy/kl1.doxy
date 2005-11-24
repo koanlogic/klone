@@ -219,7 +219,7 @@ SUBGROUPING            = YES
 # Private class members and static file members will be hidden unless 
 # the EXTRACT_PRIVATE and EXTRACT_STATIC tags are set to YES
 
-EXTRACT_ALL            = NO
+EXTRACT_ALL            = YES
 
 # If the EXTRACT_PRIVATE tag is set to YES all private members of a class 
 # will be included in the documentation.
@@ -450,22 +450,8 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ../klone/response.h \
-                         ../klone/http.h \
-                         ../src/libpage/session.c \
-                         ../src/libpage/request.c \
-                         ../src/libpage/response.c \
-                         ../src/libpage/header.c \
-                         ../src/libpage/field.c \
-                         ../src/libpage/var.c \
-                         ../src/libpage/vars.c \
-                         ../src/libio/io.c \
-                         ../src/libutils/utils.c \
-                         ../src/libutils/date.c \
-                         ../src/libcodec/null.c \
-                         ../src/libcodec/gzip.c \
-                         ../src/libcodec/cipher.c \
-                         ../src/libcodec/codec.c
+INPUT                  =  ../src/ \
+                          ../klone
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
@@ -608,7 +594,7 @@ VERBATIM_HEADERS       = YES
 # of all compounds will be generated. Enable this if the project 
 # contains a lot of classes, structs, unions or interfaces.
 
-ALPHABETICAL_INDEX     = NO
+ALPHABETICAL_INDEX     = YES
 
 # If the alphabetical index is enabled (see ALPHABETICAL_INDEX) then 
 # the COLS_IN_ALPHA_INDEX tag can be used to specify the number of columns 
