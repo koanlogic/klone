@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_fs.c,v 1.5 2005/11/23 17:27:01 tho Exp $
+ * $Id: sup_fs.c,v 1.6 2005/11/24 18:19:08 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -17,13 +17,14 @@
 #include <klone/io.h>
 #include <klone/utils.h>
 
-static int fs_is_valid_uri(const char* uri, size_t len, time_t *mtime)
+static int fs_is_valid_uri(const char *uri, size_t len, time_t *mtime)
 {
     struct stat st; 
     char fqn[1+U_FILENAME_MAX];
 
-    if(len > U_FILENAME_MAX)
-        return 0;
+    dbg_return_if (uri == NULL);
+    dbg_return_if (mtime == NULL);
+    dbg_return_if (len > U_FILENAME_MAX, 0);
 
     memcpy(fqn, uri, len);
     fqn[len] = 0;
@@ -45,6 +46,9 @@ static int fs_serve(request_t *rq, response_t *rs)
     char buf[BUFSZ];
     struct stat st;
 
+    dbg_err_if (rq == NULL);
+    dbg_err_if (rs == NULL);
+    
     fqn = request_get_resolved_filename(rq);
 
     /* we need file size */
@@ -73,12 +77,12 @@ err:
     return ~0;
 }
 
-static int fs_init()
+static int fs_init(void)
 {
     return 0;
 }
 
-static void fs_term()
+static void fs_term(void)
 {
     return;
 }
