@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.26 2005/11/24 21:35:18 tho Exp $
+ * $Id: http.c,v 1.27 2005/11/24 22:08:14 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -518,7 +518,7 @@ int http_backend_serve(struct backend_s *be, int fd)
     int rc;
 
     dbg_err_if (be == NULL);
-    dbg_err_if (be->arg == NULL)
+    dbg_err_if (be->arg == NULL);
     dbg_err_if (fd < 0);
     
     h = (http_t *) be->arg;
