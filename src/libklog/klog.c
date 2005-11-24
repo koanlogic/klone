@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: klog.c,v 1.22 2005/11/23 18:58:51 tat Exp $
+ * $Id: klog.c,v 1.23 2005/11/24 10:30:13 stewy Exp $
  */
 
 #include "klone_conf.h"
@@ -22,10 +22,6 @@ static int klog_facility (const char *fac);
 static int klog_threshold (const char *threshold);
 static int klog_logopt (const char *options);
 
-/**
- *  \defgroup klog KLOG
- *  \{
- */
 
 /**
  * \brief   create a \c klog_args_t object with configuration parameters read
@@ -265,7 +261,7 @@ ssize_t klog_countln (klog_t *kl)
  *          a configuration "log" record
  *
  * \param ls        a log configuration record
- * \param pka       the corresponding \c klog_args_t object as a value-result 
+ * \param pkl       the corresponding \c klog_args_t object as a value-result 
  *                  argument
  * \return
  * - \c 0  success
@@ -317,10 +313,6 @@ int klog_flush (klog_t *kl)
 
     return 0;
 }
-
-/**
- *  \}
- */
 
 
 /* just for testing */

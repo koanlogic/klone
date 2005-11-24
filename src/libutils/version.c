@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: version.c,v 1.3 2005/11/23 23:16:17 tho Exp $
+ * $Id: version.c,v 1.4 2005/11/24 10:30:13 stewy Exp $
  */
 
 #include <stdio.h>
@@ -15,7 +15,7 @@
 #include <u/libu.h>
 
 /**
- *  \defgroup utils utils - Versio
+ *  \addtogroup u_t 
  *  \{
  *      \par
  */
