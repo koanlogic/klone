@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.23 2005/11/23 20:46:02 tat Exp $
+ * $Id: main.c,v 1.24 2005/11/24 11:39:43 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -343,11 +343,19 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
     ctx->nfile++;
 
     /* input file */
-    u_snprintf(file_in, U_FILENAME_MAX, "%s/%s/%s", prefix, path , de->d_name);
+    if(path[0] == U_PATH_SEPARATOR)
+    {   /* absolute path */
+        dbg_err_if(u_snprintf(file_in, U_FILENAME_MAX, "%s/%s", path, 
+            de->d_name));
+    } else {
+        /* relative path, use $(srcdir) */
+        dbg_err_if(u_snprintf(file_in, U_FILENAME_MAX, "%s/%s/%s", prefix, 
+            path, de->d_name));
+    }
 
     /* base uri */
-    u_snprintf(uri, URI_BUFSZ, "%s/%s", base_uri, de->d_name);
-    u_md5(uri, strlen(uri), uri_md5);
+    dbg_err_if(u_snprintf(uri, URI_BUFSZ, "%s/%s", base_uri, de->d_name));
+    dbg_err_if(u_md5(uri, strlen(uri), uri_md5));
 
     /* if the URI match the given encrypt pattern then encrypt it */
     if(ctx->enc_patt && !fnmatch(ctx->enc_patt, uri, 0))

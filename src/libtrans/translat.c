@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.17 2005/11/23 21:43:41 tho Exp $
+ * $Id: translat.c,v 1.18 2005/11/24 11:39:43 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -29,22 +29,45 @@
 
 static int preprocess(io_t *in, io_t *out);
 
-static int is_a_script(const char *filename)
+/* returns 1 if the filename match the given extension */
+static int match_ext(const char *filename, const char *extension)
 {
-    const char *script_ext = ".klone";
     const char *fn, *ext;
+    size_t flen, elen;
 
-    if(filename == NULL || !strlen(filename))
+    if(filename == NULL || extension == NULL)
         return 0;
 
-    fn = filename + strlen(filename) - 1;
-    ext = script_ext + strlen(script_ext) - 1;
-    for( ; ext >= script_ext; --fn, --ext)
+    flen = strlen(filename);
+    elen = strlen(extension);
+    if(elen > flen)
+        return 0;
+
+    fn = filename + flen - 1;
+    ext = extension + elen - 1;
+    for( ; elen; --fn, --ext, --elen)
     {
-        if(tolower(*fn) != *ext)
+        if(tolower(*fn) != tolower(*ext))
             return 0;
     }
     return 1;
+}
+
+static int is_a_script(const char *filename)
+{
+    static const char *script_ext[] = { ".klone", ".kl1", NULL };
+    const char **ext;
+
+    dbg_return_if(filename == NULL, 0);
+
+    /* try to find an index page between default index uris */
+    for(ext = script_ext; *ext; ++ext)
+    {
+        /* case insensitive matching */
+        if(match_ext(filename, *ext))
+            return 1;
+    }
+    return 0;
 }
 
 static int process_directive_include(parser_t *p, char *inc_file)

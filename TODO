@@ -18,7 +18,7 @@ FIRST RELEASE:
         - * blind chroot
         - * bind sessions to client IP address
 
-        - timer test on win32
+        - [win] inmem session first save lost
 
         - child keep-alive ppc cmd to avoid infinite wait in blocking
           calls (for ex. into write())?
