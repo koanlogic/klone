@@ -1,0 +1,11 @@
+# $Id: Makefile-webapp,v 1.1 2005/11/24 14:54:01 stewy Exp $
+#
+# Custom Webapp
+
+# source files
+WEBAPP_SRCS = webapp.c
+
+# extra flags
+WEBAPP_CFLAGS = 
+WEBAPP_LDADD =  
+WEBAPP_LDFLAGS = 

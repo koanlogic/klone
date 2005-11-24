@@ -1,5 +1,5 @@
-# $Id: Makefile,v 1.4 2005/11/23 12:23:04 tho Exp $
+# $Id: Makefile,v 1.5 2005/11/24 14:54:01 stewy Exp $
 
-SUBDIR = site src klone contrib
+SUBDIR = webapp site src klone contrib
 
 include subdir.mk
