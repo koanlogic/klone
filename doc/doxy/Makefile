@@ -1,6 +1,6 @@
-# $Id: Makefile,v 1.1 2005/10/19 15:54:49 stewy Exp $
+# $Id: Makefile,v 1.1 2005/11/24 23:54:13 stewy Exp $
 
-include ../Makefile.conf
+include ../../Makefile.conf
 
 ifdef HAVE_DOXYGEN 
 
