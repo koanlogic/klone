@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: atom.c,v 1.10 2005/11/24 22:47:21 tho Exp $
+ * $Id: atom.c,v 1.11 2005/11/24 22:48:52 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -190,4 +190,6 @@ int atoms_free(atoms_t *as)
     }
 
     return 0;
+err:
+    return ~0;
 }
