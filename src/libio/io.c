@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.26 2005/11/24 09:55:46 tho Exp $
+ * $Id: io.c,v 1.27 2005/11/24 18:05:01 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -702,7 +702,7 @@ inline ssize_t io_putc(io_t *io, char c)
 /**
  * \brief  Read a char from an \c io_t object
  *
- * Read a char from the \c io_t object \p io and save it at \a *pc.
+ * Read a char from the \c io_t object \p io and save it at \p *pc.
  *
  * \param io    the \c io_t object
  * \param pc    on success will hold the read character
