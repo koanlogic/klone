@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.15 2005/11/24 16:00:53 tho Exp $
+ * $Id: vars.c,v 1.16 2005/11/24 17:01:40 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -162,7 +162,7 @@ size_t vars_count(vars_t *vs)
  * it into \p vs.  The variable is returned at \p *v.
  *
  * \param vs    variables' list where the variable is pushed
- * \param str   URL string to parse
+ * \param cstr  URL string to parse
  * \param v     the generated variable as a value-result argument
  *
  * \return \c 0 if successful, non-zero on error
