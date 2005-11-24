@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_fs.c,v 1.6 2005/11/24 18:19:08 tho Exp $
+ * $Id: sup_fs.c,v 1.7 2005/11/24 18:27:48 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -22,8 +22,8 @@ static int fs_is_valid_uri(const char *uri, size_t len, time_t *mtime)
     struct stat st; 
     char fqn[1+U_FILENAME_MAX];
 
-    dbg_return_if (uri == NULL);
-    dbg_return_if (mtime == NULL);
+    dbg_return_if (uri == NULL, 0);
+    dbg_return_if (mtime == NULL, 0);
     dbg_return_if (len > U_FILENAME_MAX, 0);
 
     memcpy(fqn, uri, len);

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.19 2005/11/23 17:27:01 tho Exp $
+ * $Id: sup_emb.c,v 1.20 2005/11/24 18:27:48 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -23,12 +23,14 @@
 #include <klone/rsfilter.h>
 #include "http_s.h"
 
-static int supemb_is_valid_uri(const char* uri, size_t len, time_t *mtime)
+static int supemb_is_valid_uri(const char *uri, size_t len, time_t *mtime)
 {
     embres_t *e;
     char filename[U_FILENAME_MAX] = { 0 };
 
-    dbg_err_if(len >= U_FILENAME_MAX);
+    dbg_err_if (uri == NULL);
+    dbg_err_if (mtime == NULL);
+    dbg_err_if (len >= U_FILENAME_MAX);
 
     strncpy(filename, uri, len);
 
@@ -55,6 +57,10 @@ static int supemb_get_cipher_key(request_t *rq, response_t *rs, char *key,
     session_opt_t *so;
     vars_t *vars;
     var_t *v;
+
+    dbg_err_if (rq == NULL);
+    dbg_err_if (rs == NULL);
+    dbg_err_if (key == NULL);
 
     /* get session options */
     dbg_err_if((http = request_get_http(rq)) == NULL);
@@ -92,6 +98,11 @@ static int supemb_static_set_header_fields(request_t *rq, response_t *rs,
 {
     http_t *http;
 
+    dbg_err_if (rq == NULL);
+    dbg_err_if (rs == NULL);
+    dbg_err_if (e == NULL);
+    dbg_err_if (sai == NULL);
+
     dbg_err_if((http = request_get_http(rq)) == NULL);
 
     /* set header fields based on embfile_t struct */
@@ -126,6 +137,10 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
     char key[CODEC_CIPHER_KEY_SIZE];
     codec_t *rsf = NULL;
 
+    dbg_return_if (rq == NULL, ~0);
+    dbg_return_if (rs == NULL, ~0);
+    dbg_return_if (e == NULL, ~0);
+    
     /* dbg("mime type: %s (%scompressed)", 
         e->mime_type, (e->comp ? "" : "NOT ")); */
 
@@ -141,13 +156,13 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
     if(request_get_method(rq) == HM_HEAD)
         return 0; /* just the header is requested */
 
-    #ifdef HAVE_LIBZ
+#ifdef HAVE_LIBZ
     /* if needed apply a gzip codec to uncompress content data */
     if(e->comp && !sai)
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gzip));
-    #endif
+#endif
 
-    #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
     /* if the resource is encrypted unencrypt using the key stored in 
        KLONE_CIPHER_KEY session variable */
     if(e->encrypted)
@@ -162,7 +177,7 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
         /* delete the key from the stack */
         memset(key, 0, CODEC_CIPHER_KEY_SIZE);
     } 
-    #endif
+#endif
 
     if(gzip)
     {   /* set gzip filter */
@@ -204,6 +219,10 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
     codec_t *filter = NULL;
     session_opt_t *so;
 
+    dbg_return_if (rq == NULL, ~0);
+    dbg_return_if (rs == NULL, ~0);
+    dbg_return_if (e == NULL, ~0);
+
     /* get session options */
     dbg_err_if((http = request_get_http(rq)) == NULL);
     dbg_err_if((so = http_get_session_opt(http)) == NULL);
@@ -240,6 +259,9 @@ static int supemb_serve(request_t *rq, response_t *rs)
     char *file_name;
     embres_t *e;
 
+    dbg_err_if (rq == NULL);
+    dbg_err_if (rs == NULL);
+    
     file_name = request_get_resolved_filename(rq);
     dbg_ifb(file_name == NULL || emb_lookup(file_name, &e))
     {
@@ -266,12 +288,12 @@ err:
     return ~0;
 }
 
-static int supemb_init()
+static int supemb_init(void)
 {
     return 0;
 }
 
-static void supemb_term()
+static void supemb_term(void)
 {
     return;
 }
