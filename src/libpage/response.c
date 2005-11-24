@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.c,v 1.18 2005/11/24 16:53:36 tho Exp $
+ * $Id: response.c,v 1.19 2005/11/24 18:04:15 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -44,7 +44,7 @@ struct response_s
 /**
  * \brief   Set response content encoding field 
  * 
- * Set the \e Content-Encoding field in a response object \a rs to \a encoding.
+ * Set the \e Content-Encoding field in a response object \p rs to \p encoding.
  * 
  * \param rs        response object
  * \param encoding  encoding type 
@@ -67,8 +67,8 @@ err:
 /**
  * \brief    Set the value of a cookie 
  *
- * Set the value of a cookie named \a name to \a value in response object \a rs.
- * Other fields that can be set are \a expire, \a path, \a domain, \a and secure.
+ * Set the value of a cookie named \p name to \p value in response object \p rs.
+ * Other fields that can be set are \p expire, \p path, \p domain, \p and secure.
  *  
  * \param rs        response object
  * \param name      cookie name
@@ -141,7 +141,7 @@ err:
 /*
  * \brief   Print the status of a response object.
  *
- * A string representing the status of a response object \a rs is printed to \a
+ * A string representing the status of a response object \p rs is printed to \p
  * io. 
  *
  * \param rs      response object
@@ -164,7 +164,7 @@ err:
 /*
  * \brief   Print a response field.
  *
- * Print the name and value of a \a field of \a response to \a io.
+ * Print the name and value of a \p field of \p response to \p io.
  *
  * \param rs      response object
  * \param io      output I/O object
@@ -188,7 +188,7 @@ err:
 /** 
  * \brief   Set the response method
  *  
- * Set the response method of \a rs to \a method. For possible values of
+ * Set the response method of \p rs to \p method. For possible values of
  * method, refer to http.h.
  *
  * \param rs      response object
@@ -205,13 +205,13 @@ void response_set_method(response_t *rs, int method)
 /** 
  * \brief   Get the response method
  *  
- * Get the response method of \a rs. For possibile values of method, refer to
+ * Get the response method of \p rs. For possibile values of method, refer to
  * http.h.
  *
  * \param rs    response object
  *  
  * \return
- *  - the method of the given \a rs
+ *  - the method of the given \p rs
  */
 int response_get_method(response_t *rs)
 {
@@ -248,7 +248,7 @@ size_t response_get_max_header_size(response_t *rs)
 /* 
  * \brief   Output a response header 
  *
- * Print the header of \a rs to \a io.
+ * Print the header of \p rs to \p io.
  *
  * \param rs    response object
  * \param io    output I/O object
@@ -282,9 +282,9 @@ err:
 /** 
  * \brief   Print a response header
  *  
- * Print the header of \a rs
+ * Print the header of \p rs
  *
- * \param rs    parameter \a rs description
+ * \param rs    parameter \p rs description
  *  
  * \return
  *  - \c 0  if successful
@@ -299,7 +299,7 @@ int response_print_header(response_t *rs)
 /**
  * \brief   Set a field of a response object
  *
- * Set field \a name to \a value in reponse object \a rs.
+ * Set field \p name to \p value in reponse object \p rs.
  *
  * \param rs     response object
  * \param name   field name
@@ -317,7 +317,7 @@ int response_set_field(response_t *rs, const char *name, const char *value)
 /**
  * \brief   Set the content type of a response to a mime type
  *
- * Set the \e Content-Type field of response \a rs to \a mime_type.
+ * Set the \e Content-Type field of response \p rs to \p mime_type.
  *
  * \param rs         response object
  * \param mime_type  mime type
@@ -340,7 +340,7 @@ err:
 /**
  * \brief   Set the date field in a response header
  *
- * Set the \e Date field of \a rs to \a date. 
+ * Set the \e Date field of \p rs to \p date. 
  *
  * \param rs    response object
  * \param date  date value
@@ -366,7 +366,7 @@ err:
 /**
  * \brief   Set the last modified field in a response header
  *
- * Set the \e Last-Modified field of \a rs to \a mtime.
+ * Set the \e Last-Modified field of \p rs to \p mtime.
  *
  * \param rs     response object
  * \param mtime  last modified date value
@@ -392,7 +392,7 @@ err:
 /**
  * \brief   Set the content length field of a response header
  *
- * Set the \e Content-Length field of \a rs to \a sz.
+ * Set the \e Content-Length field of \p rs to \p sz.
  *
  * \param rs  response object
  * \param sz  number of bytes in content
@@ -418,13 +418,13 @@ err:
 /** 
  * \brief   Get the status of a response
  *  
- * Get the status of a response \a rs. For possible values of status refer to
+ * Get the status of a response \p rs. For possible values of status refer to
  * response.h.
  *
  * \param rs  response object
  *  
  * \return
- *  - the status of the given \a rs
+ *  - the status of the given \p rs
  */
 int response_get_status(response_t *rs)
 {
@@ -434,12 +434,12 @@ int response_get_status(response_t *rs)
 /**
  * \brief   Get the header of a response
  *
- * Get the header of a response \a rs.
+ * Get the header of a response \p rs.
  *
  * \param rs    response object
  *
  * \return
- *  - the child header object of the given \a rs
+ *  - the child header object of the given \p rs
  */
 header_t* response_get_header(response_t *rs)
 {
@@ -449,12 +449,12 @@ header_t* response_get_header(response_t *rs)
 /**
  * \brief   Get the I/O object of a response
  *
- * Get the I/O object of reponse \a rs.
+ * Get the I/O object of reponse \p rs.
  *  
  * \param rs  response object
  *      
  * \return
- *  - the I/O child object of the given \a rs
+ *  - the I/O child object of the given \p rs
  */
 io_t* response_io(response_t *rs)
 {
@@ -464,10 +464,10 @@ io_t* response_io(response_t *rs)
 /** 
  * \brief   Redirect to a given url
  *  
- * Redirect to \e url by setting the \e Location field in response \a rs.
+ * Redirect to \e url by setting the \e Location field in response \p rs.
  *
- * \param rs    parameter \a rs description
- * \param url   parameter \a url description
+ * \param rs    parameter \p rs description
+ * \param url   parameter \p url description
  *  
  * \return
  *  - \c 0  if successful
@@ -492,11 +492,11 @@ err:
 /** 
  * \brief   Set the status of a response
  *  
- * Set the \a status of response \a rs. For possible values of status
+ * Set the \p status of response \p rs. For possible values of status
  * refer to response.h.
  *
- * \param rs      parameter \a rs description
- * \param status  parameter \a status description
+ * \param rs      parameter \p rs description
+ * \param status  parameter \p status description
  *  
  * \return
  *  - \c 0  always
@@ -511,7 +511,7 @@ int response_set_status(response_t *rs, int status)
 /*
  * \brief   Bind the response to a given I/O object
  *  
- * Bind response \a rs to I/O object \a out.
+ * Bind response \p rs to I/O object \p out.
  *
  * \param rs     
  * \param out  output I/O object
@@ -529,8 +529,8 @@ int response_bind(response_t *rs, io_t *out)
 /*
  * \brief   Create a response object
  *  
- * \param http  parameter \a http description
- * \param prs   parameter \a prs description
+ * \param http  parameter \p http description
+ * \param prs   parameter \p prs description
  *  
  * \return
  *  - \c 0  if successful
