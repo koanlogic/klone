@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.16 2005/11/23 18:58:51 tat Exp $
+ * $Id: main.c,v 1.17 2005/11/24 23:16:16 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -33,6 +33,9 @@ static char *io_gets_cb(void *arg, char *buf, size_t size)
 {
     io_t *io = (io_t*)arg;
 
+    dbg_err_if (arg == NULL);
+    dbg_err_if (buf == NULL);
+    
     dbg_err_if(io_gets(io, buf, size) <= 0);
 
     return buf;
@@ -40,7 +43,7 @@ err:
     return NULL;
 }
 
-int app_init()
+int app_init(void)
 {
     io_t *io = NULL;
     int cfg_found = 0;
@@ -92,7 +95,7 @@ err:
     return ~0;
 }
 
-int app_term()
+int app_term(void)
 {
     modules_term(ctx);
 
@@ -113,7 +116,7 @@ int app_term()
     return 0;
 }
 
-int app_run()
+int app_run(void)
 {
     /* create a server object and start its main loop */
     dbg_err_if(server_create(ctx->config, !ctx->daemon, &ctx->server));
