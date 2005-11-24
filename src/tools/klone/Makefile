@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.10 2005/11/23 19:57:24 tat Exp $
+# $Id: Makefile,v 1.11 2005/11/24 22:37:49 tho Exp $
 include ../../../Makefile.conf
 
 PROG = klone
@@ -14,7 +14,7 @@ endif
 LDADD += ../../libtrans/libtrans.a  \
          ../../libcodec/libcodec.a  \
          ../../libutils/libutils.a  \
-         ../../libio/libio.a         
+         ../../libio/libio.a
 
 LDADD += ../../../libu/src/libu.a
 

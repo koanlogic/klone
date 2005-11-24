@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.24 2005/11/24 11:39:43 tat Exp $
+ * $Id: main.c,v 1.25 2005/11/24 22:37:49 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -115,6 +115,9 @@ static void usage(void)
 static void remove_trailing_slash(char *s)
 {
     size_t len;
+    
+    dbg_return_if (s == NULL, );
+    
     len = strlen(s);
     if(len && s[len - 1] == '/')
         s[len - 1] = 0;
@@ -132,14 +135,14 @@ static int parse_opt(int argc, char **argv)
     strcpy(opts, "hvVb:i:o:u:c:");
 
     /* encryption switches */
-    #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
     strcat(opts, "k:e:E");
-    #endif
+#endif
 
     /* compression switches */
-    #ifdef HAVE_LIBZ
+#ifdef HAVE_LIBZ
     strcat(opts, "zZ:");
-    #endif
+#endif
 
     while((ret = getopt(argc, argv, opts)) != -1)
     {
@@ -152,7 +155,7 @@ static int parse_opt(int argc, char **argv)
             u_print_version_and_exit();
             break;
 
-        #ifdef HAVE_LIBOPENSSL
+#ifdef HAVE_LIBOPENSSL
         case 'E': /* encryption on */
             ctx->encrypt = 1;
             break;
@@ -164,9 +167,9 @@ static int parse_opt(int argc, char **argv)
             ctx->key_file = u_strdup(optarg);
             warn_err_if(ctx->key_file == NULL);
             break;
-        #endif
+#endif
 
-        #ifdef HAVE_LIBZ
+#ifdef HAVE_LIBZ
         case 'Z': /* compress file pattern */
             ctx->compress = 1;
             ctx->comp_patt = u_strdup(optarg);
@@ -175,7 +178,7 @@ static int parse_opt(int argc, char **argv)
         case 'z': /* compress */
             ctx->compress = 1;
             break;
-        #endif
+#endif
         case 'c': /* command */
             if(!strcasecmp(optarg, "import"))
                 ctx->cmd = CMD_IMPORT;
@@ -340,6 +343,10 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
     char file_in[U_FILENAME_MAX], uri[URI_BUFSZ], *base_uri = (char*)arg;
     int enc = 0, zip = 0;
 
+    dbg_err_if (de == NULL);
+    dbg_err_if (path == NULL);
+    dbg_err_if (arg == NULL);
+
     ctx->nfile++;
 
     /* input file */
@@ -406,6 +413,10 @@ static int cb_dir(struct dirent *de, const char *path , void *arg)
 {
     char dir[U_FILENAME_MAX], base_uri[URI_BUFSZ], *cur_uri = (char*)arg;
 
+    dbg_err_if (de == NULL);
+    dbg_err_if (path == NULL);
+    dbg_err_if (arg == NULL);
+    
     ctx->ndir++;
 
     dbg_err_if(u_snprintf(dir, U_FILENAME_MAX, "%s/%s", path, de->d_name));
@@ -423,6 +434,8 @@ err:
 
 static int print_register_header(io_t *out)
 {
+    dbg_err_if (out == NULL);
+ 
     dbg_err_if(io_printf(out, "void do_register(int);\n") < 0);
     dbg_err_if(io_printf(out, 
         "void unregister_pages() { do_register(0); }\n") < 0);
@@ -446,6 +459,7 @@ err:
 
 static int print_register_footer(io_t *out)
 {
+    dbg_err_if (out == NULL);
     dbg_err_if(io_printf(out, "#undef KLONE_REGISTER\n") < 0);
     dbg_err_if(io_printf(out, "}\n") < 0);
 
@@ -454,8 +468,11 @@ err:
     return ~0;
 }
 
-static int trans_site(const char *root_dir, const char *base_uri)
+static int trans_site(char *root_dir, char *base_uri)
 {
+    dbg_err_if (root_dir == NULL);
+    dbg_err_if (base_uri == NULL);
+    
     /* makefile */
     dbg_err_if(u_file_open("autogen.mk", O_CREAT | O_TRUNC | O_WRONLY, 
                 &ctx->iom));
@@ -494,7 +511,7 @@ err:
 
 static int command_import(void)
 {
-    const char *root_dir, *base_uri;
+    char *root_dir, *base_uri;
 
     if(ctx->narg != 1)
         usage();    /* just on directory expected */
@@ -503,7 +520,7 @@ static int command_import(void)
     dbg_err_if(root_dir == NULL);
 
     if((base_uri = ctx->base_uri) == NULL)
-        base_uri = "";
+        base_uri = strdup("");
 
     dbg_err_if(trans_site(root_dir, base_uri));
 
