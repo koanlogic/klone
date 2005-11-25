@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: version.c,v 1.4 2005/11/24 10:30:13 stewy Exp $
+ * $Id: version.c,v 1.5 2005/11/25 10:25:04 tho Exp $
  */
 
 #include <stdio.h>
@@ -23,9 +23,9 @@
 /**
  * \brief   Return KLone version string (x.y.z)
  * 
- *  Return KLone version string in the format x.y.z.
+ * Return KLone version string in the format x.y.z.
  *
- * \return version static string
+ * \return the version string
  */
 const char *klone_version(void)
 {
