@@ -5,12 +5,13 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.h,v 1.12 2005/11/23 17:27:01 tho Exp $
+ * $Id: server.h,v 1.13 2005/11/25 11:54:25 tat Exp $
  */
 
 #ifndef _KLONE_SERVER_H_
 #define _KLONE_SERVER_H_
 
+#include "klone_conf.h"
 #include <klone/ppc.h>
 #include <klone/klog.h>
 
@@ -22,7 +23,9 @@ enum {
     SERVER_LOG_FLUSH_TIMEOUT = 5,   /* min # of seconds between two log flush */
 
     /* fork/prefork */
-    SERVER_MAX_CHILD = 150,         /* max # of child allowed to run at once  */
+    SERVER_MAX_CHILD = 300,         /* total # of child process per-server    */
+    SERVER_MAX_BACKEND_CHILD = 150, /* max # of child allowed to run at once 
+                                       per-backend */
 
     /* prefork server model limits */
     SERVER_PREFORK_START_CHILD = 2, /* # of child to run on startup           */
@@ -33,7 +36,12 @@ enum {
     SERVER_MODEL_UNSET,     /* uninitialized                                */
     SERVER_MODEL_FORK,      /* fork for each incoming connection            */
     SERVER_MODEL_ITERATIVE, /* serialize responses                          */
-    SERVER_MODEL_PREFORK    /* prefork a few child to serve more clients    */
+    SERVER_MODEL_PREFORK,   /* prefork a few child to serve more clients    */
+    #ifdef OS_UNIX
+    SERVER_MODEL_DEFAULT = SERVER_MODEL_PREFORK
+    #else
+    SERVER_MODEL_DEFAULT = SERVER_MODEL_ITERATIVE
+    #endif
 };
 
 int server_create(struct u_config_s *config, int model, server_t **ps);

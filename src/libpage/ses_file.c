@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_file.c,v 1.16 2005/11/24 16:53:36 tho Exp $
+ * $Id: ses_file.c,v 1.17 2005/11/25 11:54:25 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -130,18 +130,20 @@ int session_file_module_init(u_config_t *config, session_opt_t *so)
 {
     const char *v;
 
-    dbg_err_if (config == NULL);
+    /* config may be NULL */
     dbg_err_if (so == NULL);
     
-    if((v = u_config_get_subkey_value(config, "file.path")) == NULL)
+    if(config && (v = u_config_get_subkey_value(config, "file.path")) != NULL)
     {
-    #ifdef OS_WIN
-        GetTempPath(U_FILENAME_MAX, so->path);
-    #else
-        strncpy(so->path, "/tmp", U_FILENAME_MAX);
-    #endif
-    } else
         strncpy(so->path, v, U_FILENAME_MAX);
+    } else {
+        /* default */
+        #ifdef OS_WIN
+        GetTempPath(U_FILENAME_MAX, so->path);
+        #else
+        strncpy(so->path, "/tmp", U_FILENAME_MAX);
+        #endif
+    }
 
     return 0;
 err:

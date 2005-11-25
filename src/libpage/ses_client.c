@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_client.c,v 1.25 2005/11/24 16:00:53 tho Exp $
+ * $Id: ses_client.c,v 1.26 2005/11/25 11:54:25 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -218,7 +218,7 @@ int session_client_module_init(u_config_t *config, session_opt_t *so)
     u_config_t *c;
     const char *v;
 
-    dbg_err_if (config == NULL);
+    /* config may be NULL */
     dbg_err_if (so == NULL);
     
     /* default */
@@ -229,19 +229,22 @@ int session_client_module_init(u_config_t *config, session_opt_t *so)
         warn("encryption is required for client side session");
     so->encrypt = 1;
 
-    dbg_err_if(u_config_get_subkey(config, "client", &c));
-
-    if((v = u_config_get_subkey_value(c, "hash_function")) != NULL)
+    if(config)
     {
-        if(!strcasecmp(v, "md5"))
-            so->hash = EVP_md5();
-        else if(!strcasecmp(v, "sha1"))
-            so->hash = EVP_sha1();
-        else if(!strcasecmp(v, "ripemd160"))
-            so->hash = EVP_ripemd160();
-        else
-            warn_err("config error: bad hash_function");
-    } 
+        dbg_err_if(u_config_get_subkey(config, "client", &c));
+
+        if((v = u_config_get_subkey_value(c, "hash_function")) != NULL)
+        {
+            if(!strcasecmp(v, "md5"))
+                so->hash = EVP_md5();
+            else if(!strcasecmp(v, "sha1"))
+                so->hash = EVP_sha1();
+            else if(!strcasecmp(v, "ripemd160"))
+                so->hash = EVP_ripemd160();
+            else
+                warn_err("config error: bad hash_function");
+        } 
+    }
 
     /* initialize OpenSSL HMAC stuff */
     HMAC_CTX_init(&so->hmac_ctx);

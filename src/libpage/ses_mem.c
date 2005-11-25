@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_mem.c,v 1.23 2005/11/24 16:53:36 tho Exp $
+ * $Id: ses_mem.c,v 1.24 2005/11/25 11:54:25 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -471,21 +471,24 @@ int session_mem_module_init(u_config_t *config, session_opt_t *so)
     u_config_t *c;
     const char *v;
 
-    dbg_err_if (config == NULL);
+    /* config may be NULL */
     dbg_err_if (so == NULL);
 
     /* defaults */
     so->max_count = 0;  /* no limits */
     so->mem_limit = 0;  /* no limits */
 
-    /* get configuration parameters */
-    dbg_err_if(u_config_get_subkey(config, "memory", &c));
+    if(config)
+    {
+        /* get configuration parameters */
+        dbg_err_if(u_config_get_subkey(config, "memory", &c));
 
-    if((v = u_config_get_subkey_value(c, "max_count")) != NULL)
-        so->max_count = atoi(v);
+        if((v = u_config_get_subkey_value(c, "max_count")) != NULL)
+            so->max_count = atoi(v);
 
-    if((v = u_config_get_subkey_value(c, "mem_limit")) != NULL)
-        so->mem_limit = atoi(v);
+        if((v = u_config_get_subkey_value(c, "mem_limit")) != NULL)
+            so->mem_limit = atoi(v);
+    }
 
     /* setup ppc parent <-> child channel */
     ppc = server_get_ppc(ctx->server);

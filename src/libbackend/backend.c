@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: backend.c,v 1.17 2005/11/23 18:15:10 tho Exp $
+ * $Id: backend.c,v 1.18 2005/11/25 11:54:25 tat Exp $
  */
 
 #include <unistd.h>
@@ -80,14 +80,14 @@ int backend_create(const char *proto, u_config_t *config, backend_t **pbe)
     {
         /* max # of child allowed to run at once */
         dbg_err_if(u_config_get_subkey_value_i(config, "fork.max_child", 
-            SERVER_MAX_CHILD, (int *)&be->max_child));
+            SERVER_MAX_BACKEND_CHILD, (int *)&be->max_child));
     }
 
     if(be->model == SERVER_MODEL_PREFORK)
     {
         /* max # of child allowed to run at once */
         dbg_err_if(u_config_get_subkey_value_i(config, "prefork.max_child", 
-            SERVER_MAX_CHILD, (int *)&be->max_child));
+            SERVER_MAX_BACKEND_CHILD, (int *)&be->max_child));
         
         /* # of child to run at startup */
         dbg_err_if(u_config_get_subkey_value_i(config, "prefork.start_child", 

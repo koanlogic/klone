@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.31 2005/11/24 16:00:53 tho Exp $
+ * $Id: session.c,v 1.32 2005/11/25 11:54:25 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -52,7 +52,7 @@ int session_module_term(session_opt_t *so)
 int session_module_init(u_config_t *config, session_opt_t **pso)
 {
     session_opt_t *so = NULL;
-    u_config_t *c;
+    u_config_t *c = NULL;
     const char *v;
     int max_age;
 
@@ -68,63 +68,63 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     so->compress = 0;
     so->encrypt = 0;
 
-    if(u_config_get_subkey(config, "session", &c))
+    if(!u_config_get_subkey(config, "session", &c))
     {
         /* no 'session' subsection, defaults will be used */
-        *pso = so;
-        return 0; 
-    }
 
-    /* set session type */
-    if((v = u_config_get_subkey_value(c, "type")) != NULL)
-    {
-        if(!strcasecmp(v, "memory")) {
-            so->type = SESSION_TYPE_MEMORY;
-        } else if(!strcasecmp(v, "file")) {
-            so->type = SESSION_TYPE_FILE;
+        /* set session type */
+        if((v = u_config_get_subkey_value(c, "type")) != NULL)
+        {
+            if(!strcasecmp(v, "memory")) {
+                so->type = SESSION_TYPE_MEMORY;
+            } else if(!strcasecmp(v, "file")) {
+                so->type = SESSION_TYPE_FILE;
 #ifdef HAVE_LIBOPENSSL
-        } else if(!strcasecmp(v, "client")) {
-            so->type = SESSION_TYPE_CLIENT;
+            } else if(!strcasecmp(v, "client")) {
+                so->type = SESSION_TYPE_CLIENT;
 #endif
-        } else
-           warn_err("config error: bad session type (typo or missing library)");
-    }
+            } else
+               warn_err("config error: bad session type (typo or missing "
+                        "library)");
+        }
 
-    /* set max_age */
-    if((v = u_config_get_subkey_value(c, "max_age")) != NULL)
-        max_age = MAX(atoi(v) * 60, 60); /* min value: 1 min */
+        /* set max_age */
+        if((v = u_config_get_subkey_value(c, "max_age")) != NULL)
+            max_age = MAX(atoi(v) * 60, 60); /* min value: 1 min */
 
-    /* set compression flag */
-    dbg_err_if(u_config_get_subkey_value_b(c, "compress", 0, &so->compress));
+        /* set compression flag */
+        dbg_err_if(u_config_get_subkey_value_b(c, "compress", 0,
+            &so->compress));
 
-    /* set encryption flag */
-    dbg_err_if(u_config_get_subkey_value_b(c, "encrypt", 0, &so->encrypt));
+        /* set encryption flag */
+        dbg_err_if(u_config_get_subkey_value_b(c, "encrypt", 0, &so->encrypt));
 
 #ifndef HAVE_LIBZ
-    if(so->compress)
-        warn_err("config error: compression is enabled but libz is not "
-                 "linked");
+        if(so->compress)
+            warn_err("config error: compression is enabled but libz is not "
+                     "linked");
 #endif
 
 #ifndef HAVE_LIBOPENSSL
-    if(so->encrypt)
-        warn_err("config error: encryption is enabled but OpenSSL is not "
-                 "linked");
+        if(so->encrypt)
+            warn_err("config error: encryption is enabled but OpenSSL is not "
+                     "linked");
 #else
-    /* init cipher EVP algo, the random key and IV */
-    so->cipher = EVP_aes_256_cbc(); /* use AES-256 in CBC mode */
+        /* init cipher EVP algo, the random key and IV */
+        so->cipher = EVP_aes_256_cbc(); /* use AES-256 in CBC mode */
 
-    EVP_add_cipher(so->cipher);
+        EVP_add_cipher(so->cipher);
 
-    /* key and iv for client-side session */
-    dbg_err_if(!RAND_bytes(so->cipher_key, CIPHER_KEY_SIZE));
-    dbg_err_if(!RAND_pseudo_bytes(so->cipher_iv, CIPHER_IV_SIZE));
+        /* key and iv for client-side session */
+        dbg_err_if(!RAND_bytes(so->cipher_key, CIPHER_KEY_SIZE));
+        dbg_err_if(!RAND_pseudo_bytes(so->cipher_iv, CIPHER_IV_SIZE));
 
-    /* create a random key and iv to crypt the KLONE_CIPHER_KEY variable */
-    dbg_err_if(!RAND_bytes(so->session_key, CIPHER_KEY_SIZE));
-    dbg_err_if(!RAND_pseudo_bytes(so->session_iv, CIPHER_IV_SIZE));
+        /* create a random key and iv to crypt the KLONE_CIPHER_KEY variable */
+        dbg_err_if(!RAND_bytes(so->session_key, CIPHER_KEY_SIZE));
+        dbg_err_if(!RAND_pseudo_bytes(so->session_iv, CIPHER_IV_SIZE));
 
 #endif
+    } /* if "session" exists */
 
     /* per-type configuration init */
     if(so->type == SESSION_TYPE_MEMORY)

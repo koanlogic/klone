@@ -18,6 +18,10 @@ FIRST RELEASE:
         - * blind chroot
         - * bind sessions to client IP address
 
+        - OPT request_parse on POST e request_parse_args
+        - splittare klone-docs.html
+        - doxy libu in web doc klone
+
         - auto configure (makl/libu/klone)
 
         - man kloned.conf: per-server max_child
@@ -63,7 +67,6 @@ FIRST RELEASE:
 
         - scripts ulimit to limit memory/cpu?
         - line by line code inspection
-        - copyright KL in tutti i file
 
         - klone && kloned usage() proofreading
         - klone and kloned man update
@@ -87,8 +90,6 @@ FIRST RELEASE:
 
         - sito embedded di default (nel tar.gz) con documentazione 
         - more request_ and response_ helper funcs (see jsp docs)
-        - config param: server user/group owner
-        - config param: server working directory (chroot)
         - fine-grained compiling: modularizzare le funzionalita' 
           per poterle escludere in fase di compilazione (#ifdef)
         - io_printf: aggiungere %e o %q per stampare stringhe dopo averle 

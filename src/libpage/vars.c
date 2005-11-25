@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.16 2005/11/24 17:01:40 tho Exp $
+ * $Id: vars.c,v 1.17 2005/11/25 11:54:25 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -177,7 +177,7 @@ int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **v)
 
     dbg_return_if (vs == NULL, ~0);
     dbg_return_if (cstr == NULL, ~0);
-    dbg_return_if (v == NULL, ~0);
+    /* v may be NULL */
         
     /* dup the string so we can modify it */
     str = u_strdup(cstr);

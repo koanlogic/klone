@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: field.c,v 1.9 2005/11/24 16:00:53 tho Exp $
+ * $Id: field.c,v 1.10 2005/11/25 11:54:25 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -145,8 +145,7 @@ int field_create(const char *name, const char *value, field_t **pf)
 {
     field_t *f = NULL;
 
-    dbg_err_if (name == NULL);
-    dbg_err_if (value == NULL);
+    /* name and value may be NULL */
     dbg_err_if (pf == NULL);
 
     f = u_zalloc(sizeof(field_t));

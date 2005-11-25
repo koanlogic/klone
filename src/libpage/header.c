@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.c,v 1.9 2005/11/24 16:00:53 tho Exp $
+ * $Id: header.c,v 1.10 2005/11/25 11:54:25 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -232,7 +232,7 @@ static int header_process_line(header_t *h, u_string_t *line)
     dbg_err_if((p = strchr(u_string_c(line), ':')) == NULL);
 
     /* alloc a new field */
-    dbg_err_if(field_create(NULL,0,&f));
+    dbg_err_if(field_create(NULL, NULL, &f));
 
     /* parse and set name, value and params */
     dbg_err_if(field_set_from_line(f, u_string_c(line)));
