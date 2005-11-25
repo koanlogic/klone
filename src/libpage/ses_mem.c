@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_mem.c,v 1.24 2005/11/25 11:54:25 tat Exp $
+ * $Id: ses_mem.c,v 1.25 2005/11/25 15:55:59 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -135,7 +135,7 @@ static int so_atom_add(session_opt_t *so, const char *id, char *buf,
     if(so->mem_limit)
     {
         warn_err_ifm(size > so->mem_limit, 
-            "session size is bigger the mem_limit, save aborted...");
+            "session size is bigger the memory.limit, save aborted...");
         for(;;)
         {
             /* new_size = size of all atoms + size of the atom we're going to
@@ -486,7 +486,7 @@ int session_mem_module_init(u_config_t *config, session_opt_t *so)
         if((v = u_config_get_subkey_value(c, "max_count")) != NULL)
             so->max_count = atoi(v);
 
-        if((v = u_config_get_subkey_value(c, "mem_limit")) != NULL)
+        if((v = u_config_get_subkey_value(c, "limit")) != NULL)
             so->mem_limit = atoi(v);
     }
 

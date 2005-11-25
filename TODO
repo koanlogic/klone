@@ -18,6 +18,8 @@ FIRST RELEASE:
         - * blind chroot
         - * bind sessions to client IP address
 
+        - kloned.conf con tutte le opzioni commentate
+
         - OPT request_parse on POST e request_parse_args
         - splittare klone-docs.html
         - doxy libu in web doc klone
