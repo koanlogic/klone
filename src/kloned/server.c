@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.37 2005/11/24 23:42:19 tho Exp $
+ * $Id: server.c,v 1.38 2005/11/25 10:18:04 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -378,7 +378,8 @@ static int server_chroot_blind(server_t *s)
     pid_t child;
     unsigned int mask;
 
-    dbg_err_if(s->chroot == NULL);
+    dbg_err_if (s == NULL);
+    dbg_err_if (s->chroot == NULL);
 
     dbg_err_if(u_path_snprintf(dir, U_PATH_MAX, U_PATH_SEPARATOR,
         "%s/kloned_blind_chroot_%d.dir", s->chroot, getpid()));
@@ -402,10 +403,10 @@ static int server_chroot_blind(server_t *s)
     }
     /* parent */
 
-    #ifdef OS_UNIX
+#ifdef OS_UNIX
     /* do chroot */
     dbg_err_if(server_chroot_to(s, dir));
-    #endif
+#endif
 
     /* do some dir sanity checks */
 
@@ -438,6 +439,8 @@ err:
 
 static int server_chroot(server_t *s)
 {
+    dbg_return_if (s == NULL, ~0);
+
     if(s->blind_chroot)
         return server_chroot_blind(s);
     else
@@ -448,6 +451,8 @@ static int server_drop_privileges(server_t *s)
 {
     uid_t uid;
     gid_t gid;
+
+    dbg_return_if (s == NULL, ~0);
 
     if(s->gid > 0)
     {
@@ -488,11 +493,11 @@ static int server_fork_child(server_t *s, backend_t *be)
     pid_t child;
     int socks[2];
 
-    u_unused_args(s);
-
+    dbg_return_if (s == NULL, -1);
+    dbg_return_if (be == NULL, -1);
     /* exit on too much children */
-    dbg_return_if(children_count(s->children) == s->max_child, -1);
-    dbg_return_if(be->nchild == be->max_child, -1);
+    dbg_return_if (children_count(s->children) == s->max_child, -1);
+    dbg_return_if (be->nchild == be->max_child, -1);
 
     /* create a parent<->child IPC channel */
     dbg_err_if(socketpair(AF_UNIX, SOCK_STREAM, 0, socks) < 0);
@@ -550,7 +555,8 @@ static int server_child_serve(server_t *s, backend_t *be, int ad)
 {
     pid_t child;
 
-    u_unused_args(s);
+    dbg_return_if (s == NULL, ~0);
+    dbg_return_if (be == NULL, ~0);
 
     dbg_err_if((child = server_fork_child(s, be)) < 0);
 
@@ -581,6 +587,8 @@ static int server_cb_spawn_child(alarm_t *al, void *arg)
 
     u_unused_args(al);
 
+    dbg_err_if (s == NULL);
+
     /* must be called by a child process */
     dbg_err_if(ctx->backend == NULL || ctx->pipc == NULL);
 
@@ -601,9 +609,12 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
 {
     alarm_t *al = NULL;
 
+    dbg_err_if (s == NULL);
+    dbg_err_if (be == NULL);
+    
     switch(be->model)
     {
-    #ifdef OS_UNIX
+#ifdef OS_UNIX
     case SERVER_MODEL_FORK:
         /* spawn a child to handle the request */
         dbg_err_if(server_child_serve(s, be, ad));
@@ -620,7 +631,7 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
         /* remove and free the alarm */
         timerm_del(al); /* prefork */
         break;
-    #endif
+#endif
 
     case SERVER_MODEL_ITERATIVE:
         /* serve the page */
@@ -642,6 +653,8 @@ err:
 
 int server_stop(server_t *s)
 {
+    dbg_err_if (s == NULL);
+    
     if(ctx->pipc)
     {   /* child process */
 
@@ -663,6 +676,8 @@ static int server_listen(server_t *s)
 {
     backend_t *be;
 
+    dbg_err_if (s == NULL);
+    
     LIST_FOREACH(be, &s->bes, np)
     {
         /* bind to be->addr */
@@ -682,6 +697,8 @@ int server_cgi(server_t *s)
 {
     backend_t *be;
 
+    dbg_err_if (s == NULL);
+
     /* use the first http backend as the CGI backend */
     LIST_FOREACH(be, &s->bes, np)
     {
@@ -692,11 +709,14 @@ int server_cgi(server_t *s)
         }
     }
 
+err: /* fall through if search loop exhausted */
     return ~0;
 }
 
 ppc_t* server_get_ppc(server_t *s)
 {
+    dbg_return_if (s == NULL, NULL);
+
     return s->ppc;
 }
 
@@ -705,6 +725,9 @@ static int server_process_ppc(server_t *s, int fd)
     unsigned char cmd;
     char data[PPC_MAX_DATA_SIZE];
     ssize_t n;
+
+    dbg_err_if (s == NULL);
+    dbg_err_if (fd < 0);
 
     /* get a ppc request */
     n = ppc_read(s->ppc, fd, &cmd, data, PPC_MAX_DATA_SIZE); 
@@ -732,6 +755,8 @@ static int server_set_socket_opts(server_t *s, int sock)
 
     u_unused_args(s);
 
+    dbg_err_if (sock < 0);
+
     /* disable Nagle algorithm */
     dbg_err_if(setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, 
         (void*) &on, sizeof(int)) < 0);
@@ -745,6 +770,8 @@ static int server_dispatch(server_t *s, int fd)
 {
     backend_t *be;
     int ad = -1; 
+
+    dbg_err_if (s == NULL);
 
     /* find the backend that listen on fd */
     LIST_FOREACH(be, &s->bes, np)
@@ -765,8 +792,7 @@ static int server_dispatch(server_t *s, int fd)
 
     return 0;
 err:
-    if(ad != -1)
-        close(ad);
+    U_CLOSE(ad);
     return ~0;
 }
 
@@ -775,6 +801,8 @@ int server_cb_klog_flush(alarm_t *a, void *arg)
     server_t *s = (server_t*)arg;
 
     u_unused_args(a);
+
+    dbg_return_if (s == NULL, ~0);
 
     /* set a flag to flush the klog object in server_loop */
     s->klog_flush++;
@@ -787,6 +815,9 @@ int server_spawn_child(server_t *s, backend_t *be)
 {
     size_t c;
     int rc;
+
+    dbg_err_if (s == NULL);
+    dbg_err_if (be == NULL);
 
     dbg_err_if((rc = server_fork_child(s, be)) < 0);
     if(rc > 0)
@@ -816,6 +847,8 @@ static int server_spawn_children(server_t *s)
     backend_t *be;
     register size_t i;
 
+    dbg_err_if (s == NULL);
+
     /* spawn N child process that will sleep asap into accept(2) */
     LIST_FOREACH(be, &s->bes, np)
     {
@@ -842,11 +875,12 @@ int server_loop(server_t *s)
     int rc, fd;
     fd_set rdfds, wrfds, exfds;
 
-    dbg_err_if(s == NULL || s->config == NULL);
-    
+    dbg_err_if (s == NULL);
+    dbg_err_if (s->config == NULL);
+
     dbg_err_if(server_listen(s));
 
-    #ifdef OS_UNIX
+#ifdef OS_UNIX
     /* if it's configured chroot to the dst dir */
     if(s->chroot)
         dbg_err_if(server_chroot(s));
@@ -858,14 +892,14 @@ int server_loop(server_t *s)
     if(!s->allow_root)
         warn_err_ifm(!getuid() || !geteuid() || !getgid() || !getegid(),
             "you must set the allow_root config option to run kloned as root");
-    #endif
+#endif
 
     for(; !s->stop; )
     {
-        #ifdef OS_UNIX
+#ifdef OS_UNIX
         /* spawn new child if needed (may fail on resource limits) */
         dbg_if(server_spawn_children(s));
-        #endif
+#endif
 
         /* children in pre-fork mode exit here */
         if(ctx->pipc)
@@ -884,10 +918,10 @@ int server_loop(server_t *s)
             goto again; /* interrupted */
         dbg_err_if(rc == -1); /* select error */
 
-        #ifdef OS_UNIX
+#ifdef OS_UNIX
         if(s->reap_childs)
             server_waitpid(s);
-        #endif
+#endif
 
         /* call klog_flush if flush timeout has expired and select() timeouts */
         if(s->klog_flush && ctx->pipc == NULL)
@@ -936,12 +970,11 @@ err:
     return ~0;
 }
 
-
 int server_free(server_t *s)
 {
     backend_t *be;
 
-    dbg_err_if(s == NULL);
+    dbg_err_if (s == NULL);
 
     /* remove the hook (that needs the server_t object) */
     u_log_set_hook(NULL, NULL, NULL, NULL);
@@ -990,6 +1023,9 @@ static int server_setup_backend(server_t *s, backend_t *be)
 {
     u_config_t *subkey;
 
+    dbg_return_if (s == NULL, ~0);
+    dbg_return_if (be == NULL, ~0);
+    
     /* server count */
     s->nbackend++;
 
@@ -1016,6 +1052,9 @@ static int server_log_hook(void *arg, int level, const char *str)
     u_log_hook_t old = NULL;
     void *old_arg = NULL;
 
+    dbg_err_if (s == NULL);
+    dbg_err_if (str == NULL);
+ 
     /* if both the server and the calling backend has no log then exit */
     if(s->klog == NULL && (ctx->backend == NULL || ctx->backend->klog == NULL))
         return 0; /* log is disabled */
@@ -1048,6 +1087,9 @@ int server_get_logger(server_t *s, klog_t **pkl)
 {
     klog_t *kl = NULL;
 
+    dbg_err_if (s == NULL);
+    dbg_err_if (pkl == NULL);
+ 
     if(ctx->backend)
         kl = ctx->backend->klog; /* may be NULL */
 
@@ -1057,12 +1099,17 @@ int server_get_logger(server_t *s, klog_t **pkl)
     *pkl = kl;
 
     return 0;
+err:
+    return ~0;
 }
 
 int server_get_backend_by_id(server_t *s, int id, backend_t **pbe)
 {
     backend_t *be;
 
+    dbg_err_if (s == NULL);
+    dbg_err_if (pbe == NULL);
+    
     LIST_FOREACH(be, &s->bes, np)
     {
         if(be->id == id)
@@ -1072,7 +1119,8 @@ int server_get_backend_by_id(server_t *s, int id, backend_t **pbe)
         }
     }
 
-    return ~0; /* not found */
+err: /* fall through if search loop exhausted */
+    return ~0;
 }
 
 int server_create(u_config_t *config, int foreground, server_t **ps)
@@ -1083,6 +1131,9 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
     const char *list, *type;
     char *n = NULL, *name = NULL;
     int i, id, iv;
+
+    dbg_return_if (ps == NULL, ~0);
+    dbg_return_if (config == NULL, ~0);
 
 #ifdef OS_WIN
     WORD ver;
@@ -1122,10 +1173,10 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
     /* register the log ppc callbacks */
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_NOP, server_ppc_cb_nop, s));
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_LOG_ADD, server_ppc_cb_log_add, s));
-    #ifdef OS_FORK
+#ifdef OS_UNIX
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_FORK_CHILD, 
         server_ppc_cb_fork_child, s));
-    #endif
+#endif
 
     /* redirect logs to the server_log_hook function */
     dbg_err_if(u_log_set_hook(server_log_hook, s, NULL, NULL));
@@ -1186,11 +1237,11 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
         if(!u_config_get_subkey(bekey, "log", &log_c))
             dbg_if(klog_open_from_config(log_c, &be->klog));
 
-        #ifdef OS_WIN
+#ifdef OS_WIN
         if(be->model != SERVER_MODEL_ITERATIVE)
             warn_err("child-based server model is not "
                      "yet supported on Windows");
-        #endif
+#endif
 
         LIST_INSERT_HEAD(&s->bes, be, np);
 
@@ -1202,10 +1253,10 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
     /* init done, set signal handlers */
     dbg_err_if(u_signal(SIGINT, server_sigint));
     dbg_err_if(u_signal(SIGTERM, server_sigterm));
-    #ifdef OS_UNIX 
+#ifdef OS_UNIX 
     dbg_err_if(u_signal(SIGPIPE, SIG_IGN));
     dbg_err_if(u_signal(SIGCHLD, server_sigchld));
-    #endif
+#endif
 
     return 0;
 err:
