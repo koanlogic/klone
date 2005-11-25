@@ -1,5 +1,5 @@
-\" $Id: kloned.conf.5,v 1.1 2005/11/24 23:54:13 stewy Exp $
-.TH "KLONED.CONF" "5" "11/03/2005" "KoanLogic Srl" "KoanLogic Srl"
+.\" $Id: kloned.conf.5,v 1.2 2005/11/25 13:27:24 tho Exp $
+.TH "KLONED.CONF" "5" "11/25/2005" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -90,7 +90,7 @@ convention to specify the location of contents that
 \fBkloned\fR
 tries to retreive from its suppliers. By default there is only one active supplier, which is the embedded file system. Anyway, there could be many different suppliers, e.g. the local disk that is enabled by setting the
 \fBENABLE_SUP_FS\fR
-during compilation. The embedded file system supplier is
+variable during compilation. The embedded file system supplier is
 \fIalways\fR
 searched first. In case the requested resource were not found in the embedded file system, the other suppliers are searched sequentially.
 .TP
@@ -100,6 +100,26 @@ The top level directory under which this server's instance keeps the site data. 
 is done, it is mapped to
 \fIsup://${dir_root}/dir/page.kl1\fR. The default value is
 \fI/\fR.
+.TP
+\fBchroot\fR
+Set the directory where the running server resides. It requires no additional files to exist in jail: the chroot call is made after server initialisation (log setup, backend configuration, bind/listen) but before forking and dropping of priviledges.
+.TP
+\fBblind_chroot\fR
+A variant of the
+\fBchroot\fR
+directive which, additionally, unlinks the server root directory, making the chance for a hijacked/malfunctioning server to access the file system very unlikely. It can be useful in combination with in\-memory logging or syslog remote logging to achieve a very high level of bounding.
+.TP
+\fBuid\fR
+Set the real and effective user ID of the running server.
+.TP
+\fBgid\fR
+Set the real, effective group IDs and the saved set\-group\-ID of the running server.
+.TP
+\fBallow_root\fR
+A boolean which specifies if the server is allowed to run with root credentials (i.e. user ID 0).
+.TP
+\fBmax_child\fR
+Set the maximum number of child processes per server (i.e. total number of running backend child processes) available at run\-time. The default value is 300.
 .TP
 \fBerror.\fR\fB\fIhttp_errno\fR\fR
 Select the file which will be displayed on the given HTTP error event (\fIhttp_errno\fR
@@ -130,12 +150,20 @@ Set the server signature string which will be returned in the HTTP head (Server:
 .TP
 \fBserver_model\fR
 Set the type of the serving model for this klone instance:
-\fIfork\fR, a child process is spawned for every client request, or
-\fIiterative\fR, pending clients are processed one at a time. Note that the
+\fIfork\fR, a child process is spawned for every client request,
+\fIiterative\fR, pending clients are processed one at a time, or
+\fIprefork\fR, a pool of child processes is created on start up and an available process from the pool is chosen to handle each incoming client request. When a request burst happens in
+\fIprefork\fR
+mode, the server reacts adaptively, i.e. it creates other child processes up to a configurable maximum in order to gracefully handle the busy condition. Note that the
 \fB\-F\fR
-command line switch overrides this value. The default value is inherited from the parent
-\fBkloned\fR
-process.
+command line switch overrides this value, enforcing the iterative model. The default value is inherited from the parent, which by default is
+\fIprefork\fR.
+.TP
+\fBfork.max_child, prefork.max_child\fR
+Set the maximum number of child processes at running time. The default value is 150.
+.TP
+\fBprefork.max_request_per_child\fR
+Set the maximum number of request that a child process can handle before giving up.
 .TP
 \fBindex\fR
 Specify the index page location. This is the page that is returned to the client requesting
@@ -161,6 +189,14 @@ for storing data on the client. The default value is
 .TP
 \fBmax_age\fR
 Set the inactivity threshold timeout for the session. The default value is 60*20 seconds (20 minutes).
+.TP
+\fBencrypt\fR
+A boolean specifying whether the session data should be encrypted before being sent to the client. The default is
+\fIyes\fR.
+.TP
+\fBcompress\fR
+A boolean specifying whether the session data should be compressed before being pushed to the client. The default is
+\fIno\fR.
 .TP
 \fBmemory.mem_limit\fR
 Set the maximum size in bytes for the memory used to hold the collection of all sessions' data. The default value is
@@ -188,14 +224,6 @@ The hash function that should be used in the HMAC calculation over the cookies. 
 \fIsha1\fR,
 \fIripemd160\fR. The default is
 \fIsha1\fR.
-.TP
-\fBclient.encrypt\fR
-A boolean specifying whether the session data should be encrypted before being sent to the client. The default is
-\fIyes\fR.
-.TP
-\fBclient.compress\fR
-A boolean specifying whether the session data should be compressed before being pushed to the client. The default is
-\fIno\fR.
 .SS "SSL/TLS"
 .PP
 All the cryptographic material examined in this section MUST not be password protected. This is because on unattended devices such as appliances or similar, password protection is useless if not harmful.
@@ -251,7 +279,8 @@ Note that optional makes sense only in testing scenarios. The default value is
 .SS "LOG"
 .PP
 Klone provides three types of log device: memory, syslog and file. The first is especially targeted for ROM appliances, while the second and third need a device with available (and writeable) storage in order to work. The file type is for systems with no available system message logger (RFC 3164 like). Instead, if the host system has syslog, either as a locally running daemon or just as a set of client API interfacing an external device, then the syslog type (which is nothing but a wrapper to the
-\fBsyslog\fR(3) family of functions) can be used.
+\fBsyslog\fR(3)
+family of functions) can be used.
 .PP
 Each klone instance can be given its private log device. Furthermore there may exist a top level log device, associated to the klone dispatcher to which log messages who could not find a suitable sink (i.e. messages sent by klone instances with no configured log device) are forwarded. If no log devices are configured (neither instance specific, nor the top level one), nothing at all is logged.
 .PP
@@ -271,7 +300,7 @@ subsection which gathers all its configuration parameters.
 .TP
 \fBtype\fR
 Specify the type of log device: can be one of
-\fImem\fR,
+\fImemory\fR,
 \fIfile\fR
 or
 \fIsyslog\fR. This parameter is
@@ -284,25 +313,39 @@ Set a fixed string which will be prepended to each log message.
 Specify the a threshold severity level for messages that you want to be displayed: log messages with a level lower than this will be discarded. If not specified, the lowest value is set
 (i.e. \fBKLOG_DEBUG\fR).
 .TP
-\fBmem.limit\fR
+\fBmemory.limit\fR
 The memory log device is basically a fixed size array of log strings with a FIFO discard policy. This parameter specifies the array dimension, i.e. the maximum number of resident log messages. If not specified a default value of 250 is set.
 .TP
 \fBsyslog.facility\fR
 Set a default
-\fBsyslog\fR(3) facility for log messages. It must be one of
+\fBsyslog\fR(3)
+facility for log messages. It must be one of
 \fBLOG_LOCAL[0\-7]\fR. If not set the highest value possible is set 
 (i.e. \fBLOG_LOCAL7\fR).
 .TP
 \fBsyslog.options\fR
 Optionally specify a list of blank separated values from the set of the
-\fBsyslog\fR(3) log options:
+\fBsyslog\fR(3)
+log options:
 \fBLOG_CONS\fR,
 \fBLOG_NDELAY\fR,
 \fBLOG_PERROR\fR,
 \fBLOG_PID\fR.
+.PP
+A file log device is physically subdivided into a certain number of files (pages) named
+\fIbasename\fR.\fIpage_id\fR, used as pieces of a sliding circular buffer. A page must be thought as a fixed size array of log lines: each page in a file log has the same dimension, so that each log line can be referenced uniquely. State information is grouped into a
+\fIhead\fR
+file to be preserved between one run and the subsequent. Information in head (i.e. number of page files, page dimension, active page id, offset in page and basename) is used iff it corresponds to actual config parameters, otherwise the past log is discarded.
 .TP
-\fBfile.*\fR
-TODO.
+\fBfile.basename\fR
+The page basename. This parameter is
+\fImandatory\fR.
+.TP
+\fBfile.limit\fR
+Set the number of log lines in each page file. If not set, a default value of 250 is silently assumed.
+.TP
+\fBfile.splits\fR
+Set the number of pages for this log device. If not set, a default value of 4 is silently assumed. The minimal number of pages is 2.
 .SH "SEE ALSO"
 .PP
 \fBklone\fR(1),
