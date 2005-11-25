@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.26 2005/11/24 22:41:26 tho Exp $
+ * $Id: main.c,v 1.27 2005/11/25 10:20:49 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -237,6 +237,9 @@ static int set_key_from_file(trans_info_t *pti, const char *key_file)
 {
     io_t *io = NULL;
 
+    dbg_err_if (pti == NULL);
+    dbg_err_if (key_file == NULL);
+    
     dbg_err_if(u_file_open(key_file, O_RDONLY, &io));
 
     dbg_err_if(io_read(io, pti->key, CODEC_CIPHER_KEY_SIZE) <= 0);
@@ -460,6 +463,7 @@ err:
 static int print_register_footer(io_t *out)
 {
     dbg_err_if (out == NULL);
+
     dbg_err_if(io_printf(out, "#undef KLONE_REGISTER\n") < 0);
     dbg_err_if(io_printf(out, "}\n") < 0);
 
