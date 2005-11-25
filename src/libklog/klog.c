@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: klog.c,v 1.23 2005/11/24 10:30:13 stewy Exp $
+ * $Id: klog.c,v 1.24 2005/11/25 11:14:50 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -53,7 +53,7 @@ int klog_args (u_config_t *ls, klog_args_t **pka)
 
     ka->threshold = klog_threshold(u_config_get_subkey_value(ls, "threshold"));
 
-    if ((cs = u_config_get_subkey_value(ls, "mem.limit")) != NULL)
+    if ((cs = u_config_get_subkey_value(ls, "memory.limit")) != NULL)
         ka->mlimit = atoi(cs);
 
     if ((cs = u_config_get_subkey_value(ls, "file.basename")) != NULL) 
@@ -347,7 +347,7 @@ static int klog_type (const char *type)
 {
     dbg_return_if (type == NULL, KLOG_TYPE_UNKNOWN);
 
-    if (!strcasecmp(type, "mem"))
+    if (!strcasecmp(type, "memory"))
         return KLOG_TYPE_MEM;
     else if (!strcasecmp(type, "file"))
         return KLOG_TYPE_FILE;
