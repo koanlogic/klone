@@ -1,0 +1,47 @@
+# $Id: Makefile.dist,v 1.1 2005/11/27 15:42:43 tho Exp $
+
+PKG_NAME = klone
+PKG_VERSION = $(shell cat VERSION)
+
+# top level
+DISTFILES = Makefile Makefile-libu LICENSE README VERSION klone.env configure
+
+# MaKL build test
+DISTFILES += $(wildcard build/*.c)
+
+# contrib (iocat, iowc)
+DISTFILES += contrib/Makefile $(wildcard contrib/iocat/*.c) 
+DISTFILES += contrib/iocat/test.sh contrib/iocat/Makefile
+DISTFILES += $(wildcard contrib/iowc/*.c) contrib/iowc/Makefile
+
+# man pages
+DISTFILES += $(wildcard doc/man/*.[158]) doc/man/Makefile
+
+# klone sources and headers
+DISTFILES += site/Makefile
+DISTFILES += $(wildcard klone/*.h) klone/Makefile
+DISTFILES += $(wildcard src/kloned/*.[ch]) src/kloned/Makefile
+DISTFILES += $(wildcard src/libbackend/*.[ch]) src/libbackend/Makefile
+DISTFILES += $(wildcard src/libcodec/*.[ch]) src/libcodec/Makefile
+DISTFILES += $(wildcard src/libemb/*.[ch]) src/libemb/Makefile
+DISTFILES += $(wildcard src/libhttp/*.[ch]) src/libhttp/Makefile
+DISTFILES += $(wildcard src/libio/*.[ch]) src/libio/Makefile
+DISTFILES += $(wildcard src/libklog/*.[ch]) src/libklog/Makefile
+DISTFILES += $(wildcard src/libpage/*.[ch]) src/libpage/Makefile
+DISTFILES += $(wildcard src/libtls/*.[ch]) src/libtls/Makefile
+DISTFILES += $(wildcard src/libtrans/*.[ch]) src/libtrans/Makefile
+DISTFILES += $(wildcard src/libutils/*.[ch]) src/libutils/Makefile
+DISTFILES += $(wildcard src/tools/klone/*.[ch]) src/tools/klone/Makefile 
+DISTFILES += src/tools/Makefile
+
+# doxy bits (WIP)
+DISTREMAP += doc/doxy/src/kl.css doc/html/kl.css
+DISTREMAP += $(foreach f, $(notdir $(wildcard doc/doxy/html/*.html)), \
+                       doc/doxy/html/$f doc/html/$f)
+
+# MaKL and LibU (TODO)
+
+dist-hook-pre:
+	@echo "Creating HTML documentation... && cd doc/doxy && make"
+
+include dist.mk
