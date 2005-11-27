@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.1 2005/11/27 15:42:43 tho Exp $
+# $Id: Makefile.dist,v 1.2 2005/11/27 16:14:29 tho Exp $
 
 PKG_NAME = klone
 PKG_VERSION = $(shell cat VERSION)
@@ -13,9 +13,6 @@ DISTFILES += $(wildcard build/*.c)
 DISTFILES += contrib/Makefile $(wildcard contrib/iocat/*.c) 
 DISTFILES += contrib/iocat/test.sh contrib/iocat/Makefile
 DISTFILES += $(wildcard contrib/iowc/*.c) contrib/iowc/Makefile
-
-# man pages
-DISTFILES += $(wildcard doc/man/*.[158]) doc/man/Makefile
 
 # klone sources and headers
 DISTFILES += site/Makefile
@@ -38,10 +35,29 @@ DISTFILES += src/tools/Makefile
 DISTREMAP += doc/doxy/src/kl.css doc/html/kl.css
 DISTREMAP += $(foreach f, $(notdir $(wildcard doc/doxy/html/*.html)), \
                        doc/doxy/html/$f doc/html/$f)
+DISTREMAP += pkg/Makefile.doc doc/Makefile
+DISTREMAP += pkg/Makefile.doxy.doc doc/html/Makefile
 
-# MaKL and LibU (TODO)
+# man pages
+DISTFILES += $(wildcard doc/man/*.[158]) doc/man/Makefile
+
+# LibU (TODO explicitly say which LibU VERSION is in use !)
+DISTFILES += libu/Makefile libu/LICENSE libu/CHANGES libu/README libu/VERSION
+DISTFILES += $(wildcard libu/u/*.h) libu/u/Makefile
+DISTFILES += $(wildcard libu/src/*.c) libu/src/Makefile
+DISTFILES += $(wildcard libu/doc/man/*.3) libu/doc/man/Makefile
+
+DISTREMAP += libu/pkg/configure libu/configure
+DISTREMAP += libu/doc/doxy/src/kl.css libu/doc/html/kl.css
+DISTREMAP += libu/pkg/Makefile.doc libu/doc/Makefile
+DISTREMAP += libu/pkg/Makefile.doxy.doc libu/doc/html/Makefile
+DISTREMAP += $(foreach f, $(notdir $(wildcard libu/doc/doxy/html/*.html)), \
+                       libu/doc/doxy/html/$f libu/doc/html/$f)
+
+# MaKL (TODO explicitly say which MaKL VERSION is in use !)
 
 dist-hook-pre:
-	@echo "Creating HTML documentation... && cd doc/doxy && make"
+	@echo "Creating KLone HTML documentation..." && cd doc/doxy && make
+	@echo "Creating LibU HTML documentation..." && cd libu/doc/doxy && make
 
 include dist.mk
