@@ -1,0 +1,17 @@
+# $Id: Makefile.doxy.doc,v 1.1 2005/11/27 15:50:37 tho Exp $
+
+include ../../Makefile.conf
+
+HTMLDOCDIR = ${DOCDIR}/klone/html/
+
+all clean depend cleandepend:
+
+install:
+	${MKINSTALLDIRS} ${HTMLDOCDIR} && cp -r *.html *.css ${HTMLDOCDIR}
+
+uninstall:
+	rm -rf ${HTMLDOCDIR}
+
+include ../etc/map.mk
+include ../etc/toolchain.mk
+
