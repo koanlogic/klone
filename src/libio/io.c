@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.27 2005/11/24 18:05:01 tho Exp $
+ * $Id: io.c,v 1.28 2005/11/27 15:17:16 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -233,7 +233,7 @@ static ssize_t io_transform(io_t *io, codec_t *codec,
     dbg_err_if (io == NULL);
     dbg_err_if (codec == NULL);
     dbg_err_if (src == NULL);
-    //dbg_err_if (dst == NULL);
+    dbg_err_if (dst == NULL);
     dbg_err_if (dcount == NULL);
 
     if(codec == TAILQ_LAST(&io->codec_chain, codec_chain_s))
@@ -279,7 +279,7 @@ static inline int io_transform_codec_buffer(io_t *io, codec_t *codec,
 
     dbg_err_if (io == NULL);
     dbg_err_if (codec == NULL);
-    //dbg_err_if (dst == NULL);
+    dbg_err_if (dst == NULL);
     dbg_err_if (dcount == NULL);
 
     if(codec->ccount)
@@ -305,7 +305,7 @@ static inline ssize_t io_transfer(io_t *io, char *dst, size_t *dcount,
 {
     dbg_err_if (io == NULL);
     dbg_err_if (src == NULL);
-    //dbg_err_if (dst == NULL);
+    dbg_err_if (dst == NULL);
     dbg_err_if (dcount == NULL);
 
     if(!TAILQ_EMPTY(&io->codec_chain))
