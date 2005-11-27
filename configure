@@ -1,13 +1,13 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.29 2005/11/25 11:11:34 tho Exp $
+# $Id: configure,v 1.30 2005/11/27 21:44:29 tho Exp $
 
 export makl_conf_h=klone_conf.h
 
 # Be sure MAKL_DIR is there.
 if [ -z "${MAKL_DIR}" ]; then
   echo "Could not find MaKL (MAKL_DIR)."
-  echo "Type: '. klone.env' to source MaKL environment variables."
+  echo "TODO: give instructions on how to set up the MaKL environment"
   exit 1
 fi
 

@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.3 2005/11/27 16:43:34 tho Exp $
+# $Id: Makefile.dist,v 1.4 2005/11/27 21:44:29 tho Exp $
 
 PKG_NAME = klone
 PKG_VERSION = $(shell cat VERSION)
@@ -31,6 +31,9 @@ DISTFILES += $(wildcard src/libtls/*.[ch]) src/libtls/Makefile
 DISTFILES += $(wildcard src/libtrans/*.[ch]) src/libtrans/Makefile
 DISTFILES += $(wildcard src/libutils/*.[ch]) src/libutils/Makefile
 DISTFILES += $(wildcard src/tools/klone/*.[ch]) src/tools/klone/Makefile 
+
+# configuration samples (etc)
+DISTFILES += $(wildcard etc/*.conf)
 
 # doxy bits
 DISTREMAP += doc/doxy/src/kl.css doc/html/kl.css
