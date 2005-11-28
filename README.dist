@@ -1,1 +1,36 @@
-TODO
+# $Id: README.dist,v 1.2 2005/11/28 15:03:31 tho Exp $
+
+Follow thb steps below to get a shippable KLone distribution file.
+
+(a) select klone, libu and makl versions and do cvs tagging
+
+(b) create a build directory, say /tmp/klone-<VERSION_X_Y_Z>/ and move there:
+
+    $ mkdir /tmp/klone-<VERSION>/
+    $ cd /tmp/klone-<VERSION>/
+
+(c) checkout klone, libu and makl with the chosen version (see step (a))
+
+    $ cvs co -rKLONE_VERSION_X_Y_Z KL/klone KL/libu KL/makl
+
+(d) go to klone root directory and create the needed symlinks to makl and libu:
+
+    $ cd /tmp/klone-<VERSION>/klone
+    $ ln -s ../libu
+    $ ln -s ../makl
+
+(e) create a minimal Makefile.conf and klone_conf.h via configure:
+
+    $ ./configure -v
+
+(f) create the tbz package, the dist file appears in the working directory and
+    is named klone-<VERSION_X_Y_Z>.tbz:
+
+    $ make -f Makefile.dist dist
+
+(g) that's all.
+
+
+TODO 
+    - document proprietary LICENSEs step
+    - document cvs tagging (i.e. step (a))
