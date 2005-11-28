@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2005/09/09 15:26:13 tat Exp $
+# $Id: Makefile,v 1.2 2005/11/28 12:52:52 tho Exp $
 
 # default CFLAGS
 include ../Makefile.conf
@@ -21,12 +21,12 @@ include lib.mk
 beforedepend: register.c
 
 register.c:
-	echo "void register_pages(){} void unregister_pages(){}" > $@
+	@echo "void register_pages(){} void unregister_pages(){}" > $@
 
 autogen.dps:
-	echo -n > $@
+	@echo -n > $@
 
 autogen.mk:
-	echo "autogen_src=" > $@
+	@echo "autogen_src=" > $@
 
 -include autogen.dps
