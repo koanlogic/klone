@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.31 2005/11/28 10:32:28 tho Exp $
+# $Id: configure,v 1.1 2005/11/28 10:32:28 tho Exp $
 
 export makl_conf_h=klone_conf.h
 
@@ -51,14 +51,10 @@ case `makl_os_name` in
         ;;
 esac
 
-makl_add_var_mk "CFLAGS" "-W -Wall -Wpointer-arith -Wno-uninitialized" \
-                         "-I`pwd`" \
-                         "-Wreturn-type -Wcast-qual -Wwrite-strings" \
-                         "-Wswitch -Wshadow" \
-                         "-DHAVE_CONF_H"
+makl_add_var_mk "CFLAGS" "-I`pwd` -O -std=c99 -pedantic -DHAVE_CONF_H"
 
-# Binary dependencies
-makl_optional           1   "featx"  "doxygen"  "PATH_DOXYGEN" 
+# Install headers in a private subdir
+makl_add_var_mk "INCDIR" "\${DESTDIR}/include/klone"
 
 # Library dependencies
 makl_optional           1   "lib"       "z"  

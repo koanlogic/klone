@@ -1,13 +1,14 @@
-# $Id: Makefile.dist,v 1.4 2005/11/27 21:44:29 tho Exp $
+# $Id: Makefile.dist,v 1.5 2005/11/28 10:32:28 tho Exp $
 
 PKG_NAME = klone
 PKG_VERSION = $(shell cat VERSION)
 
 # top level
-DISTFILES = Makefile Makefile-libu LICENSE README VERSION klone.env configure
+DISTFILES += Makefile Makefile-libu LICENSE README VERSION klone.env configure
 
 # MaKL build test
 DISTFILES += $(wildcard build/*.c)
+DISTREMAP += pkg/configure configure
 
 # contrib (iocat, iowc)
 DISTFILES += contrib/Makefile $(wildcard contrib/iocat/*.c) 
@@ -58,7 +59,7 @@ DISTREMAP += libu/pkg/Makefile.doxy.doc libu/doc/html/Makefile
 DISTREMAP += $(foreach f, $(notdir $(wildcard libu/doc/doxy/html/*.html)), \
                        libu/doc/doxy/html/$f libu/doc/html/$f)
 
-# MaKL (explicitly say which MaKL VERSION is in use !)
+# MaKL (TODO explicitly say which MaKL VERSION is in use !)
 DISTFILES += makl/Makefile makl/VERSION makl/README makl/LICENSE
 DISTFILES += $(wildcard makl/cf/makl*) makl/cf/helpers/makl_func_strerror_r
 DISTFILES += $(wildcard makl/mk/*.mk) makl/Makefile
