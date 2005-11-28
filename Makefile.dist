@@ -1,10 +1,10 @@
-# $Id: Makefile.dist,v 1.5 2005/11/28 10:32:28 tho Exp $
+# $Id: Makefile.dist,v 1.6 2005/11/28 14:37:30 tho Exp $
 
 PKG_NAME = klone
 PKG_VERSION = $(shell cat VERSION)
 
 # top level
-DISTFILES += Makefile Makefile-libu LICENSE README VERSION klone.env configure
+DISTFILES += Makefile LICENSE README VERSION klone.env configure
 
 # MaKL build test
 DISTFILES += $(wildcard build/*.c)
@@ -45,6 +45,9 @@ DISTREMAP += pkg/Makefile.doxy.doc doc/html/Makefile
 
 # man pages
 DISTFILES += $(wildcard doc/man/*.[158]) doc/man/Makefile
+
+# hook for LibU compilation
+DISTFILES += build/libu/Makefile
 
 # LibU (TODO explicitly say which LibU VERSION is in use !)
 DISTFILES += libu/Makefile libu/LICENSE libu/CHANGES libu/README libu/VERSION
