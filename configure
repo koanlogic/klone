@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.32 2005/11/29 14:34:15 tho Exp $
+# $Id: configure,v 1.33 2005/11/29 16:59:25 tho Exp $
 
 export makl_conf_h=klone_conf.h
 
@@ -8,12 +8,15 @@ export makl_conf_h=klone_conf.h
 if [ -z "${MAKL_DIR}" ]; then
     echo "====================================================================="
     echo "  WARNING: it seems that MaKL is not configured in your environment. "
+    echo "                                                                     "
     echo "  Perform the following simple steps, then reissue the configure     "
     echo "  command (substitute <GNUmake_cmd> with the GNU make system path).  "
     echo "                                                                     "
     echo "              $ cd makl/ && <GNUmake_cmd> hints                      "
     echo "                                                                     "
-    echo " Set the MAKL_DIR and MAKEFLAGS environment variables as suggested..."
+    echo "  Set the MAKL_DIR and MAKEFLAGS environment variables as suggested. "
+    echo "  Consider doing this operation once for all by placing the MaKL     "
+    echo "  variables in the startup files of your shell.                      "
     echo "                                                                     "
     echo "              $ <GNUmake_cmd> toolchain && cd ..                     "
     echo "                                                                     "
