@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.15 2005/11/24 15:16:07 tat Exp $
+# $Id: Makefile,v 1.16 2005/12/12 15:54:05 stewy Exp $
 
 include ../../Makefile.conf
 include ../../webapp/Makefile-webapp
@@ -20,7 +20,7 @@ endif
 LDADD += ../libhttp/libhttp.a ../libutils/libutils.a ../libpage/libpage.a \
          ../libbackend/libbackend.a ../libemb/libemb.a ../libio/libio.a   \
          ../libtls/libtls.a ../../site/libsite.a ../libcodec/libcodec.a   \
-         ../libklog/libklog.a ../../webapp/libwebapp.a 
+         ../libklog/libklog.a ../../webapp/libwebapp.a ${WEBAPP_LDADD}
 
 # add libu flags
 CFLAGS += -I../../libu

@@ -1,11 +1,16 @@
-# $Id: Makefile-webapp,v 1.1 2005/11/24 14:54:01 stewy Exp $
+# $Id: Makefile-webapp,v 1.2 2005/12/12 15:54:05 stewy Exp $
 #
-# Custom Webapp
+# This file is used to setup the compilation flags for a web application.
+#
+# Rerun make from the KLone root directory and restart the kloned server 
+# to make the changes effective.
 
-# source files
-WEBAPP_SRCS = webapp.c
+# list of source files to be included in the web application
+WEBAPP_SRCS = webapp.c 
 
-# extra flags
-WEBAPP_CFLAGS = 
-WEBAPP_LDADD =  
+# extra flags to be passed to the compiler
+WEBAPP_CFLAGS =
+# additional shared libraries (absolute path)
+WEBAPP_LDADD = 
+# dynamically linked libraries
 WEBAPP_LDFLAGS = 
