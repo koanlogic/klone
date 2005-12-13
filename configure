@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.33 2005/11/29 16:59:25 tho Exp $
+# $Id: configure,v 1.34 2005/12/13 14:04:57 tho Exp $
 
 export makl_conf_h=klone_conf.h
 
@@ -34,10 +34,19 @@ makl_args_init "$@"
 makl_args_def   "enable_debug"      "" ""   "enables debugging"
 makl_args_def   "enable_profile"    "" ""   "enables profiling"
 makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
+makl_args_def   "enable_dev"        "" ""   "set devel CFLAGs"
 # ... and their handlers
 __makl_enable_debug ()      { makl_add_var_mk   "CFLAGS" "-g" ; }
 __makl_enable_profile ()    { makl_add_var_mk   "CFLAGS" "-pg -a" ; }
 __makl_enable_sup_fs ()     { makl_set_var_h    "ENABLE_SUP_FS" ; }
+__makl_enable_dev ()        
+{ 
+    # lint'ing
+    makl_add_var_mk "CFLAGS" "-W -Wall -Wstrict-prototypes -Wmissing-prototypes"
+    makl_add_var_mk "CFLAGS" "-Wpointer-arith -Wno-uninitialized -Wreturn-type"
+    makl_add_var_mk "CFLAGS" "-Wwrite-strings -Wswitch -Wshadow -Wwrite-strings"
+    makl_add_var_mk "CFLAGS" "-Wunreachable-code -Wunused -Wcast-qual"
+}
 
 # General settings
 makl_pkg_name           "klone"
@@ -53,29 +62,22 @@ case `makl_os_name` in
         makl_add_var_mk     "WIN_LDFLAGS"      "-lwsock32 -L/c/WINDOWS" 
         ;;
 
-    freebsd4*)
-        makl_set_var        "OS_UNIX"
-        makl_require        "lib"       "openssl"   ""  "-lssl -lcrypto"
-        ;;
-
     *)
         makl_set_var        "OS_UNIX"
-        makl_require        "lib"       "openssl"   ""  "-lssl -lcrypto"
-        makl_checkheader    1           "stdint"    "<stdint.h>"
         ;;
 esac
 
-makl_add_var_mk "CFLAGS" "-W -Wall -Wpointer-arith -Wno-uninitialized" \
-                         "-I`pwd`" \
-                         "-Wreturn-type -Wcast-qual -Wwrite-strings" \
-                         "-Wswitch -Wshadow" \
-                         "-DHAVE_CONF_H"
+makl_add_var_mk "CFLAGS" "-I`pwd` -O2 -std=c99 -pedantic -DHAVE_CONF_H"
 
-# Binary dependencies
-makl_optional           1   "featx"  "doxygen"  "PATH_DOXYGEN" 
+# Install headers in a private subdir
+makl_add_var_mk "INCDIR" "\${DESTDIR}/include/klone"
+
+# check for stdint header
+makl_checkheader        1   "stdint"    "<stdint.h>"
 
 # Library dependencies
-makl_optional           1   "lib"       "z"  
+makl_optional           1   "lib"   "openssl"   ""  "-lssl -lcrypto"
+makl_optional           1   "lib"   "z"  
 
 # Function dependencies
 makl_checktype          0   "pid_t"     "<sys/types.h>" 

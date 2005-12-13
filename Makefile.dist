@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.7 2005/11/29 14:34:15 tho Exp $
+# $Id: Makefile.dist,v 1.8 2005/12/13 14:04:57 tho Exp $
 
 PKG_NAME = klone
 PKG_VERSION = $(shell cat VERSION)
@@ -8,7 +8,6 @@ DISTFILES += Makefile LICENSE README VERSION configure
 
 # MaKL build test
 DISTFILES += $(wildcard build/*.c)
-DISTREMAP += pkg/configure configure
 
 # contrib (iocat, iowc)
 DISTFILES += contrib/Makefile $(wildcard contrib/iocat/*.c) 

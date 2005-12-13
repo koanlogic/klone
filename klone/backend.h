@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: backend.h,v 1.13 2005/11/24 15:16:07 tat Exp $
+ * $Id: backend.h,v 1.14 2005/12/13 14:04:57 tho Exp $
  */
 
 #ifndef _KLONE_BACKEND_H_
@@ -38,7 +38,7 @@ struct backend_s
     int id;
     size_t nchild;
     size_t max_child;
-    size_t start_child;;
+    size_t start_child;
     size_t max_rq_xchild;
     size_t fork_child;
     pid_t *child_pid;           /* pid of children              */
