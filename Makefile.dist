@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.8 2005/12/13 14:04:57 tho Exp $
+# $Id: Makefile.dist,v 1.9 2005/12/13 15:57:47 tho Exp $
 
 PKG_NAME = klone
 PKG_VERSION = $(shell cat VERSION)
@@ -49,12 +49,12 @@ DISTFILES += $(wildcard doc/man/*.[158]) doc/man/Makefile
 DISTFILES += build/libu/Makefile
 
 # LibU (TODO explicitly say which LibU VERSION is in use !)
-DISTFILES += libu/Makefile libu/LICENSE libu/CHANGES libu/README libu/VERSION
+DISTFILES += libu/Makefile libu/configure libu/LICENSE libu/CHANGES
+DISTFILES += libu/VERSION libu/README
 DISTFILES += $(wildcard libu/u/*.h) libu/u/Makefile
 DISTFILES += $(wildcard libu/src/*.c) libu/src/Makefile
 DISTFILES += $(wildcard libu/doc/man/*.3) libu/doc/man/Makefile
 
-DISTREMAP += libu/pkg/configure libu/configure
 DISTREMAP += libu/doc/doxy/src/kl.css libu/doc/html/kl.css
 DISTREMAP += libu/pkg/Makefile.doc libu/doc/Makefile
 DISTREMAP += libu/pkg/Makefile.doxy.doc libu/doc/html/Makefile
