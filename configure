@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.34 2005/12/13 14:04:57 tho Exp $
+# $Id: configure,v 1.35 2005/12/13 14:09:03 tho Exp $
 
 export makl_conf_h=klone_conf.h
 
@@ -34,12 +34,12 @@ makl_args_init "$@"
 makl_args_def   "enable_debug"      "" ""   "enables debugging"
 makl_args_def   "enable_profile"    "" ""   "enables profiling"
 makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
-makl_args_def   "enable_dev"        "" ""   "set devel CFLAGs"
+makl_args_def   "enable_warns"      "" ""   "set devel CFLAGs"
 # ... and their handlers
 __makl_enable_debug ()      { makl_add_var_mk   "CFLAGS" "-g" ; }
 __makl_enable_profile ()    { makl_add_var_mk   "CFLAGS" "-pg -a" ; }
 __makl_enable_sup_fs ()     { makl_set_var_h    "ENABLE_SUP_FS" ; }
-__makl_enable_dev ()        
+__makl_enable_warns ()        
 { 
     # lint'ing
     makl_add_var_mk "CFLAGS" "-W -Wall -Wstrict-prototypes -Wmissing-prototypes"
