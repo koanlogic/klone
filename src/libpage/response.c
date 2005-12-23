@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.c,v 1.19 2005/11/24 18:04:15 tho Exp $
+ * $Id: response.c,v 1.20 2005/12/23 10:14:57 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -20,11 +20,12 @@
 
 struct response_s
 {
-    http_t *http;           /* http server handle       */
-    header_t *header;       /* output header            */
-    io_t *io;               /* output stream            */
-    int status;             /* http status code         */
-    int method;             /* HTTP request method      */
+    http_t *http;           /* http server handle               */
+    header_t *header;       /* output header                    */
+    io_t *io;               /* output stream                    */
+    int status;             /* http status code                 */
+    int method;             /* HTTP request method              */
+    int cgi;                /* if we're running in cgi context  */
 };
 
 
@@ -218,6 +219,14 @@ int response_get_method(response_t *rs)
     return rs->method;
 }
 
+
+/* set is-cgi flag */
+void response_set_cgi(response_t *rs, int cgi)
+{
+    rs->cgi = cgi;
+    return ;
+}
+
 /* calculate the approx max value of the current header (useful to alloc a
  * buffer big enough) */
 size_t response_get_max_header_size(response_t *rs)
@@ -250,8 +259,8 @@ size_t response_get_max_header_size(response_t *rs)
  *
  * Print the header of \p rs to \p io.
  *
- * \param rs    response object
- * \param io    output I/O object
+ * \param rs        response object
+ * \param io        output I/O object
  * 
  * \return
  *  - \c 0 if successful
@@ -264,7 +273,8 @@ int response_print_header_to_io(response_t *rs, io_t *io)
     dbg_err_if(io == NULL);
 
     /* print status line */
-    dbg_err_if(response_print_status(rs, io));
+    if(!rs->cgi)
+        dbg_err_if(response_print_status(rs, io));
 
     /* print field list */
     n = header_field_count(rs->header);
@@ -284,7 +294,7 @@ err:
  *  
  * Print the header of \p rs
  *
- * \param rs    parameter \p rs description
+ * \param rs        parameter \p rs description
  *  
  * \return
  *  - \c 0  if successful

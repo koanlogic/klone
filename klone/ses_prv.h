@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_prv.h,v 1.15 2005/11/23 17:27:01 tho Exp $
+ * $Id: ses_prv.h,v 1.16 2005/12/23 10:14:57 tat Exp $
  */
 
 #ifndef _KLONE_SESPRV_H_
@@ -37,6 +37,11 @@ enum {
     SESSION_TYPE_FILE, 
     SESSION_TYPE_MEMORY, 
     SESSION_TYPE_CLIENT
+};
+
+enum { 
+    SESSION_ID_LENGTH = MD5_DIGEST_LEN,         /* sid length       */
+    SESSION_ID_BUFSZ = 1 + SESSION_ID_LENGTH    /* sid buffer size  */
 };
 
 /* hmac and cipher key size */
@@ -88,7 +93,7 @@ struct session_s
     request_t *rq;              /* request bound to this session              */
     response_t *rs;             /* response bound to this session             */
     char filename[U_FILENAME_MAX];/* session filename                         */
-    char id[MD5_DIGEST_BUFSZ];  /* session ID                                 */
+    char id[SESSION_ID_BUFSZ];  /* session ID                                 */
     int removed;                /* >0 if the calling session has been deleted */
     int mtime;                  /* last modified time                         */
     session_load_t load;        /* ptr to the driver load function            */
@@ -114,6 +119,7 @@ int session_prv_save_var(var_t *, void*);
 int session_prv_calc_maxsize(var_t *v, void *p);
 int session_prv_save_to_buf(session_t *ss, char **pbuf, size_t *psz);
 int session_prv_load_from_buf(session_t *ss, char *buf, size_t size);
+int session_prv_set_id(session_t *ss, const char *sid);
 
 /* init/term funcs */
 int session_module_init(u_config_t *config, session_opt_t **pso);

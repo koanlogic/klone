@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.38 2005/12/20 12:54:14 stewy Exp $
+# $Id: configure,v 1.39 2005/12/23 10:14:57 tat Exp $
 
 export makl_conf_h=klone_conf.h
 
@@ -84,6 +84,7 @@ makl_optional           1   "lib"   "z"
 # Function dependencies
 makl_checktype          0   "pid_t"     "<sys/types.h>" 
 makl_checkfunc          0   "syslog"
+makl_checkfunc          0   "mkstemp"
 
 # Binary dependencies
 makl_optional           1    "featx"   "doxygen"    "PATH_DOXYGEN"

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.32 2005/11/25 11:54:25 tat Exp $
+ * $Id: session.c,v 1.33 2005/12/23 10:14:58 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -247,7 +247,7 @@ static int session_is_good_id(const char *id)
 
     dbg_return_if (id == NULL, 0);
 
-    dbg_ifb((len = strlen(id)) != MD5_DIGEST_LEN)
+    dbg_ifb((len = strlen(id)) != SESSION_ID_LENGTH)
         return 0; /* wrong length */
 
     for(p = id; len; --len, ++p)
@@ -261,9 +261,43 @@ static int session_is_good_id(const char *id)
     return 1; /* good */
 }
 
+static int session_set_filename(session_t *ss)
+{
+    addr_t *addr = NULL;
+
+    dbg_err_if(strlen(ss->id) == 0);
+
+    dbg_err_if((addr = request_get_addr(ss->rq)) == NULL);
+    switch(addr->type)
+    {
+    case ADDR_IPV4:
+        dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
+            U_PATH_SEPARATOR, "%s/klone_sess_%s_%lu", ss->so->path, ss->id, 
+            addr->sa.sin.sin_addr));
+        break;
+    case ADDR_IPV6:
+        /* FIXME: add ipv6 address in session filename */
+        dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
+            U_PATH_SEPARATOR, "%s/klone_sess_%s", ss->so->path, ss->id));
+        break;
+#ifdef OS_UNIX
+    case ADDR_UNIX:
+        /* FIXME: add unix address in session filename */
+        dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
+            U_PATH_SEPARATOR, "%s/klone_sess_%s", ss->so->path, ss->id));
+        break;
+#endif
+    }
+
+    return 0;
+err:
+    return 0;
+}
+
 static int session_gen_id(session_t *ss)
 {
-    char buf[256];
+    enum { BUFSZ = 256 };
+    char buf[BUFSZ];
     struct timeval tv;
 
     dbg_err_if (ss == NULL);
@@ -271,15 +305,36 @@ static int session_gen_id(session_t *ss)
     /* gen a new one */
     gettimeofday(&tv, NULL);
 
-    dbg_err_if(u_snprintf(buf, 255, "%lu%d%lu%d", tv.tv_sec, getpid(), 
+    dbg_err_if(u_snprintf(buf, BUFSZ, "%lu%d%lu%d", tv.tv_sec, getpid(), 
         tv.tv_usec, rand()));
 
     /* return the md5 (in hex) buf */
     dbg_err_if(u_md5(buf, strlen(buf), ss->id));
 
-    /* set the ID cookie */
+    /* remove previous sid if any */ 
+    dbg_err_if(response_set_cookie(ss->rs, SID_NAME, NULL, 0, NULL, NULL, 0));
+
+    /* set the cookie ID */
     dbg_err_if(response_set_cookie(ss->rs, SID_NAME, ss->id, 0, NULL, 
         NULL, 0));
+
+    return 0;
+err:
+    return ~0;
+}
+
+int session_priv_set_id(session_t *ss, const char *sid)
+{
+    /* set or generate a session id */
+    if(sid && session_is_good_id(sid))
+    {
+        dbg_err_if(u_snprintf(ss->id, SESSION_ID_BUFSZ, "%s", sid));
+        ss->id[SESSION_ID_BUFSZ-1] = 0;
+    } else
+        dbg_err_if(session_gen_id(ss));
+
+    /* set the filename accordingly */
+    dbg_err_if(session_set_filename(ss));
 
     return 0;
 err:
@@ -309,7 +364,10 @@ int session_save(session_t *ss)
         return 0; /* nothing to save */
 
     if(!strlen(ss->id))
-        dbg_err_if(session_gen_id(ss));
+    {
+        /* generate a new SID and set session filename accordingly */
+        dbg_err_if(session_priv_set_id(ss, NULL)); 
+    }
 
     return ss->save(ss);
 err:
@@ -329,7 +387,6 @@ int session_remove(session_t *ss)
 int session_prv_init(session_t *ss, request_t *rq, response_t *rs)
 {
     const char *sid;
-    addr_t *addr;
 
     dbg_err_if (ss == NULL);
     dbg_err_if (rq == NULL);
@@ -340,34 +397,10 @@ int session_prv_init(session_t *ss, request_t *rq, response_t *rs)
     ss->rq = rq;
     ss->rs = rs;
 
+    /* if the client has a SID set and it's a good one then use it */
     sid = request_get_cookie(ss->rq, SID_NAME);
-    if(sid && session_is_good_id(sid))
-    {   
-        dbg_err_if(u_snprintf(ss->id, MD5_DIGEST_BUFSZ, "%s", sid));
-        ss->id[MD5_DIGEST_LEN] = 0;
-
-        dbg_err_if((addr = request_get_addr(rq)) == NULL);
-        switch(addr->type)
-        {
-        case ADDR_IPV4:
-            dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
-                U_PATH_SEPARATOR, "%s/klone_sess_%s_%lu", ss->so->path, ss->id, 
-                addr->sa.sin.sin_addr));
-            break;
-        case ADDR_IPV6:
-            /* FIXME: add ipv6 address in session filename */
-            dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
-                U_PATH_SEPARATOR, "%s/klone_sess_%s", ss->so->path, ss->id));
-            break;
-#ifdef OS_UNIX
-        case ADDR_UNIX:
-            /* FIXME: add unix address in session filename */
-            dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
-                U_PATH_SEPARATOR, "%s/klone_sess_%s", ss->so->path, ss->id));
-            break;
-#endif
-        }
-    }
+    if(sid)
+        dbg_err_if(session_priv_set_id(ss, sid));
 
     return 0;
 err:
@@ -527,6 +560,7 @@ int session_set(session_t *ss, const char *name, const char *value)
     dbg_err_if (ss == NULL);
     dbg_err_if (name == NULL);
     dbg_err_if (value == NULL);
+    dbg_err_if (strlen(name) == 0);
 
     if((v = vars_get(ss->vars, name)) == NULL)
     {

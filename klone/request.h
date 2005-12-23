@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.h,v 1.6 2005/11/24 17:02:51 tho Exp $
+ * $Id: request.h,v 1.7 2005/12/23 10:14:57 tat Exp $
  */
 
 #ifndef _KLONE_REQUEST_H_
@@ -60,6 +60,8 @@ int request_set_resolved_path_info(request_t *rq, const char *resolved);
 
 int request_set_addr(request_t *rq, addr_t *addr);
 int request_set_peer_addr(request_t *rq, addr_t *addr);
+
+void request_set_cgi(request_t *rq, int cgi);
 
 void request_clear_uri(request_t *rq);
 

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.20 2005/11/24 18:27:48 tho Exp $
+ * $Id: sup_emb.c,v 1.21 2005/12/23 10:14:57 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -73,7 +73,7 @@ static int supemb_get_cipher_key(request_t *rq, response_t *rs, char *key,
     vars = session_get_vars(ss);
     dbg_err_if(vars == NULL);
 
-    v = vars_get_ith(vars,"KLONE_CIPHER_KEY", 0); 
+    v = vars_geti(vars,"KLONE_CIPHER_KEY", 0); 
     dbg_err_if(v == NULL); /* no such variable */
 
     dbg_err_if(var_get_value_size(v) > keysz);
@@ -139,13 +139,13 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
 
     dbg_return_if (rq == NULL, ~0);
     dbg_return_if (rs == NULL, ~0);
-    dbg_return_if (e == NULL, ~0);
+    dbg_return_if (e == NULL, 0);
     
     /* dbg("mime type: %s (%scompressed)", 
         e->mime_type, (e->comp ? "" : "NOT ")); */
 
     /* create a response filter and attach it to the response io */
-    dbg_err_if(response_filter_create(rs, &rsf));
+    dbg_err_if(response_filter_create(rq, rs, NULL, &rsf));
     dbg_err_if(io_codec_add_tail(response_io(rs), rsf));
     rsf = NULL;
 
@@ -234,7 +234,7 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
     dbg_err_if(response_set_content_type(rs, "text/html"));
 
     /* create a response filter and attach it to the response io */
-    dbg_err_if(response_filter_create(rs, &filter));
+    dbg_err_if(response_filter_create(rq, rs, ss, &filter));
     io_codec_add_tail(response_io(rs), filter);
 
     /* run the page code */
@@ -256,7 +256,7 @@ err:
 
 static int supemb_serve(request_t *rq, response_t *rs)
 {
-    char *file_name;
+    const char *file_name;
     embres_t *e;
 
     dbg_err_if (rq == NULL);

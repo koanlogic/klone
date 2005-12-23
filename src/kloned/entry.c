@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: entry.c,v 1.14 2005/11/24 23:13:00 tho Exp $
+ * $Id: entry.c,v 1.15 2005/12/23 10:14:57 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -383,8 +383,11 @@ int main(int argc, char **argv)
     /* parse command line parameters (and set ctx vars) */
     dbg_err_if(parse_opt(argc, argv));
 
+    if(getenv("GATEWAY_INTERFACE"))
+        ctx->cgi = 1;
+        
     /* daemonize if not -F */
-    if(ctx->daemon)
+    if(ctx->daemon && !ctx->cgi)
         dbg_err_if(daemon(0, 0));
 
     /* load config and initialize */

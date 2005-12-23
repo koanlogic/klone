@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.32 2005/11/23 23:16:17 tho Exp $
+ * $Id: utils.c,v 1.33 2005/12/23 10:14:58 tat Exp $
  */
 
 #include <stdlib.h>
@@ -601,22 +601,18 @@ int u_tmpfile_open(io_t **pio)
 {
     char tmp[U_FILENAME_MAX];
     io_t *io = NULL;
-    int max = 10;
 
     dbg_return_if (pio == NULL, ~0);
     
-    for(; max; --max) /* try just 'max' times */
+    if(tmpnam(tmp) != NULL)
     {
-        if(tmpnam(tmp) != NULL)
-        {
-            dbg_err_if(u_file_open(tmp, O_CREAT | O_EXCL | O_RDWR, &io));
+        dbg_err_if(u_file_open(tmp, O_CREAT | O_EXCL | O_RDWR, &io));
 
-            dbg_err_if(io_name_set(io, tmp));
+        dbg_err_if(io_name_set(io, tmp));
 
-            *pio = io;
+        *pio = io;
 
-            return 0;
-        }
+        return 0;
     }
 
 err:

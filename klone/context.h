@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: context.h,v 1.6 2005/11/23 17:27:01 tho Exp $
+ * $Id: context.h,v 1.7 2005/12/23 10:14:57 tat Exp $
  */
 
 #ifndef _KLONE_CONTEXT_H_
@@ -22,7 +22,7 @@
 typedef struct context_s
 {
     server_t *server;   /* server object                   */
-    u_config_t *config;   /* server config object            */
+    u_config_t *config; /* server config object            */
     backend_t *backend; /* the backend served by this child */
     char *ext_config;   /* additional external config file */
     int debug;          /* debugging on/off                */
@@ -30,6 +30,7 @@ typedef struct context_s
     char **arg;         /* cmd line args array             */
     size_t narg;        /* # of cmd line args              */
     int pipc;           /* parent IPC socket descriptor    */
+    int cgi;            /* if we're in cgi mode            */
 
     #ifdef OS_WIN
     SERVICE_STATUS_HANDLE hServiceStatus;

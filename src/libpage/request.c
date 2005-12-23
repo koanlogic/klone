@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.17 2005/11/24 16:00:53 tho Exp $
+ * $Id: request.c,v 1.18 2005/12/23 10:14:57 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -45,6 +45,7 @@ struct request_s
     time_t if_modified_since;   /* time_t IMS header                 */
 
     addr_t local_addr, peer_addr; /* local and perr address          */
+    int cgi;                    /* if running in cgi mode            */
 };
 
 #define REQUEST_SET_STRING_FIELD(lval, rval)        \
@@ -674,6 +675,13 @@ err:
     return ~0;
 }
 
+/* set is-cgi flag */
+void request_set_cgi(request_t *rq, int cgi)
+{
+    rq->cgi = cgi;
+    return;
+}
+
 /** 
  * \brief   Get the content length of a request
  *  
@@ -715,20 +723,24 @@ int request_parse(request_t *rq,
     dbg_err_if (rq == NULL);
     dbg_err_if (rq->io == NULL); /* must call rq_bind before rq_parse */
 
-    /* cp the first line */
-    dbg_err_if(io_gets(rq->io, ln, BUFSZ) == 0);
+    if(!rq->cgi)
+    {
+        /* cp the first line */
+        dbg_err_if(io_gets(rq->io, ln, BUFSZ) == 0);
 
-    method = strtok_r(ln, WP, &pp); 
-    dbg_err_if(!method || request_set_method(rq, method));
+        method = strtok_r(ln, WP, &pp); 
+        dbg_err_if(!method || request_set_method(rq, method));
 
-    uri = strtok_r(NULL, WP, &pp);
-    dbg_err_if(!uri || request_set_uri(rq, uri, is_valid_uri, arg));
+        uri = strtok_r(NULL, WP, &pp);
+        dbg_err_if(!uri || request_set_uri(rq, uri, is_valid_uri, arg));
 
-    /* HTTP/0.9 not supported yet */ 
-    proto = strtok_r(NULL, WP, &pp);
-    dbg_err_if(!proto || request_set_proto(rq, proto)); 
+        /* HTTP/0.9 not supported yet */ 
+        proto = strtok_r(NULL, WP, &pp);
+        dbg_err_if(!proto || request_set_proto(rq, proto)); 
 
-    dbg_err_if(header_load(rq->header, rq->io));
+        dbg_err_if(header_load(rq->header, rq->io));
+    } else
+        dbg_err_if(header_load_from_cgienv(rq->header));
 
     /* set if-modified-since time_t value */
     dbg_err_if(request_parse_ims(rq));

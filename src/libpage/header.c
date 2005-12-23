@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.c,v 1.10 2005/11/25 11:54:25 tat Exp $
+ * $Id: header.c,v 1.11 2005/12/23 10:14:57 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -244,6 +244,48 @@ static int header_process_line(header_t *h, u_string_t *line)
 err:
     if(f)
         field_free(f);
+    return ~0;
+}
+
+/* load from environment. change each HTTP_name=value to name=value (replacing
+   '_' with '-' */
+int header_load_from_cgienv(header_t *h)
+{
+    extern char **environ;
+    enum { BUFSZ = 256 };
+    int i;
+    size_t blen, t;
+    char *e, *eq, buf[BUFSZ];
+
+    /* add HTTP_* to header field list */
+    for(i = 0; environ[i]; ++i)
+    {
+        e = environ[i];
+        if(strlen(e) > 5 && strncmp("HTTP_", e, 5) == 0)
+        {
+            memset(buf, 0, sizeof(buf));
+
+            /* make a copy of e so we can modify it */
+            strncpy(buf, e + 5, MIN(BUFSZ, strlen(e + 5)));
+            buf[BUFSZ-1] = 0;
+
+            eq = strchr(buf, '=');
+            if(eq == NULL)
+                continue; /* malformed */
+
+            *eq = 0; /* put a \0 between name and value */
+
+            /* subst '_' with '-' */
+            for(t = 0, blen = strlen(buf); t < blen; ++t)
+                if(buf[t] == '_')
+                    buf[t] = '-';
+
+            dbg_if(header_set_field(h, buf, 1 + eq));
+        }
+    }
+
+    return 0;
+err:
     return ~0;
 }
 

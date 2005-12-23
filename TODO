@@ -17,7 +17,25 @@ FIRST RELEASE:
         - * fork.max_child
         - * blind chroot
         - * bind sessions to client IP address
+        - * no-cache header field on error pages
 
+        - linked (#goto) bullets in features.html
+        - s/CGI scripts/scripts/ (features.html)
+
+        - copyright 2005-2006
+        - binding C++
+        - optional openssl in configure
+        - cgi env to header
+
+        - file upload con callback (upload_on_chunk(...))
+
+        - pagine kl1 nella dist:
+            log.kl1
+            set-key.kl1
+            simple index.kl1 w/ KLONE_VERSION, form vars
+
+        - multiple-cookies cli-side sessions
+        - gcov
         - kloned.conf con tutte le opzioni commentate
 
         - OPT request_parse on POST e request_parse_args
@@ -27,9 +45,6 @@ FIRST RELEASE:
         - auto configure (makl/libu/klone)
 
         - man kloned.conf: per-server max_child
-
-        - [win] inmem session first save lost
-        - s/s->nchild/be->nchild/, s->nchild = be0->nchild + ... + beN->nchild
 
         - child keep-alive ppc cmd to avoid infinite wait in blocking
           calls (for ex. into write())?
@@ -43,16 +58,9 @@ FIRST RELEASE:
 
         - tweak prefork spawn-new-child-timeout 
 
-        - profiling
-            + keep child to the smallest number to avoid loosing time into
-              scheduler code
-            + if a child takes more then X ms spawn a new child and set the
-              slow child to die when it finishes
-
         - io_html_printf: html-encode before calling io_printf 
 
         - session_bin_set
-        - no-cache header field on error pages
 
         - set_key.klone example page
         - default documentation embedded site

@@ -5,19 +5,22 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: rsfilter.c,v 1.11 2005/11/24 16:00:53 tho Exp $
+ * $Id: rsfilter.c,v 1.12 2005/12/23 10:14:58 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <time.h>
 #include <u/libu.h>
+#include <klone/request.h>
 #include <klone/response.h>
+#include <klone/session.h>
 #include <klone/utils.h>
 #include <klone/io.h>
 #include <klone/codec.h>
 #include <klone/http.h>
 #include <klone/response.h>
 #include <klone/rsfilter.h>
+#include <klone/ses_prv.h>
 
 /* this filter prints the HTTP header before any body part of the web page. 
  * the first RFBUFSZ bytes (at most) of the response will be buffered to 
@@ -32,8 +35,10 @@ enum {
 struct response_filter_s
 {
     codec_t codec;          /* must be the first item in the struct */
-    struct response_s *rs;  /* the response object                  */
-    int state;              /* filter state                         */
+    request_t *rq;
+    response_t *rs;
+    session_t *ss;
+    int state;
     char buf[RFBUFSZ], *ptr;
     size_t off;
     io_t *iob;
@@ -143,6 +148,11 @@ static ssize_t rf_transform(codec_t *codec,
             /* the buffer is full, print the header and flush the buffer */
             rf->state = RFS_FLUSHING;
 
+            /* here's the last chance to modify HTTP header so, if not already
+               set, add a session ID to the cookie list */
+            if(rf->ss && strlen(rf->ss->id) == 0)
+                dbg_err_if(session_priv_set_id(rf->ss, NULL));
+
             /* create a in-memory io_t and fill it with header and rf->buf */
             dbg_err_if(rf_init_iob(rf));
         }
@@ -186,7 +196,8 @@ static int rf_free(codec_t *codec)
     return 0;
 }
 
-int response_filter_create(response_t *rs, codec_t **prf)
+int response_filter_create(request_t *rq, response_t *rs, session_t *ss,
+    codec_t **prf)
 {
     response_filter_t *rf = NULL;
 
@@ -196,7 +207,9 @@ int response_filter_create(response_t *rs, codec_t **prf)
     rf = u_zalloc(sizeof(response_filter_t));
     dbg_err_if(rf == NULL);
 
+    rf->rq = rq;
     rf->rs = rs;
+    rf->ss = ss;
     rf->codec.transform = rf_transform;
     rf->codec.flush = rf_flush;
     rf->codec.free = rf_free;

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: rsfilter.h,v 1.4 2005/11/23 17:27:01 tho Exp $
+ * $Id: rsfilter.h,v 1.5 2005/12/23 10:14:57 tat Exp $
  */
 
 #ifndef _KLONE_RSFILTER_H_
@@ -20,8 +20,11 @@
 enum { RFBUFSZ = 4096 };
 
 struct response_s;
+struct request_s;
+struct session_s;
 typedef struct response_filter_s response_filter_t;
 
-int response_filter_create(struct response_s *rs, codec_t **prf);
+int response_filter_create(struct request_s *rq, struct response_s *rs, 
+    struct session_s *ss, codec_t **prf);
 
 #endif

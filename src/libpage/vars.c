@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.17 2005/11/25 11:54:25 tat Exp $
+ * $Id: vars.c,v 1.18 2005/12/23 10:14:58 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -156,6 +156,32 @@ size_t vars_count(vars_t *vs)
 }
 
 /**
+ * \brief   Count the number of variables with given name
+ *
+ * Return a the number of variables in a list with given name \p name
+ *
+ * \param vs    variable list
+ * \param name  name of the variables to count
+ *
+ * \return the number of elements in \p vs whose name is \p name
+ */
+size_t vars_countn(vars_t *vs, const char *name)
+{
+    var_t *v;
+    size_t c = 0;
+
+    dbg_return_if (vs == NULL || name == NULL, 0);
+
+    TAILQ_FOREACH(v, &vs->list, np)
+    {
+        if(strcmp(u_string_c(v->sname), name) == 0)
+            c++;
+    }
+
+    return c;
+}
+
+/**
  * \brief   Add an URL variable
  *
  * Parse the "name=value" string \p cstr, url-decode name and value and push 
@@ -273,7 +299,7 @@ err:
 }
 
 /**
- * \brief   Get ith variable with given name
+ * \brief   Get i-th variable with given name
  *
  * Return the \c var_t object at index \p i with name \p var_name in list \p vs.
  *
@@ -285,7 +311,7 @@ err:
  *  - the \c var_t object found
  *  - \c NULL if there's no i-th variable called \p var_name in \p vs
  */
-var_t *vars_get_ith(vars_t *vs, const char *var_name, size_t i)
+var_t *vars_geti(vars_t *vs, const char *var_name, size_t i)
 {
     var_t *v;
 
@@ -322,7 +348,7 @@ var_t *vars_get(vars_t *vs, const char *var_name)
     dbg_return_if (vs == NULL, NULL);
     dbg_return_if (var_name == NULL, NULL);
 
-    return vars_get_ith(vs, var_name, 0);
+    return vars_geti(vs, var_name, 0);
 }
 
 /**
@@ -339,18 +365,43 @@ var_t *vars_get(vars_t *vs, const char *var_name)
  *  - the integer value of \p name
  *  - \c 0 if no value could be found
  */
-int vars_get_ith_value_i(vars_t *vs, const char *name, size_t ith)
+int vars_geti_value_i(vars_t *vs, const char *name, size_t ith)
 {
     const char *v;
 
     dbg_return_if (vs == NULL, 0);
     dbg_return_if (name == NULL, 0);
 
-    v = vars_get_ith_value(vs, name, ith);
+    v = vars_geti_value(vs, name, ith);
     if(v == NULL)
         return 0;
     else
         return atoi(v);
+}
+
+/**
+ * \brief   Get \c u_string_t value of i-th variable
+ *
+ * Return an \c u_string_t containing the value of i-th variable with \p name in
+ * variable list \p vs.
+ *  
+ * \param vs    variable list
+ * \param name  name of variable
+ *      
+ * \return the variable value (may be \c NULL)
+ */     
+u_string_t *vars_geti_value_s(vars_t *vs, const char *name, size_t ith)
+{
+    var_t *v = NULL;
+
+    dbg_err_if (vs == NULL);
+    dbg_err_if (name == NULL);
+
+    dbg_err_if((v = vars_geti(vs, name, ith)) == NULL);
+
+    return var_get_value_s(v);
+err:
+    return NULL;
 }
 
 /**
@@ -370,7 +421,7 @@ int vars_get_value_i(vars_t *vs, const char *name)
     dbg_return_if (vs == NULL, 0);
     dbg_return_if (name == NULL, 0);
 
-    return vars_get_ith_value_i(vs, name, 0);
+    return vars_geti_value_i(vs, name, 0);
 }
 
 /**
@@ -387,14 +438,14 @@ int vars_get_value_i(vars_t *vs, const char *name)
  *  - the value string corresponding to \p name at i-th position
  *  - \c NULL if no value could be found 
  */
-const char *vars_get_ith_value(vars_t *vs, const char *name, size_t ith)
+const char *vars_geti_value(vars_t *vs, const char *name, size_t ith)
 {
     var_t *v;
 
     dbg_return_if (vs == NULL, NULL);
     dbg_return_if (name == NULL, NULL);
     
-    v = vars_get_ith(vs, name, ith);
+    v = vars_geti(vs, name, ith);
 
     return  v ? var_get_value(v) : NULL;
 }
@@ -416,7 +467,7 @@ const char *vars_get_value(vars_t *vs, const char *name)
     dbg_return_if (vs == NULL, NULL);
     dbg_return_if (name == NULL, NULL);
 
-    return vars_get_ith_value(vs, name, 0);
+    return vars_geti_value(vs, name, 0);
 }
 
 /**

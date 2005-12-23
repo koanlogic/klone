@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.28 2005/11/25 11:54:25 tat Exp $
+ * $Id: http.c,v 1.29 2005/12/23 10:14:57 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -115,16 +115,12 @@ int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
 
         if(strncmp(src, filename, strlen(src)) == 0)
         {
-            /* dbg("filename %s  src %s", filename, src); */
-
             /* alias found, get resolved prefix */
             res = strtok_r(NULL, WP, &pp);
             dbg_err_if(res == NULL);
 
             dbg_err_if(u_path_snprintf(dst, sz, '/', "%s/%s", res, 
                         filename + strlen(src)));
-
-            /* dbg("resolved %s in %s", filename, dst); */
 
             U_FREE(v); 
             return 0;
@@ -280,6 +276,9 @@ static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
     /* add default header fields */
     dbg_err_if(http_add_default_header(h, rs));
 
+    /* add no-cache field */
+    dbg_err_if(response_set_field(rs, "Cache-Control", "no-cache"));
+
     /* looking for user provided error page */
     dbg_err_if(u_snprintf(buf, BUFSZ, "error.%d", status));
     err_page = u_config_get_subkey_value(h->config, buf);
@@ -332,10 +331,11 @@ static int http_serve(http_t *h, int fd)
     request_t *rq = NULL;
     response_t *rs = NULL;
     io_t *in = NULL, *out = NULL;
-    int cgi = 0;
+    int cgi = 0, port;
     const char *gwi = NULL;
     alarm_t *al = NULL;
     addr_t *addr;
+    char *ev;
     struct sockaddr sa;
     int sasz;
 
@@ -347,24 +347,45 @@ static int http_serve(http_t *h, int fd)
 
     /* create a request object */
     dbg_err_if(request_create(h, &rq));
+    request_set_cgi(rq, cgi);
 
     /* save local and peer address into request/response objects */
     dbg_err_if(addr_create(&addr));
 
-    /* set local addr */
-    sasz = sizeof(struct sockaddr);
-    dbg_err_if(getsockname(fd, &sa, &sasz));
-    dbg_err_if(addr_set_from_sa(addr, &sa, sasz));
-    dbg_err_if(request_set_addr(rq, addr));
+    if(cgi)
+    {
+        if(getenv("REMOTE_ADDR") && getenv("REMOTE_PORT"))
+        {
+            port = atoi(getenv("REMOTE_PORT"));
+            dbg_err_if(addr_set_ip(addr, getenv("REMOTE_ADDR"), port));
+            dbg_err_if(request_set_addr(rq, addr));
+        }
 
-    /* set peer addr */
-    sasz = sizeof(struct sockaddr);
-    dbg_err_if(getpeername(fd, &sa, &sasz));
-    dbg_err_if(addr_set_from_sa(addr, &sa, sasz));
-    dbg_err_if(request_set_peer_addr(rq, addr));
+        if(getenv("SERVER_ADDR"))
+        {
+            if(getenv("SERVER_PORT"))
+                port = atoi(getenv("SERVER_PORT"));
+            else
+                port = 80;
+            dbg_err_if(addr_set_ip(addr, getenv("SERVER_ADDR"), port));
+            dbg_err_if(request_set_peer_addr(rq, addr));
+        }
+    } else {
+        /* set local addr */
+        sasz = sizeof(struct sockaddr);
+        dbg_err_if(getsockname(fd, &sa, &sasz));
+        dbg_err_if(addr_set_from_sa(addr, &sa, sasz));
+        dbg_err_if(request_set_addr(rq, addr));
 
-    /* create a response object */
-    dbg_err_if(response_create(h, &rs));
+        /* set peer addr */
+        sasz = sizeof(struct sockaddr);
+        dbg_err_if(getpeername(fd, &sa, &sasz));
+        dbg_err_if(addr_set_from_sa(addr, &sa, sasz));
+        dbg_err_if(request_set_peer_addr(rq, addr));
+    }
+
+    addr_free(addr);
+    addr = NULL;
 
 #ifdef HAVE_LIBOPENSSL
     /* create input io buffer (no IO_FD_CLOSE used because 'out' 
@@ -382,20 +403,24 @@ static int http_serve(http_t *h, int fd)
     dbg_err_if(request_bind(rq, in));
     in = NULL; 
 
+    /* create a response object */
+    dbg_err_if(response_create(h, &rs));
+
+    response_set_cgi(rs, cgi);
+
     /* wait at most N seconds to receive the request */
     dbg_err_if(timerm_add(h->idle_timeout, http_cb_close_fd, (void*)fd, &al));
 
     if(cgi)
         dbg_err_if(cgi_set_request(rq));
-    else
-        dbg_err_if(request_parse(rq, http_is_valid_uri, h));
+
+    dbg_err_if(request_parse(rq, http_is_valid_uri, h));
 
     /* timeout not expired, clear it */
     dbg_if(timerm_del(al));
 
     /* if we're running in server mode then resolv aliases and dir_root */
-    if(!cgi)
-        http_resolv_request(h, rq);
+    http_resolv_request(h, rq);
 
     if(strcmp(request_get_filename(rq), "/") == 0)
         dbg_err_if(http_set_index_request(h, rq)); /* set the index page */
@@ -409,6 +434,7 @@ static int http_serve(http_t *h, int fd)
         /* create the response io_t dup'ping the request io_t object */
         dbg_err_if(io_dup(request_io(rq), &out));
 
+    response_set_cgi(rs, cgi);
     response_set_method(rs, request_get_method(rq));
 
     /* bind the response to the connection c */
