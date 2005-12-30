@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.h,v 1.13 2005/11/25 11:54:25 tat Exp $
+ * $Id: server.h,v 1.14 2005/12/30 12:04:33 tat Exp $
  */
 
 #ifndef _KLONE_SERVER_H_
@@ -50,6 +50,9 @@ int server_loop(server_t *s);
 int server_cgi(server_t *s);
 int server_stop(server_t *s);
 ppc_t* server_get_ppc(server_t *s);
+
 int server_get_logger(server_t *s, klog_t **pkl);
+int server_foreach_memlog_line(server_t *s, int (*cb)(const char*, void*), 
+    void *arg);
 
 #endif

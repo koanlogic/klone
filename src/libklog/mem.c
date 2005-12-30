@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: mem.c,v 1.9 2005/11/23 17:27:01 tho Exp $
+ * $Id: mem.c,v 1.10 2005/12/30 12:04:33 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -98,7 +98,7 @@ static int klog_getln_mem (klog_t *kl, size_t nth, char ln[])
     dbg_return_if (kl == NULL, ~0);
     dbg_return_if (kl->type != KLOG_TYPE_MEM, ~0);
     dbg_return_if (kl->u.m == NULL, ~0);
-    dbg_return_if (nth > kl->u.m->nmsgs, ~0);
+    nop_return_if (nth > kl->u.m->nmsgs, ~0);
     dbg_return_if (nth == 0, ~0);
 
     klm = kl->u.m;

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.38 2005/11/25 10:18:04 tho Exp $
+ * $Id: server.c,v 1.39 2005/12/30 12:04:33 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1055,7 +1055,7 @@ static int server_log_hook(void *arg, int level, const char *str)
     dbg_err_if (s == NULL);
     dbg_err_if (str == NULL);
  
-    /* if both the server and the calling backend has no log then exit */
+    /* if both the server and the calling backend have no log then exit */
     if(s->klog == NULL && (ctx->backend == NULL || ctx->backend->klog == NULL))
         return 0; /* log is disabled */
 
@@ -1102,6 +1102,53 @@ int server_get_logger(server_t *s, klog_t **pkl)
 err:
     return ~0;
 }
+
+static int server_get_klog_line(server_t *s, klog_t *kl, size_t i, char *line)
+{
+    backend_t *be = ctx->backend;
+
+    dbg_err_if(kl->type != KLOG_TYPE_MEM);
+    dbg_err_if(be == NULL);
+
+    /* we need ppc just in prefork mode */
+    if(be->model != SERVER_MODEL_PREFORK)
+    {
+        dbg_err_if(klog_getln(kl, i, line));
+        return 0;
+    }
+
+    /* send the ppc command and read back the response */
+    nop_err_if(server_ppc_cmd_log_get(s, i, line));
+
+    return 0;
+err:
+    return ~0;
+}
+
+int server_foreach_memlog_line(server_t *s, 
+    int (*cb)(const char*, void*), void *arg)
+{
+    klog_t *kl = NULL;  
+    size_t i;
+    char line[KLOG_LN_SZ];
+
+    /* get the configured klog object and check that's a in-memory klog */
+    if(server_get_logger(s, &kl) || kl == NULL || kl->type != KLOG_TYPE_MEM)
+    {
+        cb("logging is not configured or is not a in-memory log", arg);
+        return ~0;
+    }
+
+    /* for each log line call the user-given callback function */
+    for(i = 1; server_get_klog_line(s, kl, i, line) == 0; ++i)
+        cb(line, arg);
+
+    return 0;
+err:
+    cb("klog_getln error", arg);
+    return ~0;
+}
+
 
 int server_get_backend_by_id(server_t *s, int id, backend_t **pbe)
 {
@@ -1173,6 +1220,7 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
     /* register the log ppc callbacks */
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_NOP, server_ppc_cb_nop, s));
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_LOG_ADD, server_ppc_cb_log_add, s));
+    dbg_err_if(ppc_register(s->ppc, PPC_CMD_LOG_GET, server_ppc_cb_log_get, s));
 #ifdef OS_UNIX
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_FORK_CHILD, 
         server_ppc_cb_fork_child, s));

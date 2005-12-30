@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc_log_add.c,v 1.9 2005/11/24 23:42:19 tho Exp $
+ * $Id: ppc_log_add.c,v 1.10 2005/12/30 12:04:33 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -82,8 +82,8 @@ int server_ppc_cb_log_add(ppc_t *ppc, int fd, unsigned char cmd, char *data,
 
     u_unused_args(ppc, fd, cmd, size);
 
-    dbg_err_if (vso == NULL);
-    dbg_err_if (data == NULL);
+    nop_err_if (vso == NULL);
+    nop_err_if (data == NULL);
 
     pla = (ppc_log_add_t *) data;
     s = (server_t *) vso;
@@ -97,7 +97,7 @@ int server_ppc_cb_log_add(ppc_t *ppc, int fd, unsigned char cmd, char *data,
 
     /* log the line */
     if(kl)
-        dbg_err_if(klog(kl, syslog_to_klog(pla->level), "%s", pla->log));
+        nop_err_if(klog(kl, syslog_to_klog(pla->level), "%s", pla->log));
 
     return 0;
 err:

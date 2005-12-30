@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.h,v 1.9 2005/11/23 17:27:01 tho Exp $
+ * $Id: emb.h,v 1.10 2005/12/30 12:04:33 tat Exp $
  */
 
 #ifndef _KLONE_EMB_H_
@@ -22,6 +22,7 @@
 #include <klone/session.h>
 #include <klone/io.h>
 #include <klone/codecs.h>
+#include <klone/utils.h>
 
 /* supported embedded resource type */
 enum {

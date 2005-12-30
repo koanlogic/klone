@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc_fork_child.c,v 1.6 2005/11/24 23:42:19 tho Exp $
+ * $Id: ppc_fork_child.c,v 1.7 2005/12/30 12:04:33 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -47,7 +47,7 @@ err:
     return ~0;
 }
 
-/* [parent] nop op */
+/* [parent] */
 int server_ppc_cb_fork_child(ppc_t *ppc, int fd, unsigned char cmd, char *data, 
     size_t size, void *vso)
 {

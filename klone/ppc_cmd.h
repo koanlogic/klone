@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc_cmd.h,v 1.6 2005/11/23 17:27:01 tho Exp $
+ * $Id: ppc_cmd.h,v 1.7 2005/12/30 12:04:33 tat Exp $
  */
 
 #ifndef _KLONE_PPC_CMD_H_
@@ -26,8 +26,8 @@ enum {
     PPC_CMD_MSES_REMOVE,        /* remove a session                 */
 
     /* logging ppc commands                                         */
-    PPC_CMD_LOG_ADD             /* add a log row                    */
-
+    PPC_CMD_LOG_ADD,            /* add a log line                   */
+    PPC_CMD_LOG_GET             /* get a log line (in-mem logging)  */
 };
 
 #endif

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.c,v 1.11 2005/12/23 10:14:57 tat Exp $
+ * $Id: header.c,v 1.12 2005/12/30 12:04:33 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -111,7 +111,7 @@ field_t *header_get_fieldn(header_t *h, size_t idx)
     size_t i = 0;
 
     dbg_goto_if (h == NULL, notfound);
-    dbg_goto_if (idx >= h->nfields, notfound);
+    nop_goto_if (idx >= h->nfields, notfound);
 
     TAILQ_FOREACH(f, &h->fields, np)
     {

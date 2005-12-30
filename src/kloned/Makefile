@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.16 2005/12/12 15:54:05 stewy Exp $
+# $Id: Makefile,v 1.17 2005/12/30 12:04:33 tat Exp $
 
 include ../../Makefile.conf
 include ../../webapp/Makefile-webapp
@@ -6,7 +6,7 @@ include ../../webapp/Makefile-webapp
 PROG = kloned
 INCS = main.h server_s.h server_ppc_cmd.h child.h
 SRCS = server.c main.c entry.c modules_init.c modules_term.c ppc.c atom.c \
-    ppc_log_add.c ppc_nop.c child.c
+    ppc_log_add.c ppc_log_get.c ppc_nop.c child.c
 
 CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
 LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}

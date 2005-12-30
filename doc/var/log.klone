@@ -1,6 +1,15 @@
 <%!
     #include <klone/klog.h>
     #include <klone/context.h>
+    #include <klone/server.h>
+
+    static int print_log_cb(const char* line, void* arg)
+    {
+        io_t *out = (io_t*)arg;
+
+        io_printf(out, "<tr><td>%s</td></tr>", line);
+    }
+
 %>
 <html>
 <head>
@@ -10,33 +19,9 @@
 
 log :
 <table width="100%">
-<tr><td>
-<%
-    klog_t *kl = NULL;
-    ssize_t i, count = -1;
-    char line[KLOG_LN_SZ];
-
-    if(!server_get_logger(ctx->server, &kl))
-    {
-        if(kl || kl->type != KLOG_TYPE_MEM)
-        {
-            if((count = klog_countln(kl)) >= 0)
-                io_printf(out, "%d lines found", count);
-            else
-                io_printf(out, "error retrieving log lines!");
-        } else {
-            io_printf(out, 
-                "logging is not configured or is not a in-memory log");
-        }
-    }
-%>
-</td></tr>
-<%
-    for(i = 1; i <= count; ++i)
-    {
-        klog_getln(kl, i, line);
-        io_printf(out, "<tr><td>%s</td></tr>", line);
-    }
+<%  
+    if(server_foreach_memlog_line(ctx->server, print_log_cb, out))
+        io_printf(out, "<tr><td>error retrieving log lines</td></tr>");
 %>
 </table>
 </body>
