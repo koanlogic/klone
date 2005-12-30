@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.33 2005/12/23 10:14:58 tat Exp $
+ * $Id: utils.c,v 1.34 2005/12/30 17:21:53 tat Exp $
  */
 
 #include <stdlib.h>
@@ -129,6 +129,42 @@ int u_foreach_dir_item(const char *path, unsigned int mask,
     return 0;
 err:
     return ~0;
+}
+
+/**
+ * \brief   Match filename extension
+ * 
+ * Return 1 if the filename externsion is equal to \p extension
+ * (case-insensitive comparison).
+ *
+ * \param   filename    file name
+ * \param   extension  file extension to match 
+ *
+ * \return
+ * - \c 1  if \p filename extension is \p extension
+ * - \c 0  if \p filename extension is not equal to \p extension
+ */
+int u_match_ext(const char *filename, const char *extension)
+{
+    const char *fn, *ext;
+    size_t flen, elen;
+
+    if(filename == NULL || extension == NULL)
+        return 0;
+
+    flen = strlen(filename);
+    elen = strlen(extension);
+    if(elen > flen)
+        return 0;
+
+    fn = filename + flen - 1;
+    ext = extension + elen - 1;
+    for( ; elen; --fn, --ext, --elen)
+    {
+        if(tolower(*fn) != tolower(*ext))
+            return 0;
+    }
+    return 1;
 }
 
 /* hex char to int */

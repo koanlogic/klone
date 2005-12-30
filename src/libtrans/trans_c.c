@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.22 2005/11/23 21:43:41 tho Exp $
+ * $Id: trans_c.c,v 1.23 2005/12/30 17:21:53 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -198,7 +198,7 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
         io_write(p->out, node->buf, node->sz);
 
     io_printf(p->out, 
-            "klone_script_exit:       \n"
+            "klone_script_exit:     \n"
             "   return;             \n"
             "}                      \n"
             );
@@ -261,6 +261,9 @@ static void print_register_block(io_t *out, lang_c_ctx_t *ctx)
     u_md5(ctx->ti->uri, strlen(ctx->ti->uri), md5);
 
     io_printf(out, 
+        "#ifdef __cplusplus                 \n"
+        "extern \"C\" {                     \n"
+        "#endif                             \n"
         "void module_init_%s()              \n"
         "{                                  \n"
         "    res_ctor();                    \n"
@@ -269,7 +272,10 @@ static void print_register_block(io_t *out, lang_c_ctx_t *ctx)
         "void module_term_%s()              \n"
         "{                                  \n"
         "    emb_unregister((embres_t*)&e); \n"
-        "}                                  \n",
+        "}                                  \n"
+        "#ifdef __cplusplus                 \n"
+        "}                                  \n"
+        "#endif                             \n",
         md5, md5);
 }
 
@@ -375,8 +381,8 @@ static int cb_html_block(parser_t *p, void *arg, const char *buf, size_t sz)
         dbg_err_if(print_var_definition(p, 1 /* zip it */, varname, buf, sz));
 
         dbg_err_if(u_snprintf(code, CODESZ, 
-            "\ndbg_ifb(u_io_unzip_copy(out, klone_html_zblock_%lu, "
-            "   sizeof(klone_html_zblock_%lu))) goto klone_script_exit;\n", 
+            "\ndbg_if(u_io_unzip_copy(out, klone_html_zblock_%lu, "
+            "   sizeof(klone_html_zblock_%lu)));\n", 
             ctx->html_block_cnt, ctx->html_block_cnt));
 
     } else {
@@ -387,8 +393,8 @@ static int cb_html_block(parser_t *p, void *arg, const char *buf, size_t sz)
         dbg_err_if(print_var_definition(p, 0, varname, buf, sz));
 
         dbg_err_if(u_snprintf(code, CODESZ, 
-            "\ndbg_ifb(io_write(out, klone_html_%lu, "
-            "   sizeof(klone_html_%lu)) < 0) goto klone_script_exit;\n", 
+            "\ndbg_if(io_write(out, klone_html_%lu, "
+            "   sizeof(klone_html_%lu)) < 0);\n", 
             ctx->html_block_cnt, ctx->html_block_cnt));
     }
 

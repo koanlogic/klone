@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.h,v 1.10 2005/12/30 12:04:33 tat Exp $
+ * $Id: emb.h,v 1.11 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_EMB_H_
@@ -23,6 +23,10 @@
 #include <klone/io.h>
 #include <klone/codecs.h>
 #include <klone/utils.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 /* supported embedded resource type */
 enum {
@@ -69,5 +73,9 @@ int emb_lookup(const char *filename, embres_t **pr);
 int emb_count();
 int emb_getn(size_t n, embres_t **pr);
 int emb_open(const char *file, io_t **pio);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

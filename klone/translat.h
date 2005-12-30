@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.h,v 1.6 2005/11/23 17:27:01 tho Exp $
+ * $Id: translat.h,v 1.7 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_TRANSLAT_H_
@@ -14,6 +14,10 @@
 #include <u/libu.h>
 #include <klone/io.h>
 #include <klone/codecs.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 enum { URI_BUFSZ = 1024, MIME_BUFSZ = 256, EMSG_BUFSZ = 512 };
 
@@ -33,5 +37,9 @@ int translate(trans_info_t*);
 
 int translate_script_to_c(io_t *in, io_t *out, trans_info_t* ti);
 int translate_opaque_to_c(io_t *in, io_t *out, trans_info_t* ti);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

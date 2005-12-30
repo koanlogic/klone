@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.h,v 1.14 2005/12/30 12:04:33 tat Exp $
+ * $Id: server.h,v 1.15 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_SERVER_H_
@@ -14,6 +14,10 @@
 #include "klone_conf.h"
 #include <klone/ppc.h>
 #include <klone/klog.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct u_config_s;
 struct server_s;
@@ -54,5 +58,9 @@ ppc_t* server_get_ppc(server_t *s);
 int server_get_logger(server_t *s, klog_t **pkl);
 int server_foreach_memlog_line(server_t *s, int (*cb)(const char*, void*), 
     void *arg);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

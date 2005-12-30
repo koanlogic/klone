@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.h,v 1.7 2005/12/23 10:14:57 tat Exp $
+ * $Id: vars.h,v 1.8 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_VARLIST_H_
@@ -13,6 +13,10 @@
 
 #include <u/libu.h>
 #include <klone/var.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct vars_s;
 typedef struct vars_s vars_t;
@@ -50,5 +54,8 @@ const char* vars_geti_value(vars_t *vs, const char *name, size_t ith);
 int vars_geti_value_i(vars_t *vs, const char *name, size_t ith);
 u_string_t* vars_geti_value_s(vars_t *vs, const char *name, size_t ith);
 
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

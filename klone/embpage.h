@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: embpage.h,v 1.5 2005/11/23 17:27:01 tho Exp $
+ * $Id: embpage.h,v 1.6 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_EMB_PAGE_H_
@@ -14,7 +14,15 @@
 #include <klone/page.h>
 #include <u/libu.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+
 void register_page(page_t *pg);
 void unregister_page(page_t *pg);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

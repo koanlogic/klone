@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: var.h,v 1.5 2005/11/23 17:27:01 tho Exp $
+ * $Id: var.h,v 1.6 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_VAR_H_
@@ -13,6 +13,10 @@
 
 #include <sys/types.h>
 #include <u/libu.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct var_s;
 typedef struct var_s var_t;
@@ -32,5 +36,9 @@ int var_set(var_t*, const char *name, const char *value);
 int var_set_name(var_t *v, const char *name);
 int var_set_value(var_t *v, const char *value);
 int var_set_bin_value(var_t *v, const char *data, size_t size);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

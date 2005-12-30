@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.h,v 1.7 2005/11/23 17:27:01 tho Exp $
+ * $Id: tls.h,v 1.8 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_TLS_H_
@@ -15,6 +15,10 @@
 #include <u/libu.h>
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* (pseudo) unique data to feed the PRNG */
 struct tls_rand_seed_s 
@@ -47,6 +51,10 @@ typedef struct tls_ctx_args_s tls_ctx_args_t;
 SSL_CTX *tls_init_ctx (tls_ctx_args_t *);
 int     tls_load_ctx_args(u_config_t *, tls_ctx_args_t **);
 char    *tls_get_error (void);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif /* HAVE_LIBOPENSSL */
 

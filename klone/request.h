@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.h,v 1.7 2005/12/23 10:14:57 tat Exp $
+ * $Id: request.h,v 1.8 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_REQUEST_H_
@@ -17,6 +17,10 @@
 #include <klone/http.h>
 #include <klone/vars.h>
 #include <klone/addr.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct request_s;
 typedef struct request_s request_t;
@@ -75,5 +79,8 @@ const char *request_get_cookie(request_t *rq, const char *name);
 
 int request_print(request_t *rq);
 
-#endif
+#ifdef __cplusplus
+}
+#endif 
 
+#endif

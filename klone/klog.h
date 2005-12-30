@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: klog.h,v 1.17 2005/11/23 17:27:01 tho Exp $
+ * $Id: klog.h,v 1.18 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_LOG_H_
@@ -14,6 +14,10 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include <u/libu.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 /* log levels, from low to high */
 enum {
@@ -144,5 +148,9 @@ int klog_clear (klog_t *kl);
 int klog_args (u_config_t *logsect, klog_args_t **pka);
 void klog_args_free (klog_args_t *ka);
 int klog_open_from_config (u_config_t *ls, klog_t **pkl);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif  /* _KLONE_LOG_H_ */

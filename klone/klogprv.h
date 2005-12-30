@@ -5,13 +5,17 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: klogprv.h,v 1.7 2005/11/23 17:27:01 tho Exp $
+ * $Id: klogprv.h,v 1.8 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_LOGPRV_H_
 #define _KLONE_LOGPRV_H_
 
 #include <klone/klog.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 static const char *kloglev[] =
 {
@@ -24,5 +28,9 @@ int klog_open_mem (klog_t *kl, size_t ln_max);
 int klog_open_syslog (klog_t *kl, int fac, int logopt);
 int klog_open_file (klog_t *kl, const char *base, size_t npages, size_t nlines);
 const char *klog_to_str (int lev);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif /* _KLONE_LOGPRV_H_ */

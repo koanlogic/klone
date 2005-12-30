@@ -5,11 +5,15 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: timer.h,v 1.2 2005/11/23 17:27:01 tho Exp $
+ * $Id: timer.h,v 1.3 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_TIMERM_H_
 #define _KLONE_TIMERM_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct timerm_s;
 typedef struct timerm_s timerm_t;
@@ -21,5 +25,9 @@ typedef int (*alarm_cb_t)(alarm_t *, void *arg);
 
 int timerm_add(int secs, alarm_cb_t cb, void *arg, alarm_t **pa);
 int timerm_del(alarm_t *a);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

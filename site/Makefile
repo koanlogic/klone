@@ -1,11 +1,11 @@
-# $Id: Makefile,v 1.2 2005/11/28 12:52:52 tho Exp $
+# $Id: Makefile,v 1.3 2005/12/30 17:21:53 tat Exp $
 
 # default CFLAGS
 include ../Makefile.conf
 
 LIB = site
 SRCS = register.c
-CLEANFILES += *.c *.a *.o autogen.*
+CLEANFILES += *.c *.cc *.a *.o autogen.*
 
 KLONE = ../src/tools/klone/klone
 

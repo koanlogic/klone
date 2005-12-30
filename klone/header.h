@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.h,v 1.5 2005/12/23 10:14:57 tat Exp $
+ * $Id: header.h,v 1.6 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_HEADER_H_
@@ -13,6 +13,10 @@
 
 #include <klone/field.h>
 #include <klone/io.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 typedef struct
 {
@@ -35,5 +39,9 @@ int header_set_field(header_t *h, const char *name, const char *value);
 
 field_t* header_get_fieldn(header_t *h, size_t idx);
 size_t header_field_count(header_t *h);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

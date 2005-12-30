@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc.h,v 1.8 2005/11/23 17:27:01 tho Exp $
+ * $Id: ppc.h,v 1.9 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_PPC_H_
@@ -13,6 +13,10 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 enum { PPC_MAX_DATA_SIZE = 8192 }; 
 
@@ -31,5 +35,9 @@ ssize_t ppc_write(ppc_t *ppc, int fd, unsigned char cmd, char *data,
     size_t size);
 ssize_t ppc_read(ppc_t *ppc, int fd, unsigned char *cmd, char *data, 
     size_t size);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

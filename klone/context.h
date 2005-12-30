@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: context.h,v 1.7 2005/12/23 10:14:57 tat Exp $
+ * $Id: context.h,v 1.8 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_CONTEXT_H_
@@ -17,6 +17,10 @@
 #include <klone/server.h>
 #include <klone/backend.h>
 #include <klone/os.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 /* global applicaton context */
 typedef struct context_s
@@ -42,5 +46,9 @@ typedef struct context_s
 
 /* exported variable (see entry.c) */
 extern context_t *ctx;
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

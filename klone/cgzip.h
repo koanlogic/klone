@@ -5,11 +5,15 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: cgzip.h,v 1.5 2005/11/23 17:27:01 tho Exp $
+ * $Id: cgzip.h,v 1.6 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_CODEC_GZIP_H_
 #define _KLONE_CODEC_GZIP_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 /* the codec [un]compresses (using libz) the stream to whom it's applied */
 
@@ -17,5 +21,9 @@
 enum { GZIP_COMPRESS, GZIP_UNCOMPRESS };
 
 int codec_gzip_create(int operation, codec_t **pioz);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

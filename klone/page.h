@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: page.h,v 1.5 2005/11/23 17:27:01 tho Exp $
+ * $Id: page.h,v 1.6 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_PAGE_H_
@@ -18,6 +18,10 @@
 #include <u/libu.h>
 #include <klone/response.h>
 #include <klone/request.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef void (*page_run_t)(request_t*, response_t*);
 
@@ -57,5 +61,9 @@ struct page_s
 
 typedef struct page_s page_t;
 typedef struct pages_s pages_t; 
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

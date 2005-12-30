@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tlsprv.h,v 1.5 2005/11/23 17:27:01 tho Exp $
+ * $Id: tlsprv.h,v 1.6 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_TLS_PRV_H_
@@ -13,6 +13,10 @@
 
 #include "klone_conf.h"
 #ifdef  HAVE_LIBOPENSSL
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* used by tls.c */
 DH  *get_dh1024 (void);
@@ -24,6 +28,10 @@ int tls_use_PrivateKey_file(SSL_CTX *, const char *, int);
 int SSL_CTX_use_certificate_chain_file(SSL_CTX *, const char *);
 int tls_use_certificate_chain(SSL_CTX *, const char *, int, int (*)(void));
 STACK_OF(X509_NAME) *tls_load_client_CA_file(const char *);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif /* HAVE_LIBOPENSSL */
 #endif /* _KLONE_TLS_PRV_H_ */

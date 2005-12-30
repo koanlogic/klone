@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: md5.h,v 1.2 2005/11/23 17:27:01 tho Exp $
+ * $Id: md5.h,v 1.3 2005/12/30 17:21:53 tat Exp $
  */
 
 /*
@@ -31,7 +31,7 @@
   ghost@aladdin.com
 
  */
-/* $Id: md5.h,v 1.2 2005/11/23 17:27:01 tho Exp $ */
+/* $Id: md5.h,v 1.3 2005/12/30 17:21:53 tat Exp $ */
 /*
   Independent implementation of MD5 (RFC 1321).
 
@@ -58,7 +58,7 @@
  */
 
 #ifndef md5_INCLUDED
-#  define md5_INCLUDED
+#define md5_INCLUDED
 
 /*
  * This package supports both compile-time and run-time determination of CPU
@@ -84,8 +84,7 @@ typedef struct md5_state_s {
 } md5_state_t;
 
 #ifdef __cplusplus
-extern "C" 
-{
+extern "C" {
 #endif
 
 /* Initialize the algorithm. */

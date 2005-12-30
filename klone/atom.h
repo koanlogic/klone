@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: atom.h,v 1.6 2005/11/23 17:27:01 tho Exp $
+ * $Id: atom.h,v 1.7 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_ATOM_H_
@@ -13,6 +13,10 @@
 
 #include <stdlib.h>
 #include <u/libu.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 /* global server-maintaned atom list */
 typedef struct atom_s
@@ -67,5 +71,9 @@ int atoms_add(atoms_t *, atom_t*);
 
 /* add an atom to the list */
 int atoms_remove(atoms_t *, atom_t*);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

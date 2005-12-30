@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: parser.h,v 1.5 2005/11/24 07:45:12 tho Exp $
+ * $Id: parser.h,v 1.6 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_PARSER_H_
@@ -15,6 +15,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <klone/io.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct parser_s;
 typedef struct parser_s parser_t;
@@ -41,5 +45,9 @@ void parser_set_io(parser_t *, io_t *, io_t *);
 void parser_set_cb_code(parser_t *, parser_cb_code_t);
 void parser_set_cb_html(parser_t *, parser_cb_html_t);
 void parser_set_cb_arg(parser_t *, void *);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

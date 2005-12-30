@@ -5,13 +5,17 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: rsfilter.h,v 1.5 2005/12/23 10:14:57 tat Exp $
+ * $Id: rsfilter.h,v 1.6 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_RSFILTER_H_
 #define _KLONE_RSFILTER_H_
 
 #include <klone/codec.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* the filter will buffer the first RFBUFSZ bytes printed so page developers
  * can postpone header modifications (i.e. header will be sent after RFBUFSZ
@@ -26,5 +30,9 @@ typedef struct response_filter_s response_filter_t;
 
 int response_filter_create(struct request_s *rq, struct response_s *rs, 
     struct session_s *ss, codec_t **prf);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

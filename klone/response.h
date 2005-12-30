@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.h,v 1.7 2005/12/23 10:14:57 tat Exp $
+ * $Id: response.h,v 1.8 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_RESPONSE_H_
@@ -14,6 +14,10 @@
 #include <klone/io.h>
 #include <klone/header.h>
 #include <klone/http.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** \file */
 
@@ -89,5 +93,8 @@ int response_set_date(response_t *rs, time_t now);
 int response_set_cookie(response_t *rs, const char *name, const char *value,
     time_t expire, const char *path, const char *domain, int secure);
 
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

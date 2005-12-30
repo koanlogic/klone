@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ccipher.h,v 1.6 2005/11/23 17:27:01 tho Exp $
+ * $Id: ccipher.h,v 1.7 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_CODEC_CIPHER_H_
@@ -16,6 +16,10 @@
 
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/evp.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 /* possibile values for io_gzip_create */
 enum { CIPHER_ENCRYPT, CIPHER_DECRYPT };
@@ -28,7 +32,12 @@ enum {
 
 int codec_cipher_create(int op, const EVP_CIPHER *cipher, 
     unsigned char *key, unsigned char *iv, codec_t **pcc);
-#else
+
+#ifdef __cplusplus
+}
+#endif 
+
+#else /* HAVE_LIBOPENSSL */
 /* to avoid ifdefs in local variable declaration (such vars will not be used 
    anyway because the code that use them is ifdef-out) */
 enum {

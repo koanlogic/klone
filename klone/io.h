@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.h,v 1.10 2005/11/23 17:27:01 tho Exp $
+ * $Id: io.h,v 1.11 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_IO_H_ 
@@ -19,6 +19,10 @@
 #include <openssl/err.h>
 #endif /* HAVE_LIBOPENSSL */
 #include <klone/codec.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 struct io_s;
 typedef struct io_s io_t;
@@ -65,5 +69,9 @@ ssize_t io_getc(io_t *io, char *c);
 
 ssize_t io_printf(io_t *io, const char* fmt, ...);
 ssize_t io_putc(io_t *io, char c);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

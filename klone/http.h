@@ -5,13 +5,17 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.h,v 1.7 2005/11/23 17:27:01 tho Exp $
+ * $Id: http.h,v 1.8 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_HTTP_H_
 #define _KLONE_HTTP_H_
 
 #include <u/libu.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 /** \file */
 
@@ -36,5 +40,9 @@ struct session_opt_s *http_get_session_opt(http_t* http);
 
 int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz);
 const char* http_get_status_desc(int status);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

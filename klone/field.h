@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: field.h,v 1.4 2005/11/23 17:27:01 tho Exp $
+ * $Id: field.h,v 1.5 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_FIELD_H_
@@ -13,6 +13,10 @@
 
 #include <sys/types.h>
 #include <u/libu.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 TAILQ_HEAD(param_list_s, param_s);
 typedef struct param_s
@@ -42,5 +46,9 @@ int field_set_from_line(field_t*, const char *line);
 int field_free(field_t*);
 const char* field_get_name(field_t *f);
 const char* field_get_value(field_t *f);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

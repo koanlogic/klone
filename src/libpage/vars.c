@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.18 2005/12/23 10:14:58 tat Exp $
+ * $Id: vars.c,v 1.19 2005/12/30 17:21:53 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -387,6 +387,7 @@ int vars_geti_value_i(vars_t *vs, const char *name, size_t ith)
  *  
  * \param vs    variable list
  * \param name  name of variable
+ * \param ith   index
  *      
  * \return the variable value (may be \c NULL)
  */     

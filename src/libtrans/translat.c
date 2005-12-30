@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.18 2005/11/24 11:39:43 tat Exp $
+ * $Id: translat.c,v 1.19 2005/12/30 17:21:53 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -29,33 +29,13 @@
 
 static int preprocess(io_t *in, io_t *out);
 
-/* returns 1 if the filename match the given extension */
-static int match_ext(const char *filename, const char *extension)
-{
-    const char *fn, *ext;
-    size_t flen, elen;
-
-    if(filename == NULL || extension == NULL)
-        return 0;
-
-    flen = strlen(filename);
-    elen = strlen(extension);
-    if(elen > flen)
-        return 0;
-
-    fn = filename + flen - 1;
-    ext = extension + elen - 1;
-    for( ; elen; --fn, --ext, --elen)
-    {
-        if(tolower(*fn) != tolower(*ext))
-            return 0;
-    }
-    return 1;
-}
-
 static int is_a_script(const char *filename)
 {
-    static const char *script_ext[] = { ".klone", ".kl1", NULL };
+    static const char *script_ext[] = { 
+        ".klone", ".kl1", ".klc", 
+        ".klx",  /* C++ page */
+        NULL 
+    };
     const char **ext;
 
     dbg_return_if(filename == NULL, 0);
@@ -64,7 +44,7 @@ static int is_a_script(const char *filename)
     for(ext = script_ext; *ext; ++ext)
     {
         /* case insensitive matching */
-        if(match_ext(filename, *ext))
+        if(u_match_ext(filename, *ext))
             return 1;
     }
     return 0;

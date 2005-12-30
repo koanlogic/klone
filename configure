@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.39 2005/12/23 10:14:57 tat Exp $
+# $Id: configure,v 1.40 2005/12/30 17:21:53 tat Exp $
 
 export makl_conf_h=klone_conf.h
 
@@ -45,6 +45,8 @@ __makl_enable_warns ()
     makl_add_var_mk "CFLAGS" "-Wpointer-arith -Wno-uninitialized -Wreturn-type"
     makl_add_var_mk "CFLAGS" "-Wwrite-strings -Wswitch -Wshadow -Wwrite-strings"
     makl_add_var_mk "CFLAGS" "-Wunreachable-code -Wunused -Wcast-qual"
+    makl_add_var_mk "CFLAGS" "-Wunreachable-code -Wunused -Wcast-qual"
+    makl_add_var_mk "CFLAGS" "-std=c99 -pedantic"
 }
 
 # General settings
@@ -69,7 +71,11 @@ case `makl_os_name` in
         ;;
 esac
 
-makl_add_var_mk "CFLAGS" "-I`pwd` -O2 -std=c99 -pedantic -DHAVE_CONF_H"
+makl_add_var_mk "CFLAGS" "-I`pwd` -O2 -DHAVE_CONF_H"
+
+# these enable .klx pages
+makl_add_var_mk "USE_CXX" "1"
+makl_add_var_mk "CXXFLAGS" "\${CFLAGS}"
 
 # Install headers in a private subdir
 makl_add_var_mk "INCDIR" "\${DESTDIR}/include/klone"

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.h,v 1.22 2005/11/23 17:27:01 tho Exp $
+ * $Id: utils.h,v 1.23 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_UTILS_H_
@@ -25,6 +25,10 @@
 #include <klone/md5.h>
 #include <klone/os.h>
 #include <klone/mime_map.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef MIN
 #define MIN(a,b)    (a < b ? a : b)
@@ -87,6 +91,7 @@ int u_sig_unblock(int sig);
 
 const char* u_guess_mime_type(const char *file_name);
 const mime_map_t* u_get_mime_map(const char *file_name);
+int u_match_ext(const char *filename, const char *extension);
 
 /* date time conversion funcs */
 int u_tt_to_rfc822(char dst[], time_t ts);
@@ -103,5 +108,9 @@ int u_cipher_encrypt(const EVP_CIPHER *cipher, unsigned char *key,
 int u_cipher_decrypt(const EVP_CIPHER *cipher, unsigned char *key, 
     unsigned char *iv, char *dst, size_t *dcount, const char *src, size_t ssz);
 #endif
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

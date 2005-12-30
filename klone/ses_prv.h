@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_prv.h,v 1.16 2005/12/23 10:14:57 tat Exp $
+ * $Id: ses_prv.h,v 1.17 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_SESPRV_H_
@@ -25,6 +25,10 @@
 #include <klone/http.h>
 #include <klone/atom.h>
 #include <klone/md5.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef int (*session_load_t)(session_t*);
 typedef int (*session_save_t)(session_t*);
@@ -128,5 +132,9 @@ int session_mem_module_init(u_config_t *config, session_opt_t *pso);
 int session_client_module_init(u_config_t *config, session_opt_t *pso);
 int session_module_term(session_opt_t *so);
 int session_module_term(session_opt_t *so);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

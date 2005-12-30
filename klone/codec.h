@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: codec.h,v 1.10 2005/11/23 17:27:01 tho Exp $
+ * $Id: codec.h,v 1.11 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_CODEC_H_
@@ -15,6 +15,10 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <u/libu.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 enum { CODEC_FLUSH_COMPLETE, CODEC_FLUSH_CHUNK };
 
@@ -46,5 +50,9 @@ typedef struct codec_s
 } codec_t;
 
 int codec_free(codec_t *codec);
+
+#ifdef __cplusplus
+}
+#endif 
 
 #endif

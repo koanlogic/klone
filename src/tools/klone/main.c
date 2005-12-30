@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.27 2005/11/25 10:20:49 tho Exp $
+ * $Id: main.c,v 1.28 2005/12/30 17:21:53 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -58,7 +58,7 @@ typedef struct
 
 context_t *ctx;
 
-#define KL1_FILE_FMT "pg_%s.c"
+#define KL1_FILE_FMT "pg_%s.%s"
 
 static void usage(void)
 {
@@ -338,12 +338,31 @@ err:
     return ~0;
 }
 
+static int is_cpp(const char *file_in)
+{
+    size_t l;
+
+    dbg_err_if (file_in == NULL);
+
+    l = strlen(file_in);
+    if(l < 4)
+        return 0;
+
+    /* if the file name ends with "[Cc][Cc]" consider it a c++ file */
+    if(tolower(file_in[--l]) == 'c' && tolower(file_in[--l]) == 'c')
+        return 1; /* c++ */
+
+err:
+    return 0;
+}
+
 static int cb_file(struct dirent *de, const char *path , void *arg)
 {
     static const char *prefix = "$(srcdir)";
     const mime_map_t *mm;
     char uri_md5[MD5_DIGEST_BUFSZ];
     char file_in[U_FILENAME_MAX], uri[URI_BUFSZ], *base_uri = (char*)arg;
+    const char *ext;
     int enc = 0, zip = 0;
 
     dbg_err_if (de == NULL);
@@ -391,7 +410,9 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
             enc ? "yes" : "no",
             zip ? "yes" : "no");
 
-    dbg_err_if(io_printf(ctx->iom, " \\\n" KL1_FILE_FMT, uri_md5) < 0);
+    ext = u_match_ext(file_in, "klx") ? "cc" : "c";
+
+    dbg_err_if(io_printf(ctx->iom, " \\\n" KL1_FILE_FMT, uri_md5, ext) < 0);
 
     dbg_err_if(io_printf(ctx->ior, "KLONE_REGISTER(action,%s);\n", uri_md5) <0);
 
@@ -400,7 +421,7 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
     dbg_err_if(io_printf(ctx->iod, 
             "\n" KL1_FILE_FMT 
             ": %s\n\t$(KLONE) -c translate -i $< -o $@ -u /%s %s %s %s %s\n", 
-            uri_md5, file_in, uri, 
+            uri_md5, ext, file_in, uri, 
             zip ? "-z" : "",
             enc ? "-E" : "", 
             enc && ctx->key_file ? "-k" : "", 

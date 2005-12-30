@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: backend.h,v 1.14 2005/12/13 14:04:57 tho Exp $
+ * $Id: backend.h,v 1.15 2005/12/30 17:21:53 tat Exp $
  */
 
 #ifndef _KLONE_BACKEND_H_
@@ -13,6 +13,10 @@
 
 #include <u/libu.h>
 #include <klone/klog.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 struct server_s;
 
@@ -78,5 +82,8 @@ int backend_create(const char *name, u_config_t *, backend_t **);
 int backend_serve(backend_t *, int fd);
 int backend_free(backend_t *);
 
+#ifdef __cplusplus
+}
+#endif 
 
 #endif
