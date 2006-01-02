@@ -1,0 +1,29 @@
+<html>
+<head><title>KLone example page: set decryption key</title></head>
+<body>
+
+<h4>Set decryption pass phrase:</h4>
+<blockquote><table width="750" cellpadding="5"><tr><td bgcolor="#e0e0ff">
+<form action="<%= SCRIPT_NAME %>" method="post">
+key: <input type="text" name="pp"><br>
+<input type="submit" value="save"><br>
+</form>
+</td></tr>
+<tr><td>
+<%  /* form submit handling */
+
+    vars_t *args = request_get_args(request); /* shortcut */
+    char *pp = NULL;
+    
+    if((pp = vars_get_value(args, "pp")) != NULL)
+    {
+        session_set(session, "KLONE_CIPHER_KEY", pp);
+        io_printf(out, "Pass phrase saved.<p>");
+    }
+    
+%>&nbsp;
+</td></tr>
+</table></blockquote>
+
+</body>
+</html>
