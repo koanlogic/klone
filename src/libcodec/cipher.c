@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: cipher.c,v 1.8 2005/11/23 18:40:39 tho Exp $
+ * $Id: cipher.c,v 1.9 2006/01/03 11:15:42 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -176,7 +176,7 @@ int codec_cipher_create(int op, const EVP_CIPHER *cipher,
 
     dbg_return_if (cipher == NULL, ~0);
     dbg_return_if (key == NULL, ~0);
-    dbg_return_if (iv == NULL, ~0);
+    /* iv can be NULL */
     dbg_return_if (pcc == NULL, ~0);
 
     cc = u_zalloc(sizeof(codec_cipher_t));
