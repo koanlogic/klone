@@ -5,12 +5,13 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.19 2006/01/04 14:57:00 tat Exp $
+ * $Id: request.c,v 1.20 2006/01/04 15:38:55 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <u/libu.h>
 #include <klone/request.h>
 #include <klone/utils.h>
@@ -732,7 +733,7 @@ static int request_is_multipart_formdata(request_t *rq)
 
 static int request_parse_urlencoded_data(request_t *rq)
 {
-    size_t qsz, len;
+    ssize_t qsz, len;
 
     len = rq->content_length; /* shortcut */
 
@@ -771,6 +772,7 @@ static int request_get_fieldparam(request_t *rq, const char *field_name,
     const char *param_name, char *buf, size_t size)
 {
     const char *param_value, *field_value, *p;
+    size_t pv_len;
 
     field_value = header_get_field_value(rq->header, field_name);
     dbg_err_if(field_value == NULL);
@@ -790,12 +792,15 @@ static int request_get_fieldparam(request_t *rq, const char *field_name,
         if(*p == '\0' || *p == ';' || isspace(*p))
             break; /* end of param value */
 
+    /* param value len */
+    pv_len = p - param_value;
+
     /* boundary check */
-    dbg_err_if(p - param_value > size - 1); 
+    dbg_err_if(pv_len > size - 1); 
 
     /* copy out the param value */
-    strncpy(buf, param_value, p - param_value);
-    buf[size - 1] = 0;
+    strncpy(buf, param_value, pv_len);
+    buf[MIN(pv_len, size - 1)] = 0;
 
     return 0;
 err:
@@ -835,7 +840,7 @@ static int parse_content_disposition(header_t *h, char *name, char *filename,
 {
     enum { BUFSZ = 512 };
     char *pp, *tok, *src, buf[BUFSZ];
-    size_t n_len, fn_len, is_quoted;
+    size_t n_len, fn_len;
     const char *cd;
     int q;
 
@@ -883,8 +888,8 @@ static int parse_content_disposition(header_t *h, char *name, char *filename,
                 tok[strlen(tok) - 1] = 0;
 
             strncpy(filename, tok, prmsz);
-        } else
-            ; /* ignore unknown fields */
+        } 
+        /* else ignore unknown fields */
     }
             
     return 0;
@@ -959,10 +964,7 @@ static int request_parse_multipart_data(request_t *rq)
 {
     enum { BOUNDARY_BUFSZ = 128, BUFSZ = 1024 }; 
     char boundary[BOUNDARY_BUFSZ], buf[BUFSZ];
-    size_t bound_len;
-    header_t *h = NULL;
     int eof;
-
 
     /* boundaries always start with -- */
     strcpy(boundary, "--");
@@ -972,74 +974,20 @@ static int request_parse_multipart_data(request_t *rq)
 
     dbg_err_if(strlen(boundary) == 0);
 
-    dbg("boundary: %s", boundary);
-    bound_len = strlen(boundary);
-
-    #if 0
     /* skip the MIME preamble (usually not used in HTTP) */
     for(;;)
     {
-        dbg_err_if(io_gets(rq->io, line, LINE_BUFSZ) <= 0);
-        if(!strcmp(line, boundary))
+        dbg_err_if(io_gets(rq->io, buf, BUFSZ) <= 0);
+        if(!strncmp(buf, boundary, strlen(boundary)))
             break; /* boundary found */
     }
-    #endif
 
+    /* cycle on each MIME part */
     for(eof = 0; eof == 0; )
-    {
         dbg_err_if(request_parse_multipart_chunk(rq, rq->io, boundary, &eof));
-    }
-
-    #if 0
-    /* create an header object to parse MIME part headers */
-    dbg_err_if(header_create(&h));
-
-    /* foreach MIME part */
-    for(;;)
-    {
-        /* remove all fields */
-        header_clear(h);
-
-        /* read header lines and create field_t(s) objects */
-        dbg_err_if(header_load(h, rq->io));
-
-        dbg_err_if(request_parse_multipart_chunk(rq, h));
-
-        warn_err_ifm(is_multipart_mixed(h), 
-            "multipart/mixed content is not supported yet");
-
-        /* HTTP should never use cte */
-        warn_err_ifm(is_encoded(h), 
-            "encoded file upload is not supported");
-
-        dbg_err_if(parse_content_disposition(h, name, filename));
-
-        if(is_file)
-        {
-            save to tmp file 
-        } else {
-            /* read all until next boundary */
-            set arg
-        }
-
-        /* read next boundary */
-        dbg_err_if(io_gets(rq->io, line, LINE_BUFSZ) <= 0);
-
-        /* err if next line is not a boundary */
-        dbg_err_if(strncmp(line, boundary, bound_len));
-
-        if(strcmp(line+bound_len, "--") == 0)
-            break; /* last boundary found */
-    }
-    #endif
-
-
-    header_free(h);
 
     return 0;
 err:
-    if(h)
-        header_free(h);
     return ~0;
 }
 
@@ -1062,8 +1010,6 @@ int request_parse(request_t *rq,
     enum { BUFSZ = 1024 };
     const char WP[] = " \t\r\n";
     char ln[BUFSZ], *pp, *method, *uri, *proto;
-    const char *clen;
-    size_t qsz, len;
     
     dbg_err_if (rq == NULL);
     dbg_err_if (rq->io == NULL); /* must call rq_bind before rq_parse */
