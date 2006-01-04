@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.18 2005/12/23 10:14:57 tat Exp $
+ * $Id: request.c,v 1.19 2006/01/04 14:57:00 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -518,7 +518,7 @@ int request_set_uri(request_t *rq, const char *uri,
 
     REQUEST_SET_STRING_FIELD(rq->uri, uri);
 
-    /* save (undencoded) query string i.e. everything after '?' */
+    /* save (undecoded) query string i.e. everything after '?' */
     if((p = strchr(uri, '?')) != NULL)
         dbg_err_if(request_set_query_string(rq, ++p));
 
@@ -604,6 +604,21 @@ int request_set_method(request_t *rq, const char *method)
     return 0;
 }
 
+static int request_set_content_length(request_t *rq)
+{
+    const char *clen;
+    size_t len;
+
+    clen = header_get_field_value(rq->header, "Content-Length");
+    dbg_err_if(clen == NULL || (len = atoi(clen)) <= 0);
+
+    rq->content_length = len;
+
+    return 0;
+err:
+    return ~0;
+}
+
 static int request_parse_cookie(request_t *rq, field_t *field)
 {
     enum { BUFSZ = 4096 }; /* cookie size limit */
@@ -619,7 +634,7 @@ static int request_parse_cookie(request_t *rq, field_t *field)
 
     /* foreach name=value pair... */
     for(src = buf; (tok = strtok_r(src, " ;", &pp)) != NULL; src = NULL)
-        dbg_err_if(vars_add_urlvar(rq->cookies, tok, NULL));
+        dbg_if(vars_add_urlvar(rq->cookies, tok, NULL));
 
     return 0;
 err:
@@ -664,7 +679,7 @@ static int request_parse_args(request_t *rq)
     for(src = query; (tok = strtok_r(src, "&", &pp)) != NULL; src = NULL)
     {
         /* create a new var_t obj and push it into the args vars-list */
-        dbg_err_if(vars_add_urlvar(rq->args, tok, NULL));
+        dbg_if(vars_add_urlvar(rq->args, tok, NULL));
     }
 
     U_FREE(query);
@@ -698,6 +713,336 @@ ssize_t request_get_content_length(request_t *rq)
 
     return (ssize_t) rq->content_length;
 }
+
+static int match_content_type(header_t *h, const char *mime_type)
+{
+    const char *ct;
+
+    ct = header_get_field_value(h, "Content-Type");
+    if(ct == NULL || strncasecmp(ct, mime_type, strlen(mime_type)))
+        return 0;
+
+    return 1;
+}
+
+static int request_is_multipart_formdata(request_t *rq)
+{
+    return match_content_type(rq->header, "multipart/form-data");
+}
+
+static int request_parse_urlencoded_data(request_t *rq)
+{
+    size_t qsz, len;
+
+    len = rq->content_length; /* shortcut */
+
+    qsz = (rq->query ? strlen(rq->query) : 0);
+
+    /* alloc or enlarge the query string buffer */
+    rq->query = u_realloc(rq->query, len + qsz + 2);
+    dbg_err_if(rq->query == NULL);
+
+    /* dbg("rq->query %x  size %u", rq->query, len+qsz+2); */
+
+    rq->query[qsz] = 0; /* must be zero-term for strcat to work */
+    if(qsz)
+    {   /* append a '&' */
+        strcat(rq->query, "&");
+        ++qsz;
+    }
+
+    /* append to current query string */
+    dbg_err_if(io_read(rq->io, rq->query + qsz, len) != len);
+
+    /* zero terminate it */
+    rq->query[qsz + len] = 0;
+
+    /* parse rq->query and build the args var_t* array */
+    dbg_err_if(request_parse_args(rq));
+
+    return 0;
+err:
+    return ~0;
+}
+
+/* return the value of the param named 'param_name' of the field 'field_name'
+   and save it to 'buffer' */
+static int request_get_fieldparam(request_t *rq, const char *field_name, 
+    const char *param_name, char *buf, size_t size)
+{
+    const char *param_value, *field_value, *p;
+
+    field_value = header_get_field_value(rq->header, field_name);
+    dbg_err_if(field_value == NULL);
+
+    /* look for param name=value pair */
+    param_value = strcasestr(field_value, param_name);
+    dbg_err_if(param_value == NULL);
+
+    /* skip param name */
+    param_value += strlen(param_name);
+
+    /* first char must be an equal sign */
+    dbg_err_if(*param_value++ != '=');
+
+    /* a param value ends on the first ';', space or at the end of string */
+    for(p = param_value; ;++p)
+        if(*p == '\0' || *p == ';' || isspace(*p))
+            break; /* end of param value */
+
+    /* boundary check */
+    dbg_err_if(p - param_value > size - 1); 
+
+    /* copy out the param value */
+    strncpy(buf, param_value, p - param_value);
+    buf[size - 1] = 0;
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int is_multipart_mixed(header_t *h)
+{
+    return match_content_type(h, "multipart/mixed");
+}
+
+static int is_encoded(header_t *h)
+{
+    const char *cte;
+
+    if((cte = header_get_field_value(h, "Content-Transfer-Encoding")) == NULL)
+        return 0; /* not encoded */
+
+    if(strcasecmp(cte, "binary") == 0)
+        return 0; /* not encoded */
+
+    return 1; /* encoded */
+}
+
+static inline int is_nl(char c)
+{
+    return (c == '\n' || c == '\r' ? c : 0);
+}
+
+static inline int is_quote(char c)
+{
+    return (c == '"' || c == '\'' ? c : 0);
+}
+
+static int parse_content_disposition(header_t *h, char *name, char *filename,
+    size_t prmsz)
+{
+    enum { BUFSZ = 512 };
+    char *pp, *tok, *src, buf[BUFSZ];
+    size_t n_len, fn_len, is_quoted;
+    const char *cd;
+    int q;
+
+    cd = header_get_field_value(h, "Content-Disposition");
+    dbg_err_if(cd == NULL);
+
+    dbg_err_if(strlen(cd) >= BUFSZ);
+
+    /* must start with form-data */
+    dbg_err_if(strncmp(cd, "form-data", strlen("form_data")));
+
+    name[0] = filename[0] = 0;
+
+    /* save a copy to tokenize it */
+    strncpy(buf, cd, BUFSZ);
+
+    /* shortcut */
+    n_len = strlen("name=");
+    fn_len = strlen("filename=");
+
+    /* foreach name=value pair... */
+    for(src = buf; (tok = strtok_r(src, " ;", &pp)) != NULL; src = NULL)
+    {
+        if(strncmp(tok, "form-data", strlen("form-data")) == 0)
+            continue;   /* skip */
+        else if(strncmp(tok, "name=", n_len) == 0) {
+            /* skip the name part */
+            tok += n_len;
+
+            /* remove single or double quotes */
+            if((q = is_quote(tok[0])) != 0)
+                ++tok;
+            if(strlen(tok) && tok[strlen(tok) - 1] == q)
+                tok[strlen(tok) - 1] = 0;
+
+            strncpy(name, tok, prmsz);
+        } else if(strncmp(tok, "filename=", fn_len) == 0) {
+            /* skip the filename part */
+            tok += n_len;
+
+            /* remove single or double quotes */
+            if((q = is_quote(tok[0])) != 0)
+                ++tok;
+            if(strlen(tok) && tok[strlen(tok) - 1] == q)
+                tok[strlen(tok) - 1] = 0;
+
+            strncpy(filename, tok, prmsz);
+        } else
+            ; /* ignore unknown fields */
+    }
+            
+    return 0;
+err:
+    return ~0;
+}
+
+static int request_parse_multipart_chunk(request_t *rq, io_t *io, 
+    const char *boundary, int *eof)
+{
+    enum { PRMSZ = 512, BUFSZ = 4096 };
+    header_t *h = NULL;
+    char name[PRMSZ], filename[PRMSZ], buf[BUFSZ];
+    size_t bound_len;
+
+    /* create an header object to parse MIME part headers */
+    dbg_err_if(header_create(&h));
+
+    /* read header lines until the first blank line */
+    dbg_err_if(header_load(h, io));
+
+    warn_err_ifm(is_multipart_mixed(h), 
+        "multipart/mixed content is not supported yet");
+
+    /* HTTP should never use cte */
+    warn_err_ifm(is_encoded(h), 
+        "encoded file upload is not supported");
+
+    dbg_err_if(parse_content_disposition(h, name, filename, BUFSZ));
+
+    if(filename[0] != '\0')
+    {
+        /* FIXME save to tmp file */
+        warn_err("not impl");
+    } else {
+        /* read param value from the io and add a new item in rq->args */
+        dbg_err_if(u_snprintf(buf, BUFSZ, "%s=", name));
+
+        /* append the param value to the buffer */
+        dbg_err_if(io_gets(io, buf + strlen(buf), BUFSZ - strlen(buf)) <=0);
+
+        /* remove trailing new lines */
+        while(is_nl(buf[strlen(buf) - 1]))
+            buf[strlen(buf) - 1] = 0;
+
+        /* add a new var to request arguments list */
+        dbg_if(vars_add_urlvar(rq->args, buf, NULL));
+    }
+
+    /* read next boundary */
+    dbg_err_if(io_gets(io, buf, BUFSZ) <= 0);
+
+    /* shortcut */
+    bound_len = strlen(boundary);
+
+    /* err if next line is not a boundary */
+    dbg_err_if(strncmp(buf, boundary, bound_len));
+
+    if(strncmp(buf + bound_len, "--", 2) == 0)
+        *eof = 1; /* end of MIME stuff */
+
+    header_free(h);
+
+    return 0;
+err:
+    if(h)
+        header_free(h);
+    return ~0;
+}
+
+static int request_parse_multipart_data(request_t *rq)
+{
+    enum { BOUNDARY_BUFSZ = 128, BUFSZ = 1024 }; 
+    char boundary[BOUNDARY_BUFSZ], buf[BUFSZ];
+    size_t bound_len;
+    header_t *h = NULL;
+    int eof;
+
+
+    /* boundaries always start with -- */
+    strcpy(boundary, "--");
+
+    dbg_err_if(request_get_fieldparam(rq, "Content-Type", "boundary",
+        boundary + 2, BOUNDARY_BUFSZ - 2));
+
+    dbg_err_if(strlen(boundary) == 0);
+
+    dbg("boundary: %s", boundary);
+    bound_len = strlen(boundary);
+
+    #if 0
+    /* skip the MIME preamble (usually not used in HTTP) */
+    for(;;)
+    {
+        dbg_err_if(io_gets(rq->io, line, LINE_BUFSZ) <= 0);
+        if(!strcmp(line, boundary))
+            break; /* boundary found */
+    }
+    #endif
+
+    for(eof = 0; eof == 0; )
+    {
+        dbg_err_if(request_parse_multipart_chunk(rq, rq->io, boundary, &eof));
+    }
+
+    #if 0
+    /* create an header object to parse MIME part headers */
+    dbg_err_if(header_create(&h));
+
+    /* foreach MIME part */
+    for(;;)
+    {
+        /* remove all fields */
+        header_clear(h);
+
+        /* read header lines and create field_t(s) objects */
+        dbg_err_if(header_load(h, rq->io));
+
+        dbg_err_if(request_parse_multipart_chunk(rq, h));
+
+        warn_err_ifm(is_multipart_mixed(h), 
+            "multipart/mixed content is not supported yet");
+
+        /* HTTP should never use cte */
+        warn_err_ifm(is_encoded(h), 
+            "encoded file upload is not supported");
+
+        dbg_err_if(parse_content_disposition(h, name, filename));
+
+        if(is_file)
+        {
+            save to tmp file 
+        } else {
+            /* read all until next boundary */
+            set arg
+        }
+
+        /* read next boundary */
+        dbg_err_if(io_gets(rq->io, line, LINE_BUFSZ) <= 0);
+
+        /* err if next line is not a boundary */
+        dbg_err_if(strncmp(line, boundary, bound_len));
+
+        if(strcmp(line+bound_len, "--") == 0)
+            break; /* last boundary found */
+    }
+    #endif
+
+
+    header_free(h);
+
+    return 0;
+err:
+    if(h)
+        header_free(h);
+    return ~0;
+}
+
 
 /*
  * \brief   Parse a request object
@@ -750,38 +1095,25 @@ int request_parse(request_t *rq,
 
     if(rq->method == HM_POST)
     {
-        clen = header_get_field_value(rq->header, "Content-Length");
-        if(clen != NULL && (len = atoi(clen)) > 0)
-        {
-            dbg_err_if(len > 2097152); /* FIXME: no more the 2 MB */
+        dbg_err_if(request_set_content_length(rq));
 
-            rq->content_length = len;
+        dbg_err_if(rq->content_length > 1024000); /* FIXME: no more the 1MB */
 
-            qsz = (rq->query ? strlen(rq->query) : 0);
+        if(request_is_multipart_formdata(rq))
+        { 
+            /* some vars may be urlencoded */
+            dbg_err_if(request_parse_args(rq));
 
-            /* alloc or enlarge the query string buffer */
-            rq->query = u_realloc(rq->query, len + qsz + 2);
-            dbg_err_if(rq->query == NULL);
-
-            /* dbg("rq->query %x  size %u", rq->query, len+qsz+2); */
-
-            rq->query[qsz] = 0; /* must be zero-term for strcat to work */
-            if(qsz)
-            {   /* append a '&' */
-                strcat(rq->query, "&");
-                ++qsz;
-            }
-
-            /* append to current query string */
-            dbg_err_if(io_read(rq->io, rq->query + qsz, len) != len);
-
-            /* zero terminate it */
-            rq->query[qsz + len] = 0;
+            /* <form enctype="multipart/form-data" ...> */
+            dbg_err_if(request_parse_multipart_data(rq));
+        } else {
+            /* <form [enctype="application/x-www-form-urlencoded"] ...> */
+            dbg_err_if(request_parse_urlencoded_data(rq));
         }
+    } else {
+        /* parse urlencoded variables and set var_t* array */
+        dbg_err_if(request_parse_args(rq));
     }
-
-    /* parse rq->query and build the args var_t* array */
-    dbg_err_if(request_parse_args(rq));
 
     return 0;
 err:

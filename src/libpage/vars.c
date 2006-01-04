@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.19 2005/12/30 17:21:53 tat Exp $
+ * $Id: vars.c,v 1.20 2006/01/04 14:57:00 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -199,7 +199,7 @@ int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **v)
     char sname[NAMESZ], svalue[VALSZ];
     char *val, *str = NULL, *name = sname, *value = svalue;
     var_t *var = NULL;
-    size_t vsz;
+    ssize_t vsz;
 
     dbg_return_if (vs == NULL, ~0);
     dbg_return_if (cstr == NULL, ~0);
