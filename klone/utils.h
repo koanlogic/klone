@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.h,v 1.23 2005/12/30 17:21:53 tat Exp $
+ * $Id: utils.h,v 1.24 2006/01/06 18:30:10 tat Exp $
  */
 
 #ifndef _KLONE_UTILS_H_
@@ -55,6 +55,7 @@ int u_foreach_dir_item(const char *, unsigned int,
 
 char* u_strnrchr(const char *s, char c, size_t len);
 char *u_stristr(const char *string, const char *sub);
+char *u_strnstr(const char *string, const char *sub, size_t stringlen);
 
 enum { URLCPY_VERBATIM, URLCPY_ENCODE, URLCPY_DECODE };
 ssize_t u_urlncpy(char *dst, const char *src, size_t slen, int flags);

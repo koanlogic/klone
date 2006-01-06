@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.28 2005/12/30 17:21:53 tat Exp $
+ * $Id: main.c,v 1.29 2006/01/06 18:30:10 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -460,21 +460,24 @@ static int print_register_header(io_t *out)
 {
     dbg_err_if (out == NULL);
  
-    dbg_err_if(io_printf(out, "void do_register(int);\n") < 0);
+    dbg_err_if(io_printf(out, "static void do_register(int);\n") < 0);
+    dbg_err_if(io_printf(out, "void unregister_pages(void);\n") < 0);
+    dbg_err_if(io_printf(out, "void register_pages(void);\n") < 0);
+
     dbg_err_if(io_printf(out, 
-        "void unregister_pages() { do_register(0); }\n") < 0);
+        "void unregister_pages(void) { do_register(0); }\n") < 0);
     dbg_err_if(io_printf(out, 
-        "void register_pages() { do_register(1); }\n") < 0);
+        "void register_pages(void) { do_register(1); }\n") < 0);
     dbg_err_if(io_printf(out, 
         "static void do_register(int action) {\n") < 0);
     dbg_err_if(io_printf(out,
-        "#define KLONE_REGISTER(a, md5)  \\\n"
-        "    do {                        \\\n"
-        "    void module_init_##md5();   \\\n"
-        "    void module_term_##md5();   \\\n"
-        "    if(a) module_init_##md5();  \\\n"
-        "    else module_term_##md5();   \\\n"
-        "    } while(0)                    \n") < 0);
+        "#define KLONE_REGISTER(a, md5)     \\\n"
+        "    do {                           \\\n"
+        "    void module_init_##md5(void);  \\\n"
+        "    void module_term_##md5(void);  \\\n"
+        "    if(a) module_init_##md5();     \\\n"
+        "    else module_term_##md5();      \\\n"
+        "    } while(0)                     \n") < 0);
 
     return 0;
 err:

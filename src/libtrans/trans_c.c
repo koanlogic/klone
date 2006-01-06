@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.23 2005/12/30 17:21:53 tat Exp $
+ * $Id: trans_c.c,v 1.24 2006/01/06 18:30:10 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -212,7 +212,7 @@ static void print_static_page_block(io_t *out, lang_c_ctx_t *ctx)
  
     io_printf(out, 
         "static embfile_t e;                \n"
-        "static void res_ctor()             \n"
+        "static void res_ctor(void)         \n"
         "{                                  \n"
         "   e.res.type = ET_FILE;           \n"
         "   e.res.filename = \"%s\";        \n"
@@ -241,7 +241,7 @@ static void print_dynamic_page_block(io_t *out, lang_c_ctx_t *ctx)
 
     io_printf(out, 
         "static embpage_t e;                \n"
-        "static void res_ctor()             \n"
+        "static void res_ctor(void)         \n"
         "{                                  \n"
         "   e.res.type = ET_PAGE;           \n"
         "   e.res.filename = \"%s\";        \n"
@@ -264,12 +264,12 @@ static void print_register_block(io_t *out, lang_c_ctx_t *ctx)
         "#ifdef __cplusplus                 \n"
         "extern \"C\" {                     \n"
         "#endif                             \n"
-        "void module_init_%s()              \n"
+        "void module_init_%s(void)          \n"
         "{                                  \n"
         "    res_ctor();                    \n"
         "    emb_register((embres_t*)&e);   \n"
         "}                                  \n"
-        "void module_term_%s()              \n"
+        "void module_term_%s(void)          \n"
         "{                                  \n"
         "    emb_unregister((embres_t*)&e); \n"
         "}                                  \n"

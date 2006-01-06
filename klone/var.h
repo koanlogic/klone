@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: var.h,v 1.6 2005/12/30 17:21:53 tat Exp $
+ * $Id: var.h,v 1.7 2006/01/06 18:30:10 tat Exp $
  */
 
 #ifndef _KLONE_VAR_H_
@@ -36,6 +36,9 @@ int var_set(var_t*, const char *name, const char *value);
 int var_set_name(var_t *v, const char *name);
 int var_set_value(var_t *v, const char *value);
 int var_set_bin_value(var_t *v, const char *data, size_t size);
+
+void var_set_opaque(var_t *v, void *blob);
+void* var_get_opaque(var_t *v);
 
 #ifdef __cplusplus
 }

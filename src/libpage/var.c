@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: var.c,v 1.13 2005/11/24 17:01:40 tho Exp $
+ * $Id: var.c,v 1.14 2006/01/06 18:30:10 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -59,6 +59,16 @@ err:
     return NULL;
 }
 
+void var_set_opaque(var_t *v, void *opaque)
+{
+    v->opaque = opaque;
+}
+
+void* var_get_opaque(var_t *v)
+{
+    return v->opaque;
+}
+
 int var_bin_create(const char *name, const char *data, size_t size, var_t **pv)
 {
     var_t *v = NULL;
@@ -88,7 +98,7 @@ int var_create(const char* name, const char *value, var_t**pv)
     dbg_return_if (name == NULL, ~0);
     dbg_return_if (value == NULL, ~0);
 
-    return var_bin_create(name, value, strlen(value) + 1, pv);
+    return var_bin_create(name, value, strlen(value), pv);
 }
 
 /*
@@ -102,8 +112,13 @@ int var_free(var_t *v)
     {
         if(v->sname)
             u_string_free(v->sname);
+
         if(v->svalue)
             u_string_free(v->svalue);
+
+        if(v->opaque)
+            U_FREE(v->opaque);
+
         U_FREE(v->data);
         U_FREE(v);
     }

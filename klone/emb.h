@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.h,v 1.11 2005/12/30 17:21:53 tat Exp $
+ * $Id: emb.h,v 1.12 2006/01/06 18:30:10 tat Exp $
  */
 
 #ifndef _KLONE_EMB_H_
@@ -65,12 +65,12 @@ typedef struct embpage_s
     void (*run)(request_t*, response_t*, session_t*);   /* page code        */
 } embpage_t;
 
-int emb_init();
-int emb_term();
+int emb_init(void);
+int emb_term(void);
 int emb_register(embres_t *r);
 int emb_unregister(embres_t *r);
 int emb_lookup(const char *filename, embres_t **pr);
-int emb_count();
+int emb_count(void);
 int emb_getn(size_t n, embres_t **pr);
 int emb_open(const char *file, io_t **pio);
 

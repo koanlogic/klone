@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.c,v 1.11 2005/11/23 19:31:09 tho Exp $
+ * $Id: emb.c,v 1.12 2006/01/06 18:30:10 tat Exp $
  */
 
 #include <klone/emb.h>
@@ -14,8 +14,8 @@
 #include <u/libu.h>
 
 /* these are klone-site autogen functions */
-int register_pages(void);
-int unregister_pages(void);
+void register_pages(void);
+void unregister_pages(void);
 
 static struct emblist_s list;   /* list of emb resources     */
 static size_t nres;             /* num of emb resources      */

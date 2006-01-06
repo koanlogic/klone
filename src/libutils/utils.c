@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.34 2005/12/30 17:21:53 tat Exp $
+ * $Id: utils.c,v 1.35 2006/01/06 18:30:10 tat Exp $
  */
 
 #include <stdlib.h>
@@ -76,6 +76,45 @@ err:
     return ~0;
 }
 #endif /* OS_UNIX */
+
+
+/**
+ * \brief   Locate a substring in another string
+ * 
+ * The function locates the first occurrence of \p sub in the string 
+ * buf of size buflen 
+ *
+ * \param   buf 
+ * \param   sub 
+ * \param   buflen 
+ *
+ * \return
+ * - \c 0   successful
+ * - \c ~0  error
+ */
+char *u_strnstr(const char *buf, const char *sub, size_t buflen)
+{
+    ssize_t len = strlen(sub);
+    ssize_t plen;
+    char *p;
+
+    if (*sub == 0)
+        return (char *)buf;
+
+    plen = buflen;
+    for (p = (char *)buf; p != NULL; p = memchr(p + 1, *sub, plen - 1))
+    {
+        plen = buflen - (p - buf);
+
+        if (plen < len)
+            return NULL;
+
+        if (strncmp(p, sub, len) == 0)
+            return (p);
+    }
+
+    return NULL;
+}
 
 /**
  * \brief   Apply the supplied callback to each file in a given directory

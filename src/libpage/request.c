@@ -5,13 +5,15 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.20 2006/01/04 15:38:55 tat Exp $
+ * $Id: request.c,v 1.21 2006/01/06 18:30:10 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <u/libu.h>
 #include <klone/request.h>
 #include <klone/utils.h>
@@ -48,6 +50,14 @@ struct request_s
     addr_t local_addr, peer_addr; /* local and perr address          */
     int cgi;                    /* if running in cgi mode            */
 };
+
+enum { MIME_TYPE_BUFSZ = 256 };
+typedef struct upload_info_s    /* uploaded file info struct         */
+{
+    char mime_type[MIME_TYPE_BUFSZ];
+    char filename[U_PATH_MAX];
+    size_t size;
+} upload_info_t;
 
 #define REQUEST_SET_STRING_FIELD(lval, rval)        \
     do {                                            \
@@ -514,6 +524,8 @@ int request_set_uri(request_t *rq, const char *uri,
 
     dbg_err_if (rq == NULL);
     dbg_err_if (uri == NULL);
+    /* is_valid_uri may be NULL */
+    /* arg may be NULL */
  
     request_clear_uri(rq);
 
@@ -609,6 +621,8 @@ static int request_set_content_length(request_t *rq)
 {
     const char *clen;
     size_t len;
+
+    dbg_err_if (rq == NULL);
 
     clen = header_get_field_value(rq->header, "Content-Length");
     dbg_err_if(clen == NULL || (len = atoi(clen)) <= 0);
@@ -719,6 +733,9 @@ static int match_content_type(header_t *h, const char *mime_type)
 {
     const char *ct;
 
+    dbg_return_if (h == NULL, 0);
+    dbg_return_if (mime_type == NULL, 0);
+
     ct = header_get_field_value(h, "Content-Type");
     if(ct == NULL || strncasecmp(ct, mime_type, strlen(mime_type)))
         return 0;
@@ -734,6 +751,8 @@ static int request_is_multipart_formdata(request_t *rq)
 static int request_parse_urlencoded_data(request_t *rq)
 {
     ssize_t qsz, len;
+
+    dbg_err_if (rq == NULL);
 
     len = rq->content_length; /* shortcut */
 
@@ -773,6 +792,12 @@ static int request_get_fieldparam(request_t *rq, const char *field_name,
 {
     const char *param_value, *field_value, *p;
     size_t pv_len;
+
+    dbg_err_if (rq == NULL);
+    dbg_err_if (field_name == NULL);
+    dbg_err_if (param_name == NULL);
+    dbg_err_if (buf == NULL);
+    dbg_err_if (size == 0);
 
     field_value = header_get_field_value(rq->header, field_name);
     dbg_err_if(field_value == NULL);
@@ -816,6 +841,8 @@ static int is_encoded(header_t *h)
 {
     const char *cte;
 
+    dbg_return_if (h == NULL, 0);
+
     if((cte = header_get_field_value(h, "Content-Transfer-Encoding")) == NULL)
         return 0; /* not encoded */
 
@@ -844,6 +871,11 @@ static int parse_content_disposition(header_t *h, char *name, char *filename,
     const char *cd;
     int q;
 
+    dbg_err_if (h == NULL);
+    dbg_err_if (name == NULL);
+    dbg_err_if (filename == NULL);
+    dbg_err_if (prmsz == 0);
+    
     cd = header_get_field_value(h, "Content-Disposition");
     dbg_err_if(cd == NULL);
 
@@ -879,7 +911,7 @@ static int parse_content_disposition(header_t *h, char *name, char *filename,
             strncpy(name, tok, prmsz);
         } else if(strncmp(tok, "filename=", fn_len) == 0) {
             /* skip the filename part */
-            tok += n_len;
+            tok += fn_len;
 
             /* remove single or double quotes */
             if((q = is_quote(tok[0])) != 0)
@@ -897,13 +929,138 @@ err:
     return ~0;
 }
 
+/* 
+ * Read from io until obuf is full or until stop_at string is found.
+ *
+ * Boyer-Moore algorithm is used for efficiency. 
+ *
+ * Returns the number of bytes written to obuf 
+ */
+static ssize_t read_until(io_t *io, const char *stop_at, char *obuf, 
+    size_t size, int *found)
+{
+    /* use this macro before accessing obuf[idx] elem. the macro will load from
+       the given io enough bytes to access the required byte. if the buffer
+       is too small (i.e. less then idx bytes long) the function will return */
+    #define SETUP_BUF_ACCESS_AT(idx)                                        \
+        if(idx >= wtot) {                                                   \
+            if(idx >= size)                                                 \
+                return wtot; /* the output buffer is full */                \
+                                                                            \
+            /* we need to fetch some more bytes to access obuf[i] */        \
+            dbg_err_if((rc = io_read(io, wbuf, idx + 1 - wtot)) < 0);       \
+            if(rc == 0 || rc < idx + 1 - wtot)                              \
+                return wtot + rc; /* eof or short count */                  \
+            wbuf += rc;                                                     \
+            wtot += rc;                                                     \
+        }
+
+    int sa_len = strlen(stop_at);
+    int i, t, shift[256], rc;
+    unsigned char c;
+    size_t wtot = 0;
+    char *wbuf = obuf;
+
+    dbg_err_if (io == NULL);
+    dbg_err_if (stop_at == NULL);
+    dbg_err_if (obuf == NULL);
+    /* size may be 0 */
+    dbg_err_if (found == NULL);
+
+    for(i = 0; i < 256; ++i)  
+        shift[i] = sa_len;
+
+    for(i = 0; i < sa_len; ++i)
+        shift[ stop_at[i] ] = sa_len - i - 1;
+
+    *found = 0;
+
+    for(i = t = sa_len-1; t >= 0; --i, --t)
+    {
+        SETUP_BUF_ACCESS_AT(i);
+
+        while((c = obuf[i]) != stop_at[t]) 
+        {
+            i += MAX(sa_len - t, shift[c]);
+
+            SETUP_BUF_ACCESS_AT(i);
+
+            t = sa_len - 1;
+        }
+    }
+
+    *found = 1;
+
+    /* found; obuf[i] is where the matching string is */
+    return wtot;
+err:
+    return -1;
+}
+
+/*
+ * name:         form "name" <input> tag attribute value
+ * filename:     name of the uploaded file provided by the client
+ * tmp_filename: name on the temp file when the uploaded data has been saved
+ *               on the local disk
+ * mime_type:    uploaded MIME type as stated by the browser (may be NULL)
+ */
+static int request_add_uploaded_file(request_t *rq, const char *name, 
+    const char *filename, const char *tmp_filename, const char *mime_type)
+{
+    struct stat st;
+    var_t *v = NULL;
+    upload_info_t *info = NULL;
+
+    dbg_err_if (rq == NULL);
+    dbg_err_if (name == NULL);
+    /* filename may be NULL */
+    dbg_err_if (tmp_filename == NULL);
+    /* mime_type may be NULL */
+
+    dbg_err_sif (stat(tmp_filename, &st) < 0);
+
+    /* create a new var obj */
+    dbg_err_if(var_create(name, tmp_filename, &v));
+
+    /* alloc an info struct to attach to the var_t obj */
+    dbg_err_if((info = u_zalloc(sizeof(upload_info_t))) == NULL);
+
+    /* set info data */
+    info->size = st.st_size;
+    if(mime_type)
+        snprintf(info->mime_type, MIME_TYPE_BUFSZ, "%s", mime_type);
+    else
+        info->mime_type[0] = 0;
+
+    if(filename)
+        snprintf(info->filename, U_PATH_MAX, "%s", filename);
+
+    /* attach info to v */
+    var_set_opaque(v, info);
+    info = NULL;
+
+    /* push into the cookie list */
+    dbg_err_if(vars_add(rq->args, v));
+
+    return 0;
+err:
+    if(info)
+        U_FREE(info);
+    if(v)
+        var_free(v);
+    return ~0;
+}
+
 static int request_parse_multipart_chunk(request_t *rq, io_t *io, 
     const char *boundary, int *eof)
 {
     enum { PRMSZ = 512, BUFSZ = 4096 };
     header_t *h = NULL;
+    io_t *tmpio = NULL;
     char name[PRMSZ], filename[PRMSZ], buf[BUFSZ];
     size_t bound_len;
+    int found;
+    ssize_t rc;
 
     /* create an header object to parse MIME part headers */
     dbg_err_if(header_create(&h));
@@ -920,10 +1077,48 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
 
     dbg_err_if(parse_content_disposition(h, name, filename, BUFSZ));
 
+    /* shortcut */
+    bound_len = strlen(boundary);
+
     if(filename[0] != '\0')
     {
-        /* FIXME save to tmp file */
-        warn_err("not impl");
+        dbg_err_if(BUFSZ <= bound_len);
+
+        /* open a temporary file to dump uploaded data */
+        dbg_err_if(u_tmpfile_open(&tmpio));
+
+        for(found = 0; !found; /* nothing */)
+        {
+            rc = read_until(io, boundary, buf, BUFSZ, &found);
+            dbg_err_if(rc <= 0); /* on error or eof exit */
+
+            /* consume all but the last bound_len + 2 (\r\n) bytes */
+            if(found)
+            {
+                rc -= (bound_len + 2);
+                dbg_err_if(rc < 0);
+            }
+
+            /* write to the temp file */
+            dbg_err_if(io_write(tmpio, buf, rc) < 0);
+        }
+
+        /* save the path/name of the tmp file to buf */
+        dbg_err_if(io_name_get(tmpio, buf, BUFSZ));
+
+        /* add this file to the uploaded file list */
+        dbg_err_if(request_add_uploaded_file(rq, name, filename, buf, 
+            header_get_field_value(h, "Content-Type")));
+
+        io_free(tmpio);
+        tmpio = NULL;
+
+        /* could be "\r\n" for not-ending boundaries or "--\r\n" */
+        dbg_err_if(io_gets(io, buf, BUFSZ) <= 0);
+
+        if(strncmp(buf, "--", 2) == 0)
+            *eof = 1; /* end of MIME stuff */
+
     } else {
         /* read param value from the io and add a new item in rq->args */
         dbg_err_if(u_snprintf(buf, BUFSZ, "%s=", name));
@@ -937,24 +1132,23 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
 
         /* add a new var to request arguments list */
         dbg_if(vars_add_urlvar(rq->args, buf, NULL));
+
+        /* read next boundary */
+        dbg_err_if(io_gets(io, buf, BUFSZ) <= 0);
+
+        /* err if next line is not a boundary */
+        dbg_err_if(strncmp(buf, boundary, bound_len));
+
+        if(strncmp(buf + bound_len, "--", 2) == 0)
+            *eof = 1; /* end of MIME stuff */
     }
-
-    /* read next boundary */
-    dbg_err_if(io_gets(io, buf, BUFSZ) <= 0);
-
-    /* shortcut */
-    bound_len = strlen(boundary);
-
-    /* err if next line is not a boundary */
-    dbg_err_if(strncmp(buf, boundary, bound_len));
-
-    if(strncmp(buf + bound_len, "--", 2) == 0)
-        *eof = 1; /* end of MIME stuff */
 
     header_free(h);
 
     return 0;
 err:
+    if(tmpio)
+        io_free(tmpio);
     if(h)
         header_free(h);
     return ~0;
@@ -1157,10 +1351,29 @@ err:
     return ~0;
 }
 
+static int request_unlink_uploads(var_t *v, void * arg)
+{
+    dbg_err_if (v == NULL);
+
+    u_unused_args(arg);
+
+    if(var_get_opaque(v) && var_get_value(v))
+    {   /* it's a file var, unlink v->value */
+        unlink(var_get_value(v));
+    }
+
+err:
+    return 0;
+}
+
 int request_free(request_t *rq)
 {
     if (rq)
     {
+        /* unlink uploaded files (if any) */
+        vars_foreach(rq->args, request_unlink_uploads, NULL);
+        
+        /* free internal stuff */
         request_clear_uri(rq);
 
         if(rq->header)
