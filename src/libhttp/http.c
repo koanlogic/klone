@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.30 2005/12/30 12:04:33 tat Exp $
+ * $Id: http.c,v 1.31 2006/01/07 09:54:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -312,20 +312,6 @@ err:
     return ~0;
 }
 
-static int http_cb_close_fd(alarm_t *al, void *arg)
-{
-    int fd = (int)arg;
-
-    u_unused_args(al);
-
-    warn("connection on fd [%d] timed out, closing", fd);
-
-    /* this will unblock pending I/O calls */
-    close(fd);
-
-    return 0;
-}
-
 static int http_serve(http_t *h, int fd)
 {
     request_t *rq = NULL;
@@ -407,16 +393,10 @@ static int http_serve(http_t *h, int fd)
 
     response_set_cgi(rs, cgi);
 
-    /* wait at most N seconds to receive the request */
-    dbg_err_if(timerm_add(h->idle_timeout, http_cb_close_fd, (void*)fd, &al));
-
     if(cgi)
         dbg_err_if(cgi_set_request(rq));
 
     dbg_err_if(request_parse(rq, http_is_valid_uri, h));
-
-    /* timeout not expired, clear it */
-    dbg_if(timerm_del(al));
 
     /* if we're running in server mode then resolv aliases and dir_root */
     http_resolv_request(h, rq);
@@ -480,15 +460,10 @@ static int http_set_config_opt(http_t *http)
     dbg_err_if (http == NULL);
     
     /* defaults */
-    http->idle_timeout = HTTP_DEFAULT_IDLE_TIMEOUT;
     http->server_sig = "klone/" KLONE_VERSION;
     http->dir_root = "";
     http->index = NULL;
     http->send_enc_deflate = 0; 
-
-    /* idle_timeout */
-    if((v = u_config_get_subkey_value(c, "idle_timeout")) != NULL)
-        http->idle_timeout = MAX(1, atoi(v));
 
     /* send_enc_deflate (disable if not configured) */
     dbg_err_if(u_config_get_subkey_value_b(c, "send_enc_deflate", 0, 
@@ -502,6 +477,7 @@ static int http_set_config_opt(http_t *http)
     if((v = u_config_get_subkey_value(c, "dir_root")) != NULL)
         http->dir_root = v;
 
+    /* index page */
     if((v = u_config_get_subkey_value(c, "index")) != NULL)
         http->index = v;
 

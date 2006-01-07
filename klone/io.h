@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.h,v 1.11 2005/12/30 17:21:53 tat Exp $
+ * $Id: io.h,v 1.12 2006/01/07 09:54:56 tat Exp $
  */
 
 #ifndef _KLONE_IO_H_ 
@@ -39,23 +39,14 @@ enum io_mem_flags {
 
 int io_fd_create(int fd, int flags, io_t **pio);
 int io_mem_create(char *buf, size_t size, int flags, io_t **pio);
-
 #ifdef HAVE_LIBOPENSSL
 int io_ssl_create(int fd, int flags, SSL_CTX *ssl_tx, io_t **pio);
 #endif
-
-int io_dup(io_t *io, io_t **pio);
-
+int io_close(io_t *io);
 int io_free(io_t *io);
-
+int io_dup(io_t *io, io_t **pio);
 int io_name_set(io_t *io, const char* name);
 int io_name_get(io_t *io, char* name, size_t sz);
-
-int io_codec_add_head(io_t *io, codec_t* codec);
-int io_codec_add_tail(io_t *io, codec_t* codec);
-
-int io_codecs_remove(io_t *io);
-
 ssize_t io_read(io_t *io, char* buf, size_t size);
 ssize_t io_write(io_t *io, const char* buf, size_t size);
 ssize_t io_flush(io_t *io);
@@ -63,12 +54,13 @@ ssize_t io_seek(io_t *io, size_t off);
 ssize_t io_tell(io_t *io);
 ssize_t io_copy(io_t *out, io_t *in, size_t size);
 ssize_t io_pipe(io_t *out, io_t *in);
-
 ssize_t io_gets(io_t *io, char *buf, size_t size);
 ssize_t io_getc(io_t *io, char *c);
-
 ssize_t io_printf(io_t *io, const char* fmt, ...);
 ssize_t io_putc(io_t *io, char c);
+int io_codec_add_head(io_t *io, codec_t* codec);
+int io_codec_add_tail(io_t *io, codec_t* codec);
+int io_codecs_remove(io_t *io);
 
 #ifdef __cplusplus
 }

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http_s.h,v 1.3 2005/11/23 17:27:01 tho Exp $
+ * $Id: http_s.h,v 1.4 2006/01/07 09:54:56 tat Exp $
  */
 
 #ifndef _KLONE_HTTP_S_H_
@@ -21,8 +21,6 @@
 #include <openssl/err.h>
 #endif 
 
-enum { HTTP_DEFAULT_IDLE_TIMEOUT = 10 };
-
 struct http_s 
 {
     u_config_t *config;     /* server config                                 */
@@ -35,7 +33,6 @@ struct http_s
     const char *server_sig; /* server signature                              */
     const char *dir_root;   /* base html directory                           */
     const char *index;      /* user-provided index page                      */
-    int idle_timeout;       /* max # of secs the server wait for the request */
     int send_enc_deflate;   /* >0 if sending deflated content is not disabled*/
     /* session options struct                        */
     session_opt_t *sess_opt;

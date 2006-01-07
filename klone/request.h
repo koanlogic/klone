@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.h,v 1.8 2005/12/30 17:21:53 tat Exp $
+ * $Id: request.h,v 1.9 2006/01/07 09:54:56 tat Exp $
  */
 
 #ifndef _KLONE_REQUEST_H_
@@ -48,9 +48,7 @@ const char *request_get_resolved_path_info(request_t *rq);
 int request_get_method(request_t *rq);
 ssize_t request_get_content_length(request_t *rq);
 time_t request_get_if_modified_since(request_t *rq);
-
 int request_is_encoding_accepted(request_t *rq, const char *encoding);
-
 int request_set_field(request_t *rq, const char *name, const char *value);
 int request_set_uri(request_t *rq, const char *uri,
         int (*is_valid_uri)(void*, const char *, size_t),
@@ -61,23 +59,18 @@ int request_set_path_info(request_t *rq, const char *path_info);
 int request_set_query_string(request_t *rq, const char *query);
 int request_set_resolved_filename(request_t *rq, const char *resolved);
 int request_set_resolved_path_info(request_t *rq, const char *resolved);
-
 int request_set_addr(request_t *rq, addr_t *addr);
 int request_set_peer_addr(request_t *rq, addr_t *addr);
-
 void request_set_cgi(request_t *rq, int cgi);
-
 void request_clear_uri(request_t *rq);
+int request_print(request_t *rq);
 
-/* args */
 vars_t *request_get_args(request_t *rq);
 const char *request_get_arg(request_t *rq, const char *name);
 
-/* cookies */
 vars_t *request_get_cookies(request_t *rq);
 const char *request_get_cookie(request_t *rq, const char *name);
 
-int request_print(request_t *rq);
 
 #ifdef __cplusplus
 }

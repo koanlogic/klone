@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.21 2006/01/06 18:30:10 tat Exp $
+ * $Id: request.c,v 1.22 2006/01/07 09:54:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -18,37 +18,37 @@
 #include <klone/request.h>
 #include <klone/utils.h>
 #include <klone/io.h>
+#include <klone/ioprv.h>
 #include <klone/http.h>
 #include <klone/addr.h>
 #include <klone/vars.h>
+#include <klone/timer.h>
 
 struct request_s
 {
-    http_t *http;               /* http server handle                */
-    header_t *header;           /* input header                      */
-    io_t *io;                   /* input io stream                   */
-
-    int method;                 /* get,post,etc.                     */
-    char *uri;                  /* verbatim uri asked by the client  */
-    char *protocol;             /* proto/ver                         */
-    char *path_info;            /* extra info at the end of the path */
-    char *query;                /* query string (data after '?')     */
-    char *filename;             /* path of the req resource          */
-    char *host;                 /* Host: field                       */
-
-    char *resolved_path_info;   /* resolved path_info                */
-    char *resolved_filename;    /* unaliased filename                */
-
-    vars_t *args;               /* get/post args                     */
-    vars_t *cookies;            /* cookies                           */
-
-    char *content_type;         /* type/subtype                      */
-    char *content_encoding;     /* 7bit/8bit/base64/qp, etc          */
-	size_t content_length;      /* content-length http header field  */
-    time_t if_modified_since;   /* time_t IMS header                 */
-
-    addr_t local_addr, peer_addr; /* local and perr address          */
-    int cgi;                    /* if running in cgi mode            */
+    http_t *http;               /* http server handle                       */
+    header_t *header;           /* input header                             */
+    io_t *io;                   /* input io stream                          */
+    int method;                 /* get,post,etc.                            */
+    char *uri;                  /* verbatim uri asked by the client         */
+    char *protocol;             /* proto/ver                                */
+    char *path_info;            /* extra info at the end of the path        */
+    char *query;                /* query string (data after '?')            */
+    char *filename;             /* path of the req resource                 */
+    char *host;                 /* Host: field                              */
+    char *resolved_path_info;   /* resolved path_info                       */
+    char *resolved_filename;    /* unaliased filename                       */
+    vars_t *args;               /* get/post args                            */
+    vars_t *cookies;            /* cookies                                  */
+    char *content_type;         /* type/subtype                             */
+    char *content_encoding;     /* 7bit/8bit/base64/qp, etc                 */
+	size_t content_length;      /* content-length http header field         */
+    time_t if_modified_since;   /* time_t IMS header                        */
+    addr_t local_addr, peer_addr; /* local and perr address                 */
+    int cgi;                    /* if running in cgi mode                   */
+    size_t idle_timeout;        /* max # of secs to wait for the request    */
+    size_t post_timeout;        /* max # of secs for reading POSTed data    */
+    size_t post_maxsize;        /* max # of POSTed bytes to accepts         */
 };
 
 enum { MIME_TYPE_BUFSZ = 256 };
@@ -58,6 +58,13 @@ typedef struct upload_info_s    /* uploaded file info struct         */
     char filename[U_PATH_MAX];
     size_t size;
 } upload_info_t;
+
+enum { 
+    REQUEST_DEFAULT_IDLE_TIMEOUT = 10,         /* 10 secs */
+    REQUEST_DEFAULT_POST_TIMEOUT = 600,        /* 10 mins */
+    REQUEST_DEFAULT_POST_MAXSIZE = 5*1024000,  /* 5 MB    */
+};
+
 
 #define REQUEST_SET_STRING_FIELD(lval, rval)        \
     do {                                            \
@@ -1092,7 +1099,7 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
             rc = read_until(io, boundary, buf, BUFSZ, &found);
             dbg_err_if(rc <= 0); /* on error or eof exit */
 
-            /* consume all but the last bound_len + 2 (\r\n) bytes */
+            /* write all but the last bound_len + 2 (\r\n) bytes */
             if(found)
             {
                 rc -= (bound_len + 2);
@@ -1185,6 +1192,22 @@ err:
     return ~0;
 }
 
+static int request_cb_close_socket(alarm_t *al, void *arg)
+{
+    io_t *io = (io_t*)arg;
+
+    u_unused_args(al);
+
+    warn("[%x] connection timed out, closing", io);
+
+    /* hack: this will call io_fd_term that will close the fd unblocking
+       pending I/O calls */
+    io->term(io);
+
+    return 0;
+}
+
+
 
 /*
  * \brief   Parse a request object
@@ -1204,9 +1227,14 @@ int request_parse(request_t *rq,
     enum { BUFSZ = 1024 };
     const char WP[] = " \t\r\n";
     char ln[BUFSZ], *pp, *method, *uri, *proto;
+    alarm_t *al = NULL;
     
     dbg_err_if (rq == NULL);
     dbg_err_if (rq->io == NULL); /* must call rq_bind before rq_parse */
+
+    /* wait at most N seconds to receive the request */
+    dbg_err_if(timerm_add(rq->idle_timeout, request_cb_close_socket, 
+        (void*)rq->io, &al));
 
     if(!rq->cgi)
     {
@@ -1233,11 +1261,20 @@ int request_parse(request_t *rq,
     /* parse "Cookie:" fields and set the cookies vars_t */
     dbg_err_if(request_parse_cookies(rq));
 
+    /* idle timeout not expired, clear it */
+    dbg_if(timerm_del(al)); al = NULL;
+
     if(rq->method == HM_POST)
     {
+        /* set a timeout to abort POST if it takes too much... */
+        dbg_err_if(timerm_add(rq->post_timeout, request_cb_close_socket, 
+            (void*)rq->io, &al));
+
         dbg_err_if(request_set_content_length(rq));
 
-        dbg_err_if(rq->content_length > 1024000); /* FIXME: no more the 1MB */
+        /* abort if the client is pushing too much data */
+        warn_err_ifm(rq->content_length > rq->post_maxsize,
+            "POSTed data exceed configured post_maxsize value");
 
         if(request_is_multipart_formdata(rq))
         { 
@@ -1250,6 +1287,9 @@ int request_parse(request_t *rq,
             /* <form [enctype="application/x-www-form-urlencoded"] ...> */
             dbg_err_if(request_parse_urlencoded_data(rq));
         }
+
+        /* post timeout not expired, clear it */
+        dbg_if(timerm_del(al)); al = NULL;
     } else {
         /* parse urlencoded variables and set var_t* array */
         dbg_err_if(request_parse_args(rq));
@@ -1325,6 +1365,39 @@ int request_print(request_t *rq)
     return 0;
 }
 
+static int request_load_config(request_t *rq)
+{
+    u_config_t *c;
+    const char *v;
+
+    dbg_err_if (rq == NULL);
+    dbg_err_if (rq->http == NULL);
+    dbg_err_if (http_get_config(rq->http) == NULL);
+
+    c = http_get_config(rq->http);
+    
+    /* defaults */
+    rq->idle_timeout = REQUEST_DEFAULT_IDLE_TIMEOUT;
+    rq->post_timeout = REQUEST_DEFAULT_POST_TIMEOUT;
+    rq->post_maxsize = REQUEST_DEFAULT_POST_MAXSIZE;
+
+    /* idle timeout */
+    if((v = u_config_get_subkey_value(c, "idle_timeout")) != NULL)
+        rq->idle_timeout = MAX(1, atoi(v));
+
+    /* post timeout */
+    if((v = u_config_get_subkey_value(c, "post_timeout")) != NULL)
+        rq->post_timeout = MAX(5, atoi(v));
+
+    /* post maxsize */
+    if((v = u_config_get_subkey_value(c, "post_maxsize")) != NULL)
+        rq->post_maxsize = MAX(1024, atoi(v));
+
+    return 0;
+err:
+    return ~0;
+}
+
 int request_create(http_t *http, request_t **prq)
 {
     request_t *rq = NULL;
@@ -1341,6 +1414,8 @@ int request_create(http_t *http, request_t **prq)
     dbg_err_if(vars_create(&rq->cookies));
 
     rq->http = http;
+
+    dbg_err_if(request_load_config(rq));
 
     *prq = rq;
 
