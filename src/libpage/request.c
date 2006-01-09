@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.24 2006/01/09 12:38:38 tat Exp $
+ * $Id: request.c,v 1.25 2006/01/09 17:41:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -40,6 +40,7 @@ struct request_s
     char *resolved_filename;    /* unaliased filename                       */
     vars_t *args;               /* get/post args                            */
     vars_t *cookies;            /* cookies                                  */
+    vars_t *uploads;            /* uploaded file list                       */
     char *content_type;         /* type/subtype                             */
     char *content_encoding;     /* 7bit/8bit/base64/qp, etc                 */
 	size_t content_length;      /* content-length http header field         */
@@ -51,11 +52,10 @@ struct request_s
     size_t post_maxsize;        /* max # of POSTed bytes to accepts         */
 };
 
-enum { MIME_TYPE_BUFSZ = 256 };
 typedef struct upload_info_s    /* uploaded file info struct         */
 {
     char mime_type[MIME_TYPE_BUFSZ];
-    char filename[U_PATH_MAX];
+    char filename[U_FILENAME_MAX];
     size_t size;
 } upload_info_t;
 
@@ -1004,6 +1004,29 @@ err:
     return -1;
 }
 
+
+/**
+* \brief   Get uploaded files
+*
+* Return the list of uploaded files. 
+*
+* Any var_t in the list will contain, 
+* within its name/value pair, the name of the HTML form input tag "name" 
+* argument and the filename (with full path) of the temporary file where
+* uploaded content has been stored.
+*
+* This function is only useful to enumerate uploads, 
+* \sa request_get_uploaded_file is what you'll probably use.
+*
+* \param rq  request object
+*
+* \return the arguments' list of the given \p rq
+*/
+vars_t *request_get_uploads(request_t *rq)
+{
+    return rq->uploads;
+}
+
 /*
  * name:         form "name" <input> tag attribute value
  * filename:     name of the uploaded file provided by the client
@@ -1040,14 +1063,14 @@ static int request_add_uploaded_file(request_t *rq, const char *name,
         info->mime_type[0] = 0;
 
     if(filename)
-        snprintf(info->filename, U_PATH_MAX, "%s", filename);
+        snprintf(info->filename, U_FILENAME_MAX, "%s", filename);
 
     /* attach info to v */
     var_set_opaque(v, info);
     info = NULL;
 
     /* push into the cookie list */
-    dbg_err_if(vars_add(rq->args, v));
+    dbg_err_if(vars_add(rq->uploads, v));
 
     return 0;
 err:
@@ -1055,6 +1078,85 @@ err:
         U_FREE(info);
     if(v)
         var_free(v);
+    return ~0;
+}
+
+      
+/* internal */
+int request_get_uploaded_filev(request_t *rq, var_t *v,
+    char local_filename[U_FILENAME_MAX], char client_filename[U_FILENAME_MAX],
+    char mime_type[MIME_TYPE_BUFSZ], size_t *file_size)
+{           
+    upload_info_t *info;
+    const char *tmp_fqn;
+
+    dbg_err_if (rq == NULL);
+    dbg_err_if (v == NULL);
+    dbg_err_if (local_filename == NULL);
+    dbg_err_if (client_filename == NULL);
+    dbg_err_if (mime_type == NULL);
+    dbg_err_if (file_size == NULL);
+
+    info = var_get_opaque(v);
+    dbg_err_if(info == NULL);
+
+    tmp_fqn = var_get_value(v);
+    dbg_err_if(tmp_fqn == NULL);
+
+    /* copy out return values */
+    strncpy(local_filename, tmp_fqn, U_FILENAME_MAX);
+    strncpy(mime_type, info->mime_type, MIME_TYPE_BUFSZ);
+    strncpy(client_filename, info->filename, U_FILENAME_MAX);
+    *file_size = info->size;
+
+    return 0;
+err:
+    return ~0;
+}
+
+/** 
+ * \brief   Get info and handles of an uploaded file
+ *  
+ * Return information and handles about an uploaded file 
+ *
+ * \param rq    request object
+ * \param name  form input tag variable name (&lt;input type=file name="xxx"&gt;)
+ * \param idx   if more then one file with the same name param exists idx will 
+ *              be used as an index (use 0 otherwise)
+ * \param local_filename    on successfull exit will get the filename (with 
+ *                          full path) of the temporary file where uploaded 
+ *                          file content has been saved. 
+ *                          Must be at least U_FILENAME_MAX bytes long
+ * \param client_filename   filename as provided by the client
+ *                          Must be at least U_FILENAME_MAX bytes long
+ * \param mime_type         MIME type as stated y the client (may be "")
+ *                          Must be at least MIME_TYPE_BUFSZ bytes long
+ * \param file_size         file size of the uploaded file
+ *  
+ * \return the query string bound to \p rq (may be \c NULL)
+ */
+int request_get_uploaded_file(request_t *rq, const char *name, size_t idx,
+    char local_filename[U_FILENAME_MAX], char client_filename[U_FILENAME_MAX],
+    char mime_type[MIME_TYPE_BUFSZ], size_t *file_size)
+{
+    var_t *v;
+    upload_info_t *info;
+    const char *tmp_fqn;
+
+    dbg_err_if (rq == NULL);
+    dbg_err_if (name == NULL);
+    dbg_err_if (idx >= vars_count(rq->uploads));
+    dbg_err_if (local_filename == NULL);
+    dbg_err_if (client_filename == NULL);
+    dbg_err_if (mime_type == NULL);
+    dbg_err_if (file_size == NULL);
+
+    v = vars_geti(rq->uploads, name, idx);
+    dbg_err_if(v == NULL);
+
+    return request_get_uploaded_filev(rq, v, local_filename, client_filename,
+        mime_type, file_size);
+err:
     return ~0;
 }
 
@@ -1113,12 +1215,12 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
         /* save the path/name of the tmp file to buf */
         dbg_err_if(io_name_get(tmpio, buf, BUFSZ));
 
+        /* flush and free */
+        io_free(tmpio); tmpio = NULL;
+
         /* add this file to the uploaded file list */
         dbg_err_if(request_add_uploaded_file(rq, name, filename, buf, 
             header_get_field_value(h, "Content-Type")));
-
-        io_free(tmpio);
-        tmpio = NULL;
 
         /* could be "\r\n" for not-ending boundaries or "--\r\n" */
         dbg_err_if(io_gets(io, buf, BUFSZ) <= 0);
@@ -1412,6 +1514,7 @@ int request_create(http_t *http, request_t **prq)
 
     dbg_err_if(vars_create(&rq->args));
     dbg_err_if(vars_create(&rq->cookies));
+    dbg_err_if(vars_create(&rq->uploads));
 
     rq->http = http;
 
@@ -1445,9 +1548,6 @@ int request_free(request_t *rq)
 {
     if (rq)
     {
-        /* unlink uploaded files (if any) */
-        vars_foreach(rq->args, request_unlink_uploads, NULL);
-        
         /* free internal stuff */
         request_clear_uri(rq);
 
@@ -1457,6 +1557,13 @@ int request_free(request_t *rq)
         if(rq->io)
             io_free(rq->io);
 
+        if(rq->uploads)
+        {
+            /* unlink uploaded files (if any) */
+            vars_foreach(rq->uploads, request_unlink_uploads, NULL);
+            vars_free(rq->uploads);
+        }
+        
         if(rq->cookies)
             vars_free(rq->cookies);
 

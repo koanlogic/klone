@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.h,v 1.10 2006/01/09 12:38:37 tat Exp $
+ * $Id: request.h,v 1.11 2006/01/09 17:41:56 tat Exp $
  */
 
 #ifndef _KLONE_REQUEST_H_
@@ -64,6 +64,17 @@ int request_set_peer_addr(request_t *rq, addr_t *addr);
 void request_set_cgi(request_t *rq, int cgi);
 void request_clear_uri(request_t *rq);
 int request_print(request_t *rq);
+
+enum { MIME_TYPE_BUFSZ = 256 };
+
+vars_t *request_get_uploads(request_t *rq);
+int request_get_uploaded_file(request_t *rq, const char *name, size_t idx, 
+    char local_filename[U_PATH_MAX], char client_filename[U_PATH_MAX], 
+    char mime_type[MIME_TYPE_BUFSZ], size_t *file_size);
+int request_get_uploaded_filev(request_t *rq, var_t *v,
+    char local_filename[U_PATH_MAX], char client_filename[U_PATH_MAX], 
+    char mime_type[MIME_TYPE_BUFSZ], size_t *file_size);
+
 
 vars_t *request_get_args(request_t *rq);
 const char *request_get_arg(request_t *rq, const char *name);
