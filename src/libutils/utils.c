@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2005 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.35 2006/01/06 18:30:10 tat Exp $
+ * $Id: utils.c,v 1.36 2006/01/09 12:38:38 tat Exp $
  */
 
 #include <stdlib.h>
@@ -426,8 +426,8 @@ static int u_hex2ch(char c)
 void u_print_version_and_exit(void)
 {
     static const char *vv = 
-    "KLone %s - Copyright (c) 2005 KoanLogic s.r.l. - All rights reserved. \n"
-    "\n";
+    "KLone %s - Copyright (c) 2005, 2006 KoanLogic s.r.l. - "
+    "All rights reserved. \n\n";
 
     fprintf(stderr, vv, klone_version());
 

@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2005 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.h,v 1.8 2006/01/07 09:54:56 tat Exp $
+ * $Id: session.h,v 1.9 2006/01/09 12:38:38 tat Exp $
  */
 
 #ifndef _KLONE_SESSION_H_

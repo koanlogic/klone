@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2005 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_client.c,v 1.27 2005/11/25 15:55:59 tat Exp $
+ * $Id: ses_client.c,v 1.28 2006/01/09 12:38:38 tat Exp $
  */
 
 #include "klone_conf.h"
