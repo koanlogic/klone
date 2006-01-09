@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_mem.c,v 1.25 2005/11/25 15:55:59 tat Exp $
+ * $Id: ses_mem.c,v 1.26 2006/01/09 11:57:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -360,6 +360,7 @@ static int session_mem_load(session_t *ss)
     unsigned char cmd;
 
     dbg_err_if (ss == NULL);
+    nop_err_if (ss->filename == NULL || strlen(ss->filename) == 0);
 
     /* in fork and iterative model we can get the session from the current
        address space, in prefork we must ask the parent for a fresh copy of 

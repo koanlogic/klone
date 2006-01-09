@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc_fork_child.c,v 1.7 2005/12/30 12:04:33 tat Exp $
+ * $Id: ppc_fork_child.c,v 1.8 2006/01/09 11:57:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -36,11 +36,13 @@ int server_ppc_cmd_fork_child(server_t *s, backend_t *be)
     nop_err_if (s->ppc == NULL);
     nop_err_if (be == NULL);
 
+    memset(&pfc, 0, sizeof(ppc_fork_child_t));
+
     pfc.bid = be->id;
 
     /* send the command request */
     nop_err_if(ppc_write(s->ppc, ctx->pipc, PPC_CMD_FORK_CHILD, (char*)&pfc, 
-        sizeof(pfc)) < 0);
+        sizeof(ppc_fork_child_t)) < 0);
 
     return 0;
 err:

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: timer.c,v 1.12 2005/11/23 23:38:38 tho Exp $
+ * $Id: timer.c,v 1.13 2006/01/09 11:57:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -264,13 +264,27 @@ err:
     return ~0;
 }
 
+static int timerm_alarm_pending(alarm_t *a)
+{
+    alarm_t *t;
+
+    TAILQ_FOREACH(t, &timer->alist,np)
+    {
+        if(t == a)
+            return 1;   /* found */
+    }
+    return 0;
+}
+
 int timerm_del(alarm_t *a)
 {
     dbg_return_if(a == NULL, ~0);
 
     dbg_err_if(timerm_block_alarms());
 
-    TAILQ_REMOVE(&timer->alist, a, np);
+    /* if not expired remove it from the list */
+    if(timerm_alarm_pending(a))
+        TAILQ_REMOVE(&timer->alist, a, np);
 
     /* set the timer for the earliest alarm */
     timerm_set_next();

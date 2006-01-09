@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_file.c,v 1.17 2005/11/25 11:54:25 tat Exp $
+ * $Id: ses_file.c,v 1.18 2006/01/09 11:57:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -54,6 +54,7 @@ static int session_file_load(session_t *ss)
     io_t *io = NULL;
 
     dbg_err_if (ss == NULL);
+    dbg_err_if (ss->filename == NULL || strlen(ss->filename) == 0);
 
     // FIXME may be busy, must retry
     dbg_err_if(u_file_open(ss->filename, O_RDONLY | O_CREAT, &io));

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc.c,v 1.10 2005/11/24 23:42:19 tho Exp $
+ * $Id: ppc.c,v 1.11 2006/01/09 11:57:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -79,6 +79,7 @@ ssize_t ppc_write(ppc_t *ppc, int fd, unsigned char cmd, char *data,
     dbg_return_if (data == NULL, -1);
     dbg_return_if (fd < 0, -1);
 
+    memset(&h, 0, sizeof(ppc_header_t));
     h.cmd = cmd;
     h.size = size;
 

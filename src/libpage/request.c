@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.22 2006/01/07 09:54:56 tat Exp $
+ * $Id: request.c,v 1.23 2006/01/09 11:57:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -889,7 +889,7 @@ static int parse_content_disposition(header_t *h, char *name, char *filename,
     dbg_err_if(strlen(cd) >= BUFSZ);
 
     /* must start with form-data */
-    dbg_err_if(strncmp(cd, "form-data", strlen("form_data")));
+    dbg_err_if(strncmp(cd, "form-data", strlen("form-data")));
 
     name[0] = filename[0] = 0;
 
@@ -1082,7 +1082,7 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
     warn_err_ifm(is_encoded(h), 
         "encoded file upload is not supported");
 
-    dbg_err_if(parse_content_disposition(h, name, filename, BUFSZ));
+    dbg_err_if(parse_content_disposition(h, name, filename, PRMSZ));
 
     /* shortcut */
     bound_len = strlen(boundary);
@@ -1239,7 +1239,7 @@ int request_parse(request_t *rq,
     if(!rq->cgi)
     {
         /* cp the first line */
-        dbg_err_if(io_gets(rq->io, ln, BUFSZ) == 0);
+        dbg_err_if(io_gets(rq->io, ln, BUFSZ) <= 0);
 
         method = strtok_r(ln, WP, &pp); 
         dbg_err_if(!method || request_set_method(rq, method));
