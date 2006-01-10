@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc_nop.c,v 1.5 2006/01/09 12:38:38 tat Exp $
+ * $Id: ppc_nop.c,v 1.6 2006/01/10 16:16:59 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -33,6 +33,8 @@ int server_ppc_cmd_nop(server_t *s)
 
     nop_err_if(s == NULL);
     nop_err_if(s->ppc == NULL);
+
+    memset(&nop, 0, sizeof(ppc_nop_t));
 
     /* send the command request */
     nop_err_if(ppc_write(s->ppc, ctx->pipc, PPC_CMD_NOP, (char*)&nop, 

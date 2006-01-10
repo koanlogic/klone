@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc_log_get.c,v 1.2 2006/01/09 12:38:38 tat Exp $
+ * $Id: ppc_log_get.c,v 1.3 2006/01/10 16:16:59 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -38,6 +38,8 @@ int server_ppc_cmd_log_get(server_t *s, size_t i, char *line)
     nop_err_if (s->ppc == NULL);
     nop_err_if (ctx->backend == NULL);
     nop_err_if (line == NULL);
+
+    memset(&plg, 0, sizeof(ppc_log_get_t));
 
     plg.bid = ctx->backend->id;
     plg.i = i;

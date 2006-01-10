@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc_log_add.c,v 1.11 2006/01/09 12:38:38 tat Exp $
+ * $Id: ppc_log_add.c,v 1.12 2006/01/10 16:16:59 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -56,6 +56,8 @@ int server_ppc_cmd_log_add(server_t *s, int level, const char *str)
     nop_err_if (s == NULL);
     nop_err_if (s->ppc == NULL);
     nop_err_if (str == NULL);
+
+    memset(&la, 0, sizeof(ppc_log_add_t));
 
     la.bid = ctx->backend->id;
     la.level = level;
