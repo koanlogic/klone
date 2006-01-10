@@ -12,5 +12,8 @@ ifneq ($(strip ${DEFGRP}),)
 PARTY_ARGS += --defgrp=${DEFGRP}
 endif
 PARTY_NO_INSTALL = true
+ifdef LIBU_DEBUG
+PARTY_ARGS += --enable_debug
+endif
 
 include party.mk
