@@ -1,12 +1,13 @@
 <html>
-<head></head>
+<head><title>KLone start page</title></head>
+<link rel="stylesheet" href="kl.css" type="text/css">
 <body>
 
 <blockquote>
 
 <blockquote><table width="750" cellpadding="5"><tr><td bgcolor="white">
 <center>
-<h3>Welcome to KLone!</h3>
+<h3>Welcome to KLone (Ver. <%= KLONE_VERSION %>)!</h3>
 </center>
 </td></tr></table></blockquote>
 <p>
