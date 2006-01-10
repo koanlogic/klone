@@ -1,32 +1,36 @@
 QUICKSTART
+----------
 
-Setup compilation environment:
+NOTE: KLone needs GNU make in order to be built, which is not the default 'make'
+      on most *BSD systems (usually you will find it as 'gmake' or 'gnumake').
 
-    $ cd makl && make hints
+1) Setup compilation environment:
+
+    $ cd makl && ${GNUMAKE} hints
 
     [ set MAKEFLAGS and MAKL_DIR as suggested ]
 
-    $ make toolchain
+    $ ${GNUMAKE} toolchain
     $ cd ..
 
-Configure, make and install KLone:
+2) Configure and build KLone:
 
-    $ ./configure && make depend && make
-    $ sudo make install
+    $ ./configure && ${GNUMAKE}
 
-Import the example web-application
+3) Import the example web-application
 
-    $ cd site && klone -c import ../doc/example-site
-    $ cd .. && make
-    $ sudo make install
+    $ cd site && ../src/tools/klone/klone -c import ../doc/example-site
+    $ cd .. && ${GNUMAKE}
+    $ su
+    # ${GNUMAKE} install
 
-Launch the KLone executable:
+4) Launch the KLone executable:
 
     $ kloned
 
-Start your web browser:
+5) Start your web browser:
 
     [ start your web browser and go to http://localhost:4567/ ]
 
-For further info and documentation:
-    http://www.koanlogic.com/
+
+For further info and documentation, see http://www.koanlogic.com
