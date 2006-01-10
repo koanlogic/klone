@@ -1,5 +1,5 @@
-.\" $Id: kloned.conf.5,v 1.2 2005/11/25 13:27:24 tho Exp $
-.TH "KLONED.CONF" "5" "11/25/2005" "KoanLogic Srl" "KoanLogic Srl"
+.\" $Id: kloned.conf.5,v 1.3 2006/01/10 12:27:43 tho Exp $
+.TH "KLONED.CONF" "5" "01/10/2006" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
 .\" disable justification (adjust text to left margin only)
@@ -80,6 +80,14 @@ call on this instance's socket.
 .TP
 \fBidle_timeout\fR
 Set the maximum number of seconds the server waits for an HTTP request on an already connected socket. The default value is 10 seconds.
+.TP
+\fBpost_timeout\fR
+Set the maximum number of seconds the server waits for an HTTP POST request on an already connected socket. The default value is 10 minutes.
+.TP
+\fBpost_maxsize\fR
+Set the maximum number of bytes the server is willing to accept for a given HTTP POST request. If Content\-Length of a POST request is greater than
+\fBpost_maxsize\fR
+the connection is immediately terminated. The default value is 5 MB.
 .SS "SERVER"
 .PP
 Per server\-type configuration parameters.
@@ -137,6 +145,7 @@ in the requested URI. For example, when the following is set:
 .sp
 .nf
 dir_alias /img /var/httpd/img
+            
 .fi
 .sp
 a request to
@@ -310,7 +319,7 @@ or
 Set a fixed string which will be prepended to each log message.
 .TP
 \fBthreshold\fR
-Specify the a threshold severity level for messages that you want to be displayed: log messages with a level lower than this will be discarded. If not specified, the lowest value is set
+Specify the threshold severity level for messages that you want to be displayed: log messages with a level lower than this will be discarded. If not specified, the lowest value is set 
 (i.e. \fBKLOG_DEBUG\fR).
 .TP
 \fBmemory.limit\fR
