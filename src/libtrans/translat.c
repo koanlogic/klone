@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.20 2006/01/09 12:38:38 tat Exp $
+ * $Id: translat.c,v 1.21 2006/01/10 11:42:13 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -72,7 +72,8 @@ static int process_directive_include(parser_t *p, char *inc_file)
     strcat(buf, inc_file);
 
     /* copy include file to p->out */
-    dbg_err_if(u_file_open(buf, O_RDONLY, &io));
+    warn_err_ifm(u_file_open(buf, O_RDONLY, &io), 
+        "unable to open include file %s", buf);
 
     dbg_err_if(io_printf(p->out, "<%% #line 1 \"%s\" \n %%>", buf));
 
