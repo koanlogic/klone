@@ -15,13 +15,16 @@ Configure, make and install KLone:
     $ sudo make install
 
 Import the example web-application
+
     $ cd site && klone -c import ../doc/example-site
     $ cd .. && make
 
 Launch the KLone executable:
+
     $ ./src/kloned/kloned
 
 Start your web browser:
+
     [ start your web browser and go to http://localhost:4567/ ]
 
 For further info and documentation:
