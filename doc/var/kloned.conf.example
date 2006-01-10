@@ -1,0 +1,16 @@
+server_list     my_http
+
+# use syslogd for logging
+log
+{
+    type syslog
+    syslog.facility         LOG_LOCAL0
+}
+
+my_http
+{
+    type            http
+    addr.type       IPv4
+    addr.port       4567
+    dir_root        /www            # store your pages in /www into embfs
+}

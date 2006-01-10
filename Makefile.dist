@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.9 2005/12/13 15:57:47 tho Exp $
+# $Id: Makefile.dist,v 1.10 2006/01/10 15:58:57 tat Exp $
 
 PKG_NAME = klone
 PKG_VERSION = $(shell cat VERSION)
@@ -44,6 +44,9 @@ DISTREMAP += pkg/Makefile.doxy.doc doc/html/Makefile
 
 # man pages
 DISTFILES += $(wildcard doc/man/*.[158]) doc/man/Makefile
+
+# doc/var stuff
+DISTFILES += $(filter-out CVS/ CVS,$(wildcard doc/var/*))
 
 # hook for LibU compilation
 DISTFILES += build/libu/Makefile

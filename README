@@ -1,0 +1,22 @@
+QUICKSTART
+
+Setup compilation environment:
+
+    $ cd makl && make hints
+
+    [set MAKEFLAGS and MAKL_DIR as suggested]
+
+    $ make toolchain
+    $ cd ..
+
+Configure, make and install KLone:
+
+    $ ./configure && make depend && make
+    $ sudo make install
+
+Import your web-application
+    $ cd site && klone -c import <your-webapp-content-dir>
+    $ cd .. && make
+
+For further info and documentation:
+    http://www.koanlogic.com/
