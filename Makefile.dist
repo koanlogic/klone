@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.10 2006/01/10 15:58:57 tat Exp $
+# $Id: Makefile.dist,v 1.11 2006/01/10 21:38:57 tho Exp $
 
 PKG_NAME = klone
 PKG_VERSION = $(shell cat VERSION)
@@ -47,6 +47,10 @@ DISTFILES += $(wildcard doc/man/*.[158]) doc/man/Makefile
 
 # doc/var stuff
 DISTFILES += $(filter-out CVS/ CVS,$(wildcard doc/var/*))
+
+# doc/example-site stuff
+DISTFILES += $(filter-out CVS/ CVS,$(wildcard doc/example-site/etc/*))
+DISTFILES += $(filter-out CVS/ CVS,$(wildcard doc/example-site/www/*))
 
 # hook for LibU compilation
 DISTFILES += build/libu/Makefile
