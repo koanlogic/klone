@@ -1,10 +1,12 @@
-# $Id: Makefile,v 1.3 2005/12/30 17:21:53 tat Exp $
+# $Id: Makefile,v 1.4 2006/01/10 12:34:37 stewy Exp $
 
 # default CFLAGS
 include ../Makefile.conf
+include ../webapp/Makefile-webapp
 
 LIB = site
 SRCS = register.c
+CFLAGS += ${WEBAPP_CFLAGS}
 CLEANFILES += *.c *.cc *.a *.o autogen.*
 
 KLONE = ../src/tools/klone/klone
