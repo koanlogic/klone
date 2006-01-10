@@ -1,8 +1,16 @@
-# $Id: README.dist,v 1.3 2006/01/10 14:52:53 tat Exp $
+# $Id: README.dist,v 1.4 2006/01/10 18:33:49 tat Exp $
 
 Follow the steps below to get a shippable KLone distribution file.
 
-(a) select klone, libu and makl versions and do cvs tagging
+(a) select klone, libu and makl CVS HEAD versions and do cvs tagging
+
+    [ update klone, libu and makl VERSION files]
+    [ check-in everything of the local/personal CVS repository ]
+    $ mkdir /tmp/KL/
+    $ cvs co KL
+    $ cd KL/libu && cvs tag -F KLONE_REL_X_Y_Z
+    $ cd KL/makl && cvs tag -F KLONE_REL_X_Y_Z
+    $ cd KL/klone && cvs tag -F KLONE_REL_X_Y_Z
 
 (b) create a build directory, say /tmp/klone-<VERSION_X_Y_Z>/ and move there:
 
@@ -15,22 +23,30 @@ Follow the steps below to get a shippable KLone distribution file.
 
 (d) go to klone root directory and create the needed symlinks to makl and libu:
 
-    $ cd /tmp/klone-<VERSION>/klone
+    $ cd /tmp/klone-<VERSION>/KL/klone
     $ ln -s ../libu
     $ ln -s ../makl
 
-(e) create a minimal Makefile.conf and klone_conf.h via configure:
+(e) setup MaKL subsystem
 
-    $ ./configure -v
+    $ cd makl && make hints
 
-(f) create the tbz package, the dist file appears in the working directory and
+    [ set MAKEFLAGS and MAKL_DIR as suggested ]
+
+    $ make toolchain
+    $ cd ..
+    
+(f) create a minimal Makefile.conf and klone_conf.h and compile KLone:
+
+    $ ./configure -v && make
+
+(g) create the tbz package, the dist file appears in the working directory and
     is named klone-<VERSION_X_Y_Z>.tbz:
 
     $ make -f Makefile.dist dist
 
-(g) that's all.
+(h) that's all.
 
 
 TODO 
     - document proprietary LICENSEs step
-    - document cvs tagging (i.e. step (a))
