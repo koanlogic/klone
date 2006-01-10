@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.25 2006/01/09 12:38:38 tat Exp $
+ * $Id: trans_c.c,v 1.26 2006/01/10 21:51:41 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -69,7 +69,7 @@ static void free_code_blocks(lang_c_ctx_t *ctx)
     code_block_t *node;
     code_block_list_t *head;
 
-    dbg_return_if (ctx == NULL, );
+    dbg_ifb (ctx == NULL) return;
 
     head = &ctx->code_blocks;
     
@@ -113,8 +113,8 @@ static void print_header(parser_t *p, lang_c_ctx_t *ctx)
 {
     const char *file;
 
-    dbg_return_if (p == NULL, );
-    dbg_return_if (ctx == NULL, );
+    dbg_ifb (p == NULL) return;
+    dbg_ifb (ctx == NULL) return;
 
     (void)ctx;
 
@@ -183,8 +183,8 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
     code_block_t *node;
     code_block_list_t *head;
 
-    dbg_return_if (p == NULL, );
-    dbg_return_if (ctx == NULL, );
+    dbg_ifb (p == NULL) return;
+    dbg_ifb (ctx == NULL) return;
 
     io_printf(p->out, 
     "\n\n"
@@ -206,9 +206,9 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
 
 static void print_static_page_block(io_t *out, lang_c_ctx_t *ctx)
 {
-    dbg_return_if (out == NULL, );
-    dbg_return_if (ctx == NULL, );
-    dbg_return_if (ctx->ti == NULL, );
+    dbg_ifb (out == NULL) return;
+    dbg_ifb (ctx == NULL) return;
+    dbg_ifb (ctx->ti == NULL) return;
  
     io_printf(out, 
         "static embfile_t e;                \n"
@@ -235,9 +235,9 @@ static void print_static_page_block(io_t *out, lang_c_ctx_t *ctx)
 
 static void print_dynamic_page_block(io_t *out, lang_c_ctx_t *ctx)
 {
-    dbg_return_if (out == NULL, );
-    dbg_return_if (ctx == NULL, );
-    dbg_return_if (ctx->ti == NULL, );
+    dbg_ifb (out == NULL) return;
+    dbg_ifb (ctx == NULL) return;
+    dbg_ifb (ctx->ti == NULL) return;
 
     io_printf(out, 
         "static embpage_t e;                \n"
@@ -254,9 +254,9 @@ static void print_register_block(io_t *out, lang_c_ctx_t *ctx)
 {
     char md5[MD5_DIGEST_BUFSZ];
 
-    dbg_return_if (out == NULL, );
-    dbg_return_if (ctx == NULL, );
-    dbg_return_if (ctx->ti == NULL, );
+    dbg_ifb (out == NULL) return;
+    dbg_ifb (ctx == NULL) return;
+    dbg_ifb (ctx->ti == NULL) return;
 
     u_md5(ctx->ti->uri, strlen(ctx->ti->uri), md5);
 

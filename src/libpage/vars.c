@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.21 2006/01/09 12:38:38 tat Exp $
+ * $Id: vars.c,v 1.22 2006/01/10 21:51:41 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -487,8 +487,8 @@ void vars_foreach(vars_t *vs, int (*cb)(var_t *, void *), void *arg)
 {
     var_t *v;
 
-    dbg_return_if (vs == NULL, );
-    dbg_return_if (cb == NULL, );
+    dbg_ifb (vs == NULL) return;
+    dbg_ifb (cb == NULL) return;
 
     TAILQ_FOREACH(v, &vs->list, np)
     {

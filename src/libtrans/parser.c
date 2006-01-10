@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: parser.c,v 1.9 2006/01/09 12:38:38 tat Exp $
+ * $Id: parser.c,v 1.10 2006/01/10 21:51:41 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -206,25 +206,25 @@ err:
 
 void parser_set_cb_code(parser_t *p, parser_cb_code_t cb)
 {
-    dbg_return_if (p == NULL, );
+    dbg_ifb (p == NULL) return;
     p->cb_code = cb;
 }
 
 void parser_set_cb_html(parser_t *p, parser_cb_html_t cb)
 {
-    dbg_return_if (p == NULL, );
+    dbg_ifb (p == NULL) return;
     p->cb_html = cb;
 }
 
 void parser_set_cb_arg(parser_t *p, void *opaque)
 {
-    dbg_return_if (p == NULL, );
+    dbg_ifb (p == NULL) return;
     p->cb_arg = opaque;
 }
 
 void parser_set_io(parser_t *p, io_t *in, io_t *out)
 {
-    dbg_return_if (p == NULL, );
+    dbg_ifb (p == NULL) return;
     p->in = in;
     p->out = out;
 }

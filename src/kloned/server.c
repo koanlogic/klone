@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.40 2006/01/09 12:38:38 tat Exp $
+ * $Id: server.c,v 1.41 2006/01/10 21:51:41 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -159,7 +159,7 @@ err:
 
 static void server_term_children(server_t *s)
 {
-    dbg_return_if (s == NULL, );
+    dbg_ifb(s == NULL) return;
 #ifdef OS_UNIX
     server_signal_childs(s, SIGTERM);
 #endif
@@ -168,7 +168,7 @@ static void server_term_children(server_t *s)
 
 static void server_kill_children(server_t *s)
 {
-    dbg_return_if (s == NULL, );
+    dbg_ifb(s == NULL) return;
 #ifdef OS_UNIX
     server_signal_childs(s, SIGKILL);
 #endif
@@ -206,7 +206,7 @@ static void server_waitpid(server_t *s)
     pid_t pid = -1;
     int status;
 
-    dbg_return_if (s == NULL, );
+    dbg_ifb(s == NULL) return;
     
     u_sig_block(SIGCHLD);
 
@@ -234,7 +234,7 @@ static void server_recalc_hfd(server_t *s)
     register int i;
     fd_set *prdfds, *pwrfds, *pexfds;
 
-    dbg_return_if (s == NULL, );
+    dbg_ifb(s == NULL) return;
     
     prdfds = &s->rdfds;
     pwrfds = &s->wrfds;
@@ -253,7 +253,7 @@ static void server_recalc_hfd(server_t *s)
 
 static void server_clear_fd(server_t *s, int fd, unsigned int mode)
 {
-    dbg_return_if (s == NULL, );
+    dbg_ifb(s == NULL) return;
 
     if(mode & WATCH_FD_READ)
         FD_CLR(fd, &s->rdfds);
@@ -269,8 +269,8 @@ static void server_clear_fd(server_t *s, int fd, unsigned int mode)
 
 static void server_watch_fd(server_t *s, int fd, unsigned int mode)
 {
-    dbg_return_if (s == NULL, );
-    dbg_return_if (fd < 0, );
+    dbg_ifb(s == NULL) return;
+    dbg_ifb(fd < 0) return;
 
     if(mode & WATCH_FD_READ)
         FD_SET(fd, &s->rdfds);
@@ -286,8 +286,8 @@ static void server_watch_fd(server_t *s, int fd, unsigned int mode)
 
 static void server_close_fd(server_t *s, int fd)
 {
-    dbg_return_if (s == NULL, );
-    dbg_return_if (fd < 0, );
+    dbg_ifb(s == NULL) return;
+    dbg_ifb(fd < 0) return;
 
     server_clear_fd(s, fd, WATCH_FD_READ | WATCH_FD_WRITE | WATCH_FD_EXCP);
     close(fd);

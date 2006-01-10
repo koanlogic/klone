@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.36 2006/01/09 12:38:38 tat Exp $
+ * $Id: utils.c,v 1.37 2006/01/10 21:51:41 tat Exp $
  */
 
 #include <stdlib.h>
@@ -899,8 +899,8 @@ void u_tohex(char *hex, const char *src, size_t sz)
 {
     size_t c, i, t;
 
-    dbg_return_if (hex == NULL, );
-    dbg_return_if (src == NULL, );
+    dbg_ifb (hex == NULL) return;
+    dbg_ifb (src == NULL) return;
     
     for(i = 0, t = 0; i < sz; ++i, t += 2)
     {

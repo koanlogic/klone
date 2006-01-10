@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: klog.c,v 1.25 2006/01/09 12:38:38 tat Exp $
+ * $Id: klog.c,v 1.26 2006/01/10 21:51:41 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -183,8 +183,10 @@ end:
  */
 void klog_close (klog_t *kl)
 {
-    nop_return_if (kl == NULL, );
-    nop_return_if (!IS_KLOG_TYPE(kl->type), );
+    if (kl == NULL) 
+        return;
+    if (!IS_KLOG_TYPE(kl->type)) 
+        return;
 
     /* call private close function */
     if (kl->cb_close)
@@ -318,8 +320,8 @@ int klog_flush (klog_t *kl)
 /* just for testing */
 void klog_args_print (FILE *fp, klog_args_t *ka)
 {
-    dbg_return_if (ka == NULL, );
-    dbg_return_if (fp == NULL, );
+    dbg_ifb (ka == NULL) return;
+    dbg_ifb (fp == NULL) return;
 
     fprintf(fp, "ka->type: \t %d\n", ka->type);
     fprintf(fp, "ka->ident: \t %s\n", ka->ident);

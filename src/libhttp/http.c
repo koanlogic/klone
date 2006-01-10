@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.32 2006/01/09 12:38:38 tat Exp $
+ * $Id: http.c,v 1.33 2006/01/10 21:51:41 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -162,8 +162,8 @@ static void http_resolv_request(http_t *h, request_t *rq)
     const char *cstr;
     char resolved[U_FILENAME_MAX];
 
-    dbg_return_if (h == NULL, );
-    dbg_return_if (rq == NULL, );
+    dbg_ifb(h == NULL) return;
+    dbg_ifb(rq == NULL) return;
     
     /* unalias rq->filename */
     cstr = request_get_filename(rq);

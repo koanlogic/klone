@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: file.c,v 1.18 2006/01/09 12:38:38 tat Exp $
+ * $Id: file.c,v 1.19 2006/01/10 21:51:41 tat Exp $
  */
 
 #include <sys/param.h>
@@ -179,9 +179,9 @@ static void klog_close_file (klog_t *kl)
 {
     klog_file_t *klf;
     
-    dbg_return_if (kl == NULL, );
-    dbg_return_if (kl->type != KLOG_TYPE_FILE, );
-    dbg_return_if (kl->u.f == NULL, );
+    dbg_ifb (kl == NULL) return;
+    dbg_ifb (kl->type != KLOG_TYPE_FILE) return;
+    dbg_ifb (kl->u.f == NULL) return;
 
     klf = kl->u.f;
     

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: mem.c,v 1.11 2006/01/09 12:38:38 tat Exp $
+ * $Id: mem.c,v 1.12 2006/01/10 21:51:41 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -175,7 +175,7 @@ static void klog_mem_msgs_free (klog_mem_t *klm)
 {
     klog_mem_msg_t *mmsg;
 
-    dbg_return_if (klm == NULL, );
+    dbg_ifb (klm == NULL) return;
     
     while((mmsg = TAILQ_FIRST(&klm->msgs)) != NULL)
     {
@@ -238,7 +238,7 @@ static int klog_mem_msg_push (klog_mem_t *klm, klog_mem_msg_t *mmsg)
 
 static void klog_mem_msg_free (klog_mem_msg_t *mmsg)
 {
-    dbg_return_if (mmsg == NULL, );
+    dbg_ifb (mmsg == NULL) return;
 
     U_FREE(mmsg->line);
     U_FREE(mmsg);
