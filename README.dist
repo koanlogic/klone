@@ -1,6 +1,6 @@
-# $Id: README.dist,v 1.2 2005/11/28 15:03:31 tho Exp $
+# $Id: README.dist,v 1.3 2006/01/10 14:52:53 tat Exp $
 
-Follow thb steps below to get a shippable KLone distribution file.
+Follow the steps below to get a shippable KLone distribution file.
 
 (a) select klone, libu and makl versions and do cvs tagging
 
