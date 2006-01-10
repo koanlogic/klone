@@ -18,10 +18,11 @@ Import the example web-application
 
     $ cd site && klone -c import ../doc/example-site
     $ cd .. && make
+    $ sudo make install
 
 Launch the KLone executable:
 
-    $ ./src/kloned/kloned
+    $ kloned
 
 Start your web browser:
 
