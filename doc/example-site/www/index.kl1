@@ -1,3 +1,7 @@
+<%!
+    #include <time.h>
+    time_t now;
+%>
 <html>
 <head><title>KLone start page</title></head>
 <link rel="stylesheet" href="kl.css" type="text/css">
@@ -14,7 +18,7 @@
 
 <blockquote><table width="750" cellpadding="5"><tr><td bgcolor="#e0e0ff">
 <% 
-    time_t now = time(0);
+    now = time(0);
     io_printf(out, "Time: %s", ctime(&now));
 %>
 </td></tr></table></blockquote>

@@ -1,7 +1,8 @@
+#include "klone_conf.h"
 #include <stdio.h>
 #include <time.h>
 #include <fcntl.h>
-#include <getopt.h>
+#include <unistd.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdarg.h>

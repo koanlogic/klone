@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.43 2006/01/10 15:41:55 tho Exp $
+# $Id: configure,v 1.44 2006/01/11 14:19:21 tat Exp $
 
 export makl_conf_h=klone_conf.h
 
@@ -83,7 +83,9 @@ makl_add_var_mk "CXXFLAGS" "\${CFLAGS}"
 makl_add_var_mk "INCDIR" "\${DESTDIR}/include/klone"
 
 # check for stdint header
-makl_checkheader        1   "stdint"    "<stdint.h>"
+makl_checkheader        0   "stdint"    "<stdint.h>"
+makl_checkheader        0   "getopt"    "<getopt.h>"
+makl_checkheader        0   "unistd"    "<unistd.h>"
 
 # Library dependencies
 makl_optional           1   "lib"   "openssl"   ""  "-lssl -lcrypto"

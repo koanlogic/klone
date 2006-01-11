@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: klog.c,v 1.26 2006/01/10 21:51:41 tat Exp $
+ * $Id: klog.c,v 1.27 2006/01/11 14:19:21 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -271,8 +271,8 @@ ssize_t klog_countln (klog_t *kl)
  */
 int klog_open_from_config(u_config_t *ls, klog_t **pkl)
 {
-    klog_t *kl = NULL;;
-    klog_args_t *kargs = NULL;;
+    klog_t *kl = NULL;
+    klog_args_t *kargs = NULL;
 
     /* parse config parameters */
     dbg_err_if(klog_args(ls, &kargs));

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: null.c,v 1.13 2006/01/09 12:38:38 tat Exp $
+ * $Id: null.c,v 1.14 2006/01/11 14:19:21 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -73,9 +73,9 @@ static int null_free(codec_t *cn)
  */ 
 int codec_null_create(codec_t **pcn)
 {
-    dbg_return_if (pcn == NULL, ~0);
-
     codec_null_t *cn = NULL;
+
+    dbg_return_if (pcn == NULL, ~0);
 
     cn = u_zalloc(sizeof(codec_null_t));
     dbg_err_if(cn == NULL);
