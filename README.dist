@@ -1,4 +1,4 @@
-# $Id: README.dist,v 1.4 2006/01/10 18:33:49 tat Exp $
+# $Id: README.dist,v 1.5 2006/01/11 09:23:57 tho Exp $
 
 Follow the steps below to get a shippable KLone distribution file.
 
@@ -6,24 +6,21 @@ Follow the steps below to get a shippable KLone distribution file.
 
     [ update klone, libu and makl VERSION files]
     [ check-in everything of the local/personal CVS repository ]
-    $ mkdir /tmp/KL/
-    $ cvs co KL
-    $ cd KL/libu && cvs tag -F KLONE_REL_X_Y_Z
-    $ cd KL/makl && cvs tag -F KLONE_REL_X_Y_Z
-    $ cd KL/klone && cvs tag -F KLONE_REL_X_Y_Z
+    $ mkdir /tmp/kl-tag/ && cd /tmp/kl-tag/
+    $ cvs co KL/makl KL/libu KL/klone
+    $ cvs tag -F KLONE_REL_X_Y_Z
 
-(b) create a build directory, say /tmp/klone-<VERSION_X_Y_Z>/ and move there:
+(b) create a build directory, say /tmp/klone-<X_Y_Z>/ and move there:
 
-    $ mkdir /tmp/klone-<VERSION>/
-    $ cd /tmp/klone-<VERSION>/
+    $ mkdir /tmp/klone-<X_Y_Z>/ && cd /tmp/klone-<X_Y_Z>/
 
 (c) checkout klone, libu and makl with the chosen version (see step (a))
 
-    $ cvs co -rKLONE_VERSION_X_Y_Z KL/klone KL/libu KL/makl
+    $ cvs co -rKLONE_REL_X_Y_Z KL/klone KL/libu KL/makl
 
 (d) go to klone root directory and create the needed symlinks to makl and libu:
 
-    $ cd /tmp/klone-<VERSION>/KL/klone
+    $ cd /tmp/klone-<X_Y_Z>/KL/klone
     $ ln -s ../libu
     $ ln -s ../makl
 
@@ -41,9 +38,17 @@ Follow the steps below to get a shippable KLone distribution file.
     $ ./configure -v && make
 
 (g) create the tbz package, the dist file appears in the working directory and
-    is named klone-<VERSION_X_Y_Z>.tbz:
+    is named klone-<X.Y.Z>.tar.bz:
 
     $ make -f Makefile.dist dist
+
+    if you want to use another compression algorithm (say gzip) do the 
+    following:
+
+    $ env ZIP=gzip make -f Makefile.dist dist
+
+    and you will end up with klone-<X.Y.Z>.tar.gz
+
 
 (h) that's all.
 
