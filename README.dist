@@ -1,4 +1,4 @@
-# $Id: README.dist,v 1.5 2006/01/11 09:23:57 tho Exp $
+# $Id: README.dist,v 1.6 2006/01/11 09:34:42 tho Exp $
 
 Follow the steps below to get a shippable KLone distribution file.
 
@@ -49,8 +49,7 @@ Follow the steps below to get a shippable KLone distribution file.
 
     and you will end up with klone-<X.Y.Z>.tar.gz
 
-
-(h) that's all.
+that's all.
 
 
 TODO 
