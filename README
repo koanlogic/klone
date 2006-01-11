@@ -20,6 +20,9 @@ NOTE: KLone needs GNU make in order to be built, which is not the default 'make'
 
 3) Import the example web-application
 
+    [ on Windows edit doc/example-site/etc/kloned.conf and remove syslog 
+      logging paragraph ]
+
     $ ${GNUMAKE} depend
     $ cd site && ../src/tools/klone/klone -c import ../doc/example-site
     $ cd .. && ${GNUMAKE}

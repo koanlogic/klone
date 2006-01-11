@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.25 2006/01/09 17:41:56 tat Exp $
+ * $Id: request.c,v 1.26 2006/01/11 01:14:03 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -810,7 +810,7 @@ static int request_get_fieldparam(request_t *rq, const char *field_name,
     dbg_err_if(field_value == NULL);
 
     /* look for param name=value pair */
-    param_value = strcasestr(field_value, param_name);
+    param_value = u_stristr(field_value, param_name);
     dbg_err_if(param_value == NULL);
 
     /* skip param name */
