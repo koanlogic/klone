@@ -31,6 +31,9 @@ NOTE: KLone needs GNU make in order to be built, which is not the default 'make'
 
 4) Launch the KLone executable:
 
+    [ on Windows register the service with "kloned -i" and start it using
+      the Services console ]
+
     $ kloned
 
 5) Start your web browser:
