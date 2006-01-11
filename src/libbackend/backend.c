@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: backend.c,v 1.21 2006/01/11 01:14:03 tat Exp $
+ * $Id: backend.c,v 1.22 2006/01/11 10:01:36 tat Exp $
  */
 
 #include <unistd.h>
@@ -75,7 +75,7 @@ int backend_create(const char *proto, u_config_t *config, backend_t **pbe)
     #ifdef OS_WIN
     be->model = SERVER_MODEL_ITERATIVE;  /* default */
     #else
-    be->model = SERVER_MODEL_FORK;  /* default */
+    be->model = SERVER_MODEL_PREFORK;  /* default */
     #endif
 
     if((v = u_config_get_subkey_value(config, "model")) != NULL)
