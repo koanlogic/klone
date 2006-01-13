@@ -1,110 +1,86 @@
 TODO
 ------------------
-
-FIRST RELEASE:
-    - codice
-        - * klog integration
-        - * klog dump log program/function
-        - * io_codec_add_tail, io_codec_add_head
-        - * io_t codec chains support
-        - * remove klone/src/libos (moved to libu)
-        - * onthestack buffers for debug/logging procedures
-        - * session.{encrypt|compress}
-        - * klog_flush on timeout
-        - * option to disable deflate'd transfers
-        - * configurable max child number
-        - * fork,prefork: max requests per process
-        - * fork.max_child
-        - * blind chroot
-        - * bind sessions to client IP address
-        - * no-cache header field on error pages
-
-        - linked (#goto) bullets in features.html
-        - s/CGI scripts/scripts/ (features.html)
-
-        - copyright 2005-2006
-        - binding C++
-        - optional openssl in configure
-        - cgi env to header
-
-        - file upload con callback (upload_on_chunk(...))
-
-        - pagine kl1 nella dist:
-            log.kl1
-            set-key.kl1
-            simple index.kl1 w/ KLONE_VERSION, form vars
-
-        - multiple-cookies cli-side sessions
-        - gcov
-        - kloned.conf con tutte le opzioni commentate
-
-        - OPT request_parse on POST e request_parse_args
+    - doc
+        - file upload
+        - usare le func piu' semplici nel tutorial
         - splittare klone-docs.html
         - doxy libu in web doc klone
+        - 'scripts' structure and syntax (or writing dynamic pages)
+            + directive (@)
+            + declaration (!)
+            + code
 
-        - auto configure (makl/libu/klone)
+            + predef variables:
+                request, response, session, out
+        - Setting up pages encryption
+            + encrypt embedded content
+            + key setup
+        - installation
+            + unix
+            + win
+        - Distributable Apps
+
+    - altro
+        - logo prodotto?
+        - grafica per "build with klone"
+    
+    - test
+        - profiling
+        - code coverage (gcov)
+
+    - codice
+        - io_html_printf: html-encode before calling io_printf 
+        + <%=fmt arg %> con printf-style format
+        - session locking
+        - MatrixSSL support
+        - file upload con callback (upload_on_chunk(...))
+        - multiple-cookies cli-side sessions
+        - io_html_printf: html-encode before calling io_printf 
+        - session_bin_set
+        - scripts ulimit to limit memory/cpu?
+        - io_getc opt?
+        - optimize request_parse on POST e request_parse_args
+        - fine-grained compiling: modularizzare le funzionalita' 
+          per poterle escludere in fase di compilazione (#ifdef)
+        - tweak prefork spawn-new-child-timeout ?
+        - security audit/todo
+            - chroot("..."); chdir("/");
+            - store sessions in a secure dir
+            - disable core dumps?
+            - check if output files are symlinks
+            - last years apache security issues...
+        - more request_ and response_ helper funcs (see jsp docs)
+        - http/1.0: Basic Auth rfc1945:11  ??
+        - HTTP/1.1 support (RFC2616)
+        - funzione u_sendmail() o simili (drop-in nella spool o SMTP)
+        - virtual host support (rfc2616.txt)
+        - scheduled pages retrival
+          per eseguire degli script *.kl1 ogni N minuti/ore
+        - predictable memory usage (dimensioni max dei buffer temporanei ecc.)
+
+FIRST RELEASE:
+    - doc
+        - file upload
+
+    - sito
+        + check install procedure
+
+        - test cgi
+
+        - OPT request_parse on POST e request_parse_args
 
         - man kloned.conf: per-server max_child
 
         - child keep-alive ppc cmd to avoid infinite wait in blocking
           calls (for ex. into write())?
 
-        - test cgi
-
         - move security options into per-server params
 
         - chroot and syslog [openlog(); chroot(); syslog()...;?]
-        - fix prefork + log.klone
 
-        - tweak prefork spawn-new-child-timeout 
-
-        - io_html_printf: html-encode before calling io_printf 
-
-        - session_bin_set
-
-        - set_key.klone example page
-        - default documentation embedded site
-
-        - file upload?
-        - keepalive requests?
-
-        - security audit/todo
-            - chroot("..."); chdir("/");
-            - store sessions in a secure dir
-            - disable core dumps?
-            - check if output files are symlinks
-            - last years apache security issues
-
-        - scripts ulimit to limit memory/cpu?
-        - line by line code inspection
-
-        - klone && kloned usage() proofreading
-        - klone and kloned man update
-
-        - io_getc opt
-
-        - configure
-            + add -O2 to CFLAGS if not debugging
-            + remove libcrypto to dep
-
-        - user msg on translate error (include file not found, etc.)
-        - user msg on config error (server_list missing, etc.)
-
-        - testing & profiling
-        - GPL header in autogen files
-        - test CGI interface
-        - Windows test
-        - *bsd test
-        - openssl come lib opzionale
-        - "configure && make" automatico da klone/configure
 
         - sito embedded di default (nel tar.gz) con documentazione 
-        - more request_ and response_ helper funcs (see jsp docs)
-        - fine-grained compiling: modularizzare le funzionalita' 
-          per poterle escludere in fase di compilazione (#ifdef)
-        - io_printf: aggiungere %e o %q per stampare stringhe dopo averle 
-            html-encoded
-        - security audit
+
 
     - documentazione:
         - kloned-sample.conf
@@ -134,20 +110,45 @@ FIRST RELEASE:
         - documentare il codice (doxygen)
             + API (src/libpage/* e src/libio/*) per i clienti
 
-    - mailing list e/o forum
-    - logo prodotto?
 
+docs:
+    - manuale
+        + installation
+            unix
+            win
+        + running                       [stewy]
+            normal              
+            cgi-mode
 
-NEXT RELEASE(S):
-    - file upload support (RFC1867) 
-    - http/1.0: Basic Auth rfc1945:11  ??
-    - HTTP/1.1 support (RFC2616)
-    - funzione u_sendmail() o simili (drop-in nella spool o SMTP)
-    - virtual host support (rfc2616.txt)
-    - C++ support
-    - scheduled pages retrival
-      per eseguire degli script *.kl1 ogni N minuti/ore
-    - predictable memory usage (dimensioni max dei buffer temporanei ecc.)
+        + handling forms                    [stewy]
+            + string/int/bool variables
+            + arrays
 
-  win32:
-    - use CGI interface as a workaround to missing fork() 
+        + 'scripts' structure and syntax (or writing dynamic pages)
+            directive (@)
+            declaration (!)
+            code
+
+            predef variables:
+                request, response, session, out
+
+        + encryption in klone-features.html [stewy]
+
+        + Setting up pages encryption
+            encrypt embedded content
+            key setup
+
+        + why write web pages in C
+
+    - altro
+        + kloned.conf con tutte le opzioni commentate          [tho]
+        + splittare klone-docs.html                            [stewy]
+        + doxy libu in web doc klone                           [stewy]
+        + set_key.klone example page
+        + default documentation embedded site                  [stewy]
+        + klone && kloned usage() proofreading (gia' fatto?)   [tho]
+        + text msg proofreading                                [stewy]
+        + feature: intellectual property protection            [stewy]
+        + use cases                                            [tho]
+        + proofreading inglese                                 [stewy]
+
