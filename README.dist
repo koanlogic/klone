@@ -1,4 +1,4 @@
-# $Id: README.dist,v 1.6 2006/01/11 09:34:42 tho Exp $
+# $Id: README.dist,v 1.7 2006/01/15 20:56:09 tho Exp $
 
 Follow the steps below to get a shippable KLone distribution file.
 
@@ -20,7 +20,7 @@ Follow the steps below to get a shippable KLone distribution file.
 
 (d) go to klone root directory and create the needed symlinks to makl and libu:
 
-    $ cd /tmp/klone-<X_Y_Z>/KL/klone
+    $ cd KL/klone
     $ ln -s ../libu
     $ ln -s ../makl
 
