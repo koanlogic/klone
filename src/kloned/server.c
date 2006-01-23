@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.42 2006/01/23 15:58:30 tat Exp $
+ * $Id: server.c,v 1.43 2006/01/23 20:00:14 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -138,7 +138,7 @@ err:
 }
 
 /* send 'sig' signal to all children process */
-static int server_signal_childs(server_t *s, int sig)
+static int server_signal_children(server_t *s, int sig)
 {
     child_t *child;
     ssize_t i;
@@ -162,7 +162,7 @@ static void server_term_children(server_t *s)
 {
     dbg_ifb(s == NULL) return;
 #ifdef OS_UNIX
-    server_signal_childs(s, SIGTERM);
+    server_signal_children(s, SIGTERM);
 #endif
     return;
 }
@@ -171,7 +171,7 @@ static void server_kill_children(server_t *s)
 {
     dbg_ifb(s == NULL) return;
 #ifdef OS_UNIX
-    server_signal_childs(s, SIGKILL);
+    server_signal_children(s, SIGKILL);
 #endif
     return;
 }
@@ -199,7 +199,7 @@ static void server_sigchld(int sig)
 
     u_unused_args(sig);
 
-    s->reap_childs = 1;
+    s->reap_children = 1;
 }
 
 static void server_waitpid(server_t *s)
@@ -224,7 +224,7 @@ static void server_waitpid(server_t *s)
         server_reap_child(s, pid);
     }
 
-    s->reap_childs = 0;
+    s->reap_children = 0;
 
     u_sig_unblock(SIGCHLD);
 }
@@ -920,7 +920,7 @@ int server_loop(server_t *s)
         dbg_err_if(rc == -1); /* select error */
 
 #ifdef OS_UNIX
-        if(s->reap_childs)
+        if(s->reap_children)
             server_waitpid(s);
 #endif
 

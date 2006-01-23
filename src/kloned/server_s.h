@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server_s.h,v 1.11 2006/01/09 12:38:38 tat Exp $
+ * $Id: server_s.h,v 1.12 2006/01/23 20:00:14 tat Exp $
  */
 
 #ifndef _KLONE_SERVER_S_H_
@@ -40,7 +40,7 @@ struct server_s
     int stop;               /* >0 will stop the loop                        */
     int model;              /* server model                                 */
     int klog_flush;         /* >0 will flush the klog                       */
-    int reap_childs;        /* >0 will reap children (waitpid)              */
+    int reap_children;      /* >0 will reap children (waitpid)              */
     int allow_root;         /* >0 allow root as the owner of kloned process */
     int blind_chroot;       /* if blind chroot mode is enabled or disabled  */
 };
