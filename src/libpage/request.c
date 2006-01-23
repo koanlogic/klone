@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.26 2006/01/11 01:14:03 tat Exp $
+ * $Id: request.c,v 1.27 2006/01/23 13:27:07 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -1133,7 +1133,7 @@ err:
  *                          Must be at least MIME_TYPE_BUFSZ bytes long
  * \param file_size         file size of the uploaded file
  *  
- * \return the query string bound to \p rq (may be \c NULL)
+ * \return \c 0 on success, \c ~0 otherwise
  */
 int request_get_uploaded_file(request_t *rq, const char *name, size_t idx,
     char local_filename[U_FILENAME_MAX], char client_filename[U_FILENAME_MAX],
