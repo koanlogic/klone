@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.41 2006/01/10 21:51:41 tat Exp $
+ * $Id: server.c,v 1.42 2006/01/23 15:58:30 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -141,12 +141,13 @@ err:
 static int server_signal_childs(server_t *s, int sig)
 {
     child_t *child;
+    ssize_t i;
 
     dbg_return_if (s == NULL, ~0);
     
-    if(children_count(s->children))
+    for(i = children_count(s->children) - 1; i >= 0; --i)
     {
-        while(!children_getn(s->children, 0, &child))
+        if(!children_getn(s->children, i, &child))
             dbg_err_if(kill(child->pid, sig) < 0);
     }
 
