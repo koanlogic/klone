@@ -1,5 +1,13 @@
-# $Id: Makefile,v 1.8 2005/11/28 14:37:30 tho Exp $
+# $Id: Makefile,v 1.9 2006/01/23 10:03:16 tho Exp $
 
-SUBDIR = build/libu webapp site src klone contrib doc
+include Makefile.conf
 
-include subdir.mk
+MAKEFLAGS := -I ${SRCDIR}/makl/mk
+
+all clean depend cleandepend install uninstall:
+	${MAKE} -f Makefile.subdir ${MAKECMDGOALS}
+
+env:
+	-@cp .klonerc .klonerc.old
+	@echo export MAKL_DIR=\"${SRCDIR}/makl\" > .klonerc
+	@echo export MAKEFLAGS=\"-I ${SRCDIR}/makl/mk\" >> .klonerc
