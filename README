@@ -6,13 +6,7 @@ NOTE: KLone needs GNU make in order to be built, which is not the default 'make'
 
 1) Setup compilation environment:
 
-    $ cd makl && ${GNUMAKE} hints
-
-    [ set MAKEFLAGS and MAKL_DIR environment variables as suggested ]
-    [ possibly in the startup files of your shell.                  ]
-
     $ ${GNUMAKE} toolchain
-    $ cd ..
 
 2) Configure and build KLone:
 
