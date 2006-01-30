@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.26 2006/01/10 21:51:41 tat Exp $
+ * $Id: trans_c.c,v 1.27 2006/01/30 20:04:27 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -417,24 +417,24 @@ static int cb_code_block(parser_t *p, int cmd, void *arg, const char *buf,
 
     ctx = (lang_c_ctx_t *)arg;
 
-	switch(cmd)
-	{
-	case 0: /* plain code block <% ... %> */
+    switch(cmd)
+    {
+    case 0: /* plain code block <% ... %> */
         process_code(p, arg, buf, sz);
-		break;
-	case '@': /* <%@ ... %> */
-		dbg_err_if("the file should have already been preprocessed");
-		break;
-	case '!': /* <%! ... %> */
+        break;
+    case '@': /* <%@ ... %> */
+        dbg_err_if("the file should have already been preprocessed");
+        break;
+    case '!': /* <%! ... %> */
         process_declaration(p, arg, buf, sz);
-		break;
-	case '=': /* <%= ... %> */
+        break;
+    case '=': /* <%= ... %> */
         process_expression(p, arg, buf, sz);
-		break;
-	default:
+        break;
+    default:
         translate_set_error(ctx->ti, p, "bad command char after <%");
-		warn_err("unknown code type");
-	}
+        warn_err("unknown code type");
+    }
     return 0;
 err:
     return ~0;
