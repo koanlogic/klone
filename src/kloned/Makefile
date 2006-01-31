@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.19 2006/01/31 17:15:33 tho Exp $
+# $Id: Makefile,v 1.20 2006/01/31 21:57:47 tho Exp $
 
 include common.mk
 include ../../Makefile.conf
@@ -32,5 +32,7 @@ ifdef OS_WIN
 # win libs must be after any lib*.a
 POST_LDADD += ${WIN_LDFLAGS}
 endif
+
+BINDIR = ${DESTDIR}/sbin
 
 include prog.mk
