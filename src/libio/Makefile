@@ -1,4 +1,6 @@
-# $Id: Makefile,v 1.4 2005/10/04 10:27:57 stewy Exp $
+# $Id: Makefile,v 1.5 2006/01/31 17:15:33 tho Exp $
+
+include common.mk
 include ../../Makefile.conf
 
 LIB = io

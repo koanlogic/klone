@@ -1,4 +1,6 @@
-# $Id: Makefile,v 1.11 2006/01/10 16:16:59 tat Exp $
+# $Id: Makefile,v 1.12 2006/01/31 17:15:33 tho Exp $
+
+include common.mk
 include ../Makefile.conf
 
 INCS = addr.h atom.h backend.h broker.h caes.h cgi.h codec.h                 \

@@ -1,4 +1,6 @@
-# $Id: Makefile,v 1.6 2005/11/23 11:14:02 tho Exp $
+# $Id: Makefile,v 1.7 2006/01/31 17:15:33 tho Exp $
+
+include common.mk
 include ../../Makefile.conf
 
 LIB = tls

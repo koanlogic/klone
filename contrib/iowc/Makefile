@@ -1,5 +1,6 @@
-# $Id: Makefile,v 1.3 2005/11/23 19:57:24 tat Exp $
+# $Id: Makefile,v 1.4 2006/01/31 17:15:33 tho Exp $
 
+include common.mk
 include ../../Makefile.conf
 
 PROG = iowc
