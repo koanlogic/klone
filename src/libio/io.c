@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.29 2006/01/09 12:38:38 tat Exp $
+ * $Id: io.c,v 1.30 2006/02/06 11:44:55 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -579,7 +579,7 @@ ssize_t io_printf(io_t *io, const char *fmt, ...)
     dbg_err_if (io == NULL);
     dbg_err_if (fmt == NULL);
 
-    /* build the message to send to the log system */
+    /* build the message to print */
     va_start(ap, fmt); /* init variable list arguments */
 
     sz = vsnprintf(buf, BUFSZ, fmt, ap);
