@@ -1,9 +1,10 @@
-ChangeLog file for KLone - http://koanlogic.com
+ChangeLog file of KLone - http://koanlogic.com
 
 KLone 1.0.2:
     - bug fix: endless loop on SIGTERM or SIGINT
     - bug fix: processes handling slow connections didn't term when needed
     - new ports: OpenBSD 3.8, NetBSD 2.0.x, NetBSD 2.1, FreeBSD 6.0
+    - MaKL and LibU resync
 
 KLone 1.0.1:
     - first public release
