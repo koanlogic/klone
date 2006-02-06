@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.43 2006/01/23 20:00:14 tat Exp $
+ * $Id: server.c,v 1.44 2006/02/06 12:13:34 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -622,7 +622,7 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
         break;
 
     case SERVER_MODEL_PREFORK: 
-        /* FIXME lower timeout value needed */
+        /* FIXME lower timeout value may be needed */
         /* if _serve takes more then 1 second spawn a new worker process */
         dbg_err_if(timerm_add(1, server_cb_spawn_child, (void*)s, &al));
 
@@ -824,16 +824,14 @@ int server_spawn_child(server_t *s, backend_t *be)
     if(rc > 0)
         return 0; /* parent */
 
-    /* child */
+    /* child main loop: 
+       close on s->stop or if max # of request limit has reached (the 
+       server will respawn a new process if needed) */
     for(c = 0; !s->stop && c < be->max_rq_xchild; ++c)
     {
         /* wait for a new client (will block on accept(2)) */
         dbg_err_if(server_dispatch(s, be->ld));
     }
-
-    /* max # of request limit:
-       ask the parent to create a new worker child process and exit */
-    dbg_err_if(server_ppc_cmd_fork_child(s, be));
 
     server_stop(s);
 
@@ -851,7 +849,7 @@ static int server_spawn_children(server_t *s)
     dbg_err_if (s == NULL);
 
     /* spawn N child process that will sleep asap into accept(2) */
-    LIST_FOREACH(be, &s->bes, np)
+    LIST_FOREACH (be, &s->bes, np)
     {
         if(be->model != SERVER_MODEL_PREFORK || be->fork_child == 0)
             continue;
