@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2006/01/31 17:15:33 tho Exp $
+# $Id: Makefile,v 1.6 2006/02/18 10:23:19 tat Exp $
 
 include common.mk
 include ../Makefile.conf
@@ -9,7 +9,8 @@ SRCS = register.c
 CFLAGS += ${WEBAPP_CFLAGS}
 CLEANFILES += *.c *.cc *.a *.o autogen.*
 
-KLONE = ../src/tools/klone/klone
+# if already set don't change it
+KLONE ?= ../src/tools/klone/klone
 
 # hack to support actual autogen.dps
 srcdir = .
