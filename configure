@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.48 2006/02/07 17:02:53 tat Exp $
+# $Id: configure,v 1.49 2006/02/23 11:31:56 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -26,11 +26,14 @@ makl_args_def   "enable_libu_debug" "" ""   "enables debugging of LibU"
 makl_args_def   "enable_profile"    "" ""   "enables profiling"
 makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
 makl_args_def   "enable_warns"      "" ""   "set CFLAGS for extra warnings"
+makl_args_def   "disable_cxx"      "" ""    "disable C++ support"
+
 # ... and their handlers
 __makl_enable_debug ()      { makl_add_var_mk   "CFLAGS" "-g -DDEBUG" ; }
 __makl_enable_libu_debug () { makl_set_var_mk   "LIBU_DEBUG" ; }
 __makl_enable_profile ()    { makl_add_var_mk   "CFLAGS" "-pg -a" ; }
 __makl_enable_sup_fs ()     { makl_set_var_h    "ENABLE_SUP_FS" ; }
+__makl_disable_cxx ()       { makl_unset_var    "USE_CXX" ; }
 __makl_enable_warns ()        
 { 
     makl_add_var_mk "CFLAGS" "-W -Wall -Wstrict-prototypes -Wmissing-prototypes"
