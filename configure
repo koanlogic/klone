@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.49 2006/02/23 11:31:56 tat Exp $
+# $Id: configure,v 1.50 2006/02/24 20:15:29 stewy Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -26,22 +26,22 @@ makl_args_def   "enable_libu_debug" "" ""   "enables debugging of LibU"
 makl_args_def   "enable_profile"    "" ""   "enables profiling"
 makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
 makl_args_def   "enable_warns"      "" ""   "set CFLAGS for extra warnings"
-makl_args_def   "disable_cxx"      "" ""    "disable C++ support"
+makl_args_def   "disable_cxx"       "" ""    "disable C++ support"
 
 # ... and their handlers
-__makl_enable_debug ()      { makl_add_var_mk   "CFLAGS" "-g -DDEBUG" ; }
-__makl_enable_libu_debug () { makl_set_var_mk   "LIBU_DEBUG" ; }
-__makl_enable_profile ()    { makl_add_var_mk   "CFLAGS" "-pg -a" ; }
-__makl_enable_sup_fs ()     { makl_set_var_h    "ENABLE_SUP_FS" ; }
-__makl_disable_cxx ()       { makl_unset_var    "USE_CXX" ; }
+__makl_enable_debug ()      { makl_append_var_mk  "CFLAGS" "-g -DDEBUG" ; }
+__makl_enable_libu_debug () { makl_set_var_mk     "LIBU_DEBUG" ; }
+__makl_enable_profile ()    { makl_append_var_mk  "CFLAGS" "-pg -a" ; }
+__makl_enable_sup_fs ()     { makl_set_var_h      "ENABLE_SUP_FS" ; }
+__makl_disable_cxx ()       { makl_unset_var      "USE_CXX" ; }
 __makl_enable_warns ()        
 { 
-    makl_add_var_mk "CFLAGS" "-W -Wall -Wstrict-prototypes -Wmissing-prototypes"
-    makl_add_var_mk "CFLAGS" "-Wpointer-arith -Wno-uninitialized -Wreturn-type"
-    makl_add_var_mk "CFLAGS" "-Wwrite-strings -Wswitch -Wshadow -Wwrite-strings"
-    makl_add_var_mk "CFLAGS" "-Wunreachable-code -Wunused -Wcast-qual"
-    makl_add_var_mk "CFLAGS" "-pedantic"
-    # makl_add_var_mk "CFLAGS" "-std=c99"
+    makl_append_var_mk "CFLAGS" "-W -Wall -Wstrict-prototypes -Wmissing-prototypes" \
+                                "-Wpointer-arith -Wno-uninitialized -Wreturn-type" \
+                                "-Wwrite-strings -Wswitch -Wshadow -Wwrite-strings" \
+                                "-Wunreachable-code -Wunused -Wcast-qual" \
+                                "-pedantic"
+                               #"-std=c99"
 }
 
 # General settings
@@ -52,13 +52,13 @@ makl_pkg_version
 makl_set_var_mk         "SRCDIR"    "`pwd`"
 
 # Add local 3rd party flags
-makl_add_var_mk         "CFLAGS"    "-I`pwd`/libu"
+makl_append_var_mk      "CFLAGS"    "-I`pwd`/libu"
 
 case `makl_os_name` in
 
     *mingw* | *MINGW*)
         makl_set_var        "OS_WIN"
-        makl_add_var_mk     "WIN_LDFLAGS"      "-lwsock32 -L/c/WINDOWS" 
+        makl_append_var_mk  "WIN_LDFLAGS"      "-lwsock32 -L/c/WINDOWS" 
         ;;
 
     *)
@@ -66,14 +66,14 @@ case `makl_os_name` in
         ;;
 esac
 
-makl_add_var_mk "CFLAGS" "-I`pwd` -O2 -DHAVE_CONF_H"
+makl_append_var_mk "CFLAGS"   "-I`pwd` -O2 -DHAVE_CONF_H"
 
 # these enable .klx pages
-makl_add_var_mk "USE_CXX" "1"
-makl_add_var_mk "CXXFLAGS" "\${CFLAGS}"
+makl_append_var_mk "USE_CXX"  "1"
+makl_append_var_mk "CXXFLAGS" "\${CFLAGS}"
 
 # Install headers in a private subdir
-makl_add_var_mk "INCDIR" "\${DESTDIR}/include/klone"
+makl_append_var_mk "INCDIR"   "\${DESTDIR}/include/klone"
 
 # check for stdint header
 makl_checkheader        0   "stdint"    "<stdint.h>"
