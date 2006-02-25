@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.51 2006/02/25 18:32:40 tat Exp $
+# $Id: configure,v 1.52 2006/02/25 19:06:55 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -27,7 +27,6 @@ makl_args_def   "enable_profile"    "" ""   "enables profiling"
 makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
 makl_args_def   "enable_warns"      "" ""   "set CFLAGS for extra warnings"
 makl_args_def   "disable_cxx"      "" ""    "disable C++ support"
-makl_args_def   "cross_compile"    "" ""    "to be used when cross-compiling"
 
 # ... and their handlers
 __makl_enable_debug ()      { makl_append_var_mk  "CFLAGS" "-g -DDEBUG" ; }
