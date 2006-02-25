@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.44 2006/02/06 12:13:34 tat Exp $
+ * $Id: server.c,v 1.45 2006/02/25 18:32:40 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1269,7 +1269,8 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
         dbg_err_if(type == NULL);
 
         /* create a new backend and push into the be list */
-        dbg_err_if(backend_create(type, bekey, &be));
+        warn_err_ifm(backend_create(type, bekey, &be),
+            "backend \"%s\" startup error", type);
 
         be->server = s;
         be->config = bekey;
@@ -1307,6 +1308,7 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
 
     return 0;
 err:
+    warn("server init error (config error?)");
     U_FREE(n);
     if(s)
     {

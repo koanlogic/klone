@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.c,v 1.8 2006/01/09 12:38:38 tat Exp $
+ * $Id: tls.c,v 1.9 2006/02/25 18:32:40 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -295,7 +295,7 @@ static DH *tls_load_dh_param (const char *res_name)
 
     /* XXX say return_if here instead of err_if because bio_from_emb()
      * could have failed for a non-openssl error */
-    dbg_return_if (!(bio = bio_from_emb(res_name)), NULL);
+    dbg_return_if (!(bio = tls_get_file_bio(res_name)), NULL);
 
     dbg_err_if (!(dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL)));
 

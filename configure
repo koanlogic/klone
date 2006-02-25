@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.50 2006/02/24 20:15:29 stewy Exp $
+# $Id: configure,v 1.51 2006/02/25 18:32:40 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -26,7 +26,8 @@ makl_args_def   "enable_libu_debug" "" ""   "enables debugging of LibU"
 makl_args_def   "enable_profile"    "" ""   "enables profiling"
 makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
 makl_args_def   "enable_warns"      "" ""   "set CFLAGS for extra warnings"
-makl_args_def   "disable_cxx"       "" ""    "disable C++ support"
+makl_args_def   "disable_cxx"      "" ""    "disable C++ support"
+makl_args_def   "cross_compile"    "" ""    "to be used when cross-compiling"
 
 # ... and their handlers
 __makl_enable_debug ()      { makl_append_var_mk  "CFLAGS" "-g -DDEBUG" ; }
@@ -36,12 +37,13 @@ __makl_enable_sup_fs ()     { makl_set_var_h      "ENABLE_SUP_FS" ; }
 __makl_disable_cxx ()       { makl_unset_var      "USE_CXX" ; }
 __makl_enable_warns ()        
 { 
-    makl_append_var_mk "CFLAGS" "-W -Wall -Wstrict-prototypes -Wmissing-prototypes" \
-                                "-Wpointer-arith -Wno-uninitialized -Wreturn-type" \
-                                "-Wwrite-strings -Wswitch -Wshadow -Wwrite-strings" \
-                                "-Wunreachable-code -Wunused -Wcast-qual" \
-                                "-pedantic"
-                               #"-std=c99"
+    makl_append_var_mk "CFLAGS"                                     \
+        "-W -Wall -Wstrict-prototypes -Wmissing-prototypes"         \
+        "-Wpointer-arith -Wno-uninitialized -Wreturn-type"          \
+        "-Wwrite-strings -Wswitch -Wshadow -Wwrite-strings"         \
+        "-Wunreachable-code -Wunused -Wcast-qual"                   \
+        "-pedantic"
+        #"-std=c99"
 }
 
 # General settings
@@ -94,5 +96,9 @@ makl_optional           1    "featx"   "doxygen"    "PATH_DOXYGEN"
 
 # Handle command-line arguments
 makl_args_handle "$@"
+
+# Add include dirs into top-level CFLAGS
+makl_add_var_mk "CFLAGS" `makl_get_var_mk "LIBOPENSSL_CFLAGS"`
+makl_add_var_mk "CFLAGS" `makl_get_var_mk "LIBZ_CFLAGS"`
 
 . ${MAKL_DIR}/cf/makl.term

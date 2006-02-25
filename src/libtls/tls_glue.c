@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls_glue.c,v 1.11 2006/01/09 12:38:38 tat Exp $
+ * $Id: tls_glue.c,v 1.12 2006/02/25 18:32:40 tat Exp $
  */
 
 /*
@@ -66,6 +66,23 @@ err:
     return NULL;
 }
 
+BIO* tls_get_file_bio(const char *res_name)
+{
+    BIO *b = NULL;
+
+    /* load the cert from the embfs */
+    if((b = bio_from_emb(res_name)) != NULL)
+        return b;
+
+    /* load the cert from the file system */
+    if((b = BIO_new_file(res_name, "r")) != NULL)
+        return b;
+
+    /* no cert found */
+    return NULL;
+}
+
+
 /* XXX the original returns the number of certs/crls added */
 int tls_load_verify_locations (SSL_CTX *c, const char *res_name)
 {
@@ -76,7 +93,7 @@ int tls_load_verify_locations (SSL_CTX *c, const char *res_name)
     dbg_return_if (!c, ~0);
     dbg_return_if (!res_name, ~0);
 
-    dbg_err_if (!(b = bio_from_emb(res_name)));
+    dbg_err_if (!(b = tls_get_file_bio(res_name)));
     dbg_err_if (!(info = PEM_X509_INFO_read_bio(b, NULL, NULL, NULL)));
     BIO_free(b);
 
@@ -117,7 +134,7 @@ STACK_OF(X509_NAME) *tls_load_client_CA_file (const char *res_name)
     
     dbg_err_if (!(ret = sk_X509_NAME_new_null()));
     dbg_err_if (!(sk = sk_X509_NAME_new(X509_NAME_cmp)));
-    dbg_err_if (!(b = bio_from_emb(res_name)));
+    dbg_err_if (!(b = tls_get_file_bio(res_name)));
 
     for (;;)
     {
@@ -170,7 +187,7 @@ int tls_use_certificate_file (SSL_CTX *ctx, const char *res_name, int type)
     dbg_return_if (!res_name, 0);
     dbg_return_if (type != SSL_FILETYPE_PEM, 0);
 
-    dbg_goto_if (!(b = bio_from_emb(res_name)), end);
+    dbg_goto_if (!(b = tls_get_file_bio(res_name)), end);
     dbg_goto_if (!(x = PEM_read_bio_X509(b, NULL, NULL, NULL)), end);
     ret = SSL_CTX_use_certificate(ctx, x);
 
@@ -195,7 +212,7 @@ int tls_use_PrivateKey_file (SSL_CTX *ctx, const char *res_name, int type)
     dbg_return_if (!res_name, 0);
     dbg_return_if (type != SSL_FILETYPE_PEM, 0);
 
-    dbg_goto_if (!(b = bio_from_emb(res_name)), end);
+    dbg_goto_if (!(b = tls_get_file_bio(res_name)), end);
     dbg_goto_if (!(pkey = PEM_read_bio_PrivateKey(b, NULL, NULL, NULL)), end);
     ret = SSL_CTX_use_PrivateKey(ctx, pkey);
     EVP_PKEY_free(pkey);
@@ -221,7 +238,7 @@ int tls_use_certificate_chain (SSL_CTX *ctx, const char *res_name,
     dbg_return_if (!ctx, -1);
     dbg_return_if (!res_name, -1);
 
-    dbg_err_if (!(b = bio_from_emb(res_name)));
+    dbg_err_if (!(b = tls_get_file_bio(res_name)));
 
     /* optionally skip a leading server certificate */
     if (skipfirst)
