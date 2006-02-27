@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iossl.c,v 1.9 2006/01/09 12:38:38 tat Exp $
+ * $Id: iossl.c,v 1.10 2006/02/27 13:52:53 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -72,7 +72,11 @@ static int io_ssl_term(io_ssl_t *io_ssl)
 {
     dbg_err_if(io_ssl == NULL);
 
-    SSL_free(io_ssl->ssl);
+    /* we cannot free io_ssl->ssl because on connection timeout the process 
+     * is blocked in a SSL_read so freeing the SSL object will segfault 
+     * (i.e. we're leaking here) */
+    /* SSL_free(io_ssl->ssl); */
+
     if(io_ssl->flags & IO_FD_CLOSE)
     {
         close(io_ssl->fd);

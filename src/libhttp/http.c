@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.33 2006/01/10 21:51:41 tat Exp $
+ * $Id: http.c,v 1.34 2006/02/27 13:52:53 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -607,8 +607,6 @@ int https_backend_term(struct backend_s *be)
     https = (http_t *) be->arg;
     if (https == NULL)
         return 0;
-
-    dbg_err_if(session_module_term(https->sess_opt));
 
     SSL_CTX_free(https->ssl_ctx);
 
