@@ -1,10 +1,9 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.53 2006/02/28 10:32:28 tho Exp $
+# $Id: configure,v 1.54 2006/02/28 15:45:27 stewy Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
-export makl_debug=1 
 
 # before running configure the toolchain must be present
 if [ ! -r ${MAKL_DIR}/etc/toolchain.cf ]; then
