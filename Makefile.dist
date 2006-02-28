@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.13 2006/01/31 17:15:33 tho Exp $
+# $Id: Makefile.dist,v 1.14 2006/02/28 17:45:50 stewy Exp $
 
 include common.mk
 
@@ -6,7 +6,8 @@ PKG_NAME = klone
 PKG_VERSION = $(shell cat VERSION)
 
 # top level
-DISTFILES += Makefile Makefile.subdir LICENSE README VERSION configure
+DISTFILES += Makefile Makefile.subdir LICENSE README VERSION configure \
+             configure.help
 
 # MaKL build test
 DISTFILES += $(wildcard build/*.c)
