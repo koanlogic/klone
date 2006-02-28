@@ -6,7 +6,7 @@ all: party
 PARTY_CONF = env MAKL_DIR=${SRCDIR}/makl ./configure
 PARTY_BASE = ../../libu
 PARTY_DEP = ${PARTY_BASE}/src/libu.a
-PARTY_ARGS = -v --prefix=${DESTDIR}
+PARTY_ARGS = --prefix=${DESTDIR}
 
 ifneq ($(strip ${DEFOWN}),)
 PARTY_ARGS += --defown=${DEFOWN}
