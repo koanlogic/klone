@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.54 2006/02/28 15:45:27 stewy Exp $
+# $Id: configure,v 1.55 2006/03/01 22:43:26 tho Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -31,7 +31,7 @@ makl_args_def   "disable_cxx"       "" ""   "disable C++ support"
 # ... and their handlers
 __makl_enable_debug ()      { makl_append_var_mk  "CFLAGS" "-g -DDEBUG" ; }
 __makl_enable_libu_debug () { makl_set_var_mk     "LIBU_DEBUG" ; }
-__makl_enable_libu_mini ()  { makl_set_var_mk     "LIBU_MINI" ; }
+__makl_disable_libu_mini () { makl_unset_var_mk   "LIBU_MINI" ; }
 __makl_enable_profile ()    { makl_append_var_mk  "CFLAGS" "-pg -a" ; }
 __makl_enable_sup_fs ()     { makl_set_var_h      "ENABLE_SUP_FS" ; }
 __makl_disable_cxx ()       { makl_unset_var      "USE_CXX" ; }
@@ -70,8 +70,11 @@ esac
 
 makl_append_var_mk "CFLAGS"   "-I`pwd` -O2 -DHAVE_CONF_H"
 
+# pick up just what we need from LibU (unless --disable_libu_mini is set)
+makl_set_var_mk "LIBU_MINI" "1"
+
 # these enable .klx pages
-makl_append_var_mk "USE_CXX"  "1"
+makl_set_var_mk "USE_CXX"  "1"
 makl_append_var_mk "CXXFLAGS" "\${CFLAGS}"
 
 # Install headers in a private subdir
