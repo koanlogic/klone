@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.14 2006/02/28 17:45:50 stewy Exp $
+# $Id: Makefile.dist,v 1.15 2006/03/02 17:19:27 tho Exp $
 
 include common.mk
 
@@ -58,9 +58,9 @@ DISTFILES += $(filter-out CVS/ CVS,$(wildcard doc/example-site/www/*))
 # hook for LibU compilation
 DISTFILES += build/libu/Makefile
 
-# LibU (TODO explicitly say which LibU VERSION is in use !)
-DISTFILES += libu/Makefile libu/configure libu/LICENSE libu/CHANGES
-DISTFILES += libu/VERSION libu/README
+# LibU 0.3.1
+DISTFILES += libu/Makefile libu/configure libu/LICENSE libu/ChangeLog
+DISTFILES += libu/VERSION libu/README libu/configure.help
 DISTFILES += $(wildcard libu/u/*.h) libu/u/Makefile
 DISTFILES += $(wildcard libu/src/*.c) libu/src/Makefile
 DISTFILES += $(wildcard libu/doc/man/*.3) libu/doc/man/Makefile
@@ -71,8 +71,8 @@ DISTREMAP += libu/pkg/Makefile.doxy.doc libu/doc/html/Makefile
 DISTREMAP += $(foreach f, $(notdir $(wildcard libu/doc/doxy/html/*.html)), \
                        libu/doc/doxy/html/$f libu/doc/html/$f)
 
-# MaKL (TODO explicitly say which MaKL VERSION is in use !)
-DISTFILES += makl/Makefile makl/VERSION makl/README makl/LICENSE
+# MaKL 1.1.0
+DISTFILES += makl/Makefile makl/VERSION makl/README makl/LICENSE makl/ChangeLog
 DISTFILES += $(wildcard makl/cf/makl*) makl/cf/helpers/makl_func_strerror_r
 DISTFILES += $(wildcard makl/mk/*.mk) makl/Makefile
 DISTFILES += makl/etc/args.cf makl/etc/map.mk makl/etc/vars.cf
