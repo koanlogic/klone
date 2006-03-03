@@ -1,5 +1,19 @@
 ChangeLog file of KLone - http://koanlogic.com
 
+KLone 1.0.3:
+    - cross compilation support
+    - bug fix: bad SSL context free on connection time-out
+    - C++ support is optional (--disable_cxx)
+    - support LibU minimisation by default: --disable_libu-mini configure arg
+      to compile the full LibU
+    - various SSL related updates:
+        - crypto material can be loaded from the host file system too
+        - HTTP/S configuration section added to example-site/kloned.conf
+        - sample server certificate kloned.pem added, 
+        - sample HTTP/S configuration file etc/kloned-https.conf added
+    - MaKL update (ver. 1.1.0)
+    - LibU update (ver. 0.3.1)
+
 KLone 1.0.2:
     - bug fix: endless reap loop on SIGTERM or SIGINT
     - bug fix: processes handling slow connections didn't term when needed
