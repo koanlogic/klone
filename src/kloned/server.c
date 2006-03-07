@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.45 2006/02/25 18:32:40 tat Exp $
+ * $Id: server.c,v 1.46 2006/03/07 11:11:17 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -404,10 +404,8 @@ static int server_chroot_blind(server_t *s)
     }
     /* parent */
 
-#ifdef OS_UNIX
     /* do chroot */
     dbg_err_if(server_chroot_to(s, dir));
-#endif
 
     /* do some dir sanity checks */
 
@@ -604,7 +602,7 @@ static int server_cb_spawn_child(alarm_t *al, void *arg)
 err:
     return ~0;
 }
-#endif
+#endif /* ifdef OS_UNIX */
 
 static int server_be_serve(server_t *s, backend_t *be, int ad)
 {
