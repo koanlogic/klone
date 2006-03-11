@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: entry.c,v 1.17 2006/01/09 12:38:38 tat Exp $
+ * $Id: entry.c,v 1.18 2006/03/11 14:56:52 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -154,7 +154,7 @@ int InstallService(void)
     return 0; 
 err:
     /* common error handling */
-    dbg_strerror(GetLastError());
+    warn_strerror(GetLastError());
     MessageBox(NULL, "Service installation error", ss_name, MB_OK);
     return ~0;
 }
@@ -184,7 +184,7 @@ int RemoveService(void)
     return 0;
 err:
     /* common error handling */
-    dbg_strerror(GetLastError());
+    warn_strerror(GetLastError());
     MessageBox(NULL, "Uninstall failed", ss_name, MB_OK);
     return ~0;
 }
@@ -298,7 +298,7 @@ void WINAPI ServiceMain(DWORD argc, PTSTR *argv)
     return;
 
 err:
-    dbg_strerror(GetLastError());
+    warn_strerror(GetLastError());
 
     /* let the service terminate */
     ctx->status.dwCurrentState = SERVICE_STOPPED;
@@ -345,7 +345,7 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
         /* StartServiceCtrlDispatcher does not return until the service 
            has stopped running...  */
         if(!StartServiceCtrlDispatcher(ServiceTable))
-            dbg_strerror(GetLastError());
+            warn_strerror(GetLastError());
     } else {
         /* load config and initialize */
         dbg_err_if(app_init());
