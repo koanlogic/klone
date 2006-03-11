@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.20 2006/01/31 21:57:47 tho Exp $
+# $Id: Makefile,v 1.21 2006/03/11 20:57:43 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
@@ -36,3 +36,6 @@ endif
 BINDIR = ${DESTDIR}/sbin
 
 include prog.mk
+
+strip: $(PROG)
+	@$(STRIP) $(PROG)
