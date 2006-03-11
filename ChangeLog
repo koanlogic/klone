@@ -1,5 +1,10 @@
 ChangeLog file of KLone - http://koanlogic.com
 
+KLone 1.0.4:
+    - strip target added to kloned (for selective strip when cross compiling)
+    - MaKL update (ver. 1.1.1)
+    - LibU update (ver. 0.3.2)
+
 KLone 1.0.3:
     - cross compilation support
     - bug fix: bad SSL context free on connection time-out
