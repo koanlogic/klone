@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.c,v 1.21 2006/01/09 12:38:38 tat Exp $
+ * $Id: response.c,v 1.22 2006/03/21 15:38:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -59,6 +59,70 @@ int response_set_content_encoding(response_t *rs, const char *encoding)
     dbg_err_if(encoding == NULL);
 
     dbg_err_if(header_set_field(rs->header, "Content-Encoding", encoding));
+
+    return 0;
+err:
+    return ~0;
+}
+
+/**
+ * \brief   Add all header field that enable page caching (i.e. disable caching)
+ * 
+ * Adds all relevant Header fields to the current HTTP response to avoid 
+ * browser caching. 
+ *
+ * The function will set/modify the following fields:
+ *
+ *    Cache-Control: no-cache, must-revalidate 
+ *    Expires: Mon, 1 Jan 1990 05:00:00 GMT
+ *    Pragma: no-cache
+ * 
+ * \param rs        response object
+ *
+ * \return 
+ *  - \c 0 if successful
+ *  - \c ~0 if successful
+ */
+int response_disable_caching(response_t *rs)
+{
+    dbg_err_if(response_set_field(rs, "Cache-Control", 
+        "no-cache, must-revalidate"));
+
+    dbg_err_if(response_set_field(rs, "Expires", 
+        "Mon, 1 Jan 1990 05:00:00 GMT"));
+
+    dbg_err_if(response_set_field(rs, "Pragma", "no-cache"));
+
+    return 0;
+err:
+    return ~0;
+}
+
+/**
+ * \brief   Remove all headers that inhibit page caching
+ * 
+ * Remove all HTTP Header fields that (should) prevent browsers caching. This
+ * should enable caching on specs-compliant browsers.
+ *
+ * Those fields are:
+ *
+ *    Cache-Control: 
+ *    Expires: 
+ *    Pragma: 
+ * 
+ * \param rs        response object
+ *
+ * \return 
+ *  - \c 0 if successful
+ *  - \c ~0 if successful
+ */
+int response_enable_caching(response_t *rs)
+{
+    dbg_err_if(response_del_field(rs, "Cache-Control"));
+
+    dbg_err_if(response_del_field(rs, "Expires"));
+
+    dbg_err_if(response_del_field(rs, "Pragma"));
 
     return 0;
 err:
@@ -307,7 +371,7 @@ int response_print_header(response_t *rs)
 
 
 /**
- * \brief   Set a field of a response object
+ * \brief   Set an header field of a response object
  *
  * Set field \p name to \p value in reponse object \p rs.
  *
@@ -322,6 +386,36 @@ int response_print_header(response_t *rs)
 int response_set_field(response_t *rs, const char *name, const char *value)
 {
     return header_set_field(rs->header, name, value);
+}
+
+
+/**
+ * \brief   Remove an header field of a response object
+ *
+ * Remove the header field whose name is \p name
+ *
+ * \param rs     response object
+ * \param name   field name
+ *
+ * \return
+ *  - \c 0  if successful
+ *  - \c ~0 on error
+ */
+int response_del_field(response_t *rs, const char *name)
+{
+    field_t *f = NULL;
+    
+    f = header_get_field(rs->header, name);
+    dbg_err_if(f == NULL);
+
+    /* field found, delete it */
+    dbg_err_if(header_del_field(rs->header, f));
+
+    field_free(f);
+
+    return 0;
+err:
+    return ~0;
 }
 
 /**

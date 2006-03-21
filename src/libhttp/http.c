@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.34 2006/02/27 13:52:53 tat Exp $
+ * $Id: http.c,v 1.35 2006/03/21 15:38:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -276,8 +276,8 @@ static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
     /* add default header fields */
     dbg_err_if(http_add_default_header(h, rs));
 
-    /* add no-cache field */
-    dbg_err_if(response_set_field(rs, "Cache-Control", "no-cache"));
+    /* disable page caching */
+    dbg_err_if(response_disable_caching(rs));
 
     /* looking for user provided error page */
     dbg_err_if(u_snprintf(buf, BUFSZ, "error.%d", status));

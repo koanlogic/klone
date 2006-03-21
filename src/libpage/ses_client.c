@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_client.c,v 1.28 2006/01/09 12:38:38 tat Exp $
+ * $Id: ses_client.c,v 1.29 2006/03/21 15:38:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -31,12 +31,13 @@
 #define KL1_CLISES_DATA     "KL1_CLISES_DATA"
 #define KL1_CLISES_MTIME    "KL1_CLISES_MTIME"
 #define KL1_CLISES_HMAC     "KL1_CLISES_HMAC"
+#define KL1_CLISES_IV       "KL1_CLISES_IV"
 
 enum { HMAC_HEX_SIZE = 2*EVP_MAX_MD_SIZE + 1 };
 
 /* calc the hmac of data+sid+mtime */
 static int session_client_hmac(HMAC_CTX *ctx, char *hmac, size_t hmac_sz, 
-    const char *data, const char *sid, const char *mtime)
+    const char *data, const char *sid, const char *mtime, const char *hex_iv)
 {
     char mac[EVP_MAX_MD_SIZE];
     int mac_len;
@@ -46,6 +47,7 @@ static int session_client_hmac(HMAC_CTX *ctx, char *hmac, size_t hmac_sz,
     dbg_err_if (data == NULL);
     dbg_err_if (sid == NULL);
     dbg_err_if (mtime == NULL);
+    /* hex_iv may be NULL */
     
     /* hmac must be at least 'EVP_MAX_MD_SIZE*2 + 1' (it will be hex encoded) */
     dbg_err_if(hmac_sz < EVP_MAX_MD_SIZE*2 + 1);
@@ -55,10 +57,12 @@ static int session_client_hmac(HMAC_CTX *ctx, char *hmac, size_t hmac_sz,
     HMAC_Update(ctx, data, strlen(data));
     HMAC_Update(ctx, sid, strlen(sid));
     HMAC_Update(ctx, mtime, strlen(mtime));
+    if(hex_iv)
+        HMAC_Update(ctx, hex_iv, strlen(hex_iv));
     HMAC_Final(ctx, mac, &mac_len);
 
     /* encode the hash */
-    dbg_err_if(u_hexncpy(hmac, mac, mac_len, URLCPY_ENCODE) <= 0);
+    dbg_err_if(u_hexncpy(hmac, mac, mac_len, HEXCPY_ENCODE) <= 0);
 
     return 0;
 err:
@@ -74,10 +78,24 @@ static int session_client_save(session_t *ss)
     };
     session_opt_t *so = ss->so;
     char hmac[HMAC_HEX_SIZE], ebuf[BUF_SIZE], mtime[MTIME_SIZE];
-    char *buf = NULL;
+    char *buf = NULL, cipher_iv_hex[CIPHER_IV_SIZE * 2 + 1];
     size_t sz;
 
     dbg_err_if (ss == NULL);
+
+    #ifdef HAVE_LIBOPENSSL
+    if(ss->so->encrypt)
+    {
+        /* generate a new IV for each session */
+        dbg_err_if(!RAND_pseudo_bytes(ss->so->cipher_iv, CIPHER_IV_SIZE));
+
+        /* hex encode the IV and save it in a cookie */
+        dbg_err_if(u_hexncpy(cipher_iv_hex, ss->so->cipher_iv, CIPHER_IV_SIZE,
+            HEXCPY_ENCODE) <= 0);
+        dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_IV, cipher_iv_hex, 
+            0, NULL, NULL, 0));
+    }
+    #endif
 
     /* save the session data to freshly alloc'd buf of size sz */
     dbg_err_if(session_prv_save_to_buf(ss, &buf, &sz));
@@ -86,7 +104,7 @@ static int session_client_save(session_t *ss)
                 "session data too big for client-side sessions");
 
     /* hex-encode the buffer */
-    dbg_err_if(u_hexncpy(ebuf, buf, sz, URLCPY_ENCODE) <= 0);
+    dbg_err_if(u_hexncpy(ebuf, buf, sz, HEXCPY_ENCODE) <= 0);
 
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_DATA, ebuf, 0, NULL, 
         NULL, 0));
@@ -98,8 +116,8 @@ static int session_client_save(session_t *ss)
         NULL, 0));
 
     /* calc the HMAC */
-    dbg_err_if(session_client_hmac(&so->hmac_ctx, hmac, HMAC_HEX_SIZE, ebuf, 
-        ss->id, mtime));
+    dbg_err_if(session_client_hmac(&so->hmac_ctx, hmac, HMAC_HEX_SIZE, 
+        ebuf, ss->id, mtime, ss->so->encrypt ? cipher_iv_hex : NULL));
 
     /* store the hash in a cookie */
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_HMAC, hmac, 0, NULL, 
@@ -114,7 +132,7 @@ static int session_client_load(session_t *ss)
 {
     session_opt_t *so = ss->so;
     char hmac[HMAC_HEX_SIZE], buf[COOKIE_MAX_SIZE];
-    const char *cli_ebuf, *cli_hmac, *cli_mtime;
+    const char *cli_ebuf, *cli_hmac, *cli_mtime, *cli_iv;
     ssize_t c;
 
     dbg_err_if (ss == NULL);
@@ -123,12 +141,14 @@ static int session_client_load(session_t *ss)
     cli_ebuf = request_get_cookie(ss->rq, KL1_CLISES_DATA);
     cli_mtime = request_get_cookie(ss->rq, KL1_CLISES_MTIME);
     cli_hmac = request_get_cookie(ss->rq, KL1_CLISES_HMAC);
+    cli_iv = request_get_cookie(ss->rq, KL1_CLISES_IV);
 
     nop_err_if(cli_ebuf == NULL || cli_mtime == NULL || cli_hmac == NULL);
+    /* cli_iv may be NULL */
 
     /* calc the HMAC */
     dbg_err_if(session_client_hmac(&so->hmac_ctx, hmac, HMAC_HEX_SIZE, 
-        cli_ebuf, ss->id, cli_mtime));
+        cli_ebuf, ss->id, cli_mtime, ss->so->encrypt ? cli_iv : NULL));
 
     /* compare HMACs */
     if(strcmp(hmac, cli_hmac))
@@ -139,6 +159,10 @@ static int session_client_load(session_t *ss)
 
     /* hash ckeched. decode/uncompress/decrypt session data */
 
+    /* hex decode and save current cipher IV */
+    dbg_err_if((c = u_hexncpy(ss->so->cipher_iv, cli_iv, strlen(cli_iv), 
+        HEXCPY_DECODE)) <= 0);
+
     /* set client provided mtime */
     ss->mtime = strtoul(cli_mtime, NULL, 0);
 
@@ -146,7 +170,7 @@ static int session_client_load(session_t *ss)
 
     /* hex decode session data */
     dbg_err_if((c = u_hexncpy(buf, cli_ebuf, strlen(cli_ebuf), 
-        URLCPY_DECODE)) <= 0);
+        HEXCPY_DECODE)) <= 0);
 
     c--; /* ignore last '\0' that hexncpy adds */
 
@@ -174,6 +198,8 @@ static int session_client_remove(session_t *ss)
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_MTIME, NULL, 0, NULL, 
         NULL, 0));
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_HMAC, NULL, 0, NULL, 
+        NULL, 0));
+    dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_IV, NULL, 0, NULL, 
         NULL, 0));
 
     return 0;

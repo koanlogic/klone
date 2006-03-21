@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.h,v 1.9 2006/01/09 12:38:38 tat Exp $
+ * $Id: response.h,v 1.10 2006/03/21 15:38:01 tat Exp $
  */
 
 #ifndef _KLONE_RESPONSE_H_
@@ -72,6 +72,9 @@ int response_set_status(response_t *rs, int code);
 int response_get_status(response_t *rs);
 void response_set_method(response_t *rs, int method);
 int response_get_method(response_t *rs);
+
+int response_enable_caching(response_t *rs);
+int response_disable_caching(response_t *rs);
 
 void response_set_cgi(response_t *rs, int cgi);
 

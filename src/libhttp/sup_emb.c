@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.22 2006/01/09 12:38:38 tat Exp $
+ * $Id: sup_emb.c,v 1.23 2006/03/21 15:38:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -233,7 +233,11 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
     /* set some default values */
     dbg_err_if(response_set_content_type(rs, "text/html"));
 
-    /* create a response filter and attach it to the response io */
+    /* by default disable caching */
+    response_disable_caching(rs);
+
+    /* create a response filter (use to automatically print all header fields 
+     * when the header buffer fills up) and attach it to the response io */
     dbg_err_if(response_filter_create(rq, rs, ss, &filter));
     io_codec_add_tail(response_io(rs), filter);
 
