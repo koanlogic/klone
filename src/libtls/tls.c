@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.c,v 1.9 2006/02/25 18:32:40 tat Exp $
+ * $Id: tls.c,v 1.10 2006/03/21 19:15:38 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -357,7 +357,7 @@ static int tls_set_ctx_vmode (u_config_t *cfg, tls_ctx_args_t *cargs)
     dbg_return_if (!cfg || !cargs, ~0);
     
     if (!(v = u_config_get_subkey_value(cfg, "verify_mode")))
-       return 0;    /* will use the default (none) */ 
+        return 0;    /* will use the default (none) */ 
 
     if (!strcasecmp(v, "no"))
         cargs->vmode = SSL_VERIFY_NONE;

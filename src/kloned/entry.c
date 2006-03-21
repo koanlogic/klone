@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: entry.c,v 1.18 2006/03/11 14:56:52 tat Exp $
+ * $Id: entry.c,v 1.19 2006/03/21 19:15:38 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -391,7 +391,7 @@ int main(int argc, char **argv)
 
     /* daemonize if not -F */
     if(ctx->daemon && !ctx->cgi)
-        dbg_err_if(daemon(0, 0));
+        con_err_ifm(daemon(0, 0), "daemon error");
 
     /* jump to the main loop */
     rc = app_run();

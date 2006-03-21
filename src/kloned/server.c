@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.46 2006/03/07 11:11:17 tat Exp $
+ * $Id: server.c,v 1.47 2006/03/21 19:15:38 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1027,7 +1027,8 @@ static int server_setup_backend(server_t *s, backend_t *be)
     s->nbackend++;
 
     /* parse and create the bind addr_t */
-    dbg_err_if(u_config_get_subkey(be->config, "addr", &subkey));
+    warn_err_ifm(u_config_get_subkey(be->config, "addr", &subkey),
+        "missing or bad '<servname>.addr' value");
 
     dbg_err_if(addr_create(&be->addr));
 
@@ -1228,7 +1229,7 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
 
     /* parse server list and build s->bes */
     list = u_config_get_subkey_value(config, "server_list");
-    dbg_err_if(list == NULL);
+    warn_err_ifm(list == NULL, "bad or missing 'server_list' config param");
 
     /* chroot, uid and gid */
     s->chroot = u_config_get_subkey_value(config, "chroot");
@@ -1257,14 +1258,14 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
         dbg("configuring backend: %s", name);
 
         /* just SERVER_MAX_BACKENDS supported */
-        dbg_err_if(s->nbackend == SERVER_MAX_BACKENDS);
+        warn_err_if(s->nbackend == SERVER_MAX_BACKENDS);
 
         /* get config tree of this backend */
         warn_err_ifm(u_config_get_subkey(config, name, &bekey),
             "missing [%s] backend configuration", name);
 
         type = u_config_get_subkey_value(bekey, "type");
-        dbg_err_if(type == NULL);
+        warn_err_ifm(type == NULL, "missing or bad '<servname>.type' value");
 
         /* create a new backend and push into the be list */
         warn_err_ifm(backend_create(type, bekey, &be),

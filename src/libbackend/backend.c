@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: backend.c,v 1.22 2006/01/11 10:01:36 tat Exp $
+ * $Id: backend.c,v 1.23 2006/03/21 19:15:38 tat Exp $
  */
 
 #include <unistd.h>
@@ -109,7 +109,7 @@ int backend_create(const char *proto, u_config_t *config, backend_t **pbe)
 
     /* call backend initialization function */
     if(be->cb_init)
-        dbg_err_if(be->cb_init(be));
+        warn_err_ifm(be->cb_init(be), "backend (%s) init error", proto);
 
     *pbe = be;
 

@@ -1,5 +1,10 @@
 ChangeLog file of KLone - http://koanlogic.com
 
+KLone 1.0.5:
+	- response_enable_caching and response_disable_caching added
+	- cipher IV added to HMAC and to KL1_CLISES_IV cookie
+	- better startup and translate parser errors feedback
+
 KLone 1.0.4:
     - strip target added to kloned (for selective strip when cross compiling)
     - MaKL update (ver. 1.1.1)

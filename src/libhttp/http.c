@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.35 2006/03/21 15:38:01 tat Exp $
+ * $Id: http.c,v 1.36 2006/03/21 19:15:38 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -498,6 +498,7 @@ static int http_create(u_config_t *config, http_t **ph)
     dbg_err_if(h == NULL);
 
     h->config = config;
+
     /* init page broker (and page suppliers) */
     dbg_err_if(broker_create(&h->broker));
 
@@ -589,7 +590,8 @@ int https_backend_init(struct backend_s *be)
 
     /* load config values and set SSL_CTX accordingly */
     dbg_err_if (tls_load_ctx_args(http_get_config(https), &cargs));
-    dbg_err_if (!(https->ssl_ctx = tls_init_ctx(cargs)));
+    warn_err_ifm (!(https->ssl_ctx = tls_init_ctx(cargs)), 
+        "bad or missing HTTPS credentials");
 
     dbg_err_if(session_module_init(https->config, &https->sess_opt));
 

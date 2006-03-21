@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.34 2006/01/09 12:38:38 tat Exp $
+ * $Id: session.c,v 1.35 2006/03/21 19:15:38 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -128,12 +128,15 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
 
     /* per-type configuration init */
     if(so->type == SESSION_TYPE_MEMORY)
-        dbg_err_if(session_mem_module_init(c, so));
+        warn_err_ifm(session_mem_module_init(c, so), 
+            "in-memory session engine init error");
     else if(so->type == SESSION_TYPE_FILE)
-        dbg_err_if(session_file_module_init(c, so));
+        warn_err_ifm(session_file_module_init(c, so), 
+            "file session engine init error");
 #ifdef HAVE_LIBOPENSSL
     else if(so->type == SESSION_TYPE_CLIENT)
-        dbg_err_if(session_client_module_init(c, so));
+        warn_err_ifm(session_client_module_init(c, so),
+            "client-side session engine init error");
 #endif
 
     *pso = so;

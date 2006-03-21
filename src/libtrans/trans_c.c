@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.27 2006/01/30 20:04:27 tho Exp $
+ * $Id: trans_c.c,v 1.28 2006/03/21 19:15:38 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -187,11 +187,11 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
     dbg_ifb (ctx == NULL) return;
 
     io_printf(p->out, 
-    "\n\n"
-    "static void exec_page(request_t *request, response_t *response,        \n"
-    "   session_t *session) {                                               \n"
-    "    io_t *out = response_io(response);                                 \n"
-    );
+        "\n\n"
+        "static void exec_page(request_t *request, response_t *response,    \n"
+        "   session_t *session) {                                           \n"
+        "    io_t *out = response_io(response);                             \n"
+        );
 
     head = &ctx->code_blocks;
     for(node = head->tqh_first; node != NULL; node = node->np.tqe_next)

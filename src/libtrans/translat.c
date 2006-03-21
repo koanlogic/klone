@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.21 2006/01/10 11:42:13 tat Exp $
+ * $Id: translat.c,v 1.22 2006/03/21 19:15:38 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -27,7 +27,27 @@
 #include <klone/codec.h>
 #include <klone/codecs.h>
 
+#define tr_err(...)             \
+    do  { con_p_ctx(p); con_err(__VA_ARGS__); } while(0)
+#define tr_err_if(expr)          \
+    do { if( (expr) ) { con_p_ctx(p); con("%s", #expr); goto err; } } while(0)
+#define tr_err_ifm(expr, ...)    \
+    do { if( (expr) ) { con_p_ctx(p); con(__VA_ARGS__); goto err; } } while(0)
+
 static int preprocess(io_t *in, io_t *out);
+
+/* print parser context to the console */
+static void con_p_ctx(parser_t *p)
+{
+    char fn[U_FILENAME_MAX];
+
+    dbg_err_if(io_name_get(p->in, fn, U_FILENAME_MAX));
+
+    /* con_ macro should be used here; we'd need a con_no_newline(...) */
+    fprintf(stderr, "[%s:%d]: error:  ", fn, p->code_line);
+err:
+    return;
+}
 
 static int is_a_script(const char *filename)
 {
@@ -72,8 +92,8 @@ static int process_directive_include(parser_t *p, char *inc_file)
     strcat(buf, inc_file);
 
     /* copy include file to p->out */
-    warn_err_ifm(u_file_open(buf, O_RDONLY, &io), 
-        "unable to open include file %s", buf);
+    tr_err_ifm(u_file_open(buf, O_RDONLY, &io), 
+        "unable to open included file %s", buf);
 
     dbg_err_if(io_printf(p->out, "<%% #line 1 \"%s\" \n %%>", buf));
 
@@ -99,16 +119,18 @@ static int process_directive(parser_t *p, char *buf)
     dbg_return_if (buf == NULL, ~0);
 
     /* get preprocessor command */
-    dbg_err_if((tok = strtok_r(buf, " \t", &pp)) == NULL);
+    tr_err_ifm((tok = strtok_r(buf, " \t", &pp)) == NULL,
+        "bad or missing preprocessor command");
 
     if(strcasecmp(tok, "include") == 0)
     {
         /* get include file name */
-        dbg_err_if((tok = strtok_r(NULL, " \t\"", &pp)) == NULL);
+        tr_err_ifm((tok = strtok_r(NULL, " \t\"", &pp)) == NULL,
+            "bad or missing include filename");
 
         dbg_err_if(process_directive_include(p, tok));
     } else {
-        dbg_err("unknown preprocessor directive: %s", tok);
+        tr_err("unknown preprocessor directive: %s", tok);
     }
 
     return 0;
@@ -214,16 +236,18 @@ int translate(trans_info_t *pti)
     dbg_return_if (pti == NULL, ~0);
     
     /* open the input file */
-    dbg_err_if(u_file_open(pti->file_in, O_RDONLY, &in));
+    con_err_ifm(u_file_open(pti->file_in, O_RDONLY, &in),
+        "unable to open %s", pti->file_in);
 
     /* open the output file */
-    dbg_err_if(u_file_open(pti->file_out, O_CREAT | O_TRUNC | O_WRONLY, &out));
+    con_err_ifm(u_file_open(pti->file_out, O_CREAT | O_TRUNC | O_WRONLY, &out),
+        "unable to open %s", pti->file_out);
 
     /* should choose the right translator based on file extensions or config */
     if(is_a_script(pti->file_in))
     {
         /* get a temporary io_t */
-        dbg_err_if(u_tmpfile_open(&tmp));
+        con_err_if(u_tmpfile_open(&tmp));
 
         /* save the preprocessed in file to tmp */
         dbg_err_if(preprocess(in, tmp));
