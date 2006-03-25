@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.47 2006/03/21 19:15:38 tat Exp $
+ * $Id: server.c,v 1.48 2006/03/25 13:06:42 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -83,7 +83,7 @@ static int server_be_listen(backend_t *be)
 
     return 0;
 err:
-    dbg_strerror(errno);
+    warn_strerror(errno);
     if(d)
         close(d);
     return ~0;

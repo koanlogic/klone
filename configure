@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.55 2006/03/01 22:43:26 tho Exp $
+# $Id: configure,v 1.56 2006/03/25 13:06:42 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -56,11 +56,16 @@ makl_set_var_mk         "SRCDIR"    "`pwd`"
 # Add local 3rd party flags
 makl_append_var_mk      "CFLAGS"    "-I`pwd`/libu"
 
-case `makl_os_name` in
+case `makl_target_name` in
 
-    *mingw* | *MINGW*)
+    *mingw*)
         makl_set_var        "OS_WIN"
-        makl_append_var_mk  "WIN_LDFLAGS"      "-lwsock32 -L/c/WINDOWS" 
+        makl_append_var_mk  "POST_LDADD"      "-lwsock32 -L/c/WINDOWS" 
+        ;;
+
+    *qnx*)
+        makl_set_var        "OS_UNIX"
+        makl_append_var_mk  "POST_LDADD"      "-lsocket"
         ;;
 
     *)

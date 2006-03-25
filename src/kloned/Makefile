@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.21 2006/03/11 20:57:43 tat Exp $
+# $Id: Makefile,v 1.22 2006/03/25 13:06:42 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
@@ -27,11 +27,6 @@ LDADD += ../libhttp/libhttp.a ../libutils/libutils.a ../libpage/libpage.a   \
 # add libu flags
 CFLAGS += -I../../libu
 LDADD += ../../libu/src/libu.a
-
-ifdef OS_WIN
-# win libs must be after any lib*.a
-POST_LDADD += ${WIN_LDFLAGS}
-endif
 
 BINDIR = ${DESTDIR}/sbin
 

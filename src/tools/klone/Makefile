@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.13 2006/01/31 17:15:33 tho Exp $
+# $Id: Makefile,v 1.14 2006/03/25 13:06:42 tat Exp $
 
 include common.mk
 include ../../../Makefile.conf
@@ -20,10 +20,5 @@ LDADD += ../../libtrans/libtrans.a  \
          ../../libcodec/libcodec.a
 
 LDADD += ../../../libu/src/libu.a
-
-ifdef OS_WIN
-# win libs must be after any lib*.a
-POST_LDADD += ${WIN_LDFLAGS}
-endif
 
 include prog.mk
