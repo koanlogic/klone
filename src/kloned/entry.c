@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: entry.c,v 1.19 2006/03/21 19:15:38 tat Exp $
+ * $Id: entry.c,v 1.20 2006/04/06 14:50:03 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -378,6 +378,7 @@ err:
 int main(int argc, char **argv)
 {
     int rc = 0;
+
     memset(ctx, 0, sizeof(context_t));
 
     /* parse command line parameters (and set ctx vars) */

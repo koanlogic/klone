@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: broker.c,v 1.11 2006/04/06 14:02:22 tat Exp $
+ * $Id: broker.c,v 1.12 2006/04/06 14:50:03 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -60,8 +60,11 @@ int broker_serve(broker_t *b, request_t *rq, response_t *rs)
             {
                 response_set_status(rs, HTTP_STATUS_NOT_MODIFIED); 
                 dbg_err_if(response_print_header(rs));
-            } else
+            } else {
                 dbg_err_if(b->sup_list[i]->serve(rq, rs));
+                if(response_get_status(rs) != HTTP_STATUS_OK)
+                    return response_get_status(rs);
+            }
 
             return 0; /* page successfully served */
         }

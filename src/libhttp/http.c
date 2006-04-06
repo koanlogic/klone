@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.37 2006/04/06 14:02:22 tat Exp $
+ * $Id: http.c,v 1.38 2006/04/06 14:50:03 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -49,7 +49,7 @@ struct http_status_map_s
     { HTTP_STATUS_UNAUTHORIZED          , "Unauthorized"            },
     { HTTP_STATUS_FORBIDDEN             , "Forbidden"               },
     { HTTP_STATUS_LENGTH_REQUIRED       , "Content-Length required" },
-    { HTTP_STATUS_REQUEST_TOO_LARGE     , "Request URI/data too big"},
+    { HTTP_STATUS_REQUEST_TOO_LARGE     , "Request data too big"    },
     { HTTP_STATUS_NOT_IMPLEMENTED       , "Not Implemented"         },
     { HTTP_STATUS_BAD_GATEWAY           , "Bad Gateway"             },
     { HTTP_STATUS_SERVICE_UNAVAILABLE   , "Service Unavailable"     },
