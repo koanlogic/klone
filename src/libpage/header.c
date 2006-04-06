@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.c,v 1.13 2006/01/09 12:38:38 tat Exp $
+ * $Id: header.c,v 1.14 2006/04/06 14:02:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -291,9 +291,10 @@ err:
 
 int header_load(header_t *h , io_t *io)
 {
+    enum { HEADER_MAX_FIELD_COUNT = 256 }; /* max num of header fields */
     u_string_t *line = NULL, *unfolded = NULL;
     const char *ln;
-    size_t len;
+    size_t len, c;
 
     dbg_err_if (h == NULL);
     dbg_err_if (io == NULL);
@@ -301,8 +302,10 @@ int header_load(header_t *h , io_t *io)
     dbg_err_if(u_string_create(NULL, 0, &line));
     dbg_err_if(u_string_create(NULL, 0, &unfolded));
 
-    while(u_getline(io, line) == 0)
+    for(c = HEADER_MAX_FIELD_COUNT; u_getline(io, line) == 0; --c)
     {
+        warn_err_ifm(c == 0, "too much header fields");
+
         ln = u_string_c(line);
         len = u_string_len(line);
 

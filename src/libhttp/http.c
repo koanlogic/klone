@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.36 2006/03/21 19:15:38 tat Exp $
+ * $Id: http.c,v 1.37 2006/04/06 14:02:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -37,9 +37,9 @@ struct http_status_map_s
     const char *desc;
 } http_status_map[] = {
     { HTTP_STATUS_OK                    , "OK"                      },
+    { HTTP_STATUS_NOT_MODIFIED          , "Not Modified"            },
     { HTTP_STATUS_NOT_FOUND             , "Not Found"               },
     { HTTP_STATUS_INTERNAL_SERVER_ERROR , "Internal Server Error"   },
-    { HTTP_STATUS_NOT_MODIFIED          , "Not Modified"            },
     { HTTP_STATUS_MOVED_PERMANENTLY     , "Moved Permanently"       },
     { HTTP_STATUS_MOVED_TEMPORARILY     , "Moved Temporarily"       },
     { HTTP_STATUS_CREATED               , "Created"                 },
@@ -48,11 +48,12 @@ struct http_status_map_s
     { HTTP_STATUS_BAD_REQUEST           , "Bad Request"             },
     { HTTP_STATUS_UNAUTHORIZED          , "Unauthorized"            },
     { HTTP_STATUS_FORBIDDEN             , "Forbidden"               },
+    { HTTP_STATUS_LENGTH_REQUIRED       , "Content-Length required" },
+    { HTTP_STATUS_REQUEST_TOO_LARGE     , "Request URI/data too big"},
     { HTTP_STATUS_NOT_IMPLEMENTED       , "Not Implemented"         },
     { HTTP_STATUS_BAD_GATEWAY           , "Bad Gateway"             },
     { HTTP_STATUS_SERVICE_UNAVAILABLE   , "Service Unavailable"     },
     { 0                                 , NULL                      }
-
 };
 
 /* in cgi.c */
@@ -233,43 +234,19 @@ err:
     return ~0;
 }
 
-static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
+static int http_print_error_page(http_t *h, request_t *rq, response_t *rs, 
+    int http_status)
 {
     enum { BUFSZ = 64 };
     const char *err_page;
     char buf[BUFSZ];
-    int  status;
+    int rc;
 
     dbg_err_if (h == NULL);
     dbg_err_if (rq == NULL);
     dbg_err_if (rs == NULL);
+    dbg_err_if (http_status == 0);
     
-    /* add default header fields */
-    dbg_err_if(http_add_default_header(h, rs));
-
-    /* set default successfull status code */
-    dbg_err_if(response_set_status(rs, HTTP_STATUS_OK));
-
-    /* serve the page; on error write out a simple error page */
-    if(!broker_serve(h->broker, rq, rs))
-        return 0; /* page successfully served */
-
-    /* something has gone wrong, if the status code is reasonable
-       try to honor it otherwise try to output an internal server error */
-    status = response_get_status(rs);
-    switch(status)
-    {
-        case HTTP_STATUS_NO_CONTENT:
-            return 0; /* no MIME body needed */
-        case HTTP_STATUS_EMPTY:
-        case HTTP_STATUS_ACCEPTED:
-        case HTTP_STATUS_OK:
-        case HTTP_STATUS_CREATED:
-        case HTTP_STATUS_INTERNAL_SERVER_ERROR:
-            response_set_status(rs, HTTP_STATUS_INTERNAL_SERVER_ERROR); 
-            break;
-    }
-
     /* clean dirty header fields */
     dbg_err_if(header_clear(response_get_header(rs)));
 
@@ -280,19 +257,22 @@ static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
     dbg_err_if(response_disable_caching(rs));
 
     /* looking for user provided error page */
-    dbg_err_if(u_snprintf(buf, BUFSZ, "error.%d", status));
+    dbg_err_if(u_snprintf(buf, BUFSZ, "error.%d", http_status));
     err_page = u_config_get_subkey_value(h->config, buf);
 
     if(err_page && !request_set_uri(rq, err_page, NULL, NULL))
     {
         http_resolv_request(h, rq);
-        if(!broker_serve(h->broker, rq, rs))
+        if((rc = broker_serve(h->broker, rq, rs)) == 0)
             return 0; 
-        /* else serve default error page */
+        else {
+            /* configured error page not found */
+            http_status = rc;
+        }
     }
 
-    /* refresh the status code */
-    status = response_get_status(rs);
+    /* be sure that the status code is properly set */
+    response_set_status(rs, http_status);
 
     /* print HTTP header */
     dbg_err_if(response_print_header(rs));
@@ -304,8 +284,9 @@ static int http_do_serve(http_t *h, request_t *rq, response_t *rs)
     dbg_err_if(io_printf(response_io(rs), 
         "<html><head><title>%d %s</title></head>\n"
         "<body><h1>%s</h1><p>URL: %s</body></html>", 
-        status, http_get_status_desc(status), 
-        http_get_status_desc(status), request_get_uri(rq)) < 0);
+        http_status, http_get_status_desc(http_status), 
+        http_get_status_desc(http_status), 
+        (request_get_uri(rq) ? request_get_uri(rq) : "") ) < 0);
 
     return 0;
 err:
@@ -322,7 +303,7 @@ static int http_serve(http_t *h, int fd)
     alarm_t *al = NULL;
     addr_t *addr;
     struct sockaddr sa;
-    int sasz;
+    int sasz, rc = HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
     dbg_err_if (h == NULL);
     dbg_err_if (fd < 0);
@@ -334,7 +315,7 @@ static int http_serve(http_t *h, int fd)
     dbg_err_if(request_create(h, &rq));
     request_set_cgi(rq, cgi);
 
-    /* save local and peer address into request/response objects */
+    /* save local and peer address into the request object */
     dbg_err_if(addr_create(&addr));
 
     if(cgi)
@@ -396,16 +377,6 @@ static int http_serve(http_t *h, int fd)
     if(cgi)
         dbg_err_if(cgi_set_request(rq));
 
-    dbg_err_if(request_parse(rq, http_is_valid_uri, h));
-
-    /* if we're running in server mode then resolv aliases and dir_root */
-    http_resolv_request(h, rq);
-
-    if(strcmp(request_get_filename(rq), "/") == 0)
-        dbg_err_if(http_set_index_request(h, rq)); /* set the index page */
-
-    /* request_print(rq); */
-
     /* create the output io_t */
     if(cgi)
         dbg_err_if(io_fd_create((cgi ? 1 : fd), IO_FD_CLOSE, &out));
@@ -413,14 +384,34 @@ static int http_serve(http_t *h, int fd)
         /* create the response io_t dup'ping the request io_t object */
         dbg_err_if(io_dup(request_io(rq), &out));
 
-    response_set_cgi(rs, cgi);
-    response_set_method(rs, request_get_method(rq));
+    /* default method used if we cannot parse the request (bad request) */
+    response_set_method(rs, HM_GET);
 
     /* bind the response to the connection c */
     dbg_err_if(response_bind(rs, out));
     out = NULL;
 
-    dbg_err_if(http_do_serve(h, rq, rs));
+    dbg_err_if(rc = request_parse_header(rq, http_is_valid_uri, h));
+
+    response_set_method(rs, request_get_method(rq));
+
+    /* if we're running in server mode then resolv aliases and dir_root */
+    http_resolv_request(h, rq);
+
+    /* if / is requested then return one of index.{klone,kl1,html,htm} */
+    if(strcmp(request_get_filename(rq), "/") == 0)
+        dbg_err_if(http_set_index_request(h, rq)); /* set the index page */
+
+    /* add default header fields */
+    dbg_err_if(http_add_default_header(h, rs));
+
+    /* set default successfull status code */
+    dbg_err_if(response_set_status(rs, HTTP_STATUS_OK));
+
+    /* serve the page; on error write out a simple error page */
+    dbg_err_if(rc = broker_serve(h->broker, rq, rs));
+
+    /* page successfully served */
 
     request_free(rq);
     response_free(rs); /* must be free'd after the request object because
@@ -429,14 +420,16 @@ static int http_serve(http_t *h, int fd)
                           not be free'd) that happens during the io_free call */
     return 0;
 err:
+    if(rc && rq && rs && response_io(rs))
+        http_print_error_page(h, rq, rs, rc); /* print the error page */
     if(in)
         io_free(in);
     if(out)
         io_free(out);
-    if(rs)
-        response_free(rs);
     if(rq)
         request_free(rq);
+    if(rs)
+        response_free(rs);
     return ~0;
 }
 

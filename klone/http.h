@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.h,v 1.9 2006/01/09 12:38:37 tat Exp $
+ * $Id: http.h,v 1.10 2006/04/06 14:02:22 tat Exp $
  */
 
 #ifndef _KLONE_HTTP_H_
@@ -18,6 +18,46 @@ extern "C" {
 #endif 
 
 /** \file */
+
+/** HTTP response codes */
+enum {
+    HTTP_STATUS_EMPTY                     =   0, 
+    /**< undefined status */
+    HTTP_STATUS_OK                        = 200,
+    /**< request succeeded */
+    HTTP_STATUS_CREATED                   = 201,
+    /**< fulfilled request resulting in creation of new resource */
+    HTTP_STATUS_ACCEPTED                  = 202,
+    /**< request accepted but processing not completed */
+    HTTP_STATUS_NO_CONTENT                = 204,
+    /**< no body returned */
+    HTTP_STATUS_MOVED_PERMANENTLY         = 301,
+    /**< resource relocated permanently */
+    HTTP_STATUS_MOVED_TEMPORARILY         = 302,
+    /**< resource relocated temporarily */
+    HTTP_STATUS_NOT_MODIFIED              = 304,
+    /**< GET request for unmodified document */
+    HTTP_STATUS_BAD_REQUEST               = 400,
+    /**< syntax error */
+    HTTP_STATUS_UNAUTHORIZED              = 401,
+    /**< user authentication required */
+    HTTP_STATUS_FORBIDDEN                 = 403,
+    /**< access to resource forbidden */
+    HTTP_STATUS_NOT_FOUND                 = 404,
+    /**< nothing found at matching request URI */
+    HTTP_STATUS_LENGTH_REQUIRED           = 411,
+    /**< missing Content-Length header field */
+    HTTP_STATUS_REQUEST_TOO_LARGE         = 413,
+    /**< request PDU too big */
+    HTTP_STATUS_INTERNAL_SERVER_ERROR     = 500,
+    /**< unexpected condition caused an error */
+    HTTP_STATUS_NOT_IMPLEMENTED           = 501,
+    /**< request method not supported */
+    HTTP_STATUS_BAD_GATEWAY               = 502,
+    /**< invalid response while acting as gateway or proxy */
+    HTTP_STATUS_SERVICE_UNAVAILABLE       = 503 
+    /**< server unavailable due to temporary overloading or maintenance */
+};
 
 /** HTTP Methods */
 enum http_method_e

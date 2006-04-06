@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: broker.c,v 1.10 2006/01/09 12:38:38 tat Exp $
+ * $Id: broker.c,v 1.11 2006/04/06 14:02:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -43,7 +43,7 @@ notfound:
 int broker_serve(broker_t *b, request_t *rq, response_t *rs)
 {
     const char *file_name;
-    int i;
+    int i, rc = HTTP_STATUS_NOT_FOUND;
     time_t mtime, ims;
 
     dbg_err_if (b == NULL);
@@ -63,15 +63,14 @@ int broker_serve(broker_t *b, request_t *rq, response_t *rs)
             } else
                 dbg_err_if(b->sup_list[i]->serve(rq, rs));
 
-            return 0;
+            return 0; /* page successfully served */
         }
     }
 
     response_set_status(rs, HTTP_STATUS_NOT_FOUND); 
 
-    return ~0; /* page not found */
 err:
-    return ~0;
+    return HTTP_STATUS_NOT_FOUND; /* page not found */
 }
 
 static u_config_t* broker_get_request_config(request_t *rq)

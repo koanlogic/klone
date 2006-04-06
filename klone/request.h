@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.h,v 1.11 2006/01/09 17:41:56 tat Exp $
+ * $Id: request.h,v 1.12 2006/04/06 14:02:22 tat Exp $
  */
 
 #ifndef _KLONE_REQUEST_H_
@@ -28,9 +28,10 @@ typedef struct request_s request_t;
 int request_create(http_t *h, request_t **prq);
 int request_free(request_t *rq);
 int request_bind(request_t *rq, io_t *);
-int request_parse(request_t *rq, 
+int request_parse_header(request_t *rq, 
         int (*is_valid_url)(void*, const char *, size_t),
         void* arg);
+int request_parse_data(request_t *rq);
 
 io_t* request_io(request_t *rq);
 http_t* request_get_http(request_t *rq);

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.35 2006/03/21 19:15:38 tat Exp $
+ * $Id: session.c,v 1.36 2006/04/06 14:02:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -721,7 +721,7 @@ int session_prv_save_var(var_t *v, void *vp)
     int rc = ~0;
 
     dbg_err_if (v == NULL);
-    //dbg_err_if (vp == NULL);
+    /* dbg_err_if (vp == NULL); */
 
     /* buffers must be at least three times the src data to URL-encode  */
     nsz = 1 + 3 * strlen(var_get_name(v));  /* name buffer size  */

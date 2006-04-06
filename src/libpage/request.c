@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.27 2006/01/23 13:27:07 tho Exp $
+ * $Id: request.c,v 1.28 2006/04/06 14:02:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -526,6 +526,7 @@ int request_set_uri(request_t *rq, const char *uri,
         int (*is_valid_uri)(void*, const char *, size_t),
         void* arg)
 {
+    enum { REQUEST_URI_MAX_LENGTH = 4095 };
     char *p, *fn, *pi, *cp = NULL;
     size_t uri_len = strlen(uri);
 
@@ -535,6 +536,10 @@ int request_set_uri(request_t *rq, const char *uri,
     /* arg may be NULL */
  
     request_clear_uri(rq);
+
+    /* this is just to avoid recursive infinite redirect loops for pages that 
+       appends something to the URI and redirects to the same page */
+    warn_err_ifm(uri_len > REQUEST_URI_MAX_LENGTH, "Request URI too long");
 
     REQUEST_SET_STRING_FIELD(rq->uri, uri);
 
@@ -586,6 +591,10 @@ static int request_set_proto(request_t *rq, const char *proto)
     dbg_err_if (rq == NULL);
     dbg_err_if (proto == NULL);
 
+    /* be sure that the requested protocol is http */
+    if(strncasecmp(proto, "http", 4))
+        return ~0; /* unknown or unsupported protocol */
+
     REQUEST_SET_STRING_FIELD(rq->protocol, proto);
 
     return 0;
@@ -614,13 +623,12 @@ int request_set_method(request_t *rq, const char *method)
         rq->method = HM_HEAD;
     else if(!strcasecmp(method, "post"))
         rq->method = HM_POST;
-    else if(!strcasecmp(method, "put"))
-        rq->method = HM_PUT;
-    else if(!strcasecmp(method, "delete"))
-        rq->method = HM_DELETE;
-    else
+    else {
+        /* put, delete, * */
         rq->method = HM_UNKNOWN;
-
+        return ~0; /* unknown or unsupported method */
+    }
+    
     return 0;
 }
 
@@ -684,7 +692,7 @@ err:
     return ~0;
 }
 
-static int request_parse_args(request_t *rq)
+static int request_parse_query_args(request_t *rq)
 {
     char *pp, *tok, *src, *query = NULL;
 
@@ -785,7 +793,7 @@ static int request_parse_urlencoded_data(request_t *rq)
     rq->query[qsz + len] = 0;
 
     /* parse rq->query and build the args var_t* array */
-    dbg_err_if(request_parse_args(rq));
+    dbg_err_if(request_parse_query_args(rq));
 
     return 0;
 err:
@@ -1309,7 +1317,48 @@ static int request_cb_close_socket(alarm_t *al, void *arg)
     return 0;
 }
 
+int request_parse_data(request_t *rq)
+{
+    alarm_t *al = NULL;
+    int rc = HTTP_STATUS_BAD_REQUEST;
 
+    if(rq->method == HM_POST)
+    {
+        /* set a timeout to abort POST if it takes too much... */
+        dbg_err_if(timerm_add(rq->post_timeout, request_cb_close_socket, 
+            (void*)rq->io, &al));
+
+        /* Content-Length is required when using POST */
+        dbg_err_if(request_set_content_length(rq) && 
+            (rc = HTTP_STATUS_LENGTH_REQUIRED));
+
+        /* abort if the client is pushing too much data */
+        dbg_err_if(rq->content_length > rq->post_maxsize &&
+            (rc = HTTP_STATUS_REQUEST_TOO_LARGE));
+
+        if(request_is_multipart_formdata(rq))
+        { 
+            /* some vars may be urlencoded */
+            dbg_err_if(request_parse_query_args(rq));
+
+            /* <form enctype="multipart/form-data" ...> */
+            dbg_err_if(request_parse_multipart_data(rq));
+        } else {
+            /* <form [enctype="application/x-www-form-urlencoded"] ...> */
+            dbg_err_if(request_parse_urlencoded_data(rq));
+        }
+
+        /* post timeout not expired, clear it */
+        dbg_if(timerm_del(al)); al = NULL;
+    } else {
+        /* parse urlencoded variables and set var_t* array */
+        dbg_err_if(request_parse_query_args(rq));
+    }
+
+    return 0;
+err:
+    return rc;
+}
 
 /*
  * \brief   Parse a request object
@@ -1322,14 +1371,15 @@ static int request_cb_close_socket(alarm_t *al, void *arg)
  *
  * \return \c 0 if successful, non-zero on error
  */
-int request_parse(request_t *rq, 
+int request_parse_header(request_t *rq, 
         int (*is_valid_uri)(void*, const char *, size_t),
         void* arg)
 {
-    enum { BUFSZ = 1024 };
+    enum { BUFSZ = 4096 };
     const char WP[] = " \t\r\n";
     char ln[BUFSZ], *pp, *method, *uri, *proto;
     alarm_t *al = NULL;
+    int rc = HTTP_STATUS_BAD_REQUEST;
     
     dbg_err_if (rq == NULL);
     dbg_err_if (rq->io == NULL); /* must call rq_bind before rq_parse */
@@ -1366,40 +1416,12 @@ int request_parse(request_t *rq,
     /* idle timeout not expired, clear it */
     dbg_if(timerm_del(al)); al = NULL;
 
-    if(rq->method == HM_POST)
-    {
-        /* set a timeout to abort POST if it takes too much... */
-        dbg_err_if(timerm_add(rq->post_timeout, request_cb_close_socket, 
-            (void*)rq->io, &al));
-
-        dbg_err_if(request_set_content_length(rq));
-
-        /* abort if the client is pushing too much data */
-        warn_err_ifm(rq->content_length > rq->post_maxsize,
-            "POSTed data exceed configured post_maxsize value");
-
-        if(request_is_multipart_formdata(rq))
-        { 
-            /* some vars may be urlencoded */
-            dbg_err_if(request_parse_args(rq));
-
-            /* <form enctype="multipart/form-data" ...> */
-            dbg_err_if(request_parse_multipart_data(rq));
-        } else {
-            /* <form [enctype="application/x-www-form-urlencoded"] ...> */
-            dbg_err_if(request_parse_urlencoded_data(rq));
-        }
-
-        /* post timeout not expired, clear it */
-        dbg_if(timerm_del(al)); al = NULL;
-    } else {
-        /* parse urlencoded variables and set var_t* array */
-        dbg_err_if(request_parse_args(rq));
-    }
+    /* parse URL encoded or POSTed data */
+    dbg_err_if((rc = request_parse_data(rq)));
 
     return 0;
 err:
-    return ~0;
+    return rc;
 }
 
 /** 
