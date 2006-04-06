@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.48 2006/03/25 13:06:42 tat Exp $
+ * $Id: server.c,v 1.49 2006/04/06 19:43:43 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -187,7 +187,15 @@ static void server_sigint(int sig)
 static void server_sigterm(int sig)
 {
     u_unused_args(sig);
+
+    /* child process die immediately.
+     * note: don't call debug functions because the parent process could be
+     * already dead if the user used the "killall kloned" command */
+    if(ctx->pipc)
+        _exit(0); 
+
     dbg("SIGTERM");
+
     if(ctx && ctx->server)
         server_stop(ctx->server);
 }
@@ -301,6 +309,7 @@ static int server_be_accept(server_t *s, backend_t *be, int *pfd)
     int ad;
 
     u_unused_args(s);
+
     dbg_return_if (be == NULL, ~0);
     dbg_return_if (pfd == NULL, ~0);
 
