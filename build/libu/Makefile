@@ -1,8 +1,7 @@
 include common.mk
 include ../../Makefile.conf
 
-all: party
-
+PARTY_NO_DECOMP = true
 PARTY_NO_INSTALL = true
 
 PARTY_CONF = env MAKL_DIR=${SRCDIR}/makl ./configure
