@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.28 2006/04/06 14:02:22 tat Exp $
+ * $Id: request.c,v 1.29 2006/04/22 13:59:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1302,7 +1302,7 @@ err:
     return ~0;
 }
 
-static int request_cb_close_socket(alarm_t *al, void *arg)
+static int request_cb_close_socket(talarm_t *al, void *arg)
 {
     io_t *io = (io_t*)arg;
 
@@ -1319,7 +1319,7 @@ static int request_cb_close_socket(alarm_t *al, void *arg)
 
 int request_parse_data(request_t *rq)
 {
-    alarm_t *al = NULL;
+    talarm_t *al = NULL;
     int rc = HTTP_STATUS_BAD_REQUEST;
 
     if(rq->method == HM_POST)
@@ -1378,7 +1378,7 @@ int request_parse_header(request_t *rq,
     enum { BUFSZ = 4096 };
     const char WP[] = " \t\r\n";
     char ln[BUFSZ], *pp, *method, *uri, *proto;
-    alarm_t *al = NULL;
+    talarm_t *al = NULL;
     int rc = HTTP_STATUS_BAD_REQUEST;
     
     dbg_err_if (rq == NULL);

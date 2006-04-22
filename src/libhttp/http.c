@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.38 2006/04/06 14:50:03 tat Exp $
+ * $Id: http.c,v 1.39 2006/04/22 13:59:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -300,7 +300,7 @@ static int http_serve(http_t *h, int fd)
     io_t *in = NULL, *out = NULL;
     int cgi = 0, port;
     const char *gwi = NULL;
-    alarm_t *al = NULL;
+    talarm_t *al = NULL;
     addr_t *addr;
     struct sockaddr sa;
     int sasz, rc = HTTP_STATUS_INTERNAL_SERVER_ERROR;

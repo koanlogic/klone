@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.50 2006/04/22 13:14:46 tat Exp $
+ * $Id: server.c,v 1.51 2006/04/22 13:59:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -586,7 +586,7 @@ err:
     return ~0;
 }
 
-static int server_cb_spawn_child(alarm_t *al, void *arg)
+static int server_cb_spawn_child(talarm_t *al, void *arg)
 {
     server_t *s = (server_t*)arg;
 
@@ -612,7 +612,7 @@ err:
 
 static int server_be_serve(server_t *s, backend_t *be, int ad)
 {
-    alarm_t *al = NULL;
+    talarm_t *al = NULL;
 
     dbg_err_if (s == NULL);
     dbg_err_if (be == NULL);
@@ -801,7 +801,7 @@ err:
     return ~0;
 }
 
-int server_cb_klog_flush(alarm_t *a, void *arg)
+int server_cb_klog_flush(talarm_t *a, void *arg)
 {
     server_t *s = (server_t*)arg;
 

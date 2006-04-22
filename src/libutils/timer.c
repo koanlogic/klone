@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: timer.c,v 1.14 2006/01/09 12:38:38 tat Exp $
+ * $Id: timer.c,v 1.15 2006/04/22 13:59:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -20,23 +20,23 @@
 #include <windows.h>
 #endif
 
-TAILQ_HEAD(alarm_list_s, alarm_s);
-typedef struct alarm_list_s alarm_list_t;
+TAILQ_HEAD(talarm_list_s, talarm_s);
+typedef struct talarm_list_s talarm_list_t;
 
 typedef void (*timerm_cb_t)(int);
 
-struct alarm_s
+struct talarm_s
 {
-    TAILQ_ENTRY(alarm_s) np;    /* next & prev pointers         */
+    TAILQ_ENTRY(talarm_s) np;   /* next & prev pointers         */
     timerm_t *timer;            /* timerm_t that owns the alarm */
     time_t expire;              /* when to fire the alarm       */
-    alarm_cb_t cb;              /* alarm callback               */
+    talarm_cb_t cb;             /* alarm callback               */
     void *arg;                  /* cb opaque argument           */
 };
 
 struct timerm_s
 {
-    alarm_list_t alist;         /* alarm list                   */
+    talarm_list_t alist;         /* alarm list                   */
 
 #ifdef OS_WIN
     CRITICAL_SECTION cs;
@@ -66,7 +66,7 @@ static int timerm_set_alarm(int timeout)
 
 static int timerm_set_next(void)
 {
-    alarm_t *al = NULL;
+    talarm_t *al = NULL;
     time_t now = time(0);
 
     if((al = TAILQ_FIRST(&timer->alist)) == NULL)
@@ -79,7 +79,7 @@ static int timerm_set_next(void)
 
 void timerm_sigalrm(int sigalrm)
 {
-    alarm_t *al = NULL, *next = NULL;
+    talarm_t *al = NULL, *next = NULL;
     int expire;
 
     u_unused_args(sigalrm);
@@ -147,7 +147,7 @@ err:
 
 static int timerm_free(timerm_t *t)
 {
-    alarm_t *a = NULL;
+    talarm_t *a = NULL;
 
     dbg_return_if (t == NULL, ~0);
     
@@ -205,10 +205,10 @@ err:
     return ~0;
 }
 
-int timerm_add(int secs, alarm_cb_t cb, void *arg, alarm_t **pa)
+int timerm_add(int secs, talarm_cb_t cb, void *arg, talarm_t **pa)
 {
-    alarm_t *al = NULL;
-    alarm_t *item = NULL;
+    talarm_t *al = NULL;
+    talarm_t *item = NULL;
     time_t now = time(0);
 
     dbg_return_if (cb == NULL, ~0);
@@ -222,7 +222,7 @@ int timerm_add(int secs, alarm_cb_t cb, void *arg, alarm_t **pa)
         #endif
     }
 
-    al = (alarm_t*)u_zalloc(sizeof(alarm_t));
+    al = (talarm_t*)u_zalloc(sizeof(talarm_t));
     dbg_err_if(al == NULL);
 
     al->timer = timer;
@@ -264,9 +264,9 @@ err:
     return ~0;
 }
 
-static int timerm_alarm_pending(alarm_t *a)
+static int timerm_alarm_pending(talarm_t *a)
 {
-    alarm_t *t;
+    talarm_t *t;
 
     TAILQ_FOREACH(t, &timer->alist,np)
     {
@@ -276,7 +276,7 @@ static int timerm_alarm_pending(alarm_t *a)
     return 0;
 }
 
-int timerm_del(alarm_t *a)
+int timerm_del(talarm_t *a)
 {
     dbg_return_if(a == NULL, ~0);
 

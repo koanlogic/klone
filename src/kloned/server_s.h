@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server_s.h,v 1.13 2006/04/22 13:14:46 tat Exp $
+ * $Id: server_s.h,v 1.14 2006/04/22 13:59:01 tat Exp $
  */
 
 #ifndef _KLONE_SERVER_S_H_
@@ -28,7 +28,7 @@ struct server_s
     ppc_t *ppc;             /* parent procedure call                        */
     backends_t bes;         /* backend list                                 */
     klog_t *klog;           /* klog device                                  */
-    alarm_t *al_klog_flush; /* klog flush alarm                             */
+    talarm_t *al_klog_flush;/* klog flush alarm                             */
     children_t *children;   /* children list                                */
     fd_set rdfds, wrfds, exfds;
     const char *chroot;     /* server chroot dir                            */
@@ -37,7 +37,7 @@ struct server_s
     size_t nbackend;        /* # of servers                                 */
     size_t nchild;          /* # of child (only in prefork mode)            */
     size_t max_child;       /* max # of children                            */
-    // int fork_child;      /* # of child to fork when possible             */
+    /* int fork_child;    *//* # of child to fork when possible             */
     int stop;               /* >0 will stop the loop                        */
     int model;              /* server model                                 */
     int klog_flush;         /* >0 will flush the klog                       */
