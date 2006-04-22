@@ -5,21 +5,18 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.49 2006/04/06 19:43:43 tat Exp $
+ * $Id: server.c,v 1.50 2006/04/22 13:14:46 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifdef OS_UNIX
-#include <sys/socket.h>
-#include <netinet/tcp.h>
-#endif
+#include <sys/wait.h>
+#include <u/libu.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <u/libu.h>
 #include <klone/server.h>
 #include <klone/backend.h>
 #include <klone/os.h>
@@ -356,7 +353,7 @@ static int server_chroot_to(server_t *s, const char *dir)
 
     u_unused_args(s);
 
-    dbg_err_if(chroot(dir));
+    dbg_err_if(chroot((char*)dir));
 
     dbg_err_if(chdir("/"));
 

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.22 2006/03/21 19:15:38 tat Exp $
+ * $Id: translat.c,v 1.23 2006/04/22 13:14:46 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -149,7 +149,7 @@ static int parse_directive(parser_t *p, void *arg, const char *buf, size_t sz)
     dbg_return_if (p == NULL, ~0);
     dbg_return_if (buf == NULL, ~0);
     
-    dbg_err_if(io_mem_create(buf, sz, 0, &io));
+    dbg_err_if(io_mem_create((char*)buf, sz, 0, &io));
 
     while(io_gets(io, line, LINE_BUFSZ) > 0)
         dbg_err_if(process_directive(p, line));

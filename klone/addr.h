@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: addr.h,v 1.9 2006/01/09 12:38:37 tat Exp $
+ * $Id: addr.h,v 1.10 2006/04/22 13:14:46 tat Exp $
  */
 
 #ifndef _KLONE_ADDR_H_
@@ -23,8 +23,10 @@ typedef struct addr_s
     union
     {
         struct sockaddr_in  sin;
+#ifndef NO_IPV6
         struct sockaddr_in6 sin6;
-#ifdef OS_UNIX
+#endif
+#ifndef NO_UNIXSOCK
         struct sockaddr_un  sun;
 #endif
     } sa;

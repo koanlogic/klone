@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.37 2006/01/10 21:51:41 tat Exp $
+ * $Id: utils.c,v 1.38 2006/04/22 13:14:46 tat Exp $
  */
 
 #include <stdlib.h>
@@ -13,7 +13,6 @@
 #include <signal.h>
 #include <time.h>
 #include <string.h>
-#include <strings.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -28,6 +27,9 @@
 #include <klone/mime_map.h>
 #include <klone/version.h>
 #include <klone/utils.h>
+#ifdef HAVE_STRINGS
+#include <strings.h>
+#endif
 #include <u/libu.h>
 
 /**
@@ -628,7 +630,7 @@ char *u_stristr(const char *string, const char *sub)
     for(p = string; *p; ++p)
     {
         if(strncasecmp(p, sub, len) == 0)
-            return p;
+            return (char*)p;
     }
 
 err: /* fall through */
@@ -937,7 +939,7 @@ int u_md5(char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ])
     md5_append(&md5ctx, (md5_byte_t*)buf, sz);
     md5_finish(&md5ctx, md5_digest);
 
-    u_tohex(out, md5_digest, 16);
+    u_tohex(out, (const char*)md5_digest, 16);
 
     out[MD5_DIGEST_LEN] = 0;
 
@@ -975,7 +977,7 @@ int u_md5io(io_t *io, char out[MD5_DIGEST_BUFSZ])
 
     md5_finish(&md5ctx, md5_digest);
 
-    u_tohex(out, md5_digest, 16);
+    u_tohex(out, (const char*)md5_digest, 16);
 
     out[MD5_DIGEST_LEN] = 0;
 
@@ -1081,7 +1083,7 @@ notfound:
  * - \c 0   successful
  * - \c ~0  error
  */
-int u_io_unzip_copy(io_t *out, const uint8_t *data, size_t sz)
+int u_io_unzip_copy(io_t *out, const unsigned char *data, size_t sz)
 {
     codec_t *zip = NULL;
     io_t *ios = NULL;

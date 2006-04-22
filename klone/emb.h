@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.h,v 1.13 2006/01/09 12:38:37 tat Exp $
+ * $Id: emb.h,v 1.14 2006/04/22 13:14:46 tat Exp $
  */
 
 #ifndef _KLONE_EMB_H_
@@ -50,7 +50,7 @@ typedef struct embfile_s
 {
     embres_t res;           /* any emb resource must start with a embres_t    */
     size_t size;            /* size of the data block                         */
-    uint8_t *data;          /* file data                                      */
+    unsigned char *data;    /* file data                                      */
     int comp;               /* if data is compressed                          */
     int encrypted;          /* if data is encrypted                           */
     time_t mtime;           /* time of last modification                      */

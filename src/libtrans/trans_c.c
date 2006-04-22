@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.28 2006/03/21 19:15:38 tat Exp $
+ * $Id: trans_c.c,v 1.29 2006/04/22 13:14:46 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -142,7 +142,7 @@ static int print_var_definition(parser_t *p, int comp, const char *varname,
     dbg_err_if(buf == NULL);
 
     /* create an io_t around the HTML block */
-    dbg_err_if(io_mem_create(buf, bufsz, 0, &ios));
+    dbg_err_if(io_mem_create((char*)buf, bufsz, 0, &ios));
 
 #ifdef HAVE_LIBZ
     /* if compression is enabled zip the data block */
@@ -155,9 +155,9 @@ static int print_var_definition(parser_t *p, int comp, const char *varname,
     }
 #endif
 
-    io_printf(p->out, "static uint8_t %s[] = {\n", varname);
+    io_printf(p->out, "static unsigned char %s[] = {\n", varname);
 
-    for(i = 1; (rc = io_getc(ios, &c)) > 0; ++i)
+    for(i = 1; (rc = io_getc(ios, (char*)&c)) > 0; ++i)
     {
         io_printf(p->out, "0x%02X, ", c);
         if(i % 12 == 0)
@@ -459,9 +459,9 @@ int translate_opaque_to_c(io_t *in, io_t *out, trans_info_t *ti)
     io_printf(out, "%s", copyright_hdr);
     io_printf(out, "#include <klone/emb.h>\n");
 
-    io_printf(out, "static uint8_t data[] = {\n");
+    io_printf(out, "static unsigned char data[] = {\n");
 
-    for(i = 1; (rc = io_getc(in, &c)) > 0; ++i)
+    for(i = 1; (rc = io_getc(in, (char*)&c)) > 0; ++i)
     {
         io_printf(out, "0x%02X, ", c);
         if(i % 12 == 0)

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: os.h,v 1.7 2006/01/09 12:38:37 tat Exp $
+ * $Id: os.h,v 1.8 2006/04/22 13:14:46 tat Exp $
  */
 
 #ifndef _KLONE_OS_H_
@@ -13,6 +13,9 @@
 
 #include "klone_conf.h"
 #include <stdarg.h>
+#include <u/libu.h>
+
+#if 0
 
 /* OS compatibility layer */
 #ifdef OS_WIN
@@ -36,13 +39,18 @@
     #include <sys/wait.h>
     #include <netinet/in.h>
     #include <arpa/inet.h>
+#ifndef NO_UNIXSOCK
     #include <sys/un.h>
+#endif
+
     #include <netdb.h>
     #include <netinet/in.h>
     #include <unistd.h>
 #else
     #error unsupported platform
 #endif
+
+#endif /* if 0 */
 
 #endif 
 

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: date.c,v 1.8 2006/01/09 12:38:38 tat Exp $
+ * $Id: date.c,v 1.9 2006/04/22 13:14:46 tat Exp $
  */
 
 #include <stdlib.h>
@@ -136,7 +136,7 @@ int u_rfc850_to_tt(const char *str, time_t *tp)
 
     dbg_err_if(tm.tm_mon < 0);
 
-#ifdef OS_UNIX
+#ifdef HAVE_TMZONE
     /* time zone */
     tm.tm_zone = tzone;
 #endif
@@ -186,7 +186,7 @@ int u_rfc822_to_tt(const char *str, time_t *tp)
 
     dbg_err_if(tm.tm_mon < 0);
 
-#ifdef OS_UNIX
+#ifdef HAVE_TMZONE
     /* time zone */
     tm.tm_zone = tzone;
 #endif

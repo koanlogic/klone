@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.56 2006/03/25 13:06:42 tat Exp $
+# $Id: configure,v 1.57 2006/04/22 13:14:46 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -98,6 +98,11 @@ makl_optional           1   "lib"   "z"
 makl_checktype          0   "pid_t"     "<sys/types.h>" 
 makl_checkfunc          0   "syslog"
 makl_checkfunc          0   "mkstemp"
+
+makl_checkinline        0
+if [ $? -ne 0 ]; then
+    makl_append_var_mk "CFLAGS" "-Dinline=\"\""
+fi
 
 # Binary dependencies
 makl_optional           1    "featx"   "doxygen"    "PATH_DOXYGEN"

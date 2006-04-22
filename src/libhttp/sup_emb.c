@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.23 2006/03/21 15:38:01 tat Exp $
+ * $Id: sup_emb.c,v 1.24 2006/04/22 13:14:46 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -194,7 +194,7 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
 
     /* print out page content (the header will be autoprinted by the 
        response io filter) */
-    dbg_err_if(!io_write(response_io(rs), e->data, e->size));
+    dbg_err_if(!io_write(response_io(rs), (const char*)e->data, e->size));
 
     /* remove and free the gzip codec (if it has been set) */
     dbg_err_if(io_codecs_remove(response_io(rs))); 

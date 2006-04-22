@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: addr.c,v 1.14 2006/03/21 19:15:38 tat Exp $
+ * $Id: addr.c,v 1.15 2006/04/22 13:14:46 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -26,7 +26,7 @@ int addr_free(addr_t *a)
 static int addr_ipv4_create(u_config_t *c, addr_t *addr)
 {
     u_config_t *subkey;
-    uint16_t portn;
+    int portn;
 
     dbg_return_if (c == NULL, ~0);
     dbg_return_if (addr == NULL, ~0);
@@ -55,7 +55,8 @@ static int addr_ipv4_create(u_config_t *c, addr_t *addr)
 
     if(!u_config_get_subkey(c, "port", &subkey))
     {
-        portn = (uint16_t)atoi(u_config_get_value(subkey));
+        portn = atoi(u_config_get_value(subkey));
+        warn_err_ifm(portn < 1 || portn > 65535, "port out of range");
         addr->sa.sin.sin_port = htons(portn);
     }
 
@@ -107,11 +108,13 @@ int addr_set_from_sa(addr_t *addr, struct sockaddr *sa, size_t sz)
         addr->type = ADDR_IPV4;
         memcpy(&addr->sa.sin, sa, sz);
         break;
+#ifndef NO_IPV6
     case sizeof(struct sockaddr_in6):
         addr->type = ADDR_IPV6;
         memcpy(&addr->sa.sin6, sa, sz);
         break;
-#ifdef OS_UNIX
+#endif
+#ifndef NO_UNIXSOCK
     case sizeof(struct sockaddr_un):
         addr->type = ADDR_UNIX;
         memcpy(&addr->sa.sun, sa, sz);

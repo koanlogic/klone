@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: page.h,v 1.7 2006/01/09 12:38:37 tat Exp $
+ * $Id: page.h,v 1.8 2006/04/22 13:14:46 tat Exp $
  */
 
 #ifndef _KLONE_PAGE_H_
@@ -35,7 +35,7 @@ typedef enum page_type_e {
 typedef struct page_static_s
 {
     size_t size;
-    uint8_t *data;
+    unsigned char *data;
 } page_static_t;
 
 /* dyunamic content page */

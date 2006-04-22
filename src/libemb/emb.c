@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.c,v 1.13 2006/01/09 12:38:38 tat Exp $
+ * $Id: emb.c,v 1.14 2006/04/22 13:14:46 tat Exp $
  */
 
 #include <klone/emb.h>
@@ -141,7 +141,7 @@ int emb_open(const char *file, io_t **pio)
     
     dbg_err_if(emb_lookup(file, (embres_t**)&e) || e->res.type != ET_FILE);
 
-    dbg_err_if(io_mem_create(e->data, e->size, 0, &io));
+    dbg_err_if(io_mem_create((char*)e->data, e->size, 0, &io));
 
 #ifdef HAVE_LIBZ
     if(e->comp)
