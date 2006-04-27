@@ -2,6 +2,7 @@ include common.mk
 include ../../Makefile.conf
 
 PARTY_NO_DOWN = true
+PARTY_NO_CHK = true
 PARTY_NO_DECOMP = true
 PARTY_NO_INSTALL = true
 
