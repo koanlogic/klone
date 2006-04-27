@@ -1,9 +1,22 @@
 ChangeLog file of KLone - http://koanlogic.com
 
-KLone 1.0.5:
-    - response_enable_caching and response_disable_caching added
+KLone 1.1.0:
     - cipher IV added to HMAC and to KL1_CLISES_IV cookie
-    - better startup and translate parser errors feedback
+    - makl_target_name used to support MAKL_PLATFORM feature
+    - HTTP_STATUS codes moved to http.h
+    - klone/os.h code removed (u/libu.h used as a portability layer)
+    - response_enable_caching and response_disable_caching added
+    - response_del_field added
+    - alarm_t renamed to talarm_t to avoid a portability (VxWorks) conflict
+    - better startup error reporting
+    - children processes die immediately on SIGTERM/SIGINT
+    - more standard compliant HTTP response code used
+    - REQUEST_URI_MAX_LENGTH and HEADER_MAX_FIELD_COUNT used to avoid 
+      [that type of] DoS
+    - better kl1->C translation error reporting
+    - minor portability fixes
+    - MaKL update (ver. 1.2.0)
+    - LibU update (ver. 0.4.0)
 
 KLone 1.0.4:
     - strip target added to kloned (for selective strip when cross compiling)
@@ -33,3 +46,9 @@ KLone 1.0.2:
 
 KLone 1.0.1:
     - first public release
+
+" vim: ts=4
+" vim: shiftwidth=4
+" vim: tabstop=4
+" vim: expandtab
+

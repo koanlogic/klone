@@ -29,8 +29,6 @@ TODO
         - code coverage (gcov)
 
     - codice
-        - ritornare HTTP error code per upload di dimensioni sopra i limiti
-          massimo (ora chiude la connessione)
         - io_html_printf: html-encode before calling io_printf 
         + <%=fmt arg %> con printf-style format
         - session locking
