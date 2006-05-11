@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.h,v 1.13 2006/01/09 12:38:37 tat Exp $
+ * $Id: io.h,v 1.14 2006/05/11 14:35:47 tat Exp $
  */
 
 #ifndef _KLONE_IO_H_ 
@@ -41,6 +41,7 @@ int io_fd_create(int fd, int flags, io_t **pio);
 int io_mem_create(char *buf, size_t size, int flags, io_t **pio);
 #ifdef HAVE_LIBOPENSSL
 int io_ssl_create(int fd, int flags, SSL_CTX *ssl_tx, io_t **pio);
+int io_ssl_get_SSL(io_t *io_ssl, SSL **pssl);
 #endif
 int io_close(io_t *io);
 int io_free(io_t *io);
