@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iossl.c,v 1.12 2006/05/12 09:02:58 tat Exp $
+ * $Id: iossl.c,v 1.13 2006/05/12 11:35:42 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -37,7 +37,11 @@ int io_ssl_get_SSL(io_t *io, SSL **pssl)
     dbg_err_if(io_ssl == NULL);
     dbg_err_if(pssl == NULL);
 
-    return io_ssl->ssl;
+    dbg_err_if(io_ssl->ssl == NULL);
+
+    *pssl = io_ssl->ssl;
+
+    return 0;
 err:
     return ~0;
 }
