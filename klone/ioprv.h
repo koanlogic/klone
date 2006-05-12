@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ioprv.h,v 1.11 2006/01/09 12:38:37 tat Exp $
+ * $Id: ioprv.h,v 1.12 2006/05/12 09:02:58 tat Exp $
  */
 
 #ifndef _KLONE_IO_PRV_H_
@@ -43,6 +43,9 @@ struct io_s
 
     /* reference count (used by dup'd io_t) */
     unsigned int refcnt; 
+
+    /* !0 for encrypted connections */
+    int is_secure;
 
     /* io ops */
     io_read_op read;

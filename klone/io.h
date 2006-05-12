@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.h,v 1.14 2006/05/11 14:35:47 tat Exp $
+ * $Id: io.h,v 1.15 2006/05/12 09:02:58 tat Exp $
  */
 
 #ifndef _KLONE_IO_H_ 
@@ -62,6 +62,7 @@ ssize_t io_putc(io_t *io, char c);
 int io_codec_add_head(io_t *io, codec_t* codec);
 int io_codec_add_tail(io_t *io, codec_t* codec);
 int io_codecs_remove(io_t *io);
+int io_is_secure(io_t *io);
 
 #ifdef __cplusplus
 }

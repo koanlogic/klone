@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iossl.c,v 1.11 2006/05/11 14:35:47 tat Exp $
+ * $Id: iossl.c,v 1.12 2006/05/12 09:02:58 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -122,6 +122,9 @@ int io_ssl_create(int fd, int flags, SSL_CTX *ssl_ctx, io_t **pio)
     io_ssl->io.write = (io_write_op) io_ssl_write;
     io_ssl->io.term = (io_term_op) io_ssl_term; 
     io_ssl->io.size = NULL;
+
+    /* set the secure flag (encrypted connection) */
+    io_ssl->io.is_secure = 1;
     
     /* start a SSL connection */
     dbg_err_if(SSL_accept(io_ssl->ssl) <= 0);

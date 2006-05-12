@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.30 2006/02/06 11:44:55 tat Exp $
+ * $Id: io.c,v 1.31 2006/05/12 09:02:58 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -931,6 +931,26 @@ int io_name_get(io_t *io, char *name, size_t sz)
 err:
     return ~0;
 }
+
+/*
+ * \brief   Return the secure state of the IO object
+ *  
+ *  Return 0 if the connection is not secure (i.e. not encrypted) or not zero
+ *  otherwise
+ *
+ * \param io    io object
+ *
+ * \return \c 0 for not secure connections, non-zero otherwise
+ */
+int io_is_secure(io_t *io)
+{
+    dbg_err_if(io == NULL);
+
+    return io->is_secure;
+err:
+    return 0;
+}
+
 
 /* used by io devices init functions: alloc (used dev_sz block size) 
    and initialize an io_t */

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.29 2006/04/22 13:59:01 tat Exp $
+ * $Id: request.c,v 1.30 2006/05/12 09:02:58 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1663,6 +1663,7 @@ const char* request_get_field_value(request_t *rq, const char *name)
 
     return header_get_field_value(rq->header, name);
 }
+
 
 /**
  *  \}
