@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.30 2006/05/12 09:02:58 tat Exp $
+ * $Id: request.c,v 1.31 2006/05/16 20:48:46 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1175,7 +1175,7 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
     header_t *h = NULL;
     io_t *tmpio = NULL;
     char name[PRMSZ], filename[PRMSZ], buf[BUFSZ];
-    size_t bound_len;
+    size_t bound_len, len;
     int found;
     ssize_t rc;
 
@@ -1240,23 +1240,27 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
         /* read param value from the io and add a new item in rq->args */
         dbg_err_if(u_snprintf(buf, BUFSZ, "%s=", name));
 
-        /* append the param value to the buffer */
-        dbg_err_if(io_gets(io, buf + strlen(buf), BUFSZ - strlen(buf)) <=0);
+        /* read the value of the variable (all until the next boundary) */
+        len = strlen(buf);
+        rc = read_until(io, boundary, buf + len, BUFSZ - len, &found);
+        dbg_err_if(rc <= 0); /* on error or eof exit */
 
-        /* remove trailing new lines */
-        while(is_nl(buf[strlen(buf) - 1]))
-            buf[strlen(buf) - 1] = 0;
+        /* write all but the last bound_len + 2 (\r\n) bytes */
+        warn_err_ifm(!found, "malformed request or BUFSZ too small");
+
+        rc -= (bound_len + 2);
+        dbg_err_if(rc < 0);
+
+        /* remove the boundary */
+        buf[len + rc] = 0;
 
         /* add a new var to request arguments list */
         dbg_if(vars_add_urlvar(rq->args, buf, NULL));
 
-        /* read next boundary */
+        /* could be "\r\n" for not-ending boundaries or "--\r\n" */
         dbg_err_if(io_gets(io, buf, BUFSZ) <= 0);
 
-        /* err if next line is not a boundary */
-        dbg_err_if(strncmp(buf, boundary, bound_len));
-
-        if(strncmp(buf + bound_len, "--", 2) == 0)
+        if(strncmp(buf, "--", 2) == 0)
             *eof = 1; /* end of MIME stuff */
     }
 
