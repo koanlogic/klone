@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.40 2006/05/19 12:34:59 tat Exp $
+ * $Id: http.c,v 1.41 2006/05/19 13:50:25 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -247,8 +247,9 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
     dbg_err_if (rs == NULL);
     dbg_err_if (http_status == 0);
     
-    /* clean dirty header fields */
-    dbg_err_if(header_clear(response_get_header(rs)));
+    /* clean dirty header fields (not for redirects) */
+    if(http_status != 302)
+        dbg_err_if(header_clear(response_get_header(rs)));
 
     /* add default header fields */
     dbg_err_if(http_add_default_header(h, rs));
@@ -273,6 +274,8 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
 
     /* be sure that the status code is properly set */
     response_set_status(rs, http_status);
+
+    response_print_header(rs);
 
     if(request_get_method(rq) == HM_HEAD)
         return 0; /* just the header is requested */
@@ -406,7 +409,7 @@ static int http_serve(http_t *h, int fd)
     dbg_err_if(response_set_status(rs, HTTP_STATUS_OK));
 
     /* serve the page; on error write out a simple error page */
-    dbg_err_if((rc = broker_serve(h->broker, rq, rs)) >= 400);
+    dbg_err_if(rc = broker_serve(h->broker, rq, rs));
 
     /* page successfully served */
 
