@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.39 2006/04/22 13:59:01 tat Exp $
+ * $Id: http.c,v 1.40 2006/05/19 12:34:59 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -274,9 +274,6 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
     /* be sure that the status code is properly set */
     response_set_status(rs, http_status);
 
-    /* print HTTP header */
-    dbg_err_if(response_print_header(rs));
-
     if(request_get_method(rq) == HM_HEAD)
         return 0; /* just the header is requested */
 
@@ -409,7 +406,7 @@ static int http_serve(http_t *h, int fd)
     dbg_err_if(response_set_status(rs, HTTP_STATUS_OK));
 
     /* serve the page; on error write out a simple error page */
-    dbg_err_if(rc = broker_serve(h->broker, rq, rs));
+    dbg_err_if((rc = broker_serve(h->broker, rq, rs)) >= 400);
 
     /* page successfully served */
 
