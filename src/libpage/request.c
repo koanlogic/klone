@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.31 2006/05/16 20:48:46 tat Exp $
+ * $Id: request.c,v 1.32 2006/05/21 18:22:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1174,6 +1174,7 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
     enum { PRMSZ = 512, BUFSZ = 4096 };
     header_t *h = NULL;
     io_t *tmpio = NULL;
+    var_t *v = NULL;
     char name[PRMSZ], filename[PRMSZ], buf[BUFSZ];
     size_t bound_len, len;
     int found;
@@ -1237,12 +1238,8 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
             *eof = 1; /* end of MIME stuff */
 
     } else {
-        /* read param value from the io and add a new item in rq->args */
-        dbg_err_if(u_snprintf(buf, BUFSZ, "%s=", name));
-
         /* read the value of the variable (all until the next boundary) */
-        len = strlen(buf);
-        rc = read_until(io, boundary, buf + len, BUFSZ - len, &found);
+        rc = read_until(io, boundary, buf, BUFSZ, &found);
         dbg_err_if(rc <= 0); /* on error or eof exit */
 
         /* write all but the last bound_len + 2 (\r\n) bytes */
@@ -1251,11 +1248,12 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
         rc -= (bound_len + 2);
         dbg_err_if(rc < 0);
 
-        /* remove the boundary */
-        buf[len + rc] = 0;
+        /* zero-term the buffer (removing the boundary) */
+        buf[rc] = 0;
 
-        /* add a new var to request arguments list */
-        dbg_if(vars_add_urlvar(rq->args, buf, NULL));
+        /* add a new binary var to request arguments list */
+        dbg_err_if(var_bin_create(name, buf, rc, &v));
+        dbg_if(vars_add(rq->args, v));
 
         /* could be "\r\n" for not-ending boundaries or "--\r\n" */
         dbg_err_if(io_gets(io, buf, BUFSZ) <= 0);
