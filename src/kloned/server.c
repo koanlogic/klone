@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.51 2006/04/22 13:59:01 tat Exp $
+ * $Id: server.c,v 1.52 2006/05/27 16:34:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1037,6 +1037,11 @@ static int server_setup_backend(server_t *s, backend_t *be)
         "missing or bad '<servname>.addr' value");
 
     dbg_err_if(addr_create(&be->addr));
+
+    if(strcasecmp(be->proto, "https") == 0)
+        dbg_err_if(addr_set_ipv4_port(be->addr, 443)); /* default https port */
+    else
+        dbg_err_if(addr_set_ipv4_port(be->addr, 80)); /* default http port */
 
     dbg_err_if(addr_set_from_config(be->addr, subkey));
 

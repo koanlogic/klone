@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: addr.h,v 1.10 2006/04/22 13:14:46 tat Exp $
+ * $Id: addr.h,v 1.11 2006/05/27 16:34:01 tat Exp $
  */
 
 #ifndef _KLONE_ADDR_H_
@@ -35,7 +35,9 @@ typedef struct addr_s
 int addr_create(addr_t **pa);
 int addr_set_from_config(addr_t *a, u_config_t *c);
 int addr_set_from_sa(addr_t *a, struct sockaddr *sa, size_t sz);
-int addr_set_ip(addr_t *a, const char *ip, int port);
+int addr_set(addr_t *a, const char *ip, int port);
+int addr_set_ipv4_ip(addr_t *a, const char *ip);
+int addr_set_ipv4_port(addr_t *a, int port);
 int addr_free(addr_t *a);
 
 #ifdef __cplusplus

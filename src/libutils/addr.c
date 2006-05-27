@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: addr.c,v 1.15 2006/04/22 13:14:46 tat Exp $
+ * $Id: addr.c,v 1.16 2006/05/27 16:34:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -31,13 +31,9 @@ static int addr_ipv4_create(u_config_t *c, addr_t *addr)
     dbg_return_if (c == NULL, ~0);
     dbg_return_if (addr == NULL, ~0);
     
-    addr->type = ADDR_IPV4;
-
     /* set default values */
-    memset(&addr->sa.sin, 0, sizeof(addr->sa.sin));
+    addr->type = ADDR_IPV4;
     addr->sa.sin.sin_family = AF_INET;
-    addr->sa.sin.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr->sa.sin.sin_port = htons(80);
 
     /* use user-defined ip or port */
     if(!u_config_get_subkey(c, "ip", &subkey))
@@ -79,8 +75,37 @@ static int addr_is_ipv4(const char *ip)
     return 0;
 }
 
-int addr_set_ip(addr_t *addr, const char *ip, int port)
+int addr_set_ipv4_port(addr_t *addr, int port)
 {
+    dbg_return_if (addr == NULL, ~0);
+    dbg_return_if (port == 0, ~0);
+
+    addr->sa.sin.sin_port = htons(port);
+
+    return 0;
+}
+
+int addr_set_ipv4_ip(addr_t *addr, const char *ip)
+{
+    dbg_return_if (addr == NULL, ~0);
+    dbg_return_if (ip == NULL, ~0);
+
+    addr->type = ADDR_IPV4;
+
+    /* set default values */
+    memset(&addr->sa.sin, 0, sizeof(addr->sa.sin));
+    addr->sa.sin.sin_family = AF_INET;
+    addr->sa.sin.sin_addr.s_addr = inet_addr(ip);
+
+    return 0;
+}
+
+int addr_set(addr_t *addr, const char *ip, int port)
+{
+    dbg_return_if (addr == NULL, ~0);
+    dbg_return_if (ip == NULL, ~0);
+    dbg_return_if (port == 0, ~0);
+
     if(addr_is_ipv4(ip))
     {
         addr->type = ADDR_IPV4;
@@ -161,6 +186,12 @@ int addr_create(addr_t **pa)
     
     addr = u_zalloc(sizeof(addr_t));
     dbg_err_if(addr == NULL);
+
+    /* set default ipv4 values */
+    memset(&addr->sa.sin, 0, sizeof(addr->sa.sin));
+    addr->sa.sin.sin_family = AF_INET;
+    addr->sa.sin.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr->sa.sin.sin_port = htons(0);
 
     *pa = addr;
 

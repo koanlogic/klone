@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.41 2006/05/19 13:50:25 tat Exp $
+ * $Id: http.c,v 1.42 2006/05/27 16:34:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -323,7 +323,7 @@ static int http_serve(http_t *h, int fd)
         if(getenv("REMOTE_ADDR") && getenv("REMOTE_PORT"))
         {
             port = atoi(getenv("REMOTE_PORT"));
-            dbg_err_if(addr_set_ip(addr, getenv("REMOTE_ADDR"), port));
+            dbg_err_if(addr_set(addr, getenv("REMOTE_ADDR"), port));
             dbg_err_if(request_set_addr(rq, addr));
         }
 
@@ -333,7 +333,7 @@ static int http_serve(http_t *h, int fd)
                 port = atoi(getenv("SERVER_PORT"));
             else
                 port = 80;
-            dbg_err_if(addr_set_ip(addr, getenv("SERVER_ADDR"), port));
+            dbg_err_if(addr_set(addr, getenv("SERVER_ADDR"), port));
             dbg_err_if(request_set_peer_addr(rq, addr));
         }
     } else {

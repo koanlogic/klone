@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iossl.c,v 1.13 2006/05/12 11:35:42 tat Exp $
+ * $Id: iossl.c,v 1.14 2006/05/27 16:34:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -107,6 +107,8 @@ err:
 int io_ssl_create(int fd, int flags, SSL_CTX *ssl_ctx, io_t **pio)
 {
     io_ssl_t *io_ssl = NULL;
+    int rc = 0;
+    long vfy;
 
     dbg_return_if (pio == NULL, ~0);
     dbg_return_if (ssl_ctx == NULL, ~0);
@@ -125,13 +127,23 @@ int io_ssl_create(int fd, int flags, SSL_CTX *ssl_ctx, io_t **pio)
     io_ssl->io.read = (io_read_op) io_ssl_read;
     io_ssl->io.write = (io_write_op) io_ssl_write;
     io_ssl->io.term = (io_term_op) io_ssl_term; 
-    io_ssl->io.size = NULL;
+    io_ssl->io.size = 0;
 
     /* set the secure flag (encrypted connection) */
     io_ssl->io.is_secure = 1;
     
-    /* start a SSL connection */
-    dbg_err_if(SSL_accept(io_ssl->ssl) <= 0);
+    /* accept a SSL connection */
+    while((rc = SSL_accept(io_ssl->ssl)) <= 0)
+    {
+        /* will return 1 if accept has been blocked by a signal or async IO */
+        if(BIO_sock_should_retry(rc))
+            continue;
+
+        if(SSL_get_error(io_ssl->ssl, rc) == SSL_ERROR_WANT_READ)
+            break; 
+
+        warn_err("SSL accept error: %d", SSL_get_error(io_ssl->ssl, rc));
+    }
 
     *pio = (io_t*)io_ssl;
 
@@ -139,7 +151,10 @@ int io_ssl_create(int fd, int flags, SSL_CTX *ssl_ctx, io_t **pio)
 err:
     if(io_ssl && io_ssl->ssl)
     {
-        ERR_print_errors_fp( stderr );
+        /* print a warning message for bad client certificates */
+        if((vfy = SSL_get_verify_result(io_ssl->ssl)) != X509_V_OK)
+            warn("SSL client cert verify error: %s", 
+                X509_verify_cert_error_string(vfy));
         SSL_set_shutdown(io_ssl->ssl, SSL_SENT_SHUTDOWN|SSL_RECEIVED_SHUTDOWN);
     }
     if(io_ssl)
