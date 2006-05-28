@@ -1,5 +1,11 @@
 ChangeLog file of KLone - http://koanlogic.com
 
+KLone 1.1.1:
+    - io_is_secure and io_ssl_get_SSL added
+    - License update to explicit permit OpenSSL linking
+    - request_parse_multipart_chunk fix
+    - "Location:" redirect fixed
+
 KLone 1.1.0:
     - cipher IV added to HMAC and to KL1_CLISES_IV cookie
     - makl_target_name used to support MAKL_PLATFORM feature
