@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.22 2006/01/10 21:51:41 tat Exp $
+ * $Id: vars.c,v 1.23 2006/06/20 08:08:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -174,7 +174,7 @@ size_t vars_countn(vars_t *vs, const char *name)
 
     TAILQ_FOREACH(v, &vs->list, np)
     {
-        if(strcmp(u_string_c(v->sname), name) == 0)
+        if(strcasecmp(u_string_c(v->sname), name) == 0)
             c++;
     }
 
@@ -320,7 +320,7 @@ var_t *vars_geti(vars_t *vs, const char *var_name, size_t i)
 
     TAILQ_FOREACH(v, &vs->list, np)
     {
-        if(strcmp(u_string_c(v->sname), var_name) == 0)
+        if(strcasecmp(u_string_c(v->sname), var_name) == 0)
         {
             if(i-- == 0)
                 return v;
