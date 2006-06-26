@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.16 2006/04/27 13:12:07 stewy Exp $
+# $Id: Makefile.dist,v 1.17 2006/06/26 09:44:19 tho Exp $
 
 include common.mk
 
@@ -79,7 +79,9 @@ DISTFILES += makl/etc/args.cf makl/etc/map.mk makl/etc/vars.cf
 DISTFILES += makl/helpers/lorder makl/helpers/mkdep.gcc.sh 
 DISTFILES += makl/helpers/mkinstalldirs
 DISTFILES += makl/setup/shell_setup.sh makl/setup/toolchain_setup.sh
+DISTFILES += makl/setup/shlib_setup.sh
 DISTFILES += $(wildcard makl/tc/*tc)
+DISTFILES += $(wildcard makl/shlib/*.mk)
 
 dist-hook-pre:
 	@echo "Creating KLone HTML documentation..." && cd doc/doxy && make
