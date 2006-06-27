@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.58 2006/05/27 16:34:01 tat Exp $
+# $Id: configure,v 1.59 2006/06/27 08:48:21 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -113,8 +113,8 @@ makl_optional           1    "featx"   "doxygen"    "PATH_DOXYGEN"
 makl_args_handle "$@"
 
 # Add include dirs into top-level CFLAGS
-makl_add_var_mk "CFLAGS" `makl_get_var_mk "LIBOPENSSL_CFLAGS"`
-makl_add_var_mk "CFLAGS" `makl_get_var_mk "LIBZ_CFLAGS"`
+makl_add_var_mk "CFLAGS" "\$(LIBOPENSSL_CFLAGS)"
+makl_add_var_mk "CFLAGS" "\$(LIBZ_CFLAGS)"
 
 # if debug is not enabled add optimization flags
 if [ -z "`makl_get_var_mk "KLONE_DEBUG"`" ]; then
