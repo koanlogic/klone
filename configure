@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.59 2006/06/27 08:48:21 tat Exp $
+# $Id: configure,v 1.60 2006/07/17 08:30:52 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -68,6 +68,11 @@ case `makl_target_name` in
         makl_set_var        "OS_UNIX"
         makl_append_var_mk  "POST_LDADD"      "-lsocket"
         ;;
+
+    *darwin*)
+        # workaround to avoid circular dependency errors on Mac OS X
+        makl_set_var        "PRE_LDADD" "-ldl"
+        ;;                                                    
 
     *)
         makl_set_var        "OS_UNIX"
