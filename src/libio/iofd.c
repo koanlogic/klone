@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iofd.c,v 1.9 2006/04/22 13:14:46 tat Exp $
+ * $Id: iofd.c,v 1.10 2006/09/24 13:26:18 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -47,11 +47,10 @@ again:
     if(c < 0 && (errno == EINTR || errno == EAGAIN))
         goto again; 
 
-    dbg_err_if(c == -1); 
+    dbg_err_sif(c == -1); 
 
     return c;
 err:
-    dbg_strerror(errno);
     return -1;
 }
 
@@ -70,7 +69,7 @@ again:
     if(c < 0 && (errno == EINTR || errno == EAGAIN))
         goto again; 
 
-    dbg_err_if(c == -1); 
+    dbg_err_sif(c == -1); 
 
     return c;
 err:
