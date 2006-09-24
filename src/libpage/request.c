@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.32 2006/05/21 18:22:16 tat Exp $
+ * $Id: request.c,v 1.33 2006/09/24 12:02:06 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -640,7 +640,7 @@ static int request_set_content_length(request_t *rq)
     dbg_err_if (rq == NULL);
 
     clen = header_get_field_value(rq->header, "Content-Length");
-    dbg_err_if(clen == NULL || (len = atoi(clen)) <= 0);
+    dbg_err_if(clen == NULL || (len = atoi(clen)) < 0);
 
     rq->content_length = len;
 
@@ -1333,6 +1333,9 @@ int request_parse_data(request_t *rq)
         /* Content-Length is required when using POST */
         dbg_err_if(request_set_content_length(rq) && 
             (rc = HTTP_STATUS_LENGTH_REQUIRED));
+
+        if(rq->content_length == 0)
+            return 0; /* no data posted */
 
         /* abort if the client is pushing too much data */
         dbg_err_if(rq->content_length > rq->post_maxsize &&
