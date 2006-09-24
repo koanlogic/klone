@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.29 2006/04/22 13:14:46 tat Exp $
+ * $Id: trans_c.c,v 1.30 2006/09/24 13:22:49 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -301,6 +301,9 @@ static int process_declaration(parser_t *p, void *arg, const char *buf,
     dbg_err_if (p == NULL);
 
     dbg_err_if(io_write(p->out, buf, sz) < 0);
+
+    /* a newline is required after #includes or #defines */
+    dbg_err_if(io_printf(p->out, "\n") < 0);
 
     return 0;
 err:
