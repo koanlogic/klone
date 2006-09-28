@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: parser.c,v 1.11 2006/01/30 20:04:27 tho Exp $
+ * $Id: parser.c,v 1.12 2006/09/28 03:05:38 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -145,11 +145,7 @@ int parser_run(parser_t *p)
             set_state(S_CODE);
             continue;
         case S_CODE:
-            if(c == '"')
-                set_state(S_IN_DOUBLE_QUOTE);
-            else if(c == '\'')
-                set_state(S_IN_SINGLE_QUOTE);
-            else if(c == '%') 
+            if(c == '%') 
                 set_state(S_WAIT_GT);
             break;
         case S_WAIT_GT:
