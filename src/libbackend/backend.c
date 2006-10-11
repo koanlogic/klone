@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: backend.c,v 1.23 2006/03/21 19:15:38 tat Exp $
+ * $Id: backend.c,v 1.24 2006/10/11 16:31:42 tat Exp $
  */
 
 #include <unistd.h>
@@ -138,7 +138,7 @@ int backend_free(backend_t *be)
     if(be)
     {
         /* children must not call klog_close (see comment in server.c) */
-        if(be->klog && ctx->pipc == NULL)
+        if(be->klog && ctx->pipc == 0)
             klog_close(be->klog);
         if(be->cb_term)
             be->cb_term(be);

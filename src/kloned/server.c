@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.52 2006/05/27 16:34:01 tat Exp $
+ * $Id: server.c,v 1.53 2006/10/11 16:31:42 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -595,7 +595,7 @@ static int server_cb_spawn_child(talarm_t *al, void *arg)
     dbg_err_if (s == NULL);
 
     /* must be called by a child process */
-    dbg_err_if(ctx->backend == NULL || ctx->pipc == NULL);
+    dbg_err_if(ctx->backend == NULL || ctx->pipc == 0);
 
     /* ask the parent to create a new worker child process */
     dbg_err_if(server_ppc_cmd_fork_child(s, ctx->backend));
@@ -927,7 +927,7 @@ int server_loop(server_t *s)
 #endif
 
         /* call klog_flush if flush timeout has expired and select() timeouts */
-        if(s->klog_flush && ctx->pipc == NULL)
+        if(s->klog_flush && ctx->pipc == 0)
         {
             /* flush the log buffer */
             klog_flush(s->klog);
@@ -997,7 +997,7 @@ int server_free(server_t *s)
            not-empty buffer that fclose (called by exit()) flushes). same 
            thing may happens with different log devices when buffers are used.
          */
-        if(ctx->pipc == NULL)
+        if(ctx->pipc == 0)
             klog_close(s->klog);
         s->klog = NULL;
     }
@@ -1073,7 +1073,7 @@ static int server_log_hook(void *arg, int level, const char *str)
     u_log_set_hook(NULL, NULL, &old, &old_arg);
 
     /* syslog klog doesn't go through ppc */
-    if(s->klog->type == KLOG_TYPE_SYSLOG || ctx->pipc == NULL)
+    if(s->klog->type == KLOG_TYPE_SYSLOG || ctx->pipc == 0)
     {   /* syslog klog or parent context */
         if(s->klog)
             dbg_err_if(klog(s->klog, syslog_to_klog(level), "%s", str));
