@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.53 2006/10/11 16:31:42 tat Exp $
+ * $Id: server.c,v 1.54 2006/10/12 08:35:46 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -59,7 +59,7 @@ static int server_be_listen(backend_t *be)
             dbg_err_if((d = socket(AF_INET, SOCK_STREAM, 0)) < 0);
             dbg_err_if(setsockopt(d, SOL_SOCKET, SO_REUSEADDR, (void *)&val, 
                 sizeof(int)) < 0);
-            dbg_err_if( bind(d, (void*)&be->addr->sa.sin, 
+            dbg_err_if(bind(d, (void*)&be->addr->sa.sin, 
                 sizeof(struct sockaddr_in)));
             break;
         case ADDR_IPV6:

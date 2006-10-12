@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.18 2006/01/09 12:38:38 tat Exp $
+ * $Id: main.c,v 1.19 2006/10/12 08:35:46 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -55,12 +55,14 @@ int app_init(void)
     dbg_err_if(u_config_create(&ctx->config));
 
     /* get the io associated to the embedded configuration file (if any) */
-    dbg_if(emb_open("/etc/kloned.conf", &io));
+    if(emb_open("/etc/kloned.conf", &io))
+        warn("embedded /etc/kloned.conf not found");
 
     /* load the embedded config */
     if(io)
     {
-        dbg_err_if(u_config_load_from(ctx->config, io_gets_cb, io, 0));
+        con_err_ifm(u_config_load_from(ctx->config, io_gets_cb, io, 0),
+            "configuration file load error");
         cfg_found = 1;
         io_free(io);
         io = NULL;
@@ -69,10 +71,14 @@ int app_init(void)
     /* load the external (-f command line switch) config file */
     if(ctx->ext_config)
     {
-        dbg("loading external config file: %s", ctx->ext_config);
-        dbg_err_if(u_file_open(ctx->ext_config, O_RDONLY, &io));
+        info("loading external config file: %s", ctx->ext_config);
 
-        dbg_err_if(u_config_load_from(ctx->config, io_gets_cb, io, 1));
+        con_err_ifm(u_file_open(ctx->ext_config, O_RDONLY, &io),
+            "unable to access configuration file: %s", ctx->ext_config);
+
+        con_err_ifm(u_config_load_from(ctx->config, io_gets_cb, io, 1),
+            "configuration file load error");
+
         cfg_found = 1;
 
         io_free(io);
