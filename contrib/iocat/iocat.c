@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iocat.c,v 1.7 2006/09/24 13:26:18 tat Exp $
+ * $Id: iocat.c,v 1.8 2006/11/02 09:08:05 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -38,7 +38,7 @@ typedef struct ctx_s
 
 context_t context, *ctx = &context;
 
-static void error(const char *msg)
+static void print_error(const char *msg)
 {
     fprintf(stderr, "err: %s\n", msg);
     exit(1);
@@ -97,12 +97,12 @@ static void parse_opt(int argc, char **argv)
     }
     /* sanity checks */
     if(ctx->encode && ctx->decode)
-        error("just one of -e or -d may be used");
+        print_error("just one of -e or -d may be used");
     
     if(ctx->encode || ctx->decode)
     {
         if(!ctx->comp && !ctx->cipher)
-            error("-z and/or -c must be used with -e and -d");
+            print_error("-z and/or -c must be used with -e and -d");
     }
 
     ctx->narg = argc - optind;
