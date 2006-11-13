@@ -29,6 +29,7 @@ TODO
         - code coverage (gcov)
 
     - codice
+        - -f non funziona! per es per cambiare la porta
         - io_html_printf: html-encode before calling io_printf 
         + <%=fmt arg %> con printf-style format
         - session locking

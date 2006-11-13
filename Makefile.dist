@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.17 2006/06/26 09:44:19 tho Exp $
+# $Id: Makefile.dist,v 1.18 2006/11/13 22:55:12 tat Exp $
 
 include common.mk
 
@@ -74,12 +74,11 @@ DISTREMAP += $(foreach f, $(notdir $(wildcard libu/doc/doxy/html/*.html)), \
 # MaKL 1.1.0
 DISTFILES += makl/Makefile makl/VERSION makl/README makl/LICENSE makl/ChangeLog
 DISTFILES += $(wildcard makl/cf/makl*) $(wildcard makl/cf/helpers/makl*)
-DISTFILES += $(wildcard makl/mk/*.mk) makl/Makefile
-DISTFILES += makl/etc/args.cf makl/etc/map.mk makl/etc/vars.cf
+DISTFILES += $(wildcard makl/mk/*.mk) $(wildcard makl/mk/priv/*.mk)
+DISTFILES += $(wildcard makl/setup/*.sh) 
+DISTFILES += makl/etc/args.cf makl/etc/funcs.cf makl/etc/map.mk makl/etc/vars.cf
 DISTFILES += makl/helpers/lorder makl/helpers/mkdep.gcc.sh 
 DISTFILES += makl/helpers/mkinstalldirs
-DISTFILES += makl/setup/shell_setup.sh makl/setup/toolchain_setup.sh
-DISTFILES += makl/setup/shlib_setup.sh
 DISTFILES += $(wildcard makl/tc/*tc)
 DISTFILES += $(wildcard makl/shlib/*.mk)
 
