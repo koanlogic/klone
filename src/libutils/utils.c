@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.38 2006/04/22 13:14:46 tat Exp $
+ * $Id: utils.c,v 1.39 2006/11/21 22:53:28 tat Exp $
  */
 
 #include <stdlib.h>
@@ -999,7 +999,7 @@ int u_signal(int sig, u_sig_t handler)
     action.sa_handler = handler;
 
     /* disable child shell jobs notification */
-    action.sa_flags = sig == SIGCHLD ? SA_NOCLDSTOP : 0;      
+    action.sa_flags = SA_RESTART | (sig == SIGCHLD ? SA_NOCLDSTOP : 0);
     dbg_err_if(sigaction(sig, &action, (struct sigaction *) 0));
 #endif
 
