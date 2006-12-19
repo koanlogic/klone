@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.17 2006/07/12 17:56:43 tat Exp $
+# $Id: Makefile,v 1.18 2006/12/19 14:41:00 tat Exp $
 
 include common.mk
 include ../../../Makefile.conf
@@ -19,6 +19,6 @@ LDADD += ../../libtrans/libtrans.a  \
          ../../libio/libio.a        \
          ../../libcodec/libcodec.a
 
-LDADD += ../../../libu/src/libu.a
+LDADD += ../../../libu/srcs/libu.a
 
 include prog.mk

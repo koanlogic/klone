@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.23 2006/07/12 20:19:48 tat Exp $
+# $Id: Makefile,v 1.24 2006/12/19 14:41:00 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
@@ -28,7 +28,7 @@ LDADD += ../libhttp/libhttp.a ../libutils/libutils.a ../libpage/libpage.a   \
 
 # add libu flags
 CFLAGS += -I../../libu
-LDADD += ../../libu/src/libu.a
+LDADD += ../../libu/srcs/libu.a
 
 BINDIR = ${DESTDIR}/sbin
 
