@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.19 2006/10/12 08:35:46 tat Exp $
+ * $Id: main.c,v 1.20 2007/02/07 09:46:44 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -125,7 +125,7 @@ int app_term(void)
 int app_run(void)
 {
     /* create a server object and start its main loop */
-    dbg_err_if(server_create(ctx->config, !ctx->daemon, &ctx->server));
+    dbg_err_if(server_create(ctx->config, ctx->debug, &ctx->server));
 
     if(getenv("GATEWAY_INTERFACE"))
         dbg_err_if(server_cgi(ctx->server));

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: entry.c,v 1.21 2006/10/12 08:35:46 tat Exp $
+ * $Id: entry.c,v 1.22 2007/02/07 09:46:44 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -42,7 +42,7 @@ static void usage()
 "Usage: kloned OPTIONS ARGUMENTS                                            \n"
 "Version: %s - Copyright (c) 2005, 2006 KoanLogic s.r.l. - All rights reserved.   \n"
 "\n"
-"    -d          turn on debugging                                          \n"
+"    -d          turn on debugging (forces iterative mode)                  \n"
 "    -f file     load an external config file                               \n"
 "    -F          run in foreground                                          \n"
 "    -h          display this help                                          \n"
@@ -100,7 +100,6 @@ static int parse_opt(int argc, char **argv)
         case 'u':   /* uninstall kloned service and exit */
             ctx->serv_op = SERV_REMOVE;
             break;
-
 #endif
 
         default:
