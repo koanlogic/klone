@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2006/04/22 13:14:46 tat Exp $
+# $Id: Makefile,v 1.7 2007/02/26 21:43:29 tat Exp $
 
 SUBDIR =    \
  libutils   \
@@ -14,5 +14,7 @@ SUBDIR =    \
  tools      \
  kloned 
 
-
 include subdir.mk
+
+# dir dependencies
+kloned tools: $(filter-out kloned tools, $(SUBDIR))
