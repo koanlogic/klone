@@ -26,7 +26,7 @@ PARTY_ARGS += --enable_debug
 endif
 
 ifdef LIBU_MINI
-PARTY_ARGS += --no_net --no_env --no_hmap
+PARTY_ARGS += --no_net --no_env
 endif
 
 include party.mk
