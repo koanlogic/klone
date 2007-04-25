@@ -5,27 +5,27 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.c,v 1.14 2006/04/22 13:14:46 tat Exp $
+ * $Id: emb.c,v 1.15 2007/04/25 22:08:54 stewy Exp $
  */
 
 #include <klone/emb.h>
 #include <klone/io.h>
 #include <klone/codecs.h>
 #include <u/libu.h>
+#include <u/toolbox/hmap.h>
 
 /* these are klone-site autogen functions */
 void register_pages(void);
 void unregister_pages(void);
 
-static struct emblist_s list;   /* list of emb resources     */
-static size_t nres;             /* num of emb resources      */
+static u_hmap_t *embmap = NULL;     /* hashmap of embedded resources */
 static int init = 0;
 
 int emb_init(void)
 {
     if(init++ == 0)
     {
-        LIST_INIT(&list); /* init resource list */
+        dbg_err_if (u_hmap_new(NULL, &embmap));
 
         /* call autogen external function (cannot be called more then once!) */
         dbg("registering embedded resources");
@@ -33,6 +33,9 @@ int emb_init(void)
     }
 
     return 0;
+ 
+err:
+    return ~0;
 }
 
 int emb_term(void)
@@ -41,6 +44,9 @@ int emb_term(void)
 
     unregister_pages();
 
+    if (embmap)
+        u_hmap_free(embmap);
+
     return 0;
 err:
     return ~0;
@@ -48,6 +54,8 @@ err:
 
 int emb_register(embres_t *res)
 {
+    u_hmap_o_t *obj = NULL;
+
     dbg_err_if(init == 0 || res == NULL);
 
     if(res->type == ET_FILE) 
@@ -56,9 +64,11 @@ int emb_register(embres_t *res)
     else 
         dbg("registering %s", res->filename);
 
-    LIST_INSERT_HEAD(&list, res, np);
-    nres++;
+    obj = u_hmap_o_new((void *) res->filename, res); 
+    dbg_err_if (obj == NULL);
 
+    dbg_err_if (u_hmap_put(embmap, obj, NULL)); 
+    
     return 0;
 err:
     return ~0;
@@ -68,8 +78,7 @@ int emb_unregister(embres_t *res)
 {
     dbg_err_if(init == 0 || res == NULL);
 
-    LIST_REMOVE(res, np);
-    nres--;
+    dbg_err_if (u_hmap_del(embmap, (void *) res->filename, NULL));
 
     return 0;
 err:
@@ -79,54 +88,20 @@ err:
 int emb_lookup(const char *filename, embres_t **pr)
 {
     embres_t *res;
+    u_hmap_o_t *obj = NULL;
 
     dbg_err_if (init == 0);
     dbg_err_if (filename == NULL || !strlen(filename));
     dbg_err_if (pr == NULL);
 
-    LIST_FOREACH(res, &list, np)
-    {
-        if(strcmp(filename, res->filename))
-            continue;
+    dbg_err_if (u_hmap_get(embmap, (void *) filename, &obj));
 
-        /* save found resource pointer */
-        *pr = res;
+    *pr = obj->val;
 
-        return 0; /* found */
-    }
+    return 0;
 
 err:
     /* not found */
-    return ~0;
-}
-
-int emb_count(void)
-{
-    dbg_err_if (init == 0);
-
-    return nres;
-err:
-    return -1;
-}
-
-int emb_getn(size_t n, embres_t **pr)
-{
-    embres_t *res = NULL;
-
-    dbg_err_if (init == 0);
-    dbg_err_if (n >= nres);
-    dbg_err_if (pr == NULL);
-
-    LIST_FOREACH(res, &list, np)
-    {
-        if(n-- == 0)
-            break;
-    }
-
-    *pr = res;
-
-    return 0;
-err:
     return ~0;
 }
 
