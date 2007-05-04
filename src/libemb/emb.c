@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.c,v 1.15 2007/04/25 22:08:54 stewy Exp $
+ * $Id: emb.c,v 1.16 2007/05/04 14:22:55 stewy Exp $
  */
 
 #include <klone/emb.h>
@@ -44,8 +44,10 @@ int emb_term(void)
 
     unregister_pages();
 
-    if (embmap)
+    if (embmap) {
         u_hmap_free(embmap);
+        embmap = NULL;
+    }
 
     return 0;
 err:
