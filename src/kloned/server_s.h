@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server_s.h,v 1.14 2006/04/22 13:59:01 tat Exp $
+ * $Id: server_s.h,v 1.15 2007/06/04 16:30:58 tat Exp $
  */
 
 #ifndef _KLONE_SERVER_S_H_
@@ -15,8 +15,11 @@
 #include <klone/backend.h>
 #include <klone/klog.h>
 #include <klone/timer.h>
+#include <klone_conf.h>
 #include <sys/types.h>
+#ifdef HAVE_SYS_SELECT
 #include <sys/select.h>
+#endif
 #include <u/libu.h>
 #include "child.h"
 

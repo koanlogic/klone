@@ -5,13 +5,15 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.54 2006/10/12 08:35:46 tat Exp $
+ * $Id: server.c,v 1.55 2007/06/04 16:30:58 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifdef HAVE_SYS_WAIT
 #include <sys/wait.h>
+#endif
 #include <u/libu.h>
 #include <stdlib.h>
 #include <unistd.h>

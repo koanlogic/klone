@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.61 2006/12/19 14:41:00 tat Exp $
+# $Id: configure,v 1.62 2007/06/04 16:30:58 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -55,7 +55,7 @@ makl_pkg_version
 makl_set_var_mk         "SRCDIR"    "`pwd`"
 
 # Add local 3rd party flags
-makl_append_var_mk      "CFLAGS"    "-I`pwd`/libu/include/"
+makl_append_var_mk      "CFLAGS"    "-I`pwd`/libu/include"
 
 case `makl_target_name` in
 
