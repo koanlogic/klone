@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.34 2007/06/04 16:30:58 tat Exp $
+ * $Id: main.c,v 1.35 2007/06/05 12:53:19 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -64,7 +64,7 @@ static void usage(void)
 {
     static const char * us = 
 "Usage: klone [-hvV] -c COMMAND OPTIONS ARGUMENTS                           \n"
-"Version: %s - Copyright (c) 2005, 2006 KoanLogic s.r.l.                    \n"
+"Version: %s - Copyright (c) 2005, 2006, 2007 KoanLogic s.r.l.              \n"
 "All rights reserved.                                                       \n"
 "\n"
 "       -h            display this help                                     \n"
