@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.62 2007/06/04 16:30:58 tat Exp $
+# $Id: configure,v 1.63 2007/06/05 08:50:03 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -96,6 +96,8 @@ makl_append_var_mk "INCDIR"   "\${DESTDIR}/include/klone"
 makl_checkheader        0   "stdint"    "<stdint.h>"
 makl_checkheader        0   "getopt"    "<getopt.h>"
 makl_checkheader        0   "unistd"    "<unistd.h>"
+makl_checkheader        0   "sys_select"    "<sys/select.h>"
+makl_checkheader        0   "sys_wait"    "<sys/wait.h>"
 
 # Library dependencies
 makl_optional           1   "lib"   "openssl"   ""  "-lssl -lcrypto"
