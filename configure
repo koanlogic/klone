@@ -1,16 +1,13 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.63 2007/06/05 08:50:03 tat Exp $
+# $Id: configure,v 1.64 2007/06/05 09:43:26 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
 
 # before running configure the toolchain must be present
 if [ ! -r ${MAKL_DIR}/etc/toolchain.cf ]; then
-    echo
-    echo " Run \"make toolchain\" (using GNU make) before \"./configure\"!"
-    echo
-    exit 1
+    make -C ${MAKL_DIR} toolchain
 fi
 
 # MaKL preamble
