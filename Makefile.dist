@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.20 2006/12/19 16:51:43 tat Exp $
+# $Id: Makefile.dist,v 1.21 2007/06/22 08:39:16 tat Exp $
 
 include common.mk
 
@@ -6,7 +6,7 @@ PKG_NAME = klone
 PKG_VERSION = $(shell cat VERSION)
 
 # top level
-DISTFILES += Makefile Makefile.subdir LICENSE README VERSION configure \
+DISTFILES += Makefile LICENSE README VERSION configure \
              configure.help ChangeLog LICENSE.OpenSSL
 
 # MaKL build test
