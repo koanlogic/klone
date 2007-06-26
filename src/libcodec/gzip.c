@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: gzip.c,v 1.23 2006/01/09 12:38:38 tat Exp $
+ * $Id: gzip.c,v 1.24 2007/06/26 08:57:57 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -96,7 +96,7 @@ static ssize_t gzip_transform(codec_t *codec, char *dst, size_t *dcount,
     iz->zstr.next_out = dst;
     iz->zstr.avail_out = *dcount;
 
-    iz->zstr.next_in = src;
+    iz->zstr.next_in = (char*)src;
     iz->zstr.avail_in = src_sz;
 
     iz->err = iz->op(&iz->zstr, Z_NO_FLUSH);

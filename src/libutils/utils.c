@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.39 2006/11/21 22:53:28 tat Exp $
+ * $Id: utils.c,v 1.40 2007/06/26 08:57:57 tat Exp $
  */
 
 #include <stdlib.h>
@@ -654,7 +654,6 @@ char* u_strnrchr(const char *s, char c, size_t len)
     register int i = len - 1;
 
     dbg_err_if (s == NULL);
-    dbg_err_if (c == NULL);
     
     for(; i >= 0; --i)
         if(s[i] == c)
@@ -1092,7 +1091,7 @@ int u_io_unzip_copy(io_t *out, const unsigned char *data, size_t sz)
     dbg_return_if (data == NULL, ~0);
     
     /* create an io_t around the HTML block */
-    dbg_err_if(io_mem_create(data, sz, 0, &ios));
+    dbg_err_if(io_mem_create((char*)data, sz, 0, &ios));
 
     /* apply a gzip codec */
     dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &zip));
