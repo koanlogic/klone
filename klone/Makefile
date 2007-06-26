@@ -1,7 +1,9 @@
-# $Id: Makefile,v 1.12 2006/01/31 17:15:33 tho Exp $
+# $Id: Makefile,v 1.13 2007/06/26 08:06:36 tat Exp $
 
 include common.mk
 include ../Makefile.conf
+
+INCDIR := $(INCDIR)/klone/
 
 INCS = addr.h atom.h backend.h broker.h caes.h cgi.h codec.h                 \
        codecs.h context.h cgzip.h cnull.h emb.h embpage.h field.h header.h   \
