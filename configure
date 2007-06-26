@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.64 2007/06/05 09:43:26 tat Exp $
+# $Id: configure,v 1.65 2007/06/26 08:07:32 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -85,9 +85,6 @@ makl_set_var_mk "LIBU_MINI" "1"
 # these enable .klx pages
 makl_set_var_mk "USE_CXX"  "1"
 makl_append_var_mk "CXXFLAGS" "\${CFLAGS}"
-
-# Install headers in a private subdir
-makl_append_var_mk "INCDIR"   "\${DESTDIR}/include/klone"
 
 # check for stdint header
 makl_checkheader        0   "stdint"    "<stdint.h>"
