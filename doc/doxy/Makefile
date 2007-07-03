@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.3 2006/01/31 17:15:33 tho Exp $
+# $Id: Makefile,v 1.4 2007/07/03 11:10:09 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
@@ -13,10 +13,11 @@ img:
 	cp -r images html
 
 install: all
-	mkdir -p ${DESTDIR}/doc/klone/ && cp -r html ${DESTDIR}/doc/klone/
+	mkdir -p ${RELOC}${DESTDIR}/doc/klone/ && \
+        cp -r html ${RELOC}${DESTDIR}/doc/klone/
 
 uninstall:
-	rm -rf ${DESTDIR}/doc/klone/
+	rm -rf ${RELOC}${DESTDIR}/doc/klone/
 
 clean:
 	rm -rf html/
