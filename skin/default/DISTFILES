@@ -68,7 +68,6 @@ build/makl/mk/xeno.mk
 build/makl/mk/priv/Makefile
 build/makl/mk/priv/deps.mk
 build/makl/mk/priv/funcs.mk
-build/makl/mk/priv/shlib.mk
 build/makl/mk/reloc.mk
 build/makl/setup/Makefile
 build/makl/setup/env_setup.sh
