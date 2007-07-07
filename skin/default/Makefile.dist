@@ -27,7 +27,9 @@ all dist: VERSION $(KLONE_CORE_TARBALL)
 
 $(KLONE_CORE_TARBALL):
 	cd $(BASE)/makl && make toolchain rc
-	cd $(BASE) && . makl/makl.env && ./configure && make -f Makefile.dist dist
+	cd $(BASE) && . makl/makl.env && ./configure && make && \
+	    make -f Makefile.dist dist
+	mkdir -p build/dist
 	rm -f build/dist/*
 	cd build/dist && ln -sf $(BASE)/klone-core-$(VERSION).tar.bz2
 
