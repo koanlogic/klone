@@ -7,16 +7,16 @@
 VERSION = $(shell cat ../../VERSION)
 TARBALL = klone-$(VERSION).tar.gz
 
-ifeq ($(wildcard build/makl/),)
-$(error missing build/makl directory)
-endif
-
-KLONE_CORE_TARBALL = build/dist/klone-core-$(VERSION).tar.bz2
-
 # base src dir
 BASE = $(shell pwd)/../../
 
-all dist: VERSION $(KLONE_CORE_TARBALL)
+KLONE_CORE_TARBALL = build/dist/klone-core-$(VERSION).tar.bz2
+
+ifeq ($(wildcard $(BASE)/makl/),)
+$(error missing $(BASE)/makl directory)
+endif
+
+all dist: VERSION build/makl $(KLONE_CORE_TARBALL)
 	rm -f $(TARBALL)
 	tar zcfh .$(TARBALL) -T DISTFILES $(KLONE_CORE_TARBALL)
 	mkdir klone-$(VERSION)
@@ -34,5 +34,7 @@ $(KLONE_CORE_TARBALL):
 	cd build/dist && ln -sf $(BASE)/klone-core-$(VERSION).tar.bz2
 
 VERSION:
-	ln -sf ../../VERSION
+	ln -sf $(BASE)/VERSION
 
+build/makl:
+	cd build && ln -sf $(BASE)/makl
