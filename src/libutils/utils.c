@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.40 2007/06/26 08:57:57 tat Exp $
+ * $Id: utils.c,v 1.41 2007/07/07 09:05:12 tat Exp $
  */
 
 #include <stdlib.h>
@@ -1233,10 +1233,6 @@ err:
 }
 
 #endif
-
-/**
- *  \}
- */
 
 /**
  *  \}

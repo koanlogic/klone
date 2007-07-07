@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.c,v 1.22 2006/03/21 15:38:01 tat Exp $
+ * $Id: response.c,v 1.23 2007/07/07 09:05:12 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -682,10 +682,6 @@ int response_free(response_t *rs)
 
     return 0;
 }
-
-/**
- *          \}
- */
 
 /**
  *  \}

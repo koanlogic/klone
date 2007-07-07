@@ -1,10 +1,12 @@
-# $Id: Makefile,v 1.6 2006/12/19 14:41:00 tat Exp $
+# $Id: Makefile,v 1.7 2007/07/07 09:05:12 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
 
 PROG = iowc
 SRCS = iowc.c
+
+NO_INSTALL = true
 
 CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
 LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
