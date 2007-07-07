@@ -1,9 +1,9 @@
-# $Id: Makefile.doxy.doc,v 1.3 2007/07/03 11:10:09 tat Exp $
+# $Id: Makefile.doxy.doc,v 1.4 2007/07/07 09:13:57 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
 
-HTMLDOCDIR = ${RELOC}${DOCDIR}/klone/html/
+HTMLDOCDIR = ${DOCDIR}/klone/html/
 
 all clean depend cleandepend:
 
