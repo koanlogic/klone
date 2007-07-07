@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# $Id: configure,v 1.1 2007/07/07 14:09:57 tat Exp $
+
+export makl_conf_h=klapp_conf.h
+export MAKL_DIR=`pwd`/build/makl
+
+# before running configure the toolchain must be present
+if [ ! -r ${MAKL_DIR}/etc/toolchain.cf ]; then
+    make -C ${MAKL_DIR} toolchain
+fi
+
+# MaKL preamble
+. ${MAKL_DIR}/cf/makl.init
+
+# Preprocess arguments
+makl_args_init "$@"
+
+# General settings
+makl_pkg_name           "klapp"
+makl_pkg_version
+
+# Handle command-line arguments
+makl_args_handle "$@"
+
+. ${MAKL_DIR}/cf/makl.term
+
+ln -sf build/makl/mk/reloc.mk

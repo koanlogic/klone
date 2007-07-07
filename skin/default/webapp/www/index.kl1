@@ -1,0 +1,46 @@
+<%!
+    #include <time.h>
+    #include <klapp_conf.h>
+    time_t now;
+%>
+<html>
+<head><title>KLone start page</title></head>
+<link rel="stylesheet" href="kl.css" type="text/css">
+<body>
+
+<blockquote>
+
+<blockquote><table width="750" cellpadding="5"><tr><td bgcolor="white">
+<center>
+<h3>Welcome to KLone (Ver. <%= KLAPP_VERSION %>)!</h3>
+</center>
+</td></tr></table></blockquote>
+<p>
+
+<blockquote><table width="750" cellpadding="5"><tr><td bgcolor="#e0e0ff">
+<% 
+    now = time(0);
+    io_printf(out, "Time: %s", ctime(&now));
+%>
+</td></tr></table></blockquote>
+
+<p>
+
+About KLone:
+<blockquote><table width="750" cellpadding="5"><tr><td bgcolor="#e0e0ff">
+
+<a href="http://www.koanlogic.com/kl/cont/gb/html/klone.html">Info</a><br>
+<a href="http://www.koanlogic.com/kl/cont/gb/html/klone-features.html">Features</a><br>
+<a href="http://www.koanlogic.com/kl/cont/gb/html/klone-res.html">Support</a><br>
+<a href="http://www.koanlogic.com/kl/cont/gb/html/klone-docs.html">Documentation</a><br>
+
+</td></tr></table></blockquote>
+
+<font size="-1">
+Copyright (c) 2005, 2006, 2007 by <a href="http://koanlogic.com">KoanLogic s.r.l.</a> - All rights reserved.
+</font>
+</blockquote>
+
+</body>
+</html>
+

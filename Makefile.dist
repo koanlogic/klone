@@ -1,8 +1,8 @@
-# $Id: Makefile.dist,v 1.21 2007/06/22 08:39:16 tat Exp $
+# $Id: Makefile.dist,v 1.22 2007/07/07 14:09:57 tat Exp $
 
 include common.mk
 
-PKG_NAME = klone
+PKG_NAME = klone-core
 PKG_VERSION = $(shell cat VERSION)
 
 # top level

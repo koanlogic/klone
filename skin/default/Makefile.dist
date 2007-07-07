@@ -1,0 +1,36 @@
+# run make -f Makefile.dist to make the dist tarball
+#
+# a good starting point to build DISTFILES is:
+# 	find . -follow -type f -or -type l | grep -v CVS | cut -c3- | egrep '.' \
+# 	    > DISTFILES
+
+VERSION = $(shell cat ../../VERSION)
+TARBALL = klone-$(VERSION).tar.gz
+
+ifeq ($(wildcard build/makl/),)
+$(error missing build/makl directory)
+endif
+
+KLONE_CORE_TARBALL = build/dist/klone-core-$(VERSION).tar.bz2
+
+# base src dir
+BASE = $(shell pwd)/../../
+
+all dist: VERSION $(KLONE_CORE_TARBALL)
+	rm -f $(TARBALL)
+	tar zcfh .$(TARBALL) -T DISTFILES $(KLONE_CORE_TARBALL)
+	mkdir klone-$(VERSION)
+	tar zxf .$(TARBALL) -C klone-$(VERSION)
+	tar zvcf $(TARBALL) klone-$(VERSION)
+	rm -f .$(TARBALL)
+	rm -rf klone-$(VERSION)
+
+$(KLONE_CORE_TARBALL):
+	cd $(BASE)/makl && make toolchain rc
+	cd $(BASE) && . makl/makl.env && ./configure && make -f Makefile.dist dist
+	rm -f build/dist/*
+	cd build/dist && ln -sf $(BASE)/klone-core-$(VERSION).tar.bz2
+
+VERSION:
+	ln -sf ../../VERSION
+

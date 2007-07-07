@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.65 2007/06/26 08:07:32 tat Exp $
+# $Id: configure,v 1.66 2007/07/07 14:09:57 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -122,5 +122,9 @@ if [ -z "`makl_get_var_mk "KLONE_DEBUG"`" ]; then
     makl_append_var_mk "CFLAGS"   "-O2"
 fi
 
+if [ -d skin/default ]; then
+    # Perform skin variable substitution on files
+    makl_file_sub "skin/default/Makefile"
+fi
 
 . ${MAKL_DIR}/cf/makl.term

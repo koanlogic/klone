@@ -1,0 +1,34 @@
+COMPILATION
+-----------
+
+    $ ./configure
+    $ make
+
+
+CUSTOMIZATION
+-------------
+
+    Edit KLone configuration file in webapp/etc/kloned.conf and web 
+    application files in webapp/www to customize your application.
+
+    After adding, removing or modifying any file in webapp directory 
+    run 'make' to rebuild the 'kloned' daemon (by defaults it binds to 
+    port 8080).
+
+    To modify compilation flags edit the top level Makefile (WEBAPP_CFLAGS, 
+    WEBAPP_LDFLAGS and WEBAPP_LDADD). Always use absolute paths for these 
+    variables.
+
+RUNNING
+-------
+
+    $ ./kloned
+
+    If something goes wrong you can find log messages in syslog files.
+
+
+CROSS-COMPILATION
+-----------------
+[...]
+
+
