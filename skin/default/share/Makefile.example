@@ -24,5 +24,4 @@ KLONE_CONF_ARGS ?= --enable_debug
 include klapp.mk
 
 klapp.mk:
-	wget -c http://koanlogic.com/klone/klapp.mk
-
+	wget -O $@ -c http://koanlogic.com/klone/klapp-$(KLONE_VERSION).mk
