@@ -1,0 +1,28 @@
+TOP = $(shell pwd)
+
+# which klone version?
+KLONE_VERSION ?= 2.0.0
+
+KLONE_CONF_ARGS ?= --enable_debug
+
+# cross compile
+# MAKL_PLATFORM ?= 
+# or provide custom toolchain file
+# KLONE_CUSTOM_TC ?=
+
+# embedded fs
+# WEBAPP_DIR = $(TOP)/webapp
+
+# also build the following subdirs
+# SUBDIR = $(TOP)/libhelp
+
+# flags
+# WEBAPP_CFLAGS = -I$(TOP)/
+# WEBAPP_LDFLAGS = 
+# WEBAPP_LDADD = $(TOP)/libhelp/libhelp.a
+
+include klapp.mk
+
+klapp.mk:
+	wget -c http://koanlogic.com/klone/klapp.mk
+
