@@ -26,23 +26,29 @@ ALL = host-setup klone-setup subdirs klone-first-import \
 .PHONY: $(ALL) subdirs $(SUBDIR) import
 
 # klone compiled for the target platform
-KLONE_SRC_TARGET = build/target/klone-core-$(KLONE_VERSION)/
+KLONE_SRC_TARGET = $(TOP)/build/target/klone-core-$(KLONE_VERSION)/
 
 # klone compiled for the host platform
-KLONE_SRC_HOST = build/host/klone-core-$(KLONE_VERSION)/
+KLONE_SRC_HOST = $(TOP)/build/host/klone-core-$(KLONE_VERSION)/
 
 # klone top source dir
 KLONE_SRC = $(KLONE_SRC_TARGET)
+export KLONE_SRC
+
+# flags needed to compile code that use klone libs
+KLONE_CFLAGS = -I$(KLONE_SRC) -I$(KLONE_SRC)/libu/include
+export KLONE_CFLAGS
 
 # un set makl vars to be sure that klone will use its own version of makl  and
 # run 'make'
 KLONE_MAKE = env MAKL_DIR= MAKEFLAGS= $(MAKE) -C $(KLONE_SRC)
 
 # runs make depend in klone-x.y.z/site
-KLONE_SITE_DEPEND = env MAKL_DIR=$(TOP)/$(KLONE_SRC)/makl MAKEFLAGS="-I $(TOP)/$(KLONE_SRC)/makl/mk/" $(MAKE) -C $(TOP)/$(KLONE_SRC)/site depend
+KLONE_SITE_DEPEND = env MAKL_DIR=$(KLONE_SRC)/makl MAKEFLAGS="-I $(KLONE_SRC)/makl/mk/" $(MAKE) -C $(KLONE_SRC)/site depend
 
-KLONE_WEBAPP = $(TOP)/$(KLONE_SRC_TARGET)/webapp/Makefile-webapp
+KLONE_WEBAPP = $(KLONE_SRC_TARGET)/webapp/Makefile-webapp
 
+# may be set by the user
 WEBAPP_DIR ?= $(TOP)/webapp
 
 # embfs top directory
@@ -50,11 +56,11 @@ KLONE_WEBAPP_DIR = $(WEBAPP_DIR)
 
 # download dir
 KLONE_DIST_DIR ?= $(TOP)/build/dist/
-XENO_DIST_DIR = $(KLONE_DIST_DIR)
+XENO_DIST_DIR ?= $(KLONE_DIST_DIR)
 
 # exported vars
 export KLONE_APP_TOP = $(TOP)
-export KLONE_SRC_DIR = $(TOP)/$(KLONE_SRC)
+export KLONE_SRC_DIR = $(KLONE_SRC)
 export XENO_DIST_DIR
 export KLONE_VERSION
 
@@ -68,13 +74,13 @@ endif
 
 # when cross-compiling build klone also for the host platform
 ifdef MAKL_PLATFORM
-KLONE_TOOL ?= $(TOP)/$(KLONE_SRC_HOST)/src/tools/klone/klone
+KLONE_TOOL ?= $(KLONE_SRC_HOST)/src/tools/klone/klone
 KLONE_CONF_ARGS += --cross_compile
 export KLONE = $(KLONE_TOOL)
 #export KLONE_TC=$(basename $(notdir $(KLONE_CUSTOM_TC)))
 #export MAKL_TC=custom
 else
-KLONE_TOOL ?= $(TOP)/$(KLONE_SRC_TARGET)/src/tools/klone/klone
+KLONE_TOOL ?= $(KLONE_SRC_TARGET)/src/tools/klone/klone
 endif
 
 # if libz is available then use it

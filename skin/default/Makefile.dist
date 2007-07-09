@@ -1,8 +1,10 @@
 # run make -f Makefile.dist to make the dist tarball
 #
 # a good starting point to build DISTFILES is:
+#
 # 	find . -follow -type f -or -type l | grep -v CVS | cut -c3- | egrep '.' \
 # 	    > DISTFILES
+#
 
 VERSION = $(shell cat ../../VERSION)
 TARBALL = klone-$(VERSION).tar.gz
