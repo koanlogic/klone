@@ -1,4 +1,4 @@
-.\" $Id: klone.1,v 1.2 2007/07/10 12:23:19 tat Exp $
+.\" $Id: klone.1,v 1.3 2007/07/10 21:29:45 stewy Exp $
 .TH "KLONE" "1" "11/03/2005" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
@@ -37,7 +37,7 @@ The subsequent phase, by which the embedded site is linked to the
 \fBkloned\fR
 server skeleton, does not involve
 \fBklone\fR
-anymore. Anyway it is given here for reference:
+anymore. Nevertheless, the steps are illustrated here for reference:
 .sp
 .nf
     $ cd ${KLONE_SRC_DIR}
@@ -62,15 +62,16 @@ Print klone version and exit.
 \fBklone\fR \fB\-c\ translate\fR \fB\-i\ \fR\fB\fIinfile\fR\fR \fB\-o\ \fR\fB\fIoutfile\fR\fR \fB\-u\ \fR\fB\fIuri\fR\fR [\fB\-E\fR] [\fB\-k\ \fR\fB\fIkeyfile\fR\fR] [\fB\-z\fR]
 .PP
 Translate the active (i.e. a \fI.klone\fR file) or static page \fIinfile\fR
-into the C file \fIoutfile\fR. 
+into C file \fIoutfile\fR. 
 
-The \fB\-u\fR specifies the \fIuri\fR associated to the translated file. 
+The \fB\-u\fR option specifies the \fIuri\fR associated with the translated file. 
 
-The \fB\-E\fR option tells \fBklone\fR to encrypt (using AES\-256 CBC) the 
-file content with the key enclosed in the supplied \fIkeyfile\fR or in the 
-environment variable \fBKLONE_CIPHER_KEY\fR. 
+The \fB\-E\fR option tells \fBklone\fR to encrypt the file content with the key
+enclosed in the supplied \fIkeyfile\fR or in the environment variable
+\fBKLONE_CIPHER_KEY\fR using AES\-256 CBC.
 
-The translated files' contents are compressed (based on their MIME type) if the \fB\-z\fR flag is given.
+The contents of the translated files are compressed based on their MIME type if
+the \fB\-z\fR flag is given.
 
 .SS "Import:"
 .HP 6
