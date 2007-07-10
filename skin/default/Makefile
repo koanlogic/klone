@@ -17,7 +17,7 @@
 -include Makefile.conf
 
 # klone version to use
-KLONE_VERSION ?= 2.0.0rc4
+KLONE_VERSION ?= 2.0.0rc5
 
 # klone configure arguments
 KLONE_CONF_ARGS ?=      \
