@@ -1,8 +1,12 @@
-$Id: ChangeLog,v 1.14 2007/02/07 10:27:22 tat Exp $
+$Id: ChangeLog,v 1.15 2007/07/10 11:41:20 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone x.y.z:
+    - -Z and -e can be used more then once to provide more then one compress 
+      and/or encrypt file patterns
+    - -x argument added to klone tool to avoid importing files that match the 
+      given pattern(s)
     - -F doesn't force iterative mode anymore (use -Fd instead)
     - bug fix: embedded configuration overwrite was broken (libu u_config bug)
 

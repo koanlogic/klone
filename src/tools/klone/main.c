@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.35 2007/06/05 12:53:19 tat Exp $
+ * $Id: main.c,v 1.36 2007/07/10 11:41:21 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -29,6 +29,7 @@
 #include <klone/run.h>
 #include <klone/mime_map.h>
 #include <klone/version.h>
+#include "pm.h"
 
 int facility = LOG_LOCAL0;
 
@@ -49,11 +50,13 @@ typedef struct
     char *base_uri;             /* site base uri                    */
     int encrypt;                /* >0 when encryption is enabled    */
     int compress;               /* >0 when compress is enabled      */
-    char *enc_patt;             /* encrypt file pattern             */
-    char *comp_patt;            /* compress file pattern            */
+    pm_t *comp_patt;            /* compress file pattern            */
+    pm_t *enc_patt;             /* encrypt file pattern             */
+    pm_t *excl_patt;            /* exclude file pattern             */
     char *key_file;             /* encryption key file name         */
     io_t *iom, *iod, *ior;      /* io makefile, io deps             */
     size_t ndir, nfile;         /* dir and file count               */
+    size_t nexcl;               /* # of excluded files (-x)         */
 } context_t;
 
 context_t *ctx;
@@ -63,48 +66,51 @@ context_t *ctx;
 static void usage(void)
 {
     static const char * us = 
-"Usage: klone [-hvV] -c COMMAND OPTIONS ARGUMENTS                           \n"
-"Version: %s - Copyright (c) 2005, 2006, 2007 KoanLogic s.r.l.              \n"
-"All rights reserved.                                                       \n"
+"Usage: klone [-hvV] -c COMMAND OPTIONS ARGUMENTS\n"
+"Version: %s - Copyright (c) 2005, 2006, 2007 KoanLogic s.r.l.\n"
+"All rights reserved.\n"
 "\n"
-"       -h            display this help                                     \n"
-"       -v            verbose mode                                          \n"
-"       -V            print KLone version and exit                          \n"
-"       -c command    command to execute (see COMMAND LIST)                 \n"
-"\n"
-"\n"
-"    COMMAND LIST:                                                          \n"
-"       import        import a directory tree in the embedded filesystem    \n"
-"       translate     convert a file or a dynamic web page to a C file      \n"
+"       -h            display this help\n"
+"       -v            verbose mode\n"
+"       -V            print KLone version and exit\n"
+"       -c command    command to execute (see COMMAND LIST)\n"
 "\n"
 "\n"
-"    COMMANDS SYNTAX:                                                       \n"
+"    COMMAND LIST:\n"
+"       import        import a directory tree in the embedded filesystem\n"
+"       translate     convert a file or a dynamic web page to a C file\n"
 "\n"
-"       import OPTIONS dir                                                  \n"
-"         -b URI      base URI                                              \n"
+"\n"
+"    COMMANDS SYNTAX:\n"
+"\n"
+"       import OPTIONS dir\n"
+"         -b URI      base URI\n"
+"         -x pattern  exclude all files whose URI match the given pattern (*)\n"
 #ifdef HAVE_LIBOPENSSL
-"         -e pattern  encrypt all files whose URI match the given pattern   \n"
-"         -k key_file encryption key filename                               \n"
+"         -e pattern  encrypt all files whose URI match the given pattern (*)\n"
+"         -k key_file encryption key filename\n"
 #endif
 #ifdef HAVE_LIBZ
-"         -z          compress all compressable content (based on MIME type)\n"
-"         -Z pattern  compress all files whose URI match the given pattern  \n"
+"         -z          compress all compressable content (based on MIME types)\n"
+"         -Z pattern  compress all files whose URI match the given pattern (*)\n"
 #endif
-"         dir         directory tree path                                   \n"
+"         dir         directory tree path\n"
 "\n"
-"       translate OPTIONS                                                   \n"
+"         (*) may be used more then once\n"
+"\n"
+"       translate OPTIONS\n"
 #ifdef HAVE_LIBOPENSSL
-"         -E          encrypt file content                                  \n"
+"         -E          encrypt file content\n"
 #endif
-"         -i file     input file                                            \n"
+"         -i file     input file\n"
 #ifdef HAVE_LIBOPENSSL
-"         -k key_file encryption key filename                               \n"
+"         -k key_file encryption key filename\n"
 #endif
-"         -o file     output file                                           \n"
-"         -u URI      URI of translated page                                \n"
+"         -o file     output file\n"
+"         -u URI      URI of translated page\n"
 "                     (KLONE_CIPHER_KEY environ var is used if not provided)\n"
 #ifdef HAVE_LIBZ
-"         -z          compress file content                                 \n"
+"         -z          compress file content\n"
 #endif
 "\n";
 
@@ -133,7 +139,7 @@ static int parse_opt(int argc, char **argv)
         usage();
 
     /* common switches */
-    strcpy(opts, "hvVb:i:o:u:c:");
+    strcpy(opts, "hvVx:b:i:o:u:c:");
 
     /* encryption switches */
 #ifdef HAVE_LIBOPENSSL
@@ -150,7 +156,7 @@ static int parse_opt(int argc, char **argv)
         switch(ret)
         {
         case 'v': /* verbose on */
-            ctx->verbose = 1;
+            ctx->verbose++;
             break;
         case 'V': /* print name/version info and exit */
             u_print_version_and_exit();
@@ -161,8 +167,7 @@ static int parse_opt(int argc, char **argv)
             ctx->encrypt = 1;
             break;
         case 'e': /* encrypt file pattern */
-            ctx->enc_patt = u_strdup(optarg);
-            warn_err_if(ctx->enc_patt == NULL);
+            dbg_err_if(pm_add(ctx->enc_patt, u_strdup(optarg)));
             break;
         case 'k': /* encryption key filename */
             ctx->key_file = u_strdup(optarg);
@@ -173,8 +178,7 @@ static int parse_opt(int argc, char **argv)
 #ifdef HAVE_LIBZ
         case 'Z': /* compress file pattern */
             ctx->compress = 1;
-            ctx->comp_patt = u_strdup(optarg);
-            warn_err_if(ctx->comp_patt == NULL);
+            dbg_err_if(pm_add(ctx->comp_patt, u_strdup(optarg)));
             break;
         case 'z': /* compress */
             ctx->compress = 1;
@@ -191,6 +195,9 @@ static int parse_opt(int argc, char **argv)
         case 'i': /* input file */
             ctx->file_in = u_strdup(optarg);
             warn_err_if(ctx->file_in == NULL);
+            break;
+        case 'x': /* exclude pattern */
+            dbg_err_if(pm_add(ctx->excl_patt, u_strdup(optarg)));
             break;
         case 'b': /* base_uri */
             ctx->base_uri = u_strdup(optarg);
@@ -370,8 +377,6 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
     dbg_err_if (path == NULL);
     dbg_err_if (arg == NULL);
 
-    ctx->nfile++;
-
     /* input file */
     if(path[0] == U_PATH_SEPARATOR)
     {   /* absolute path */
@@ -391,16 +396,29 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
     dbg_err_if(u_snprintf(uri, URI_BUFSZ, "%s/%s", base_uri, de->d_name));
     dbg_err_if(u_md5(uri, strlen(uri), uri_md5));
 
+    /* if the URI match the given exclude pattern then skip it */
+    if(!pm_is_empty(ctx->excl_patt) && pm_match(ctx->excl_patt, uri))
+    {
+        if(ctx->verbose)
+            con("%s skipped", uri);
+
+        ctx->nexcl++;
+
+        return 0; /* skip it */
+    } 
+
+    ctx->nfile++;
+
     /* if the URI match the given encrypt pattern then encrypt it */
-    if(ctx->enc_patt && !fnmatch(ctx->enc_patt, uri, 0))
+    if(!pm_is_empty(ctx->enc_patt) && pm_match(ctx->enc_patt, uri))
         enc = 1;
 
     if(ctx->compress) /* -z or -Z have been used */
     {
         /* if the URI match the given compress pattern then compress it */
-        if(ctx->comp_patt)
+        if(!pm_is_empty(ctx->comp_patt))
         {   /* compression enabled basing on file URI pattern */
-            if(!fnmatch(ctx->comp_patt, uri, 0))
+            if(pm_match(ctx->comp_patt, uri))
                 zip = 1;
         } else {
             /* compression enabled basing on URI MIME types */
@@ -409,11 +427,14 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
         }
     }
 
-    if(ctx->verbose)
+    /* print out some info */
+    if(ctx->verbose == 1)
+        con("%s (encrypted: %s, compressed: %s)", 
+            uri, enc ? "yes" : "no", zip ? "yes" : "no");
+    else if(ctx->verbose > 1)
         con("%s -> %s (encrypted: %s, compressed: %s)", 
             file_in + strlen(prefix), uri, 
-            enc ? "yes" : "no",
-            zip ? "yes" : "no");
+            enc ? "yes" : "no", zip ? "yes" : "no");
 
     ext = u_match_ext(file_in, "klx") ? "cc" : "c";
 
@@ -560,7 +581,8 @@ static int command_import(void)
 
     dbg_err_if(trans_site(root_dir, base_uri));
 
-    con("%lu dirs and %lu files imported", ctx->ndir, ctx->nfile);
+    con("%lu dirs and %lu files imported, %lu files skipped", 
+            ctx->ndir, ctx->nfile, ctx->nexcl);
 
     return 0;
 err:
@@ -595,6 +617,11 @@ int main(int argc, char **argv)
 
     /* zero-out the context */
     memset(ctx, 0, sizeof(context_t));
+
+    /* init pattern matching objects */
+    dbg_err_if(pm_create(&ctx->comp_patt));
+    dbg_err_if(pm_create(&ctx->enc_patt));
+    dbg_err_if(pm_create(&ctx->excl_patt));
 
     /* parse command line switches and set ctx->cmd and params */
     dbg_err_if(parse_opt(argc, argv));

@@ -1,10 +1,10 @@
-# $Id: Makefile,v 1.18 2006/12/19 14:41:00 tat Exp $
+# $Id: Makefile,v 1.19 2007/07/10 11:41:21 tat Exp $
 
 include common.mk
 include ../../../Makefile.conf
 
 PROG = klone
-SRCS = main.c
+SRCS = main.c pm.c
 
 CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
 LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}

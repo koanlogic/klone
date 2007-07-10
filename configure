@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.66 2007/07/07 14:09:57 tat Exp $
+# $Id: configure,v 1.67 2007/07/10 11:41:21 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -39,9 +39,8 @@ __makl_enable_warns ()
         "-W -Wall -Wstrict-prototypes -Wmissing-prototypes"         \
         "-Wpointer-arith -Wno-uninitialized -Wreturn-type"          \
         "-Wwrite-strings -Wswitch -Wshadow -Wwrite-strings"         \
-        "-Wunreachable-code -Wunused -Wcast-qual"                   \
-        "-pedantic"
-        #"-std=c99"
+        "-Wunreachable-code -Wunused -Wcast-qual"
+        #"-pedantic -std=c99"
 }
 
 # General settings
