@@ -84,7 +84,7 @@ KLONE_TOOL ?= $(KLONE_SRC_TARGET)/src/tools/klone/klone
 endif
 
 # if libz is available then use it
-KLONE_TOOL_ARGS += \
+KLONE_IMPORT_ARGS ?= \
     $(shell grep -q HAVE_LIBZ $(KLONE_SRC_TARGET)/Makefile.conf && echo '-z')
 
 ifeq ($(wildcard Makefile.conf),)
@@ -141,7 +141,7 @@ import: $(KLONE_WEBAPP)
 	@echo "==> importing klone-app content..."
 	@$(MAKE) import-pre
 	@( cd $(KLONE_SRC)/site && \
-		$(KLONE_TOOL) $(KLONE_TOOL_ARGS) -c import $(KLONE_WEBAPP_DIR) )
+		$(KLONE_TOOL) $(KLONE_IMPORT_ARGS) -c import $(KLONE_WEBAPP_DIR) )
 	@$(KLONE_MAKE)
 	@$(MAKE) import-post
 	@$(KLONE_SITE_DEPEND)
@@ -179,7 +179,9 @@ klone-make: $(KLONE_WEBAPP)
 	@if [ -f .wc ]; then mv .wc .wc.old ; else touch .wc.old; fi
 	@find $(KLONE_WEBAPP_DIR) > .wc
 	@diff -q .wc .wc.old >/dev/null; \
-		if [ $$? -ne 0 ]; then ( $(MAKE) import; ) fi
+	    if [ $$? -ne 0 ]; then \
+		    ( $(MAKE) import || (rm -f .wc .wc.old; exit 1) ) \
+		fi
 	@$(KLONE_MAKE)
 	@if [ ! -h kloned* ]; then ln -fs $(KLONE_SRC)/src/kloned/kloned*; fi
 
