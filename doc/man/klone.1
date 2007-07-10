@@ -1,4 +1,4 @@
-.\" $Id: klone.1,v 1.1 2005/11/24 23:54:13 stewy Exp $
+.\" $Id: klone.1,v 1.2 2007/07/10 12:23:19 tat Exp $
 .TH "KLONE" "1" "11/03/2005" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
@@ -58,30 +58,24 @@ Print klone version and exit.
 .SH "COMMANDS"
 .SS "Translate:"
 .HP 6
+
 \fBklone\fR \fB\-c\ translate\fR \fB\-i\ \fR\fB\fIinfile\fR\fR \fB\-o\ \fR\fB\fIoutfile\fR\fR \fB\-u\ \fR\fB\fIuri\fR\fR [\fB\-E\fR] [\fB\-k\ \fR\fB\fIkeyfile\fR\fR] [\fB\-z\fR]
 .PP
-Translate the active (i.e. a
-\fI.klone\fR
-file) or static page
-\fIinfile\fR
-into the C file
-\fIoutfile\fR. The
-\fB\-u\fR
-specifies the
-\fIuri\fR
-associated to the translated file. The
-\fB\-E\fR
-option tells
-\fBklone\fR
-to encrypt (using AES\-256 CBC) the file content with the key enclosed in the supplied
-\fIkeyfile\fR
-or in the environment variable
-\fBKLONE_CIPHER_KEY\fR. The translated files' contents are compressed (based on their MIME type) if the
-\fB\-z\fR
-flag is given.
+Translate the active (i.e. a \fI.klone\fR file) or static page \fIinfile\fR
+into the C file \fIoutfile\fR. 
+
+The \fB\-u\fR specifies the \fIuri\fR associated to the translated file. 
+
+The \fB\-E\fR option tells \fBklone\fR to encrypt (using AES\-256 CBC) the 
+file content with the key enclosed in the supplied \fIkeyfile\fR or in the 
+environment variable \fBKLONE_CIPHER_KEY\fR. 
+
+The translated files' contents are compressed (based on their MIME type) if the \fB\-z\fR flag is given.
+
 .SS "Import:"
 .HP 6
-\fBklone\fR \fB\-c\ import\fR [\fB\-b\ \fR\fB\fIuri\fR\fR] [\fB\-e\ \fR\fB\fIpattern\fR\fR] [\fB\-k\ \fR\fB\fIkeyfile\fR\fR] [\fB\-Z\ \fR\fB\fIpattern\fR\fR] [\fB\-z\fR] \fB\fIdir\fR\fR
+
+\fBklone\fR \fB\-c\ import\fR [\fB\-b\ \fR\fB\fIuri\fR\fR] [\fB\-e\ \fR\fB\fIpattern\fR\fR] [\fB\-x\ \fR\fB\fIpattern\fR\fR] [\fB\-k\ \fR\fB\fIkeyfile\fR\fR] [\fB\-Z\ \fR\fB\fIpattern\fR\fR] [\fB\-z\fR] \fB\fIdir\fR\fR
 .PP
 Import the site tree starting at
 \fIdir\fR
@@ -89,17 +83,20 @@ into the KLone building environment. The command output comprises two makefiles 
 and
 \fIautogen.dps\fR) and the
 \fIregister.c\fR
-file which will gather the imported and translated site files. The latter file is the glue by which the embedded site can afterwards be linked to the HTTP/S server. When the
-\fB\-e\fR
-flag is given, the files matching the specified
-\fIpattern\fR
-will be encrypted using the key enclosed in the supplied
-\fIkeyfile\fR
-or in the environment variable
-\fBKLONE_CIPHER_KEY\fR. The user can choose whether to compress all the imported files based on their MIME type, using the
-\fB\-z\fR
-flag, or to select a subset matching the supplied shell
-\fIpattern\fR.
+file which will gather the imported and translated site files. The latter file is the glue by which the embedded site can afterwards be linked to the HTTP/S server. 
+
+When the \fB\-e\fR flag is given, the files matching the specified
+\fIpattern\fR will be encrypted using the key enclosed in the supplied
+\fIkeyfile\fR or in the environment variable
+\fBKLONE_CIPHER_KEY\fR. 
+
+The user can choose whether to compress all the imported files based on their MIME type, using the \fB\-z\fR flag, or to select a subset matching the supplied shell \fIpattern\fR.
+
+If, while importing, you don't want to include a set of files you can use the 
+\fB\-x\fR argument to provide the pattern of files you want to exclude.
+
+Arguments \fB\-x\fR, \fB\-Z\fR and \fB\-e\fR may be used more then once.
+
 .SH "ENVIRONMENT"
 .PP
 The following environment variable affects the execution of
