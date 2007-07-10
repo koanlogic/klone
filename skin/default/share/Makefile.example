@@ -3,7 +3,11 @@ TOP = $(shell pwd)
 # which klone version?
 KLONE_VERSION ?= 2.0.0
 
-KLONE_CONF_ARGS ?= --enable_debug
+# configure arguments
+# KLONE_CONF_ARGS ?= --enable_debug
+
+# import arguments
+# KLONE_IMPORT_ARGS ?= 
 
 # cross compile
 # MAKL_PLATFORM ?= 

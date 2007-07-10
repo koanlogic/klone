@@ -5,6 +5,9 @@ endif
 ifdef KLONE_CONF_ARGS 
 export KLONE_CONF_ARGS 
 endif
+ifdef KLONE_IMPORT_ARGS 
+export KLONE_IMPORT_ARGS 
+endif
 ifdef MAKL_PLATFORM 
 export MAKL_PLATFORM 
 endif
@@ -30,11 +33,16 @@ endif
 KLONE_DIR = $(shell pwd)/klone-$(KLONE_VERSION)/
 KLONE_TGZ = klone-$(KLONE_VERSION).tar.gz
 
-all:
+ifneq ($(wildcard $(KLONE_DIR)/Makefile),)
+all: $(KLONE_DIR)/Makefile
+else
+all: 
+endif
 	[ -f $(KLONE_DIR)/configure ] || make src
 	[ -f $(KLONE_DIR)/Makefile.conf ] || ( cd $(KLONE_DIR) && ./configure )
 	make -C $(KLONE_DIR)
 	ln -sf $(KLONE_DIR)/kloned 
+
 
 clean: 
 	if [ -d $(KLONE_DIR) ]; then \
@@ -43,6 +51,9 @@ clean:
 		make MAKL_TC= -C $(KLONE_DIR) dist-clean; \
 	fi
 	rm -f kloned
+
+$(KLONE_DIR)/Makefile: Makefile
+	@touch $@
 
 src: $(KLONE_TGZ)
 	tar zxvf $(KLONE_TGZ)
