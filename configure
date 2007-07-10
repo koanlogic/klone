@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.67 2007/07/10 11:41:21 tat Exp $
+# $Id: configure,v 1.68 2007/07/10 13:20:20 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -19,7 +19,7 @@ makl_args_init "$@"
 # Custom arguments ...
 makl_args_def   "enable_debug"      "" ""   "enables debugging of KLone app"
 makl_args_def   "enable_libu_debug" "" ""   "enables debugging of LibU"
-makl_args_def   "enable_libu_mini"  "" ""   "enables minimisation of LibU"
+makl_args_def   "disable_libu_mini"  "" ""   "enables minimisation of LibU"
 makl_args_def   "enable_profile"    "" ""   "enables profiling"
 makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
 makl_args_def   "enable_warns"      "" ""   "set CFLAGS for extra warnings"
