@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.24 2006/04/22 13:14:46 tat Exp $
+ * $Id: sup_emb.c,v 1.25 2007/07/11 09:20:28 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -218,10 +218,14 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
     http_t *http = NULL;
     codec_t *filter = NULL;
     session_opt_t *so;
+    io_t *oio;
 
     dbg_return_if (rq == NULL, ~0);
     dbg_return_if (rs == NULL, ~0);
     dbg_return_if (e == NULL, ~0);
+
+    /* output io object */
+    oio = response_io(rs);
 
     /* get session options */
     dbg_err_if((http = request_get_http(rq)) == NULL);
@@ -239,13 +243,19 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
     /* create a response filter (use to automatically print all header fields 
      * when the header buffer fills up) and attach it to the response io */
     dbg_err_if(response_filter_create(rq, rs, ss, &filter));
-    io_codec_add_tail(response_io(rs), filter);
+    io_codec_add_tail(oio, filter);
 
     /* run the page code */
     e->run(rq, rs, ss);
 
     /* flush the output buffer */
-    io_flush(response_io(rs));
+    io_flush(oio);
+
+    /* if nothing has been printed by the sciprt then write a dummy byte so 
+     * the io_t calls the filter function that, in turn, will print out the 
+     * HTTP header (rsfilter will handle it) */
+    if(oio->wcount == 0)
+        io_write(oio, "\n", 1);
 
     /* save and destroy the session */
     session_free(ss);
