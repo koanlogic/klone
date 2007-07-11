@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.25 2007/07/11 09:20:28 tat Exp $
+ * $Id: sup_emb.c,v 1.26 2007/07/11 09:29:48 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -15,6 +15,7 @@
 #include <u/libu.h>
 #include <klone/supplier.h>
 #include <klone/io.h>
+#include <klone/ioprv.h>
 #include <klone/page.h>
 #include <klone/http.h>
 #include <klone/emb.h>
