@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.c,v 1.10 2006/03/21 19:15:38 tat Exp $
+ * $Id: tls.c,v 1.11 2007/07/12 15:56:05 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -60,7 +60,8 @@ int tls_load_ctx_args (u_config_t *cfg, tls_ctx_args_t **cargs)
     dbg_err_if (tls_set_ctx_vmode(cfg, *cargs));
 
     /* check cargs consistency against the supplied values */
-    dbg_err_if (tls_check_ctx(*cargs));
+    crit_err_ifm (tls_check_ctx(*cargs), 
+            "error validating SSL configuration options");
 
     return 0;
 
@@ -171,26 +172,32 @@ static int tls_load_creds (SSL_CTX *c, tls_ctx_args_t *cargs)
     
     /* set ca if supplied */
     if (cargs->ca)
-        dbg_err_if (tls_load_verify_locations(c, cargs->ca));
+        crit_err_ifm(tls_load_verify_locations(c, cargs->ca),
+                "error loading CA certificate from %s", cargs->ca);
 
     /* explicitly set the list of CAs for which we accept certificates */
     if (cargs->ca && cargs->vmode != SSL_VERIFY_NONE)
         SSL_CTX_set_client_CA_list(c, tls_load_client_CA_file(cargs->ca));
 
     /* load server certificate */
-    dbg_err_if (tls_use_certificate_file(c, cargs->cert, 
-                                         SSL_FILETYPE_PEM) <= 0);
+    crit_err_ifm (tls_use_certificate_file(c, cargs->cert, 
+                                         SSL_FILETYPE_PEM) <= 0,
+            "error loading server certificate from %s", cargs->cert);
 
     /* load private key (perhaps from the cert file) */
-    dbg_err_if (tls_use_PrivateKey_file(c, cargs->key, SSL_FILETYPE_PEM) <= 0);
+    crit_err_ifm (tls_use_PrivateKey_file(c, cargs->key, SSL_FILETYPE_PEM) <= 0,
+            "error loading the private key from %s", cargs->key);
 
     /* check skey consistency against scert */
-    dbg_err_if (!SSL_CTX_check_private_key(c));
+    crit_err_ifm (!SSL_CTX_check_private_key(c),
+            "the given private key doesn't seem to belong "
+            "to the server certificate");
 
     /* load optional server certficate chain */
     if (cargs->certchain)
-        dbg_err_if (tls_use_certificate_chain(c, cargs->certchain, 
-                                              0, NULL) < 0);
+        crit_err_ifm (tls_use_certificate_chain(c, cargs->certchain, 
+                                              0, NULL) < 0,
+                "error loading server certificate chain");
 
     /* set SSL verify mode (no, optional, required) and depth */
     SSL_CTX_set_verify(c, cargs->vmode, NULL);
@@ -378,14 +385,17 @@ static int tls_check_ctx (tls_ctx_args_t *cargs)
     dbg_return_if (!cargs, ~0);
 
     /* cert_file is a MUST */
-    dbg_err_if (!cargs->cert || strlen(cargs->cert) == 0);
+    crit_err_ifm (!cargs->cert || strlen(cargs->cert) == 0, 
+        "missing cert_file option parameter");
 
     /* if private key file is missing, assume the key is inside cert_file */
-    dbg_if (!cargs->key);
+    warn_ifm (!cargs->key, 
+        "missing certificate key option, assuming the key is inside cert_file");
 
     /* if verify_mode == "required" the CA file MUST be present */
     if (cargs->vmode & SSL_VERIFY_PEER)
-        dbg_err_if (!cargs->ca);
+        crit_err_ifm (!cargs->ca, 
+            "SSL verify is required but CA certificate filename is missing");
 
     return 0;
 err:

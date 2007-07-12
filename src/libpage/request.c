@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.33 2006/09/24 12:02:06 tat Exp $
+ * $Id: request.c,v 1.34 2007/07/12 15:56:05 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1311,10 +1311,9 @@ static int request_cb_close_socket(talarm_t *al, void *arg)
     u_unused_args(al);
 
     warn("[%x] connection timed out, closing", io);
-
-    /* hack: this will call io_fd_term that will close the fd unblocking
-       pending I/O calls */
-    io->term(io);
+    
+    /* close the stream (but not free it) */
+    io_close(io);
 
     return 0;
 }
@@ -1426,6 +1425,8 @@ int request_parse_header(request_t *rq,
 
     return 0;
 err:
+    if(al)
+        timerm_del(al);
     return rc;
 }
 

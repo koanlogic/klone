@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iossl.c,v 1.14 2006/05/27 16:34:01 tat Exp $
+ * $Id: iossl.c,v 1.15 2007/07/12 15:56:05 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -84,19 +84,33 @@ err:
     return -1;
 }
 
-static int io_ssl_term(io_ssl_t *io_ssl)
+/* close the underlaying fd (may be called more then once) */
+static int io_ssl_close(io_ssl_t *io_ssl)
 {
     dbg_err_if(io_ssl == NULL);
 
-    /* we cannot free io_ssl->ssl because on connection timeout the process 
-     * is blocked in a SSL_read so freeing the SSL object will segfault 
-     * (i.e. we're leaking here) */
-    /* SSL_free(io_ssl->ssl); */
-
-    if(io_ssl->flags & IO_FD_CLOSE)
+    if(io_ssl->flags & IO_FD_CLOSE && io_ssl->fd != -1)
     {
         close(io_ssl->fd);
         io_ssl->fd = -1;
+    }
+
+    return 0;
+err:
+    return ~0;
+}
+
+/* free data alloc'ed by this io type */
+static int io_ssl_free(io_ssl_t *io_ssl)
+{
+    dbg_err_if(io_ssl == NULL);
+
+    dbg_if(io_ssl_close(io_ssl));
+
+    if(io_ssl->ssl)
+    {
+        SSL_free(io_ssl->ssl);
+        io_ssl->ssl = NULL;
     }
 
     return 0;
@@ -126,7 +140,8 @@ int io_ssl_create(int fd, int flags, SSL_CTX *ssl_ctx, io_t **pio)
 
     io_ssl->io.read = (io_read_op) io_ssl_read;
     io_ssl->io.write = (io_write_op) io_ssl_write;
-    io_ssl->io.term = (io_term_op) io_ssl_term; 
+    io_ssl->io.close = (io_close_op) io_ssl_close; 
+    io_ssl->io.free = (io_free_op) io_ssl_free; 
     io_ssl->io.size = 0;
 
     /* set the secure flag (encrypted connection) */

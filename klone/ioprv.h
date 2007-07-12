@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ioprv.h,v 1.12 2006/05/12 09:02:58 tat Exp $
+ * $Id: ioprv.h,v 1.13 2007/07/12 15:56:05 tat Exp $
  */
 
 #ifndef _KLONE_IO_PRV_H_
@@ -32,7 +32,8 @@ typedef ssize_t (*io_read_op) (io_t*, char*, size_t);
 typedef ssize_t (*io_write_op) (io_t*, const char*, size_t);
 typedef ssize_t (*io_seek_op) (io_t*, size_t);
 typedef ssize_t (*io_tell_op) (io_t*);
-typedef int (*io_term_op) (io_t*);
+typedef int (*io_close_op) (io_t*);
+typedef int (*io_free_op) (io_t*);
 
 struct io_s
 {
@@ -52,7 +53,8 @@ struct io_s
     io_write_op write;
     io_seek_op seek;
     io_tell_op tell;
-    io_term_op term;
+    io_close_op close;
+    io_free_op free;
 
     /* input buffer */
 

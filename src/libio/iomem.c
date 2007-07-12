@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iomem.c,v 1.8 2006/01/09 12:38:38 tat Exp $
+ * $Id: iomem.c,v 1.9 2007/07/12 15:56:05 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -30,7 +30,8 @@ static ssize_t io_mem_read(io_mem_t *io, char *buf, size_t size);
 static ssize_t io_mem_write(io_mem_t *io, const char *buf, size_t size);
 static ssize_t io_mem_seek(io_mem_t *io, size_t off);
 static ssize_t io_mem_tell(io_mem_t *im);
-static int io_mem_term(io_mem_t *io);
+static int io_mem_close(io_mem_t *io);
+static int io_mem_free(io_mem_t *io);
 
 static ssize_t io_mem_tell(io_mem_t *im)
 {
@@ -89,7 +90,12 @@ static ssize_t io_mem_write(io_mem_t *im, const char *buf, size_t size)
     return sz;
 }
 
-static int io_mem_term(io_mem_t *im)
+static int io_mem_close(io_mem_t *im)
+{
+    return 0;
+}
+
+static int io_mem_free(io_mem_t *im)
 {
     dbg_return_if (im == NULL, ~0);
 
@@ -120,7 +126,8 @@ int io_mem_create(char *buf, size_t size, int flags, io_t **pio)
     im->io.write = (io_write_op) io_mem_write;
     im->io.seek = (io_seek_op) io_mem_seek;
     im->io.tell = (io_tell_op) io_mem_tell;
-    im->io.term = (io_term_op) io_mem_term; 
+    im->io.close = (io_close_op) io_mem_close; 
+    im->io.free = (io_free_op) io_mem_free; 
 
     *pio = (io_t*)im;
 

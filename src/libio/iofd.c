@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iofd.c,v 1.10 2006/09/24 13:26:18 tat Exp $
+ * $Id: iofd.c,v 1.11 2007/07/12 15:56:05 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -30,7 +30,8 @@ static ssize_t io_fd_read(io_fd_t *io, char *buf, size_t size);
 static ssize_t io_fd_write(io_fd_t *io, const char *buf, size_t size);
 static ssize_t io_fd_seek(io_fd_t *io, size_t off);
 static ssize_t io_fd_tell(io_fd_t *io);
-static int io_fd_term(io_fd_t *io);
+static int io_fd_close(io_fd_t *io);
+static int io_fd_free(io_fd_t *io);
 
 static ssize_t io_fd_read(io_fd_t *ifd, char *buf, size_t size)
 {
@@ -90,11 +91,12 @@ static ssize_t io_fd_tell(io_fd_t *ifd)
     return lseek(ifd->fd, 0, SEEK_CUR);
 }
 
-static int io_fd_term(io_fd_t *ifd)
+/* close the underlaying fd (may be called more then once) */
+static int io_fd_close(io_fd_t *ifd)
 {
     dbg_return_if (ifd == NULL, ~0);
     
-    if(ifd->flags & IO_FD_CLOSE)
+    if(ifd->flags & IO_FD_CLOSE && ifd->fd != -1)
     {
 #ifdef OS_WIN
         if(ifd->issock)
@@ -107,6 +109,13 @@ static int io_fd_term(io_fd_t *ifd)
 #endif
         ifd->fd = -1;
     }
+
+    return 0;
+}
+
+static int io_fd_free(io_fd_t *ifd)
+{
+    dbg_if(io_fd_close(ifd));
 
     return 0;
 }
@@ -125,7 +134,8 @@ int io_fd_create(int fd, int flags, io_t **pio)
     ifd->io.write = (io_write_op) io_fd_write;
     ifd->io.seek = (io_seek_op) io_fd_seek;
     ifd->io.tell = (io_tell_op) io_fd_tell;
-    ifd->io.term = (io_term_op) io_fd_term; 
+    ifd->io.close = (io_close_op) io_fd_close; 
+    ifd->io.free = (io_free_op) io_fd_free; 
     
 #ifdef OS_WIN
     u_long ret;

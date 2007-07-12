@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.31 2006/05/12 09:02:58 tat Exp $
+ * $Id: io.c,v 1.32 2007/07/12 15:56:05 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -411,6 +411,29 @@ err:
 }
 
 /**
+ * \brief  Close the given io object
+ *
+ * Close the underlying source/sink of the given \c io_t object. 
+ *
+ * \param io     the \c io_t object to be free'd
+ *
+ * \return \c 0 on success, non-zero on error
+ *
+ * \sa io_dup
+ */
+int io_close(io_t *io)
+{
+    dbg_err_if (io == NULL);
+
+    if(io->close)
+        dbg_err_if(io->close(io));
+
+    return 0;
+err:
+    return ~0;
+}
+
+/**
  * \brief  Free an \c io_t object
  *
  * Free the given \c io_t object. If \p io has been dup'd and the reference 
@@ -439,8 +462,12 @@ int io_free(io_t *io)
 
     dbg_if(io_flush(io));
 
-    /* free per dev resources */
-    dbg_if(io->term(io));
+    /* flush and close the stream (but don't free it) */
+    dbg_if(io_close(io));
+
+    /* free per-type alloc'ed data */
+    if(io->free)
+        dbg_if(io->free(io));
 
     U_FREE(io->rbuf);
     U_FREE(io->ubuf);
