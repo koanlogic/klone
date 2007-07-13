@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_cgi.c,v 1.1 2007/07/13 14:00:13 tat Exp $
+ * $Id: sup_cgi.c,v 1.2 2007/07/13 23:08:24 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -221,10 +221,12 @@ int cgi_exec(request_t *rq, response_t *rs, pid_t *pchild,
         close(cgi_stdout[RD_END]);
 
         /* setup cgi stdout to point to the write end of the cgi_stdout pipe */
+        close(STDOUT_FILENO);
         crit_err_if(dup2(cgi_stdout[WR_END], STDOUT_FILENO) < 0);
         close(cgi_stdout[WR_END]);
 
         /* setup cgi stdin to point to the read end of the cgi_stdin pipe */
+        close(STDIN_FILENO);
         crit_err_if(dup2(cgi_stdin[RD_END], STDIN_FILENO) < 0);
         close(cgi_stdin[RD_END]);
 
@@ -240,8 +242,8 @@ int cgi_exec(request_t *rq, response_t *rs, pid_t *pchild,
         dbg_err_if(cgi_set_blocking(STDERR_FILENO));
 
         /* close any other open fd */
-       for(fd = 3; fd < 255; ++fd) 
-           close(fd);
+        for(fd = 3; fd < 255; ++fd) 
+            close(fd);
 
         /* extract path name from cgi_file */
         dbg_err_if((cgi_file = request_get_resolved_filename(rq)) == NULL);
@@ -333,10 +335,17 @@ static int cgi_serve(request_t *rq, response_t *rs)
         /* build an io_t object to read cgi output */
         crit_err_sif(io_fd_create(cgi_stdin, O_WRONLY, &cgi_out));
 
-        // FIXME this may block the caller....
+        /* FIXME 
+           if the cgi does not read from stdin (and POSTed data is big) 
+           we could be block here waiting for the buffer to drain 
+         */
         
-        /* send POSTed data to the cgi */
-        crit_err_sif(io_copy(cgi_out, request_io(rq), clen));
+        /* send POSTed data to the cgi (the script may not read it so we don't 
+         * complain on broken pipe error) */
+        crit_if(io_copy(cgi_out, request_io(rq), clen) < 0);
+
+        io_free(cgi_out); cgi_out = NULL;
+        close(cgi_stdin); cgi_stdin = -1;
     }
 
     /* build an io_t object to read cgi output */

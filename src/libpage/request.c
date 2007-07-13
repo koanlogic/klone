@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.35 2007/07/13 14:00:13 tat Exp $
+ * $Id: request.c,v 1.36 2007/07/13 23:08:24 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1416,6 +1416,9 @@ int request_parse_header(request_t *rq,
 
     /* parse "Cookie:" fields and set the cookies vars_t */
     dbg_err_if(request_parse_cookies(rq));
+
+    /* Content-Length is required when using POST */
+    dbg_err_if(request_set_content_length(rq));
 
     /* idle timeout not expired, clear it */
     dbg_if(timerm_del(al)); al = NULL;

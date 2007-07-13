@@ -1,8 +1,9 @@
-$Id: ChangeLog,v 1.15 2007/07/10 11:41:20 tat Exp $
+$Id: ChangeLog,v 1.16 2007/07/13 23:08:24 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone x.y.z:
+    - CGI support
     - -Z and -e can be used more then once to provide more then one compress 
       and/or encrypt file patterns
     - -x argument added to klone tool to avoid importing files that match the 
