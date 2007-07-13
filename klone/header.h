@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.h,v 1.7 2006/01/09 12:38:37 tat Exp $
+ * $Id: header.h,v 1.8 2007/07/13 14:00:13 tat Exp $
  */
 
 #ifndef _KLONE_HEADER_H_
@@ -18,6 +18,14 @@
 extern "C" {
 #endif 
 
+/* load modes */
+enum { 
+    HLM_OVERRIDE,/** if a field with the same name already exists override it */
+    HLM_KEEP,    /** if a field with the same name already exists keep it */
+    HLM_ADD      /** if a field with the same name already exists add another 
+                     field with the same name */
+};
+
 typedef struct
 {
      fields_t fields;         
@@ -27,6 +35,7 @@ typedef struct
 int header_create(header_t**);
 int header_load(header_t*, io_t *);
 int header_load_from_cgienv(header_t *h);
+int header_load_ex(header_t *h , io_t *io, int mode);
 int header_free(header_t*);
 int header_add_field(header_t *h, field_t *f);
 int header_del_field(header_t *h, field_t *f);

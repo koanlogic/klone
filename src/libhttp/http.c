@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.42 2006/05/27 16:34:01 tat Exp $
+ * $Id: http.c,v 1.43 2007/07/13 14:00:13 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -309,7 +309,7 @@ static int http_serve(http_t *h, int fd)
     dbg_err_if (fd < 0);
     
     if(fd == 0 && (gwi = getenv("GATEWAY_INTERFACE")) != NULL)
-        cgi++;
+        cgi++; /* klone is being used as a CGI */
 
     /* create a request object */
     dbg_err_if(request_create(h, &rq));

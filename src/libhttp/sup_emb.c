@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.26 2007/07/11 09:29:48 tat Exp $
+ * $Id: sup_emb.c,v 1.27 2007/07/13 14:00:13 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -142,9 +142,6 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
     dbg_return_if (rs == NULL, ~0);
     dbg_return_if (e == NULL, 0);
     
-    /* dbg("mime type: %s (%scompressed)", 
-        e->mime_type, (e->comp ? "" : "NOT ")); */
-
     /* create a response filter and attach it to the response io */
     dbg_err_if(response_filter_create(rq, rs, NULL, &rsf));
     dbg_err_if(io_codec_add_tail(response_io(rs), rsf));
@@ -232,6 +229,9 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
     dbg_err_if((http = request_get_http(rq)) == NULL);
     dbg_err_if((so = http_get_session_opt(http)) == NULL);
 
+    /* parse URL encoded or POSTed data (POST must be read before) */
+    dbg_err_if(request_parse_data(rq));
+
     /* create/get the session */
     dbg_err_if(session_create(so, rq, rs, &ss));
 
@@ -241,7 +241,7 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
     /* by default disable caching */
     response_disable_caching(rs);
 
-    /* create a response filter (use to automatically print all header fields 
+    /* create a response filter (used to automatically print all header fields 
      * when the header buffer fills up) and attach it to the response io */
     dbg_err_if(response_filter_create(rq, rs, ss, &filter));
     io_codec_add_tail(oio, filter);

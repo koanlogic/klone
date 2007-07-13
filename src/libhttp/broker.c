@@ -5,23 +5,28 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: broker.c,v 1.13 2006/05/27 17:16:18 tat Exp $
+ * $Id: broker.c,v 1.14 2007/07/13 14:00:13 tat Exp $
  */
 
-#include "klone_conf.h"
 #include <u/libu.h>
 #include <klone/supplier.h>
 #include <klone/broker.h>
 #include <klone/request.h>
+#include "klone_conf.h"
 
-enum { AVAIL_SUP_COUNT = 2 }; /* number of existing supplier types */
+enum { MAX_SUP_COUNT = 8 }; /* max number of suppliers */
 
 extern supplier_t sup_emb;
+#ifdef ENABLE_SUP_FS
 extern supplier_t sup_fs;
+#endif
+#ifdef ENABLE_SUP_CGI
+extern supplier_t sup_cgi;
+#endif
 
 struct broker_s
 {
-    supplier_t *sup_list[AVAIL_SUP_COUNT + 1];
+    supplier_t *sup_list[MAX_SUP_COUNT + 1];
 };
 
 int broker_is_valid_uri(broker_t *b, const char *buf, size_t len)
@@ -103,7 +108,10 @@ int broker_create(broker_t **pb)
 
     i = 0;
     b->sup_list[i++] = &sup_emb;
-#if ENABLE_SUP_FS
+#ifdef ENABLE_SUP_CGI
+    b->sup_list[i++] = &sup_cgi;
+#endif
+#ifdef ENABLE_SUP_FS
     b->sup_list[i++] = &sup_fs;
 #endif
     b->sup_list[i++] = NULL;

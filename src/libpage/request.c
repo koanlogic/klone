@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.34 2007/07/12 15:56:05 tat Exp $
+ * $Id: request.c,v 1.35 2007/07/13 14:00:13 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1421,7 +1421,7 @@ int request_parse_header(request_t *rq,
     dbg_if(timerm_del(al)); al = NULL;
 
     /* parse URL encoded or POSTed data */
-    dbg_err_if((rc = request_parse_data(rq)));
+    /* dbg_err_if((rc = request_parse_data(rq))); */
 
     return 0;
 err:

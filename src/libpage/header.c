@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.c,v 1.14 2006/04/06 14:02:22 tat Exp $
+ * $Id: header.c,v 1.15 2007/07/13 14:00:13 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -217,9 +217,9 @@ int header_add_field(header_t *h, field_t *f)
     return 0;
 }
 
-static int header_process_line(header_t *h, u_string_t *line)
+static int header_process_line(header_t *h, u_string_t *line, int mode)
 {
-    field_t *f = NULL;
+    field_t *ex, *f = NULL;
     const char *p;
 
     dbg_err_if (h == NULL);
@@ -228,9 +228,6 @@ static int header_process_line(header_t *h, u_string_t *line)
     if(!u_string_len(line))
         return 0;
 
-    /* look for name/value delimiter */
-    dbg_err_if((p = strchr(u_string_c(line), ':')) == NULL);
-
     /* alloc a new field */
     dbg_err_if(field_create(NULL, NULL, &f));
 
@@ -238,7 +235,29 @@ static int header_process_line(header_t *h, u_string_t *line)
     dbg_err_if(field_set_from_line(f, u_string_c(line)));
 
     /* add to this header */
-    dbg_err_if(header_add_field(h, f));
+    switch(mode)
+    {
+    case HLM_ADD:
+        dbg_err_if(header_add_field(h, f));
+        break;
+    case HLM_OVERRIDE:
+        if((ex = header_get_field(h, field_get_name(f))) != NULL)
+        {
+            header_del_field(h, ex);
+            field_free(ex); ex = NULL;
+        }
+        dbg_err_if(header_add_field(h, f));
+        break;
+    case HLM_KEEP:
+        if((ex = header_get_field(h, field_get_name(f))) == NULL)
+            dbg_err_if(header_add_field(h, f));
+        else {
+            field_free(f); f = NULL;
+        }
+        break;
+    default:
+        crit_err("unknown header load mode");
+    }
 
     return 0;
 err:
@@ -289,7 +308,7 @@ err:
     return ~0;
 }
 
-int header_load(header_t *h , io_t *io)
+int header_load_ex(header_t *h , io_t *io, int mode)
 {
     enum { HEADER_MAX_FIELD_COUNT = 256 }; /* max num of header fields */
     u_string_t *line = NULL, *unfolded = NULL;
@@ -323,7 +342,7 @@ int header_load(header_t *h , io_t *io)
             if(u_string_len(unfolded))
             {
                 /* go process this (already unfolded) line */
-                header_process_line(h, unfolded);
+                header_process_line(h, unfolded, mode);
                 u_string_clear(unfolded);
             }
             /* this may be the first line of a folded line so wait next lines */
@@ -332,7 +351,7 @@ int header_load(header_t *h , io_t *io)
     }
 
     if(u_string_len(unfolded))
-        header_process_line(h, unfolded);
+        header_process_line(h, unfolded, mode);
 
     u_string_free(unfolded);
     u_string_free(line);
@@ -344,6 +363,11 @@ err:
     if(unfolded)
         u_string_free(unfolded);
     return ~0;
+}
+
+int header_load(header_t *h , io_t *io)
+{
+    return header_load_ex(h, io, HLM_ADD);
 }
 
 int header_create(header_t **ph)
