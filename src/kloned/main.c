@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.20 2007/02/07 09:46:44 tat Exp $
+ * $Id: main.c,v 1.21 2007/07/16 17:56:55 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -36,7 +36,7 @@ static char *io_gets_cb(void *arg, char *buf, size_t size)
     dbg_err_if (arg == NULL);
     dbg_err_if (buf == NULL);
     
-    dbg_err_if(io_gets(io, buf, size) <= 0);
+    nop_err_if(io_gets(io, buf, size) <= 0);
 
     return buf;
 err: 
