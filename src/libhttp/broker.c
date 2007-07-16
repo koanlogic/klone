@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: broker.c,v 1.14 2007/07/13 14:00:13 tat Exp $
+ * $Id: broker.c,v 1.15 2007/07/16 12:44:22 tat Exp $
  */
 
 #include <u/libu.h>
@@ -17,11 +17,11 @@
 enum { MAX_SUP_COUNT = 8 }; /* max number of suppliers */
 
 extern supplier_t sup_emb;
-#ifdef ENABLE_SUP_FS
-extern supplier_t sup_fs;
-#endif
 #ifdef ENABLE_SUP_CGI
 extern supplier_t sup_cgi;
+#endif
+#ifdef ENABLE_SUP_FS
+extern supplier_t sup_fs;
 #endif
 
 struct broker_s

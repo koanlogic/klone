@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.43 2007/07/13 14:00:13 tat Exp $
+ * $Id: http.c,v 1.44 2007/07/16 12:44:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -469,6 +469,8 @@ static int http_set_config_opt(http_t *http)
     /* html dir root */
     if((v = u_config_get_subkey_value(c, "dir_root")) != NULL)
         http->dir_root = v;
+    else
+        crit_err("dir_root must be set");
 
     /* index page */
     if((v = u_config_get_subkey_value(c, "index")) != NULL)
