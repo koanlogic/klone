@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.32 2007/07/12 15:56:05 tat Exp $
+ * $Id: io.c,v 1.33 2007/07/18 09:54:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -760,18 +760,20 @@ end:
 }
 
 /**
- * \brief  Read a line from an \c io_t object
+ * \brief  Read a chunk of data until the given character is found
  *
- * Read a line from \p in and save it to \p buf that must be at least \p size
- * bytes long.
+ * Read from \p in and save it to \p buf that must be at least \p size
+ * bytes long. Read stops when stop_at characted is found in the incoming 
+ * stream.
  *
- * \param io    the \c io_t object
- * \param buf   destination buffer
- * \param size  size of \p buf
+ * \param io        the \c io_t object
+ * \param stop_at   reads until this character is found
+ * \param buf       destination buffer
+ * \param size      size of \p buf
  *
  * \return the length of the line on success, \c 0 on EOF or \c -1 on error.
  */
-ssize_t io_gets(io_t *io, char *buf, size_t size)
+ssize_t io_get_until(io_t *io, char stop_at, char *buf, size_t size)
 {
     ssize_t wr, c, len = 0;
     char *p;
@@ -792,9 +794,9 @@ ssize_t io_gets(io_t *io, char *buf, size_t size)
 
     for(;;)
     {
-        if((p = io_strnchr(io->rbuf + io->roff, io->rcount, '\n')) != NULL)
+        if((p = io_strnchr(io->rbuf + io->roff, io->rcount, stop_at)) != NULL)
         {
-            p++; /* jump over newline */
+            p++; /* jump over 'stop_at' char*/
             wr = MIN(p - (io->rbuf + io->roff), size);
             memcpy(buf, io->rbuf + io->roff, wr);
             buf[wr] = 0;
@@ -829,6 +831,23 @@ ssize_t io_gets(io_t *io, char *buf, size_t size)
     return len; /* return the # of chars in the line (strlen(line)) */
 err:
     return -1;
+}
+
+/**
+ * \brief  Read a line from an \c io_t object
+ *
+ * Read a line from \p in and save it to \p buf that must be at least \p size
+ * bytes long.
+ *
+ * \param io    the \c io_t object
+ * \param buf   destination buffer
+ * \param size  size of \p buf
+ *
+ * \return the length of the line on success, \c 0 on EOF or \c -1 on error.
+ */
+ssize_t io_gets(io_t *io, char *buf, size_t size)
+{
+    return io_get_until(io, '\n', buf, size);
 }
 
 /**
