@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.h,v 1.15 2006/05/12 09:02:58 tat Exp $
+ * $Id: io.h,v 1.16 2007/07/18 10:07:20 tat Exp $
  */
 
 #ifndef _KLONE_IO_H_ 
@@ -56,6 +56,7 @@ ssize_t io_tell(io_t *io);
 ssize_t io_copy(io_t *out, io_t *in, size_t size);
 ssize_t io_pipe(io_t *out, io_t *in);
 ssize_t io_gets(io_t *io, char *buf, size_t size);
+ssize_t io_get_until(io_t *io, char stop_at, char *buf, size_t size);
 ssize_t io_getc(io_t *io, char *c);
 ssize_t io_printf(io_t *io, const char* fmt, ...);
 ssize_t io_putc(io_t *io, char c);
