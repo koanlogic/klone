@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iossl.c,v 1.17 2007/07/20 10:33:15 tat Exp $
+ * $Id: iossl.c,v 1.18 2007/07/20 14:12:30 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -56,7 +56,8 @@ static ssize_t io_ssl_read(io_ssl_t *io_ssl, char *buf, size_t size)
 
 again:
     c = SSL_read(io_ssl->ssl, buf, size);
-    if(c < 0 && (errno == EINTR || errno == EAGAIN))
+    /* if(c < 0 && (errno == EINTR || errno == EAGAIN)) */
+    if(c < 0 && errno == EINTR)
         goto again; 
 
     dbg_err_if(c < 0); 
@@ -75,7 +76,8 @@ static ssize_t io_ssl_write(io_ssl_t *io_ssl, const char *buf, size_t size)
 
 again:
     c = SSL_write(io_ssl->ssl, buf, size);
-    if(c < 0 && (errno == EINTR || errno == EAGAIN))
+    /* if(c < 0 && (errno == EINTR || errno == EAGAIN)) */
+    if(c < 0 && errno == EINTR)
         goto again; 
 
     dbg_err_if(c < 0); 

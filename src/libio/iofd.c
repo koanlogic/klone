@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iofd.c,v 1.13 2007/07/20 10:33:15 tat Exp $
+ * $Id: iofd.c,v 1.14 2007/07/20 14:12:30 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -45,7 +45,8 @@ again:
         c = read(ifd->fd, buf, size);
     else
         c = recv(ifd->fd, buf, size, 0);
-    if(c < 0 && (errno == EINTR || errno == EAGAIN))
+    /* if(c < 0 && (errno == EINTR || errno == EAGAIN)) */
+    if(c < 0 && errno == EINTR)
         goto again; 
 
     dbg_err_sif(c == -1); 
@@ -67,7 +68,8 @@ again:
         c = write(ifd->fd, buf, size);
     else
         c = send(ifd->fd, buf, size, 0);
-    if(c < 0 && (errno == EINTR || errno == EAGAIN))
+    /* if(c < 0 && (errno == EINTR || errno == EAGAIN)) */
+    if(c < 0 && errno == EINTR)
         goto again; 
 
     dbg_err_sif(c == -1); 
