@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.h,v 1.17 2007/07/20 10:24:47 tat Exp $
+ * $Id: io.h,v 1.18 2007/07/20 10:33:15 tat Exp $
  */
 
 #ifndef _KLONE_IO_H_ 
@@ -52,7 +52,12 @@ int io_mem_create(char *buf, size_t size, int flags, io_t **pio);
 int io_ssl_create(int fd, int flags, SSL_CTX *ssl_tx, io_t **pio);
 int io_ssl_get_SSL(io_t *io_ssl, SSL **pssl);
 #endif
+int io_fd_get_d(io_t *);
+char* io_mem_get_buf(io_t *);
+size_t io_mem_get_bufsz(io_t *io);
+
 enum io_type_e io_type(io_t *io);
+
 int io_close(io_t *io);
 int io_free(io_t *io);
 int io_dup(io_t *io, io_t **pio);

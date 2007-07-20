@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iofd.c,v 1.12 2007/07/20 10:24:48 tat Exp $
+ * $Id: iofd.c,v 1.13 2007/07/20 10:33:15 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -118,6 +118,17 @@ static int io_fd_free(io_fd_t *ifd)
     dbg_if(io_fd_close(ifd));
 
     return 0;
+}
+
+int io_fd_get_d(io_t *io)
+{
+    io_fd_t *ifd = (io_fd_t*)io;
+    dbg_err_if(io == NULL);
+    dbg_err_if(ifd->io.type != IO_TYPE_FD);
+
+    return ifd->fd;
+err:
+    return -1;
 }
 
 int io_fd_create(int fd, int flags, io_t **pio)
