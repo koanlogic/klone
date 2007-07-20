@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ioprv.h,v 1.13 2007/07/12 15:56:05 tat Exp $
+ * $Id: ioprv.h,v 1.14 2007/07/20 10:24:47 tat Exp $
  */
 
 #ifndef _KLONE_IO_PRV_H_
@@ -40,6 +40,7 @@ struct io_s
     char *name;
     codec_chain_t codec_chain; 
     int eof;
+    int type;
     size_t size;
 
     /* reference count (used by dup'd io_t) */

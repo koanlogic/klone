@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iomem.c,v 1.9 2007/07/12 15:56:05 tat Exp $
+ * $Id: iomem.c,v 1.10 2007/07/20 10:24:48 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -117,6 +117,8 @@ int io_mem_create(char *buf, size_t size, int flags, io_t **pio)
     dbg_err_if (pio == NULL);
     
     dbg_err_if(io_create(io_mem_t, (io_t**)&im));
+
+    im->io.type = IO_TYPE_MEM;
 
     im->buf = buf;
     im->size = size;

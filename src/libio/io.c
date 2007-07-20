@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.33 2007/07/18 09:54:16 tat Exp $
+ * $Id: io.c,v 1.34 2007/07/20 10:24:48 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -32,6 +32,21 @@ static inline int io_transform_codec_buffer(io_t *, codec_t *, char *,
  *  \{
  *      \par
  */
+
+/**
+ * \brief  Returns the type of the given io
+ *
+ * Return the type of the given io (see enum io_type_e).
+ *
+ * \param io    input IO object
+ *
+ * \return on of enum io_type_e defined item
+ *
+ */
+enum io_type_e io_type(io_t *io)
+{
+    return io->type;
+}
 
 /**
  * \brief  Write the input stream to the output stream 
