@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.30 2006/09/24 13:22:49 tat Exp $
+ * $Id: trans_c.c,v 1.31 2007/07/30 15:54:29 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -155,7 +155,7 @@ static int print_var_definition(parser_t *p, int comp, const char *varname,
     }
 #endif
 
-    io_printf(p->out, "static unsigned char %s[] = {\n", varname);
+    io_printf(p->out, "static const char %s[] = {\n", varname);
 
     for(i = 1; (rc = io_getc(ios, (char*)&c)) > 0; ++i)
     {
@@ -443,7 +443,7 @@ err:
     return ~0;
 }
 
-/* translate a opaque file to a C unsigned char array */
+/* translate a opaque file to a const char array */
 int translate_opaque_to_c(io_t *in, io_t *out, trans_info_t *ti)
 {
     lang_c_ctx_t ctx;
@@ -462,7 +462,7 @@ int translate_opaque_to_c(io_t *in, io_t *out, trans_info_t *ti)
     io_printf(out, "%s", copyright_hdr);
     io_printf(out, "#include <klone/emb.h>\n");
 
-    io_printf(out, "static unsigned char data[] = {\n");
+    io_printf(out, "static const char data[] = {\n");
 
     for(i = 1; (rc = io_getc(in, (char*)&c)) > 0; ++i)
     {
