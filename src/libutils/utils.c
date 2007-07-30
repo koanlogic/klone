@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.41 2007/07/07 09:05:12 tat Exp $
+ * $Id: utils.c,v 1.42 2007/07/30 16:09:07 tat Exp $
  */
 
 #include <stdlib.h>
@@ -1082,7 +1082,7 @@ notfound:
  * - \c 0   successful
  * - \c ~0  error
  */
-int u_io_unzip_copy(io_t *out, const unsigned char *data, size_t sz)
+int u_io_unzip_copy(io_t *out, const char *data, size_t sz)
 {
     codec_t *zip = NULL;
     io_t *ios = NULL;
