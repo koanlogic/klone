@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.31 2007/07/30 15:54:29 tat Exp $
+ * $Id: trans_c.c,v 1.32 2007/08/05 10:02:19 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -190,7 +190,8 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
         "\n\n"
         "static void exec_page(request_t *request, response_t *response,    \n"
         "   session_t *session) {                                           \n"
-        "    io_t *out = response_io(response);                             \n"
+        "   u_unused_args(SCRIPT_NAME);                                     \n"
+        "   io_t *out = response_io(response);                             \n"
         );
 
     head = &ctx->code_blocks;
@@ -198,6 +199,7 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
         io_write(p->out, node->buf, node->sz);
 
     io_printf(p->out, 
+            "goto klone_script_exit;\n" /* just to avoid a warning */
             "klone_script_exit:     \n"
             "   return;             \n"
             "}                      \n"
