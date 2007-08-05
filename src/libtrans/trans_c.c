@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.32 2007/08/05 10:02:19 tat Exp $
+ * $Id: trans_c.c,v 1.33 2007/08/05 10:25:44 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -218,7 +218,7 @@ static void print_static_page_block(io_t *out, lang_c_ctx_t *ctx)
         "{                                  \n"
         "   e.res.type = ET_FILE;           \n"
         "   e.res.filename = \"%s\";        \n"
-        "   e.data = data;                  \n"
+        "   e.data = (unsigned char*)data;  \n"
         "   e.size = sizeof(data);          \n"
         "   e.file_size = %u;               \n"
         "   e.mime_type = \"%s\";           \n"
