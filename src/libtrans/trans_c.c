@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.33 2007/08/05 10:25:44 tat Exp $
+ * $Id: trans_c.c,v 1.34 2007/08/07 13:18:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -127,6 +127,14 @@ static void print_header(parser_t *p, lang_c_ctx_t *ctx)
             ;
     io_printf(p->out, "static const char *SCRIPT_NAME = \"%s\";\n", 
                 ++file);
+
+    io_printf(p->out, 
+        "static request_t *request = NULL;\n"
+        "static response_t *response = NULL;\n"
+        "static session_t *session = NULL;\n"
+        "static io_t *in = NULL;\n"
+        "static io_t *out = NULL;\n");
+ 
 }
 
 static int print_var_definition(parser_t *p, int comp, const char *varname, 
@@ -188,10 +196,14 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
 
     io_printf(p->out, 
         "\n\n"
-        "static void exec_page(request_t *request, response_t *response,    \n"
-        "   session_t *session) {                                           \n"
-        "   u_unused_args(SCRIPT_NAME);                                     \n"
-        "   io_t *out = response_io(response);                             \n"
+        "static void exec_page(request_t *rq, response_t *rs, session_t *ses)\n"
+        "{\n"
+        "   request = rq;                       \n"
+        "   response = rs;                      \n"
+        "   session = ses;                      \n"
+        "   in = request_io(request);           \n"
+        "   out = response_io(response);        \n"
+        "   u_unused_args(SCRIPT_NAME, request, response, session, in, out); \n"
         );
 
     head = &ctx->code_blocks;
@@ -266,11 +278,13 @@ static void print_register_block(io_t *out, lang_c_ctx_t *ctx)
         "#ifdef __cplusplus                 \n"
         "extern \"C\" {                     \n"
         "#endif                             \n"
+        "void module_init_%s(void);         \n" /* avoids a warning */
         "void module_init_%s(void)          \n"
         "{                                  \n"
         "    res_ctor();                    \n"
         "    emb_register((embres_t*)&e);   \n"
         "}                                  \n"
+        "void module_term_%s(void);         \n" /* avoids a warning */
         "void module_term_%s(void)          \n"
         "{                                  \n"
         "    emb_unregister((embres_t*)&e); \n"
@@ -278,7 +292,7 @@ static void print_register_block(io_t *out, lang_c_ctx_t *ctx)
         "#ifdef __cplusplus                 \n"
         "}                                  \n"
         "#endif                             \n",
-        md5, md5);
+        md5, md5, md5, md5);
 }
 
 static int print_c_line(parser_t *p, lang_c_ctx_t *ctx)
