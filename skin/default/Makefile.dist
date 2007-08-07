@@ -18,7 +18,7 @@ ifeq ($(wildcard $(BASE)/makl/),)
 $(error missing $(BASE)/makl directory)
 endif
 
-all dist: VERSION build/makl $(KLONE_CORE_TARBALL)
+all dist: VERSION ChangeLog build/makl $(KLONE_CORE_TARBALL)
 	rm -f $(TARBALL)
 	tar zcfh .$(TARBALL) -T DISTFILES $(KLONE_CORE_TARBALL)
 	mkdir klone-$(VERSION)
@@ -34,6 +34,9 @@ $(KLONE_CORE_TARBALL):
 	mkdir -p build/dist
 	rm -f build/dist/*
 	cd build/dist && ln -sf $(BASE)/klone-core-$(VERSION).tar.bz2
+
+ChangeLog:
+	ln -sf $(BASE)/ChangeLog
 
 VERSION:
 	ln -sf $(BASE)/VERSION
