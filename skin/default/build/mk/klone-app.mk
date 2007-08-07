@@ -11,6 +11,19 @@ ifdef MAKL_PLATFORM
 export MAKL_PLATFORM
 endif
 
+ifdef KLONE_TARGET_PATCH_FILE
+export KLONE_TARGET_PATCH_FILE
+endif
+ifdef KLONE_TARGET_PATCH_URI
+export KLONE_TARGET_PATCH_URI
+endif
+ifdef KLONE_HOST_PATCH_FILE
+export KLONE_HOST_PATCH_FILE
+endif
+ifdef KLONE_HOST_PATCH_URI
+export KLONE_HOST_PATCH_URI
+endif
+
 # be sure that makl dir exists
 ifneq ($(shell [ -d $(MAKL_DIR) ]; echo $$? ),0)
 $(error MaKL dir not found ($(MAKL_DIR)) )

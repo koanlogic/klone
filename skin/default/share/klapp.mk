@@ -11,6 +11,9 @@ endif
 ifdef MAKL_PLATFORM 
 export MAKL_PLATFORM 
 endif
+ifdef MAKL_SHLIB
+export MAKL_SHLIB
+endif
 ifdef KLONE_CUSTOM_TC 
 export KLONE_CUSTOM_TC 
 endif
@@ -28,6 +31,18 @@ export WEBAPP_LDFLAGS
 endif
 ifdef WEBAPP_LDADD 
 export WEBAPP_LDADD 
+endif
+ifdef KLONE_TARGET_PATCH_FILE
+export KLONE_TARGET_PATCH_FILE
+endif
+ifdef KLONE_TARGET_PATCH_URI
+export KLONE_TARGET_PATCH_URI
+endif
+ifdef KLONE_HOST_PATCH_FILE
+export KLONE_HOST_PATCH_FILE
+endif
+ifdef KLONE_HOST_PATCH_URI
+export KLONE_HOST_PATCH_URI
 endif
 
 KLONE_DIR = $(shell pwd)/klone-$(KLONE_VERSION)/

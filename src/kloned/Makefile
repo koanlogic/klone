@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.26 2007/08/07 15:58:52 tat Exp $
+# $Id: Makefile,v 1.27 2007/08/07 22:31:38 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
@@ -36,6 +36,11 @@ CFLAGS += -I../../libu/include
 LDADD += ../../libu/srcs/libu.a
 
 BINDIR = ${DESTDIR}/sbin
+
+ifdef MAKL_PLATFORM
+# 'install' may not be able to strip cross compiled binaries
+INSTALL_STRIP = 
+endif
 
 include prog.mk
 

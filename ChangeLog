@@ -1,8 +1,10 @@
-$Id: ChangeLog,v 1.18 2007/08/07 17:13:09 tat Exp $
+$Id: ChangeLog,v 1.19 2007/08/07 22:31:38 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone x.y.z:
+    - KLONE_TARGET_PATCH_{FILE,URI} and KLONE_HOST_PATCH_{FILE,URI} variables
+      added to provide an easy way to patch Klone source during the build
     - --enable_uc configure argument added to support user-provided
       startup/term functions
     - --daemon_name configure argument added to set Klone daemon name
