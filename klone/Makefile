@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.13 2007/06/26 08:06:36 tat Exp $
+# $Id: Makefile,v 1.14 2007/08/07 14:47:10 tat Exp $
 
 include common.mk
 include ../Makefile.conf
@@ -14,6 +14,10 @@ INCS = addr.h atom.h backend.h broker.h caes.h cgi.h codec.h                 \
 
 ifdef HAVE_LIBOPENSSL
 INCS += ccipher.h
+endif
+
+ifdef INSTALL_DAEMON_ONLY
+NO_INSTALL = true
 endif
 
 include incs.mk

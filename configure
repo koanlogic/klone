@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.69 2007/07/13 14:00:13 tat Exp $
+# $Id: configure,v 1.70 2007/08/07 14:47:10 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -25,6 +25,7 @@ makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
 makl_args_def   "enable_sup_cgi"    "" ""   "enables external CGIs"
 makl_args_def   "enable_warns"      "" ""   "set CFLAGS for extra warnings"
 makl_args_def   "disable_cxx"       "" ""   "disable C++ support"
+makl_args_def   "install_daemon_only"      "" ""   "install just the executable daemon file (skips docs, man pages and headers)"
 
 # ... and their handlers
 __makl_enable_debug ()      { makl_set_var_mk     "KLONE_DEBUG" ;
@@ -35,6 +36,7 @@ __makl_enable_profile ()    { makl_append_var_mk  "CFLAGS" "-pg -a" ; }
 __makl_enable_sup_fs ()     { makl_set_var        "ENABLE_SUP_FS" ; }
 __makl_enable_sup_cgi ()    { makl_set_var        "ENABLE_SUP_CGI" ; }
 __makl_disable_cxx ()       { makl_unset_var      "USE_CXX" ; }
+__makl_install_daemon_only () { makl_set_var      "INSTALL_DAEMON_ONLY" ; }
 __makl_enable_warns ()        
 { 
     makl_append_var_mk "CFLAGS"                                     \

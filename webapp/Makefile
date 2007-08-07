@@ -1,13 +1,17 @@
-# $Id: Makefile,v 1.3 2006/01/31 17:15:33 tho Exp $ 
+# $Id: Makefile,v 1.4 2007/08/07 14:47:10 tat Exp $ 
 
 include common.mk
 include ../Makefile.conf
 include Makefile-webapp
 
+LIB = webapp
+
 SRCS = ${WEBAPP_SRCS}
 CFLAGS += ${WEBAPP_CFLAGS}
 LDADD += ${WEBAPP_LDADD}
 
-LIB = webapp
+ifdef INSTALL_DAEMON_ONLY
+NO_INSTALL = true
+endif
 
 include lib.mk

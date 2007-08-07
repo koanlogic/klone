@@ -1,10 +1,14 @@
-# $Id: Makefile,v 1.19 2007/07/10 11:41:21 tat Exp $
+# $Id: Makefile,v 1.20 2007/08/07 14:47:10 tat Exp $
 
 include common.mk
 include ../../../Makefile.conf
 
 PROG = klone
 SRCS = main.c pm.c
+
+ifdef INSTALL_DAEMON_ONLY
+NO_INSTALL = true
+endif
 
 CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
 LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}

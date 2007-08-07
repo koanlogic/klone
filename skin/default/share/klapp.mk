@@ -32,6 +32,7 @@ endif
 
 KLONE_DIR = $(shell pwd)/klone-$(KLONE_VERSION)/
 KLONE_TGZ = klone-$(KLONE_VERSION).tar.gz
+KLONE_DAEMON_NAME ?= kloned
 
 ifneq ($(wildcard $(KLONE_DIR)/Makefile),)
 all: $(KLONE_DIR)/Makefile
@@ -41,10 +42,15 @@ endif
 	[ -f $(KLONE_DIR)/configure ] || make src
 	[ -f $(KLONE_DIR)/Makefile.conf ] || ( cd $(KLONE_DIR) && ./configure )
 	make -C $(KLONE_DIR)
-	ln -sf $(KLONE_DIR)/kloned 
+	ln -sf $(KLONE_DIR)/kloned $(KLONE_DAEMON_NAME)
 
+install: all install-pre realinstall install-post
+realinstall: 
+	make -C $(KLONE_DIR) install
 
-clean: 
+clean: clean-pre realclean clean-post
+clean-pre clean-post: 
+realclean: 
 	if [ -d $(KLONE_DIR) ]; then \
 		make MAKL_TC= -C $(KLONE_DIR)/build/makl toolchain ; \
 		make MAKL_TC= -C $(KLONE_DIR) clean; \

@@ -1,8 +1,12 @@
-$Id: ChangeLog,v 1.16 2007/07/13 23:08:24 tat Exp $
+$Id: ChangeLog,v 1.17 2007/08/07 14:47:10 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone x.y.z:
+    - --install_daemon_only configure argument added to just install the
+      Klone dameon on 'make install'
+    - request, response, session, in and out variables are always in-scope in
+      .kl1 and .klx files
     - CGI support
     - -Z and -e can be used more then once to provide more then one compress 
       and/or encrypt file patterns

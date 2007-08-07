@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2006/02/18 10:23:19 tat Exp $
+# $Id: Makefile,v 1.7 2007/08/07 14:47:10 tat Exp $
 
 include common.mk
 include ../Makefile.conf
@@ -6,6 +6,11 @@ include ../webapp/Makefile-webapp
 
 LIB = site
 SRCS = register.c
+
+ifdef INSTALL_DAEMON_ONLY
+NO_INSTALL = true
+endif
+
 CFLAGS += ${WEBAPP_CFLAGS}
 CLEANFILES += *.c *.cc *.a *.o autogen.*
 

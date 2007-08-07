@@ -3,8 +3,10 @@ TOP = $(shell pwd)
 # which klone version?
 KLONE_VERSION ?= 2.0.0
 
+# KLONE_DAEMON_NAME = myapp
+
 # configure arguments
-# KLONE_CONF_ARGS ?= --enable_debug
+# KLONE_CONF_ARGS ?= --install_daemon_only --prefix=/my/install/dir
 
 # import arguments
 # KLONE_IMPORT_ARGS ?= 

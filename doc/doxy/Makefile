@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2007/07/07 09:13:57 tat Exp $
+# $Id: Makefile,v 1.6 2007/08/07 14:47:10 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
@@ -12,9 +12,13 @@ img:
 	mkdir -p html/images
 	cp -r images html
 
+ifdef INSTALL_DAEMON_ONLY
+install:
+else
 install: all
 	mkdir -p ${DESTDIR}/doc/klone/ && \
         cp -r html ${DESTDIR}/doc/klone/
+endif
 
 uninstall:
 	rm -rf ${DESTDIR}/doc/klone/
