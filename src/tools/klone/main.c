@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.36 2007/07/10 11:41:21 tat Exp $
+ * $Id: main.c,v 1.37 2007/08/07 17:13:09 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -486,14 +486,25 @@ static int print_register_header(io_t *out)
 {
     dbg_err_if (out == NULL);
  
+    dbg_err_if(io_printf(out, "#include <klone_conf.h>\n") < 0);
+    dbg_err_if(io_printf(out, "#include <klone/uc.h>\n") < 0);
     dbg_err_if(io_printf(out, "static void do_register(int);\n") < 0);
     dbg_err_if(io_printf(out, "void unregister_pages(void);\n") < 0);
     dbg_err_if(io_printf(out, "void register_pages(void);\n") < 0);
 
     dbg_err_if(io_printf(out, 
-        "void unregister_pages(void) { do_register(0); }\n") < 0);
+        "void unregister_pages(void) { \n"
+        "#ifdef ENABLE_UC \n"
+        "    uc_term(); \n"
+        "#endif \n"
+        "do_register(0); }\n"
+        ) < 0);
     dbg_err_if(io_printf(out, 
-        "void register_pages(void) { do_register(1); }\n") < 0);
+        "void register_pages(void) { \n"
+        "#ifdef ENABLE_UC \n"
+        "    uc_init(); \n"
+        "#endif \n"
+        "do_register(1); }\n") < 0);
     dbg_err_if(io_printf(out, 
         "static void do_register(int action) {\n") < 0);
     dbg_err_if(io_printf(out,
