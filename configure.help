@@ -5,47 +5,48 @@ Usage: ./CONFIGURE_SCRIPT [OPTION] ...
 
 OPTION can be defined as follows:
 
---help              [-h] display this help
---help_gen          [-g] generate new configure.help based on configuration
---verbose           [-v] show verbose debugging output
---version           [-V] display MaKL version
-
---cross_compile     configure for cross-compilation (no execution tests)
---noclean           do not clean cache at end of execution (testing only)
-
---prefix=BASE       set BASE directory for installation [BASE=/usr/local]
---dir-bin=BASE      set BASE directory for binaries [BASE=/usr/local/bin]
---dir-sbin=BASE     set BASE directory for system binaries [BASE=/usr/local/sbin]
---dir-conf=BASE     set BASE directory for configuration [BASE=/usr/local/conf]
---dir-inc=BASE      set BASE directory for includes [BASE=/usr/local/includes]
---dir-lib=BASE      set BASE directory for libraries [BASE=/usr/local/lib]
+--help       [-h] display this help
+--help_gen       [-g] generate new configure.help based on configuration
+--verbose       [-v] show verbose debugging output
+--version       [-V] display MaKL version
+--cross_compile       configure for cross-compilation (no execution tests)
+--noclean       do not clean cache at end of execution (testing only)
+--prefix=BASE       set BASE directory for installation [BASE=]
+--dir-bin=BASE    set BASE directory for binaries [BASE=/usr/local/bin]
+--dir-sbin=BASE    set BASE directory for system binaries [BASE=/usr/local/sbin]
+--dir-conf=BASE    set BASE directory for configuration [BASE=/usr/local/conf]
+--dir-inc=BASE    set BASE directory for includes [BASE=/usr/local/includes]
+--dir-lib=BASE    set BASE directory for libraries [BASE=/usr/local/lib]
+--dir-shlib=BASE    set BASE directory for shared libraries [BASE=/usr/local/shlib]
 --dir-libex=BASE    set BASE directory for executables run by programmes [BASE=/usr/local/libexec]
---dir-var=BASE      set BASE directory for various [BASE=/usr/local/var]
+--dir-var=BASE    set BASE directory for various [BASE=/usr/local/var]
 --dir-share=BASE    set BASE directory for shared data [BASE=/usr/local/share]
---dir-man=BASE      set BASE directory for man pages [BASE=/usr/local/share/man]
---dir-doc=BASE      set BASE directory for documentation [BASE=/usr/local/share/doc]
+--dir-man=BASE    set BASE directory for man pages [BASE=/usr/local/share/man]
+--dir-doc=BASE    set BASE directory for documentation [BASE=/usr/local/share/doc]
 
---defown=USERID     set default file owner id
---defgrp=GROUPID    set default file group id
---defmode=MODE      set default mode for regular files
---defbinmode=MODE   set default mode for binary files
-
-<?> --lib-openssl=BASE      set libopenssl to have BASE dir []
-<?> --lib-z=BASE            set libz to have BASE dir []
+--defown=USERID       set default file owner id
+--defgrp=GROUPID       set default file group id
+--defmode=MODE       set default mode for regular files
+--defbinmode=MODE       set default mode for binary files
+<?> --lib-openssl=BASE    set libopenssl to have BASE dir []
+<?> --lib-z=BASE    set libz to have BASE dir []
 
 --libs=BASE       set all libs to have BASE dir
-
 <?> --featx-doxygen=BASE    set file for execution feature []
 
---enable-X=ID           enable feature of type X and id ID
---disable-X=ID          disable feature of type X and id ID
---enable_debug          enables debugging of KLone app
---enable_libu_debug     enables debugging of LibU
---enable_libu_mini      enables minimisation of LibU
---enable_profile        enables profiling
---enable_sup_fs         enables filesystem web access
---enable_warns          set CFLAGS for extra warnings
---disable_cxx           disable C++ support
+--enable-X=ID       enable feature of type X and id ID
+--disable-X=ID       disable feature of type X and id ID
+--enable_shared       enable shared library build
+--enable_debug       enables debugging of KLone app
+--enable_libu_debug       enables debugging of LibU
+--disable_libu_mini       enables minimisation of LibU
+--enable_profile       enables profiling
+--enable_sup_fs       enables filesystem web access
+--enable_sup_cgi       enables external CGIs
+--enable_warns       set CFLAGS for extra warnings
+--disable_cxx       disable C++ support
+--install_daemon_only       install just Klone daemon file
+--daemon_name=NAME       set the name of Klone daemon
 
 Legend:
   <*>: required dependency

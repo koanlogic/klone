@@ -1,10 +1,15 @@
-# $Id: Makefile,v 1.25 2006/12/29 15:44:57 tat Exp $
+# $Id: Makefile,v 1.26 2007/08/07 15:58:52 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
 include ../../webapp/Makefile-webapp
 
+ifdef DAEMON_NAME
+PROG = $(DAEMON_NAME)
+else
 PROG = kloned
+endif
+
 INCS = main.h server_s.h server_ppc_cmd.h child.h
 SRCS = server.c main.c entry.c modules_init.c modules_term.c ppc.c atom.c   \
     ppc_log_add.c ppc_log_get.c ppc_nop.c child.c
@@ -36,3 +41,10 @@ include prog.mk
 
 strip: $(PROG)
 	@$(STRIP) $(PROG)
+
+ifdef DAEMON_NAME
+# always create "kloned" for backward compatibility
+all-hook-post:
+	@ln -sf $(DAEMON_NAME) kloned
+endif
+
