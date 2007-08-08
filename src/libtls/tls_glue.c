@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls_glue.c,v 1.12 2006/02/25 18:32:40 tat Exp $
+ * $Id: tls_glue.c,v 1.13 2007/08/08 22:04:12 tho Exp $
  */
 
 /*
@@ -20,6 +20,7 @@
 #include <u/libu.h>
 #include <klone/io.h>
 #include <klone/emb.h>
+#include <klone/tlsprv.h>
 
 #ifndef HAVE_LIBOPENSSL
 int tls_dummy_decl_stub = 0;
@@ -27,23 +28,23 @@ int tls_dummy_decl_stub = 0;
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 
+
 /* map an emb resource to a OpenSSL memory BIO */
 BIO *bio_from_emb (const char *res_name)
 {
-    int     c;
-    enum    { BUFSZ = 1024 };
-    char    buf[BUFSZ];
-    io_t    *tmp = NULL;
-    BIO     *b = NULL;
+    int c;
+    char buf[1024];
+    io_t *tmp = NULL;
+    BIO *b = NULL;
 
-    dbg_return_if (!res_name, NULL);
+    dbg_return_if (res_name == NULL, NULL);
 
     dbg_err_if (emb_open(res_name, &tmp));
     dbg_err_if (!(b = BIO_new(BIO_s_mem())));
 
     for (;;)
     {
-        c = io_read(tmp, buf, BUFSZ);
+        c = io_read(tmp, buf, sizeof buf);
 
         if (c == 0)     /* EOF */
             break;
@@ -56,7 +57,6 @@ BIO *bio_from_emb (const char *res_name)
     io_free(tmp);
 
     return b;
-
 err:
     if (tmp) 
         io_free(tmp);
@@ -111,7 +111,6 @@ int tls_load_verify_locations (SSL_CTX *c, const char *res_name)
     sk_X509_INFO_pop_free(info, X509_INFO_free);
 
     return 0;
-
 err:
     if (b)
         BIO_free(b);
@@ -159,7 +158,6 @@ STACK_OF(X509_NAME) *tls_load_client_CA_file (const char *res_name)
     X509_free(x);
 
     return ret;
-
 err:
     if (ret)
     {
@@ -190,7 +188,7 @@ int tls_use_certificate_file (SSL_CTX *ctx, const char *res_name, int type)
     dbg_goto_if (!(b = tls_get_file_bio(res_name)), end);
     dbg_goto_if (!(x = PEM_read_bio_X509(b, NULL, NULL, NULL)), end);
     ret = SSL_CTX_use_certificate(ctx, x);
-
+    /* fall through */
 end:
     if (x)
         X509_free(x);
@@ -200,6 +198,70 @@ end:
     return ret;
 }
 
+int tls_use_crls (SSL_CTX *ctx, tls_ctx_args_t *cargs)
+{
+#if OPENSSL_VERSION_NUMBER >= 0x00907000L
+    int count;
+    BIO *b = NULL;
+    X509_CRL *crl = NULL;
+    X509_STORE *store;
+
+    dbg_return_if (cargs == NULL, ~0);
+    dbg_return_if (cargs->crl == NULL, ~0);
+
+    /* get X509 STORE i.e. client certificate verify context */
+    dbg_err_if ((store = SSL_CTX_get_cert_store(ctx)) == NULL);
+
+    /* read CRL from the resource (embfs or fs) */
+    dbg_err_if ((b = tls_get_file_bio(cargs->crl)) == NULL);
+
+    /* get CRLs one by one out of 'cargs->crl' */
+    for (count = 0; ; count++)
+    {
+        crl = PEM_read_bio_X509_CRL(b, NULL, NULL, NULL);
+
+        if (crl == NULL)
+        {
+            u_long e = ERR_peek_last_error();
+
+            if (ERR_GET_REASON(e) == PEM_R_NO_START_LINE && count > 0)
+            {
+                ERR_clear_error();
+                break;
+            } 
+            else if (count == 0)
+                warn_err("no CRL found in file \'%s\'", cargs->crl);
+            else
+                warn_err("bad CRL (%d) in file \'%s\'", count, cargs->crl);
+        }
+
+        /* add CRL to the verify ctx */
+        dbg_err_if (!X509_STORE_add_crl(store, crl));
+        X509_CRL_free(crl);
+        crl = NULL;
+    }
+ 
+    /* say to openssl how we want to check certificate revocation status:
+     * every cert in chain or just the client certificate */
+    X509_STORE_set_flags(store, cargs->crlopts);
+
+    BIO_free(b);
+
+    return 0;
+err:
+    if (b)
+        BIO_free(b);
+    if (crl)
+        X509_CRL_free(crl);
+
+    return ~0;
+#else
+    u_unused_args(ctx, cargs);
+    warn("OpenSSL too old (%d): CRL configuration directives won't be honoured",
+            OPENSSL_VERSION_NUMBER);
+    return 0;
+#endif  
+}
 
 /* wrapper for SSL_CTX_use_PrivateKey() */
 int tls_use_PrivateKey_file (SSL_CTX *ctx, const char *res_name, int type)
@@ -216,7 +278,7 @@ int tls_use_PrivateKey_file (SSL_CTX *ctx, const char *res_name, int type)
     dbg_goto_if (!(pkey = PEM_read_bio_PrivateKey(b, NULL, NULL, NULL)), end);
     ret = SSL_CTX_use_PrivateKey(ctx, pkey);
     EVP_PKEY_free(pkey);
-
+    /* fall through */
 end:
     if (b)
         BIO_free(b);
@@ -228,7 +290,7 @@ end:
  * format, possibly followed by a sequence of CA certificates that
  * should be sent to the peer in the SSL Certificate message.  */
 int tls_use_certificate_chain (SSL_CTX *ctx, const char *res_name, 
-                               int skipfirst, int (*cb)())
+        int skipfirst, int (*cb)(char *, int, int, void *)) 
 {
     BIO *b = NULL;
     X509 *x = NULL;
@@ -267,7 +329,7 @@ int tls_use_certificate_chain (SSL_CTX *ctx, const char *res_name,
     if ((err = ERR_peek_error()) > 0) 
     {
         dbg_err_if (!(ERR_GET_LIB(err) == ERR_LIB_PEM && 
-                      ERR_GET_REASON(err) == PEM_R_NO_START_LINE));
+                    ERR_GET_REASON(err) == PEM_R_NO_START_LINE));
 
         while (ERR_get_error() > 0) ;
     }
@@ -275,7 +337,6 @@ int tls_use_certificate_chain (SSL_CTX *ctx, const char *res_name,
     BIO_free(b);
 
     return n;
-
 err:
     if (b)
         BIO_free(b);

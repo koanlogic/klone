@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.44 2007/07/16 12:44:22 tat Exp $
+ * $Id: http.c,v 1.45 2007/08/08 22:04:12 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -305,6 +305,8 @@ static int http_serve(http_t *h, int fd)
     struct sockaddr sa;
     int sasz, rc = HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
+    u_unused_args(al);
+
     dbg_err_if (h == NULL);
     dbg_err_if (fd < 0);
     
@@ -509,7 +511,7 @@ err:
     return ~0;
 }
 
-int http_backend_serve(struct backend_s *be, int fd)
+static int http_backend_serve(struct backend_s *be, int fd)
 {
     http_t *h;
     int rc;
@@ -528,7 +530,7 @@ err:
     return ~0;
 }
 
-int http_backend_term(struct backend_s *be)
+static int http_backend_term(struct backend_s *be)
 {
     http_t *http;
 
@@ -546,7 +548,7 @@ err:
     return ~0;
 }
 
-int http_backend_init(struct backend_s *be)
+static int http_backend_init(struct backend_s *be)
 {
     http_t *http = NULL;
     broker_t *broker = NULL;
@@ -569,10 +571,9 @@ err:
 }
 
 #ifdef HAVE_LIBOPENSSL
-int https_backend_init(struct backend_s *be)
+static int https_backend_init(struct backend_s *be)
 {
     http_t *https;
-    tls_ctx_args_t *cargs;
 
     dbg_err_if (be == NULL);
 
@@ -584,9 +585,8 @@ int https_backend_init(struct backend_s *be)
     https->ssl = 1;
 
     /* load config values and set SSL_CTX accordingly */
-    dbg_err_if (tls_load_ctx_args(http_get_config(https), &cargs));
-    warn_err_ifm (!(https->ssl_ctx = tls_init_ctx(cargs)), 
-        "bad or missing HTTPS credentials");
+    https->ssl_ctx = tls_load_init_ctx(http_get_config(https));
+    warn_err_ifm (https->ssl_ctx == NULL, "bad or missing HTTPS credentials");
 
     dbg_err_if(session_module_init(https->config, &https->sess_opt));
 
@@ -595,7 +595,7 @@ err:
     return ~0;
 }
 
-int https_backend_term(struct backend_s *be)
+static int https_backend_term(struct backend_s *be)
 {
     http_t *https;
 

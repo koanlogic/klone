@@ -93,3 +93,19 @@ verify_client   This directive sets the certificate verification level for
 default:        "no"
 syntax:         server.httpsd.verify_depth  required
 
+
+___
+crl             CRL file
+default:        none
+syntax:         server.httpsd.crl   /path/to/crl.pem
+
+
+________
+crl_opts        CRL check mode:
+                * "all"      -> check all certificates in chain against a CRL
+                * "client"   -> check only the client certificate for revocation
+                                status
+default:        none
+syntax:         server.httpsd.crl_opts  all
+
+

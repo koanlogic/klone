@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls_dh_autogen.c,v 1.5 2006/01/09 12:38:38 tat Exp $
+ * $Id: tls_dh_autogen.c,v 1.6 2007/08/08 22:04:12 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -13,7 +13,7 @@
 #ifndef HEADER_DH_H
 #include <openssl/dh.h>
 #endif
-DH *get_dh1024()
+DH *get_dh1024(void)
 	{
 	static unsigned char dh1024_p[]={
 		0xF0,0xE6,0xAB,0x96,0x17,0xC4,0xDF,0xD7,0x87,0x46,0x7D,0x66,
