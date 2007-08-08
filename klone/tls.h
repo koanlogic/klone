@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.h,v 1.9 2006/01/09 12:38:38 tat Exp $
+ * $Id: tls.h,v 1.10 2007/08/08 22:42:51 tho Exp $
  */
 
 #ifndef _KLONE_TLS_H_
@@ -20,37 +20,7 @@
 extern "C" {
 #endif
 
-/* (pseudo) unique data to feed the PRNG */
-struct tls_rand_seed_s 
-{
-    pid_t   pid;
-    long    t1, t2;
-    void    *stack;
-};
-
-/* SSL_CTX initialization parameters.  Mapping of "verify_client" configuration
- * directive to vmode is done in the following way:
- *  "none"      -> SSL_VERIFY_NONE
- *  "optional"  -> SSL_VERIFY_PEER
- *  "require"   -> SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT */
-struct tls_ctx_args_s
-{
-    const char *cert;       /* server certificate file (PEM) */
-    const char *key;        /* server private key (PEM) */
-    const char *certchain;  /* Server Certificate Authorities (PEM) */
-    const char *ca;         /* Client Certification Authorities file (PEM) */
-    const char *dh;         /* Diffie-Hellman parameters (PEM) */
-    int         depth;      /* max depth for the cert chain verification */
-    int         vmode;      /* SSL verification mode */
-};
-
-typedef struct tls_rand_seed_s tls_rand_seed_t;
-typedef struct tls_ctx_args_s tls_ctx_args_t;
-
-
-SSL_CTX *tls_init_ctx (tls_ctx_args_t *);
-int     tls_load_ctx_args(u_config_t *, tls_ctx_args_t **);
-char    *tls_get_error (void);
+SSL_CTX *tls_load_init_ctx (u_config_t *);
 
 #ifdef __cplusplus
 }
