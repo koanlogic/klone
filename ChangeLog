@@ -1,91 +1,91 @@
-$Id: ChangeLog,v 1.19 2007/08/07 22:31:38 tat Exp $
+$Id: ChangeLog,v 1.20 2007/08/09 06:34:25 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone x.y.z:
-    - KLONE_TARGET_PATCH_{FILE,URI} and KLONE_HOST_PATCH_{FILE,URI} variables
-      added to provide an easy way to patch Klone source during the build
-    - --enable_uc configure argument added to support user-provided
-      startup/term functions
-    - --daemon_name configure argument added to set Klone daemon name
-    - --install_daemon_only configure argument added to just install the
-      Klone dameon on 'make install'
-    - request, response, session, in and out variables are always in-scope in
-      .kl1 and .klx files
-    - CGI support
-    - -Z and -e can be used more then once to provide more then one compress 
-      and/or encrypt file patterns
-    - -x argument added to klone tool to avoid importing files that match the 
-      given pattern(s)
-    - -F doesn't force iterative mode anymore (use -Fd instead)
-    - bug fix: embedded configuration overwrite was broken (libu u_config bug)
+	- added support for CRLs via 'crl' and 'crl_opts' configuration directives
+	- KLONE_TARGET_PATCH_{FILE,URI} and KLONE_HOST_PATCH_{FILE,URI} variables
+	  added to provide an easy way to patch Klone source during the build
+	- --enable_uc configure argument added to support user-provided
+	  startup/term functions
+	- --daemon_name configure argument added to set Klone daemon name
+	- --install_daemon_only configure argument added to just install the
+	  Klone dameon on 'make install'
+	- request, response, session, in and out variables are always in-scope in
+	  .kl1 and .klx files
+	- CGI support
+	- -Z and -e can be used more then once to provide more then one compress 
+	  and/or encrypt file patterns
+	- -x argument added to klone tool to avoid importing files that match the 
+	  given pattern(s)
+	- -F doesn't force iterative mode anymore (use -Fd instead)
+	- bug fix: embedded configuration overwrite was broken (libu u_config bug)
 
 KLone 1.2.0:
-    - bug fix: newline always added after <%! %> C translated code
-    - bug fix: posted data can have content-length equal to zero
-    - bug fix: unmatched single or double quotes in kl1 blocks no longer cause
-      compilation errors 
-    - SA_RESTART used for all signal handlers to avoid EINTR when calling 
-      syscalls from within .kl1 pages
-    - more console messages on startup errors
-    - makl update (ver 1.3.0)
-    - libu update (ver 0.5.0)
+	- bug fix: newline always added after <%! %> C translated code
+	- bug fix: posted data can have content-length equal to zero
+	- bug fix: unmatched single or double quotes in kl1 blocks no longer cause
+	  compilation errors 
+	- SA_RESTART used for all signal handlers to avoid EINTR when calling 
+	  syscalls from within .kl1 pages
+	- more console messages on startup errors
+	- makl update (ver 1.3.0)
+	- libu update (ver 0.5.0)
 
 KLone 1.1.1:
-    - io_is_secure and io_ssl_get_SSL added
-    - License update to explicit permit OpenSSL linking
-    - request_parse_multipart_chunk fix
-    - "Location:" redirect fixed
+	- io_is_secure and io_ssl_get_SSL added
+	- License update to explicit permit OpenSSL linking
+	- request_parse_multipart_chunk fix
+	- "Location:" redirect fixed
 
 KLone 1.1.0:
-    - cipher IV added to HMAC and to KL1_CLISES_IV cookie
-    - makl_target_name used to support MAKL_PLATFORM feature
-    - HTTP_STATUS codes moved to http.h
-    - klone/os.h code removed (u/libu.h used as a portability layer)
-    - response_enable_caching and response_disable_caching added
-    - response_del_field added
-    - alarm_t renamed to talarm_t to avoid a portability (VxWorks) conflict
-    - better startup error reporting
-    - children processes die immediately on SIGTERM/SIGINT
-    - more standard compliant HTTP response code used
-    - REQUEST_URI_MAX_LENGTH and HEADER_MAX_FIELD_COUNT used to avoid 
-      [that type of] DoS
-    - better kl1->C translation error reporting
-    - minor portability fixes
-    - MaKL update (ver. 1.2.0)
-    - LibU update (ver. 0.4.0)
+	- cipher IV added to HMAC and to KL1_CLISES_IV cookie
+	- makl_target_name used to support MAKL_PLATFORM feature
+	- HTTP_STATUS codes moved to http.h
+	- klone/os.h code removed (u/libu.h used as a portability layer)
+	- response_enable_caching and response_disable_caching added
+	- response_del_field added
+	- alarm_t renamed to talarm_t to avoid a portability (VxWorks) conflict
+	- better startup error reporting
+	- children processes die immediately on SIGTERM/SIGINT
+	- more standard compliant HTTP response code used
+	- REQUEST_URI_MAX_LENGTH and HEADER_MAX_FIELD_COUNT used to avoid 
+	  [that type of] DoS
+	- better kl1->C translation error reporting
+	- minor portability fixes
+	- MaKL update (ver. 1.2.0)
+	- LibU update (ver. 0.4.0)
 
 KLone 1.0.4:
-    - strip target added to kloned (for selective strip when cross compiling)
-    - MaKL update (ver. 1.1.1)
-    - LibU update (ver. 0.3.2)
+	- strip target added to kloned (for selective strip when cross compiling)
+	- MaKL update (ver. 1.1.1)
+	- LibU update (ver. 0.3.2)
 
 KLone 1.0.3:
-    - cross compilation support
-    - bug fix: bad SSL context free on connection time-out
-    - C++ support is optional (--disable_cxx)
-    - support LibU minimisation by default: --disable_libu-mini configure arg
-      to compile the full LibU
-    - various SSL related updates:
-        - crypto material can be loaded from the host file system too
-        - HTTP/S configuration section added to example-site/kloned.conf
-        - sample server certificate kloned.pem added, 
-        - sample HTTP/S configuration file etc/kloned-https.conf added
-    - MaKL update (ver. 1.1.0)
-    - LibU update (ver. 0.3.1)
+	- cross compilation support
+	- bug fix: bad SSL context free on connection time-out
+	- C++ support is optional (--disable_cxx)
+	- support LibU minimisation by default: --disable_libu-mini configure arg
+	  to compile the full LibU
+	- various SSL related updates:
+	    - crypto material can be loaded from the host file system too
+	    - HTTP/S configuration section added to example-site/kloned.conf
+	    - sample server certificate kloned.pem added, 
+	    - sample HTTP/S configuration file etc/kloned-https.conf added
+	- MaKL update (ver. 1.1.0)
+	- LibU update (ver. 0.3.1)
 
 KLone 1.0.2:
-    - bug fix: endless reap loop on SIGTERM or SIGINT
-    - bug fix: processes handling slow connections didn't term when needed
-    - new ports: OpenBSD 3.8, NetBSD 2.0.x, NetBSD 2.1, FreeBSD 6.0
-    - MaKL update (ver. 1.0.0)
-    - LibU update (ver. 0.3.0)
+	- bug fix: endless reap loop on SIGTERM or SIGINT
+	- bug fix: processes handling slow connections didn't term when needed
+	- new ports: OpenBSD 3.8, NetBSD 2.0.x, NetBSD 2.1, FreeBSD 6.0
+	- MaKL update (ver. 1.0.0)
+	- LibU update (ver. 0.3.0)
 
 KLone 1.0.1:
-    - first public release
+	- first public release
 
 " vim: ts=4
 " vim: shiftwidth=4
 " vim: tabstop=4
 " vim: expandtab
-
