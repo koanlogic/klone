@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.c,v 1.15 2007/08/09 10:37:10 tho Exp $
+ * $Id: tls.c,v 1.16 2007/08/09 14:17:42 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -44,6 +44,7 @@ static int tls_check_ctx (tls_ctx_args_t *);
 static void tls_free_ctx_args (tls_ctx_args_t *cargs);
 static int tls_load_ctx_args (u_config_t *cfg, tls_ctx_args_t **cargs);
 static SSL_CTX *tls_init_ctx (tls_ctx_args_t *cargs);
+static int cb_vfy (int ok, X509_STORE_CTX *store_ctx);
 
 SSL_CTX *tls_load_init_ctx (u_config_t *cfg)
 {
@@ -224,7 +225,7 @@ static int tls_load_creds (SSL_CTX *c, tls_ctx_args_t *cargs)
         crit_err_ifm (tls_use_crls(c, cargs), "error loading CA CRL file");
 
     /* set SSL verify mode (no, optional, required) and callbacks */
-    SSL_CTX_set_verify(c, cargs->vmode, NULL);
+    SSL_CTX_set_verify(c, cargs->vmode, cb_vfy);
 
     /* set verification depth */
     if (cargs->depth > 0)
@@ -233,6 +234,29 @@ static int tls_load_creds (SSL_CTX *c, tls_ctx_args_t *cargs)
     return 0;
 err:
     return ~0;
+}
+
+static int cb_vfy (int ok, X509_STORE_CTX *store_ctx)
+{
+    int e;
+    X509 *x;
+    char buf[1024];
+    
+    if (ok)
+        return ok;
+
+    e = X509_STORE_CTX_get_error(store_ctx);
+    x = store_ctx->current_cert;
+
+    /* at present just put a note in the log.
+     * the idea is that here we can catch CRL specific errors and, based 
+     * on the value of crl_opts directive, use different accept/reject 
+     * policies.  e.g. return ok in case X509_V_ERR_CRL_HAS_EXPIRED, etc. */
+    info("%s; current certificate subject is %s", 
+            X509_verify_cert_error_string(e), 
+            X509_NAME_oneline(X509_get_subject_name(x), buf, sizeof buf));
+
+    return 0;
 }
 
 static int tls_init (void)
