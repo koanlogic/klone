@@ -1,4 +1,4 @@
-.\" $Id: kloned.conf.5,v 1.4 2006/03/06 20:04:50 tho Exp $
+.\" $Id: kloned.conf.5,v 1.5 2007/08/09 11:00:10 tho Exp $
 .TH "KLONED.CONF" "5" "03/06/2006" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
@@ -267,6 +267,17 @@ PEM\-encoded file containing Diffie\-Hellman parameters to be used on session da
 \fBverify_depth\fR
 This directive sets how deeply openssl should verify before deciding that the clients don't have a valid certificate. The depth actually is the maximum number of intermediate certificate issuers, i.e. the max number of CA certificates which are allowed to be followed while verifying the client certificate. A depth of 0 means that only self\-signed client certificates are accepted, the default depth of 1 means the client certificate can be self\-signed or has to be signed by a CA which is directly known to the server, i.e. the CA's certificate is under
 \fBca_file\fR, etc.
+.TP
+\fBcrl_file\fR
+PEM\-encoded file containing CRLs against which certificates supplied by the client (at least its own) will be checked for revocation status.  
+.TP
+\fBcrl_opts\fR
+This directive can be set to the value that follows in order to enforce a stricter check upon the supplied certificate chain: not only the client certificate, but every certificate in chain up to the anchor CA will be tested for its revocation status.
+.RS
+.TP
+\fBCHECK_ALL\fR
+.RE
+.sp
 .TP
 \fBverify_mode\fR
 This directive sets the certificate verification level for the Client authentication. The following values are available:
