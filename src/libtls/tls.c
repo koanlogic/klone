@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.c,v 1.12 2007/08/08 22:04:12 tho Exp $
+ * $Id: tls.c,v 1.13 2007/08/09 10:06:12 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -226,8 +226,9 @@ static int tls_load_creds (SSL_CTX *c, tls_ctx_args_t *cargs)
         crit_err_ifm (tls_use_crls(c, cargs), "error loading CA CRL file");
 
     /* set SSL verify mode (no, optional, required) and callbacks */
-    SSL_CTX_set_verify(c, cargs->vmode, cb_vfy);
-    SSL_CTX_set_cert_verify_callback(c, cb_vfy_cert, (void *) cargs);
+    SSL_CTX_set_verify(c, cargs->vmode, NULL);
+    //SSL_CTX_set_verify(c, cargs->vmode, cb_vfy);
+    //SSL_CTX_set_cert_verify_callback(c, cb_vfy_cert, (void *) cargs);
 
     /* set verification depth */
     if (cargs->depth > 0)
@@ -241,8 +242,16 @@ err:
 static int cb_vfy_cert (X509_STORE_CTX *store_ctx, void *cb_args)
 {
     int ok = 1;
+    char *s, buf[1024];
+
     /* do nothing: stay here in case of need :) */
-    u_unused_args(store_ctx, cb_args);
+    u_unused_args(cb_args);
+
+    s = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert),
+            buf, sizeof buf);
+
+    info("verify callback called on %s", s);
+
     return ok;
 }
 
@@ -436,6 +445,8 @@ err:
     return ~0;
 }
 
+/* 'verify_mode' and 'verify_client' are aliases
+ * the former is deprecated and retained only for compatibility with klone 1 */
 static int tls_set_ctx_vmode (u_config_t *cfg, tls_ctx_args_t *cargs)
 {
     const char *v;
@@ -443,7 +454,9 @@ static int tls_set_ctx_vmode (u_config_t *cfg, tls_ctx_args_t *cargs)
     dbg_return_if (cfg == NULL, ~0);
     dbg_return_if (cargs == NULL, ~0);
     
-    v = u_config_get_subkey_value(cfg, "verify_mode");
+    /* try 'verify_mode' directive first then 'verify_client' */
+    if  ((v = u_config_get_subkey_value(cfg, "verify_mode")) == NULL)
+        v = u_config_get_subkey_value(cfg, "verify_client");
 
     if (v == NULL || !strcasecmp(v, "no"))  /* unset == none */
         cargs->vmode = SSL_VERIFY_NONE;
