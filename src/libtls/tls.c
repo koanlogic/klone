@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.c,v 1.14 2007/08/09 10:19:23 tho Exp $
+ * $Id: tls.c,v 1.15 2007/08/09 10:37:10 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -44,8 +44,6 @@ static int tls_check_ctx (tls_ctx_args_t *);
 static void tls_free_ctx_args (tls_ctx_args_t *cargs);
 static int tls_load_ctx_args (u_config_t *cfg, tls_ctx_args_t **cargs);
 static SSL_CTX *tls_init_ctx (tls_ctx_args_t *cargs);
-static int cb_vfy (int ok, X509_STORE_CTX *store_ctx);
-static int cb_vfy_cert (X509_STORE_CTX *store_ctx, void *cb_args);
 
 SSL_CTX *tls_load_init_ctx (u_config_t *cfg)
 {
@@ -227,8 +225,6 @@ static int tls_load_creds (SSL_CTX *c, tls_ctx_args_t *cargs)
 
     /* set SSL verify mode (no, optional, required) and callbacks */
     SSL_CTX_set_verify(c, cargs->vmode, NULL);
-    //SSL_CTX_set_verify(c, cargs->vmode, cb_vfy);
-    //SSL_CTX_set_cert_verify_callback(c, cb_vfy_cert, (void *) cargs);
 
     /* set verification depth */
     if (cargs->depth > 0)
@@ -238,44 +234,6 @@ static int tls_load_creds (SSL_CTX *c, tls_ctx_args_t *cargs)
 err:
     return ~0;
 }
-
-static int cb_vfy_cert (X509_STORE_CTX *store_ctx, void *cb_args)
-{
-    int ok = 1;
-    char *s, buf[1024];
-
-    /* do nothing: stay here in case of need :) */
-    u_unused_args(cb_args);
-
-    s = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert),
-            buf, sizeof buf);
-
-    info("verify callback called on %s", s);
-
-    return ok;
-}
-
-/* for now just a debug helper on validation error */
-static int cb_vfy (int ok, X509_STORE_CTX *store_ctx)
-{
-    int e;
-    char *s, buf[1024];
-
-    if (ok)
-        return ok;
-
-    /* pick up error and subject name of the failed certificate */
-    e = X509_STORE_CTX_get_error(store_ctx);
-    s = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert),
-            buf, sizeof buf);
-
-    warn("certificate with subject %s got error %s at chain depth %d", 
-            s ? s : "- unknown -", X509_STORE_CTX_get_error_depth(store_ctx),
-            X509_verify_cert_error_string(e));
-
-    return 0;
-}
-
 
 static int tls_init (void)
 {
@@ -340,7 +298,7 @@ static int tls_gendh_params(SSL_CTX *c, const char *dhfile)
     dbg_err_if (!(eph_dh));
 
     dbg_err_if (!SSL_CTX_set_tmp_dh(c, eph_dh));
-    DH_free(dh);
+    DH_free(eph_dh);
 
 #if 0
     /* Avoid small subgroup attacks (if p and g are strong primes
@@ -434,10 +392,8 @@ static int tls_set_ctx_crlopts (u_config_t *cfg, tls_ctx_args_t *cargs)
         return 0;
     }
 
-    if (!strcasecmp(v, "all"))
+    if (!strcasecmp(v, "check_all"))
         cargs->crlopts = X509_V_FLAG_CRL_CHECK | X509_V_FLAG_CRL_CHECK_ALL;
-    else if (!strcasecmp(v, "client"))
-        cargs->crlopts = X509_V_FLAG_CRL_CHECK;
     else
         warn_err("unknown value %s for 'crl_opts' directive", v);
 
@@ -489,6 +445,11 @@ static int tls_check_ctx (tls_ctx_args_t *cargs)
     if (cargs->vmode & SSL_VERIFY_PEER)
         crit_err_ifm (!cargs->ca, 
             "SSL verify is required but CA certificate filename is missing");
+
+    /* if 'crl_file' was given, set crlopts at least to verify the client
+     * certificate against the supplied CRL */
+    if (cargs->crl && cargs->crlopts == 0)
+        cargs->crlopts = X509_V_FLAG_CRL_CHECK;
 
     return 0;
 err:

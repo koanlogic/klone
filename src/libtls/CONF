@@ -95,17 +95,18 @@ syntax:         server.httpsd.verify_depth  required
 
 
 ________
-crl_file        CRL file
+crl_file        CRL file...
+
 default:        none
 syntax:         server.httpsd.crl   /path/to/crl.pem
 
 
 ________
 crl_opts        CRL check mode:
-                * "all"      -> check all certificates in chain against a CRL
-                * "client"   -> check only the client certificate for revocation
-                                status
-default:        none
-syntax:         server.httpsd.crl_opts  all
+                * "check_all"-> check all certificates in chain against a CRL
+
+default:        (if 'crl_file' is set) is to check only the client certificate 
+                for revocation status
+syntax:         server.httpsd.crl_opts  check_all
 
 
