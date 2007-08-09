@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.c,v 1.13 2007/08/09 10:06:12 tho Exp $
+ * $Id: tls.c,v 1.14 2007/08/09 10:19:23 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -340,6 +340,7 @@ static int tls_gendh_params(SSL_CTX *c, const char *dhfile)
     dbg_err_if (!(eph_dh));
 
     dbg_err_if (!SSL_CTX_set_tmp_dh(c, eph_dh));
+    DH_free(dh);
 
 #if 0
     /* Avoid small subgroup attacks (if p and g are strong primes
