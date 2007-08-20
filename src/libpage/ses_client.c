@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_client.c,v 1.29 2006/03/21 15:38:01 tat Exp $
+ * $Id: ses_client.c,v 1.30 2007/08/20 16:06:08 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -171,8 +171,6 @@ static int session_client_load(session_t *ss)
     /* hex decode session data */
     dbg_err_if((c = u_hexncpy(buf, cli_ebuf, strlen(cli_ebuf), 
         HEXCPY_DECODE)) <= 0);
-
-    c--; /* ignore last '\0' that hexncpy adds */
 
     /* load session data from the buffer */
     dbg_err_if(session_prv_load_from_buf(ss, buf, c));

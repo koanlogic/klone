@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.23 2006/06/20 08:08:16 tat Exp $
+ * $Id: vars.c,v 1.24 2007/08/20 16:06:08 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -230,9 +230,6 @@ int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **v)
     dbg_err_if((vsz = u_urlncpy(value, val, strlen(val), URLCPY_DECODE)) <= 0);
 
     /* dbg("name: [%s]  value: [%s]", name, value); */
-
-    /* u_urlncpy always add a \0 at the end of the resulting data block */
-    --vsz;
 
     dbg_err_if(var_bin_create(name, value, vsz, &var));
 

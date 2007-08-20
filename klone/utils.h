@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.h,v 1.27 2007/07/30 16:09:07 tat Exp $
+ * $Id: utils.h,v 1.28 2007/08/20 16:06:08 tat Exp $
  */
 
 #ifndef _KLONE_UTILS_H_
@@ -57,6 +57,8 @@ char* u_strnrchr(const char *s, char c, size_t len);
 char *u_stristr(const char *string, const char *sub);
 char *u_strnstr(const char *string, const char *sub, size_t stringlen);
 
+enum { U_COPY_VERBATIM, U_COPY_ENCODE, U_COPY_DECODE };
+
 enum { URLCPY_VERBATIM, URLCPY_ENCODE, URLCPY_DECODE };
 ssize_t u_urlncpy(char *dst, const char *src, size_t slen, int flags);
 
@@ -68,7 +70,6 @@ ssize_t u_htmlncpy(char *dst, const char *src, size_t slen, int flags);
 
 enum { SQLCPY_VERBATIM, SQLCPY_ENCODE, SQLCPY_DECODE };
 ssize_t u_sqlncpy(char *dst, const char *src, size_t slen, int flags);
-
 
 int u_printf_ccstr(io_t *o, const char *buf, size_t sz);
 

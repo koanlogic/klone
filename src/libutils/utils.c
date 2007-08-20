@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.42 2007/07/30 16:09:07 tat Exp $
+ * $Id: utils.c,v 1.43 2007/08/20 16:06:08 tat Exp $
  */
 
 #include <stdlib.h>
@@ -44,6 +44,7 @@ static struct html_entities_s
     int s_char;
     const char *entity; 
 } entities[] = {
+    { '&',  "&amp;"  },
     { '"',  "&quot;" },
     { '\'', "&#39;"  }, 
     { '<',  "&lt;"   },
@@ -225,7 +226,7 @@ static short htoi(unsigned char c)
 static ssize_t u_sqlncpy_encode(char *d, const char *s, size_t slen)
 {
     ssize_t wr = 0;
-    int c;
+    unsigned char c;
 
     dbg_return_if (d == NULL, -1);
     dbg_return_if (s == NULL, -1);
@@ -244,14 +245,14 @@ static ssize_t u_sqlncpy_encode(char *d, const char *s, size_t slen)
     }
     *d = 0;
 
-    return ++wr;
+    return wr;
 err:
     return -1;
 }
 
 static ssize_t u_sqlncpy_decode(char *d, const char *s, size_t slen)
 {
-    int c, last = 0;
+    unsigned char c, last = 0;
     ssize_t wr = 0;
     
     dbg_return_if (d == NULL, -1);
@@ -272,7 +273,7 @@ static ssize_t u_sqlncpy_decode(char *d, const char *s, size_t slen)
     }
     *d = 0;
 
-    return ++wr;
+    return wr;
 }
 
 /**
@@ -287,7 +288,8 @@ static ssize_t u_sqlncpy_decode(char *d, const char *s, size_t slen)
  * \param   slen    length of \p s
  * \param   flags   one of \c SQLCPY_ENCODE or \c SQLCPY_DECODE
  *
- * \return  The number of encoded/decoded characters or \c -1 on error.
+ * \return  The number of characters written to \p d not including the 
+ *          trailing '\0' or \c -1 on error.
  */
 ssize_t u_sqlncpy(char *d, const char *s, size_t slen, int flags)
 {
@@ -303,7 +305,7 @@ ssize_t u_sqlncpy(char *d, const char *s, size_t slen, int flags)
     default:
         strncpy(d, s, slen);
         d[slen] = 0;
-        return slen + 1;
+        return slen;
     }
 
     return -1;
@@ -313,7 +315,7 @@ static ssize_t u_urlncpy_encode(char *d, const char *s, size_t slen)
 {
     const char hexc[] = "0123456789ABCDEF";
     ssize_t wr = 0;
-    int c;
+    unsigned char c;
 
     dbg_return_if (d == NULL, -1);
     dbg_return_if (s == NULL, -1);
@@ -336,12 +338,12 @@ static ssize_t u_urlncpy_encode(char *d, const char *s, size_t slen)
     }
     *d = 0;
 
-    return ++wr;
+    return wr;
 }
 
 static ssize_t u_urlncpy_decode(char *d, const char *s, size_t slen)
 {
-    short c;
+    unsigned char c;
     ssize_t wr = 0;
 
     dbg_return_if (d == NULL, -1);
@@ -366,7 +368,7 @@ static ssize_t u_urlncpy_decode(char *d, const char *s, size_t slen)
     }
     *d = 0;
 
-    return ++wr;
+    return wr;
 err:
     return -1;
 
@@ -384,7 +386,8 @@ err:
  * \param   slen    length of \p s
  * \param   flags   one of \c URLCPY_ENCODE or \c URLCPY_DECODE
  *
- * \return  The number of encoded/decoded characters or \c -1 on error.
+ * \return  The number of characters written to \p d not including the 
+ *          trailing '\0' or \c -1 on error.
  */
 ssize_t u_urlncpy(char *d, const char *s, size_t slen, int flags)
 {
@@ -400,7 +403,7 @@ ssize_t u_urlncpy(char *d, const char *s, size_t slen, int flags)
     default:
         strncpy(d, s, slen);
         d[slen] = 0; /* zero-term the string */
-        return slen + 1;
+        return slen;
     }
 
     return -1;
@@ -428,7 +431,7 @@ static int u_hex2ch(char c)
 void u_print_version_and_exit(void)
 {
     static const char *vv = 
-    "KLone %s - Copyright (c) 2005, 2006 KoanLogic s.r.l. - "
+    "KLone %s - Copyright (c) 2005, 2006, 2007 KoanLogic s.r.l. - "
     "All rights reserved. \n\n";
 
     fprintf(stderr, vv, klone_version());
@@ -451,7 +454,7 @@ static ssize_t u_hexncpy_decode(char *d, const char *s, size_t slen)
 
     d[t] = 0; /* zero-term */
 
-    return ++t;
+    return t;
 err:
     return -1;
 }
@@ -471,7 +474,7 @@ static ssize_t u_hexncpy_encode(char *d, const char *s, size_t slen)
 	}
     d[t] = 0; /* zero-term */
 
-    return ++t;
+    return t;
 }
 
 /**
@@ -486,7 +489,8 @@ static ssize_t u_hexncpy_encode(char *d, const char *s, size_t slen)
  * \param   slen    length of \p s
  * \param   flags   one of \c HEXCPY_ENCODE or \c HEXCPY_DECODE
  *
- * \return  The number of encoded/decoded characters or \c -1 on error.
+ * \return  The number of characters written to \p d not including the 
+ *          trailing '\0' or \c -1 on error.
  */
 ssize_t u_hexncpy(char *d, const char *s, size_t slen, int flags)
 {
@@ -502,7 +506,7 @@ ssize_t u_hexncpy(char *d, const char *s, size_t slen, int flags)
     default:
         strncpy(d, s, slen);
         d[slen] = 0; /* zero-term the string */
-        return slen + 1;
+        return slen;
     }
 
 err:
@@ -514,7 +518,7 @@ static ssize_t u_htmlncpy_encode(char *d, const char *s, size_t slen)
     struct html_entities_s *p;
     const char *map[256];
     size_t elen;
-    int c;
+    unsigned char c;
     ssize_t wr = 0;
 
     dbg_return_if (d == NULL, -1);
@@ -535,17 +539,15 @@ static ssize_t u_htmlncpy_encode(char *d, const char *s, size_t slen)
             --slen;
         } else {
             elen = strlen(map[c]);
-            if(slen < elen)
-                break; /* there's not enough space to fit the entity */
-            strncpy(d, map[c], slen); /* append the entity */
-            slen -= elen;
+            strcpy(d, map[c]); /* append the entity */
+            --slen;
             d += elen;
             wr += elen;
         }
     }
     *d = 0;
 
-    return ++wr;
+    return wr;
 }
 
 static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
@@ -569,7 +571,7 @@ static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
         }
     }
 
-    return 1 + strlen(d);
+    return strlen(d);
 }
 
 /**
@@ -584,7 +586,8 @@ static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
  * \param   slen    length of \p s
  * \param   flags   one of \c HTMLCPY_ENCODE or \c HTMLCPY_DECODE
  *
- * \return  The number of encoded/decoded characters or \c -1 on error.
+ * \return  The number of characters written to \p d not including the 
+ *          trailing '\0' or \c -1 on error.
  */
 ssize_t u_htmlncpy(char *d, const char *s, size_t slen, int flags)
 {
@@ -600,7 +603,7 @@ ssize_t u_htmlncpy(char *d, const char *s, size_t slen, int flags)
     default:
         strncpy(d, s, slen);
         d[slen] = 0; /* zero-term */
-        return slen + 1;
+        return slen;
     }
 err:
     return -1;
