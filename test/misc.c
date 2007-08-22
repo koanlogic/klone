@@ -4,10 +4,10 @@
 struct htmlenc_vec_s
 {
     const char *src, *exp;
-    int ssz; /* source size */
+    int ssz, esz; /* source and exp size */
 };
 
-#define HTMLENC_VEC( src, exp ) { src, exp, (sizeof(src)-1) }
+#define HTMLENC_VEC( src, exp ) { src, exp, (sizeof(src)-1), (sizeof(exp)-1) }
 
 const struct htmlenc_vec_s htmlenc_vec[] = {
     HTMLENC_VEC( "", ""),
@@ -21,10 +21,10 @@ const struct htmlenc_vec_s htmlenc_vec[] = {
     HTMLENC_VEC( "<", "&lt;"),
     HTMLENC_VEC( ">", "&gt;"),
     HTMLENC_VEC( "\"", "&quot;"),
-    HTMLENC_VEC( "\\", "&#39;"),
-    HTMLENC_VEC( "&<>\"\\", "&amp;&lt;&gt;&quot;&#39;"),
-    HTMLENC_VEC( "A&<>\"\\Z", "A&amp;&lt;&gt;&quot;&#39;Z"),
-    HTMLENC_VEC( "A&B<C>D\"E\\Z", "A&amp;B&lt;C&gt;D&quot;E&#39;Z"),
+    HTMLENC_VEC( "\'", "&#39;"),
+    HTMLENC_VEC( "&<>\"\'", "&amp;&lt;&gt;&quot;&#39;"),
+    HTMLENC_VEC( "A&<>\"\'Z", "A&amp;&lt;&gt;&quot;&#39;Z"),
+    HTMLENC_VEC( "A&B<C>D\"E\'Z", "A&amp;B&lt;C&gt;D&quot;E&#39;Z"),
 
     HTMLENC_VEC( "\x01", "\x01"), /* not printable chars are not encoded */
     // FIXME: there are other HTML entities?
@@ -87,15 +87,18 @@ int test_htmlencoding_1(void)
     const char *src, *exp;
     char buf0[BUFSZ], buf1[BUFSZ];
     ssize_t wr;
-    int i, ssz;
+    int i, ssz, esz;
 
     for(i = 0; htmlenc_vec[i].src != NULL; ++i)
     {
         src = htmlenc_vec[i].src;
         exp = htmlenc_vec[i].exp; /* expected result */
         ssz = htmlenc_vec[i].ssz; 
+        esz = htmlenc_vec[i].esz; 
 
         con_err_if((wr = u_htmlncpy(buf0, src, ssz, HTMLCPY_ENCODE)) < 0);
+
+        con_err_if(memcmp(buf0, exp, esz));
 
         con_err_if((wr = u_htmlncpy(buf1, buf0, wr, HTMLCPY_DECODE)) < 0);
 
