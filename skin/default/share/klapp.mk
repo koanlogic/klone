@@ -55,6 +55,7 @@ else
 all: 
 endif
 	[ -f $(KLONE_DIR)/configure ] || make src
+	[ -d $(WEBAPP_DIR) ] || make $(WEBAPP_DIR)
 	[ -f $(KLONE_DIR)/Makefile.conf ] || ( cd $(KLONE_DIR) && ./configure )
 	make -C $(KLONE_DIR)
 	ln -sf $(KLONE_DIR)/kloned $(KLONE_DAEMON_NAME)
@@ -78,6 +79,9 @@ $(KLONE_DIR)/Makefile: Makefile
 
 src: $(KLONE_TGZ)
 	tar zxvf $(KLONE_TGZ)
+
+$(WEBAPP_DIR):
+	cp -r $(KLONE_DIR)/webapp $@
 
 $(KLONE_TGZ):
 	wget -c http://koanlogic.com/klone/$(KLONE_TGZ)
