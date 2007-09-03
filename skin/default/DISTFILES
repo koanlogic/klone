@@ -2,6 +2,7 @@ ChangeLog
 LICENSE
 LICENSE.OpenSSL
 Makefile
+Makefile.help
 README
 VERSION
 build/host/Makefile

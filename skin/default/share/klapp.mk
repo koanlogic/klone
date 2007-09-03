@@ -86,4 +86,25 @@ $(WEBAPP_DIR):
 $(KLONE_TGZ):
 	wget -c http://koanlogic.com/klone/$(KLONE_TGZ)
 
+help:
+	@echo "List of valid targets:"
+	@echo "  all                make the kloned daemon and its dependencies"
+	@echo "  clean              clean all"
+	@echo "  install            install the built webapp"
+	@echo 
+	@echo "  help               display this help"
+	@echo 
+	@echo "  makefile-help      display an help on the list on variables "
+	@echo "                     supported by the top-level Makefile"
+	@echo 
+	@echo "  configure-help     help on what can be set in KLONE_CONF_ARGS"
+	@echo "                     variable"
+	@echo 
+	@echo "  import-help        help on what can be set in KLONE_IMPORT_ARGS"
+	@echo "                     variable"
+	@echo 
+
+import-help configure-help makefile-help:
+	[ -f $(KLONE_DIR)/configure ] || make src
+	make -C $(KLONE_DIR) $@
 

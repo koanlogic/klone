@@ -34,7 +34,7 @@ $(error KLONE_VERSION must be defined. )
 endif
 
 ALL = host-setup klone-setup subdirs klone-first-import \
-	  $(KLONE_WEBAPP) make-pre klone-make make-post klone-help
+	  $(KLONE_WEBAPP) make-pre klone-make make-post klone-howto
 
 .PHONY: $(ALL) subdirs $(SUBDIR) import
 
@@ -119,7 +119,7 @@ fetch-options = once
 host-setup-options = once
 klone-setup-options = once
 klone-first-import-options = once
-klone-help-options = once
+klone-howto-options = once
 
 KLONE_URI = http://koanlogic.com/klone/klone-$(KLONE_VERSION).tar.bz2
 KLONE_TARBALL ?= $(notdir $(XENO_FETCH_URI))
@@ -229,7 +229,7 @@ install:
 	@echo "==> installing... "
 	@$(KLONE_MAKE) install
 
-help:
+howto:
 	@echo 
 	@echo "    KLone daemon (kloned) is ready to be started."
 	@echo 
@@ -241,7 +241,34 @@ help:
 	@echo 
 	@echo 
 
-klone-help:
-	@$(MAKE) help
+klone-howto:
+	@$(MAKE) howto 
 
+configure-help:
+	@echo "==> configure-help..."
+	@$(MAKE) -C build/target
+	@(cd $(KLONE_SRC) && ./configure --help )
+
+import-help:
+	@echo
+	@echo "Import options:"
+	@echo "  -b URI      base URI"
+	@echo "  -x pattern  exclude all files whose URI match the given pattern (*)"
+	@echo
+	@echo "Options available when compiled with OpenSSL support:"
+	@echo "  -e pattern  encrypt all files whose URI match the given pattern (*)"
+	@echo "  -k key_file encryption key filename"
+	@echo
+	@echo "Options available when compiled with zlib support:"
+	@echo "  -z          compress all compressable content (based on MIME types)"
+	@echo "  -Z pattern  compress all files whose URI match the given pattern (*)"
+	@echo
+	@echo "(*) may be used more then once"
+	@echo
+
+makefile-help:
+	@echo 
+	@echo "Displaying $(TOP)/Makefile.help file:"
+	@echo 
+	@cat $(TOP)/Makefile.help
 

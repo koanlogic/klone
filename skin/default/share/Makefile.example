@@ -1,14 +1,18 @@
+#
+# Run 'make help' for help on variables and targets
+#
 TOP = $(shell pwd)
 
 # which klone version?
 KLONE_VERSION ?= 2.0.0
 
+# set the name of the daemon program (otherwise "kloned" will be used)
 # KLONE_DAEMON_NAME = myapp
 
-# configure arguments
+# configure script arguments (try ./configure --help)
 # KLONE_CONF_ARGS ?= --install_daemon_only --prefix=/my/install/dir
 
-# import arguments
+# import arguments (any argument supported by klone import utility is allowed)
 # KLONE_IMPORT_ARGS ?= 
 
 # cross compile
@@ -16,13 +20,13 @@ KLONE_VERSION ?= 2.0.0
 # or provide custom toolchain file
 # KLONE_CUSTOM_TC ?=
 
-# embedded fs
-# WEBAPP_DIR = $(TOP)/webapp
+# embedded fs (will be created if it does not exist)
+WEBAPP_DIR = $(TOP)/webapp
 
 # also build the following subdirs
 # SUBDIR = $(TOP)/libhelp
 
-# flags
+# compiler and linker flags
 # WEBAPP_CFLAGS = -I$(TOP)/
 # WEBAPP_LDFLAGS = 
 # WEBAPP_LDADD = $(TOP)/libhelp/libhelp.a
@@ -30,4 +34,4 @@ KLONE_VERSION ?= 2.0.0
 include klapp.mk
 
 klapp.mk:
-	wget -O $@ -c http://koanlogic.com/klone/klapp-$(KLONE_VERSION).mk
+	wget -O $@ -c http://koanlogic.com/klone/klapp-2.0.0.mk

@@ -1,0 +1,84 @@
+List of supported variables
+
+    + KLONE_VERSION   
+
+            Version of KLone to use (will be downloaded automatically)
+
+            Example:
+                KLONE_VERSION = 2.0.0
+
+    + KLONE_DAEMON_NAME 
+
+            Filename of the compiled KLone daemon
+
+            Example:
+                KLONE_DAEMON_NAME = myapp
+
+    + KLONE_CONF_ARGS 
+            
+            List of arguments to be passed to klone-core configure script.
+            
+            Run 'make configure-help' to display the list of suitable arguments.
+
+            Example:
+                KLONE_CONF_ARGS = --prefix=/opt/myapp --enable_debug
+
+    + KLONE_IMPORT_ARGS
+
+            List of arguments used to import your webapp directory.
+
+            Run 'make import-help' to display the list of options.
+
+            Example:
+                KLONE_IMPORT_ARGS = -v -z -x '*/CVS/*'
+
+    + MAKL_PLATFORM
+     
+            Used to select the target platform when cross-compiling.
+
+            Examples:
+                MAKL_PLATFORM = linux-cris-axis
+                MAKL_PLATFORM = linux-arm
+
+    + KLONE_CUSTOM_TC
+            
+            Holds the full path of the toolchain to be used to compile the
+            daemon.
+
+            Examples:
+                KLONE_CUSTOM_TC = /path/to/my-own.tc
+
+    + SUBDIR
+
+            A list of subdirectory to be build by 'make'. 
+
+            Examples:
+                SUBDIR = libutil libother doc
+
+    + WEBAPP_DIR 
+            
+            Set the directory where the content files of the web application
+            (html pages, images, dynamic scripts, Flash apps) are stored.
+
+            If the specified directory does not exist a simple skeleton 
+            application will be automatically created in the given directory.
+
+            Examples:
+                WEBDIR_DIR = /path/to/webdir/
+                WEBDIR_DIR = $(shell pwd)/myappdir
+
+    + WEBAPP_CFLAGS
+    + WEBAPP_LDFLAGS
+    + WEBAPP_LDADD
+
+            Contain the compilation (WEBAPP_CFLAGS) and linking (WEBAPP_LDFLAGS)
+            flags used when compiling web application source files. 
+
+            Use WEBAPP_LDADD to include static libraries (*.a) or object files
+            (*.o).
+
+            Examples:
+                WEBDIR_CFLAGS = -D_DEBUG_ -O2
+                WEBDIR_LDFLAGS = -L/usr/local/lib -lz -ldb
+                WEBDIR_LDADD = $(shell pwd)/libs/util/libutil.a
+
