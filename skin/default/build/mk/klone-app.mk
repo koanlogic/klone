@@ -132,7 +132,7 @@ ifdef MAKL_PLATFORM
 	@echo "==> setup (host)..."
 	@$(MAKE) -C build/host
 	@export MAKL_PLATFORM= MAKL_TC= MAKEFLAGS= && \
-		(cd $(KLONE_SRC_HOST) && ./configure $(CONF_ARGS) )
+		(cd $(KLONE_SRC_HOST) && ./configure --disable_cxx $(CONF_ARGS) )
 	@export MAKL_PLATFORM= MAKL_TC= MAKEFLAGS= && \
 		( cd $(KLONE_SRC_HOST) && $(MAKE) )
 endif
