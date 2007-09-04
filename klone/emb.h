@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.h,v 1.14 2006/04/22 13:14:46 tat Exp $
+ * $Id: emb.h,v 1.15 2007/09/04 12:15:16 tat Exp $
  */
 
 #ifndef _KLONE_EMB_H_
@@ -23,6 +23,7 @@
 #include <klone/io.h>
 #include <klone/codecs.h>
 #include <klone/utils.h>
+#include <klone/hook.h>
 
 #ifdef __cplusplus
 extern "C" {

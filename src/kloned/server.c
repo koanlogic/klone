@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.55 2007/06/04 16:30:58 tat Exp $
+ * $Id: server.c,v 1.56 2007/09/04 12:15:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -29,6 +29,8 @@
 #include <klone/addr.h>
 #include <klone/utils.h>
 #include <klone/klog.h>
+#include <klone/hook.h>
+#include <klone/hookprv.h>
 #include "server_s.h"
 #include "server_ppc_cmd.h"
 #include "child.h"
@@ -573,8 +575,12 @@ static int server_child_serve(server_t *s, backend_t *be, int ad)
         /* close this be listening descriptor */
         close(be->ld);
 
+        hook_call(child_init);
+
         /* serve the page */
         dbg_if(backend_serve(be, ad));
+
+        hook_call(child_term);
 
         /* close client socket and die */
         close(ad);
@@ -711,7 +717,12 @@ int server_cgi(server_t *s)
     {
         if(strcasecmp(be->proto, "http") == 0)
         {
+            hook_call(server_init);
+
             dbg_if(backend_serve(be, 0));
+
+            hook_call(server_term);
+
             return 0;
         }
     }
@@ -830,6 +841,9 @@ int server_spawn_child(server_t *s, backend_t *be)
     if(rc > 0)
         return 0; /* parent */
 
+    /* call the hook that runs the on-child user code */
+    hook_call(child_init);
+
     /* child main loop: 
        close on s->stop or if max # of request limit has reached (the 
        server will respawn a new process if needed) */
@@ -838,6 +852,9 @@ int server_spawn_child(server_t *s, backend_t *be)
         /* wait for a new client (will block on accept(2)) */
         dbg_err_if(server_dispatch(s, be->ld));
     }
+
+    /* before child shutdowns call the term hook */
+    hook_call(child_term);
 
     server_stop(s);
 
@@ -898,6 +915,9 @@ int server_loop(server_t *s)
         warn_err_ifm(!getuid() || !geteuid() || !getgid() || !getegid(),
             "you must set the allow_root config option to run kloned as root");
 #endif
+
+    /* server startup hook */
+    hook_call(server_init);
 
     for(; !s->stop; )
     {
@@ -960,6 +980,9 @@ int server_loop(server_t *s)
     /* children in fork mode exit here */
     if(ctx->pipc)
         return 0;
+
+    /* server shutdown hook */
+    hook_call(server_term);
 
     /* shutdown all children */
     server_term_children(s);
@@ -1280,7 +1303,7 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
         type = u_config_get_subkey_value(bekey, "type");
         warn_err_ifm(type == NULL, "missing or bad '<servname>.type' value");
 
-        /* create a new backend and push into the be list */
+        /* create a new backend and push it into the 'be' list */
         warn_err_ifm(backend_create(type, bekey, &be),
             "backend \"%s\" startup error", type);
 

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: context.h,v 1.9 2006/01/09 12:38:37 tat Exp $
+ * $Id: context.h,v 1.10 2007/09/04 12:15:16 tat Exp $
  */
 
 #ifndef _KLONE_CONTEXT_H_
@@ -17,6 +17,7 @@
 #include <klone/server.h>
 #include <klone/backend.h>
 #include <klone/os.h>
+#include <klone/hook.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +29,7 @@ typedef struct context_s
     server_t *server;   /* server object                   */
     u_config_t *config; /* server config object            */
     backend_t *backend; /* the backend served by this child */
+    hook_t *hook;       /* object that keep track of hooks */
     char *ext_config;   /* additional external config file */
     int debug;          /* debugging on/off                */
     int daemon;         /* daemon/service mode on/off      */

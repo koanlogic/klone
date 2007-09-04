@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.27 2007/08/07 22:31:38 tat Exp $
+# $Id: Makefile,v 1.28 2007/09/04 12:15:16 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
@@ -29,6 +29,7 @@ LDADD += ../libhttp/libhttp.a ../libutils/libutils.a ../libpage/libpage.a   \
          ../libklog/libklog.a ../../webapp/libwebapp.a ../libhttp/libhttp.a \
          ../libpage/libpage.a ../libutils/libutils.a ../libio/libio.a       \
          ../libtls/libtls.a ../libcodec/libcodec.a ../libpage/libpage.a     \
+         ../libhook/libhook.a \
          ${WEBAPP_LDADD}
 
 # add libu flags

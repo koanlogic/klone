@@ -1,8 +1,10 @@
-$Id: ChangeLog,v 1.21 2007/08/20 16:06:08 tat Exp $
+$Id: ChangeLog,v 1.22 2007/09/04 12:15:16 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone x.y.z:
+    - user provided hooks added to get notifies about server startup/stop, 
+      spawn worker children, requests served (--enable_uc is required)
     - u_{html,url,hex,sql}ncpy() interface changed (return count don't include
       the trailing '\0' anymore)
 	- added support for CRLs via 'crl' and 'crl_opts' configuration directives

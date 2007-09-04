@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.45 2007/08/08 22:04:12 tho Exp $
+ * $Id: http.c,v 1.46 2007/09/04 12:15:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -20,6 +20,7 @@
 #include <klone/utils.h>
 #include <klone/klone.h>
 #include <klone/server.h>
+#include <klone/context.h>
 #include <klone/broker.h>
 #include <klone/request.h>
 #include <klone/ses_prv.h>
@@ -29,6 +30,8 @@
 #include <klone/timer.h>
 #include <klone/tls.h>
 #include <klone/ses_prv.h>
+#include <klone/hook.h>
+#include <klone/hookprv.h>
 #include "http_s.h"
 
 struct http_status_map_s
@@ -393,6 +396,9 @@ static int http_serve(http_t *h, int fd)
     dbg_err_if(response_bind(rs, out));
     out = NULL;
 
+    dbg_err_if(response_set_status(rs, HTTP_STATUS_BAD_REQUEST));
+
+    /* parse request. may fail on timeout */
     dbg_err_if(rc = request_parse_header(rq, http_is_valid_uri, h));
 
     response_set_method(rs, request_get_method(rq));
@@ -413,6 +419,9 @@ static int http_serve(http_t *h, int fd)
     /* serve the page; on error write out a simple error page */
     dbg_err_if(rc = broker_serve(h->broker, rq, rs));
 
+    /* call the hook that fires on each request */
+    hook_call(request, rq, rs);
+
     /* page successfully served */
 
     request_free(rq);
@@ -422,6 +431,9 @@ static int http_serve(http_t *h, int fd)
                           not be free'd) that happens during the io_free call */
     return 0;
 err:
+    /* hook get fired also on error */
+    hook_call(request, rq, rs);
+
     if(rc && rq && rs && response_io(rs))
         http_print_error_page(h, rq, rs, rc); /* print the error page */
     if(in)

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.h,v 1.10 2006/04/06 14:02:22 tat Exp $
+ * $Id: http.h,v 1.11 2007/09/04 12:15:16 tat Exp $
  */
 
 #ifndef _KLONE_HTTP_H_
@@ -44,6 +44,8 @@ enum {
     HTTP_STATUS_FORBIDDEN                 = 403,
     /**< access to resource forbidden */
     HTTP_STATUS_NOT_FOUND                 = 404,
+    /**< request timeout */
+    HTTP_STATUS_REQUEST_TIMEOUT           = 408,
     /**< nothing found at matching request URI */
     HTTP_STATUS_LENGTH_REQUIRED           = 411,
     /**< missing Content-Length header field */

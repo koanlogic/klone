@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.37 2007/07/16 12:44:22 tat Exp $
+ * $Id: request.c,v 1.38 2007/09/04 12:15:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1449,6 +1449,23 @@ int request_get_method(request_t *rq)
     dbg_return_if (rq == NULL, HM_UNKNOWN);
 
     return rq->method;
+}
+
+/** 
+ * \brief   Get the protocol used by the client request
+ *  
+ * Return the protocol of request \p rq ("HTTP/1.0", "HTTP/1.1", etc.)
+ *
+ * \param rq    request object
+ *  
+ * \return
+ *  - the method of the given \p rq  
+ */
+const char* request_get_protocol(request_t *rq)
+{
+    dbg_return_if (rq == NULL, "unknown");
+
+    return rq->protocol;
 }
 
 /** 

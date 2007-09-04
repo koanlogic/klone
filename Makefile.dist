@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.23 2007/09/03 15:49:03 tat Exp $
+# $Id: Makefile.dist,v 1.24 2007/09/04 12:15:16 tat Exp $
 
 include common.mk
 
@@ -33,6 +33,7 @@ DISTFILES += $(wildcard src/libpage/*.[ch]) src/libpage/Makefile
 DISTFILES += $(wildcard src/libtls/*.[ch]) src/libtls/Makefile
 DISTFILES += $(wildcard src/libtrans/*.[ch]) src/libtrans/Makefile
 DISTFILES += $(wildcard src/libutils/*.[ch]) src/libutils/Makefile
+DISTFILES += $(wildcard src/libhook/*.[ch]) src/libhook/Makefile
 DISTFILES += $(wildcard src/tools/klone/*.[ch]) src/tools/klone/Makefile 
 
 # configuration samples (etc)

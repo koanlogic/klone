@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.21 2007/07/16 17:56:55 tat Exp $
+ * $Id: main.c,v 1.22 2007/09/04 12:15:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -22,6 +22,8 @@
 #include <klone/emb.h>
 #include <klone/context.h>
 #include <klone/utils.h>
+#include <klone/hook.h>
+#include <klone/hookprv.h>
 #include "main.h"
 #include "server_s.h"
 
@@ -47,6 +49,9 @@ int app_init(void)
 {
     io_t *io = NULL;
     int cfg_found = 0;
+
+    /* create a hook obj */
+    dbg_err_if(hook_create(&ctx->hook));
 
     /* init embedded resources */
     emb_init();
@@ -117,6 +122,12 @@ int app_term(void)
         ctx->server = NULL;
     }
 
+    if(ctx && ctx->hook)
+    {
+        hook_free(ctx->hook);
+        ctx->hook = NULL;
+    }
+
     emb_term();
 
     return 0;
@@ -131,6 +142,7 @@ int app_run(void)
         dbg_err_if(server_cgi(ctx->server));
     else
         dbg_err_if(server_loop(ctx->server));
+
 
     return EXIT_SUCCESS;
 err:
