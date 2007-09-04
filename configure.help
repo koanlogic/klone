@@ -55,7 +55,7 @@ OPTION can be defined as follows:
 --disable_cxx           disable C++ support
 --install_daemon_only   install just Klone daemon file
 --daemon_name=NAME      set the name of Klone daemon
---enable_uc             use user-provided uc_init() and uc_term() funcs
+--enable_hooks          call user-provided hooks_setup() to register hooks
 
 Legend:
   <*>: required dependency

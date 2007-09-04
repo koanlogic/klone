@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: hook.h,v 1.1 2007/09/04 12:15:16 tat Exp $
+ * $Id: hook.h,v 1.2 2007/09/04 19:48:39 tat Exp $
  */
 
 #ifndef _KLONE_HOOK_H_
@@ -42,6 +42,11 @@ int hook_request( hook_request_t );
 /* hooks container object */
 int hook_create( hook_t **phook);
 int hook_free( hook_t *hook);
+
+#ifdef ENABLE_HOOKS
+/* user-provided function used to register hooks */
+void hooks_setup(void);
+#endif
 
 #ifdef __cplusplus
 }

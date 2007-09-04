@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.22 2007/09/04 12:15:16 tat Exp $
+ * $Id: main.c,v 1.23 2007/09/04 19:48:39 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -28,8 +28,6 @@
 #include "server_s.h"
 
 extern context_t* ctx;
-extern int modules_init(context_t *);
-extern int modules_term(context_t *);
 
 static char *io_gets_cb(void *arg, char *buf, size_t size)
 {
@@ -96,8 +94,6 @@ int app_init(void)
     if(ctx->debug)
         u_config_print(ctx->config, 0);
 
-    dbg_err_if(modules_init(ctx));
-
     return 0;
 err:
     if(io)
@@ -108,8 +104,6 @@ err:
 
 int app_term(void)
 {
-    modules_term(ctx);
-
     if(ctx && ctx->config)
     {
         u_config_free(ctx->config);

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.38 2007/09/04 12:15:16 tat Exp $
+ * $Id: main.c,v 1.39 2007/09/04 19:48:39 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -487,7 +487,7 @@ static int print_register_header(io_t *out)
     dbg_err_if (out == NULL);
  
     dbg_err_if(io_printf(out, "#include <klone_conf.h>\n") < 0);
-    dbg_err_if(io_printf(out, "#include <klone/uc.h>\n") < 0);
+    dbg_err_if(io_printf(out, "#include <klone/hook.h>\n") < 0);
     dbg_err_if(io_printf(out, "static void do_register(int);\n") < 0);
     dbg_err_if(io_printf(out, "void unregister_pages(void);\n") < 0);
     dbg_err_if(io_printf(out, "void register_pages(void);\n") < 0);
@@ -499,9 +499,8 @@ static int print_register_header(io_t *out)
     dbg_err_if(io_printf(out, 
         "void register_pages(void) { \n"
         "do_register(1);\n"
-        "#ifdef ENABLE_UC \n"
-        "    hook_server_init( uc_init ); \n"
-        "    hook_server_term( uc_term ); \n"
+        "#ifdef ENABLE_HOOKS\n"
+        "    hooks_setup(); \n"
         "#endif \n"
         "}\n") < 0);
     dbg_err_if(io_printf(out, 

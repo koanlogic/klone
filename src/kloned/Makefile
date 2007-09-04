@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.28 2007/09/04 12:15:16 tat Exp $
+# $Id: Makefile,v 1.29 2007/09/04 19:48:39 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
@@ -11,8 +11,8 @@ PROG = kloned
 endif
 
 INCS = main.h server_s.h server_ppc_cmd.h child.h
-SRCS = server.c main.c entry.c modules_init.c modules_term.c ppc.c atom.c   \
-    ppc_log_add.c ppc_log_get.c ppc_nop.c child.c
+SRCS = server.c main.c entry.c ppc.c atom.c ppc_log_add.c ppc_log_get.c \
+    ppc_nop.c child.c
 
 CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
 LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}

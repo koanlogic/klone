@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.72 2007/08/07 17:13:09 tat Exp $
+# $Id: configure,v 1.73 2007/09/04 19:48:39 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -27,7 +27,7 @@ makl_args_def   "enable_warns"      "" ""   "set CFLAGS for extra warnings"
 makl_args_def   "disable_cxx"       "" ""   "disable C++ support"
 makl_args_def   "install_daemon_only"  "" ""  "install just Klone daemon file"
 makl_args_def   "daemon_name"  "=NAME" ""   "set the name of Klone daemon"
-makl_args_def   "enable_uc"  "" ""   "use user-provided uc_init() and uc_term() funcs"
+makl_args_def   "enable_hooks"  "" ""   "call user-provided hooks_setup() to register hooks"
 
 # ... and their handlers
 __makl_enable_debug ()      { makl_set_var_mk       "KLONE_DEBUG" ;
@@ -41,7 +41,7 @@ __makl_disable_cxx ()       { makl_unset_var        "USE_CXX" ;             }
 __makl_install_daemon_only () 
                             { makl_set_var          "INSTALL_DAEMON_ONLY" ; }
 __makl_daemon_name ()       { makl_set_var_mk       "DAEMON_NAME" $1 ;      }
-__makl_enable_uc()          { makl_set_var          "ENABLE_UC"  ;          }
+__makl_enable_hooks()       { makl_set_var          "ENABLE_HOOKS"  ;       }
 __makl_enable_warns ()        
 { 
     makl_append_var_mk "CFLAGS"                                     \
