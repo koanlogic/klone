@@ -4,8 +4,10 @@
     time_t now;
 %>
 <html>
-<head><title>KLone start page</title></head>
+<head>
+<title>KLone start page</title>
 <link rel="stylesheet" href="kl.css" type="text/css">
+</head>
 <body>
 
 <blockquote>
