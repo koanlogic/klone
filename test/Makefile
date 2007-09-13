@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2007/08/20 16:06:08 tat Exp $
+# $Id: Makefile,v 1.2 2007/09/13 10:54:44 tat Exp $
 
 include common.mk
 include ../Makefile.conf
@@ -19,7 +19,8 @@ LDADD += ../src/libhttp/libhttp.a ../src/libutils/libutils.a \
     ../src/libpage/libpage.a 
 
 LDADD += ../libu/srcs/libu.a
-LDFLAGS += -lssl -lcrypto -lz
+CFLAGS += $(LIBOPENSSL_CFLAGS) $(LIBZ_CFLAGS)
+LDFLAGS += $(LIBOPENSSL_LDFLAGS) $(LIBZ_LDFLAGS)
 
 include prog.mk
 
