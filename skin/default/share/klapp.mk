@@ -45,11 +45,14 @@ ifdef KLONE_HOST_PATCH_URI
 export KLONE_HOST_PATCH_URI
 endif
 
+.PHONY: klone-src help import-help configure-help makefile-help
+
 KLONE_DIR = $(shell pwd)/klone-$(KLONE_VERSION)/
 KLONE_TGZ = klone-$(KLONE_VERSION).tar.gz
 KLONE_DAEMON_NAME ?= kloned
 
-.PHONY: klone-src help import-help configure-help makefile-help
+# klapp_conf.h is in $(KLONE_DIR)
+WEBAPP_CFLAGS += -I$(KLONE_DIR)/
 
 ifneq ($(wildcard $(KLONE_DIR)/Makefile),)
 all: $(KLONE_DIR)/Makefile
