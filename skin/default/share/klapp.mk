@@ -49,12 +49,14 @@ KLONE_DIR = $(shell pwd)/klone-$(KLONE_VERSION)/
 KLONE_TGZ = klone-$(KLONE_VERSION).tar.gz
 KLONE_DAEMON_NAME ?= kloned
 
+.PHONY: klone-src help import-help configure-help makefile-help
+
 ifneq ($(wildcard $(KLONE_DIR)/Makefile),)
 all: $(KLONE_DIR)/Makefile
 else
 all: 
 endif
-	[ -f $(KLONE_DIR)/configure ] || make src
+	[ -f $(KLONE_DIR)/configure ] || make klone-src
 	[ -d $(WEBAPP_DIR) ] || make $(WEBAPP_DIR)
 	[ -f $(KLONE_DIR)/Makefile.conf ] || ( cd $(KLONE_DIR) && ./configure )
 	make -C $(KLONE_DIR)
@@ -77,7 +79,7 @@ realclean:
 $(KLONE_DIR)/Makefile: Makefile
 	@touch $@
 
-src: $(KLONE_TGZ)
+klone-src: $(KLONE_TGZ)
 	tar zxvf $(KLONE_TGZ)
 
 $(WEBAPP_DIR):
@@ -105,6 +107,6 @@ help:
 	@echo 
 
 import-help configure-help makefile-help:
-	[ -f $(KLONE_DIR)/configure ] || make src
+	[ -f $(KLONE_DIR)/configure ] || make klone-src
 	make -C $(KLONE_DIR) $@
 
