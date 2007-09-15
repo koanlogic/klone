@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.46 2007/09/04 12:15:16 tat Exp $
+ * $Id: http.c,v 1.47 2007/09/15 16:36:12 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -18,7 +18,7 @@
 #endif  /* HAVE_LIBOPENSSL */
 #include <u/libu.h>
 #include <klone/utils.h>
-#include <klone/klone.h>
+#include <klone/os.h>
 #include <klone/server.h>
 #include <klone/context.h>
 #include <klone/broker.h>

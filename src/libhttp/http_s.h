@@ -5,16 +5,16 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http_s.h,v 1.5 2006/01/09 12:38:38 tat Exp $
+ * $Id: http_s.h,v 1.6 2007/09/15 16:36:12 tat Exp $
  */
 
 #ifndef _KLONE_HTTP_S_H_
 #define _KLONE_HTTP_S_H_
-#include <klone/klone.h>
+#include "klone_conf.h"
+#include <u/libu.h>
+#include <klone/os.h>
 #include <klone/broker.h>
 #include <klone/ses_prv.h>
-#include <u/libu.h>
-#include "klone_conf.h"
 
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>

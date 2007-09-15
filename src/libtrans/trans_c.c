@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.34 2007/08/07 13:18:56 tat Exp $
+ * $Id: trans_c.c,v 1.35 2007/09/15 16:36:12 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -14,7 +14,7 @@
 #include <limits.h>
 #include <string.h>
 #include <u/libu.h>
-#include <klone/klone.h>
+#include <klone/os.h>
 #include <klone/translat.h>
 #include <klone/parser.h>
 #include <klone/utils.h>

@@ -5,9 +5,10 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: date.c,v 1.9 2006/04/22 13:14:46 tat Exp $
+ * $Id: date.c,v 1.10 2007/09/15 16:36:12 tat Exp $
  */
 
+#include "klone_conf.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -16,7 +17,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include <klone/klone.h>
+#include <u/libu.h>
 #include <klone/os.h>
 #include <klone/utils.h>
 

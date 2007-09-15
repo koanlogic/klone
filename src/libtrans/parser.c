@@ -5,14 +5,15 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: parser.c,v 1.12 2006/09/28 03:05:38 tat Exp $
+ * $Id: parser.c,v 1.13 2007/09/15 16:36:12 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <klone/klone.h>
+#include <u/libu.h>
+#include <klone/os.h>
 #include <klone/translat.h>
 #include <klone/parser.h>
 

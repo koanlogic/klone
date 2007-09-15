@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.39 2007/09/04 19:48:39 tat Exp $
+ * $Id: main.c,v 1.40 2007/09/15 16:36:12 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -21,7 +21,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <u/libu.h>
-#include <klone/klone.h>
+#include <klone/os.h>
 #include <klone/request.h>
 #include <klone/response.h>
 #include <klone/translat.h>

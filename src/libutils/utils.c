@@ -5,9 +5,10 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.43 2007/08/20 16:06:08 tat Exp $
+ * $Id: utils.c,v 1.44 2007/09/15 16:36:12 tat Exp $
  */
 
+#include "klone_conf.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
@@ -18,8 +19,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include "klone_conf.h"
-#include <klone/klone.h>
+#include <u/libu.h>
 #include <klone/os.h>
 #include <klone/io.h>
 #include <klone/codecs.h>
@@ -30,7 +30,6 @@
 #ifdef HAVE_STRINGS
 #include <strings.h>
 #endif
-#include <u/libu.h>
 
 /**
  *  \defgroup u_t u_t - utility functions

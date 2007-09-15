@@ -5,12 +5,12 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.c,v 1.15 2007/07/13 14:00:13 tat Exp $
+ * $Id: header.c,v 1.16 2007/09/15 16:36:12 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <u/libu.h>
-#include <klone/klone.h>
+#include <klone/os.h>
 #include <klone/header.h>
 #include <klone/utils.h>
 

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.23 2006/04/22 13:14:46 tat Exp $
+ * $Id: translat.c,v 1.24 2007/09/15 16:36:12 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -18,7 +18,8 @@
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/evp.h>
 #endif /* HAVE_LIBOPENSSL */
-#include <klone/klone.h>
+#include <u/libu.h>
+#include <klone/os.h>
 #include <klone/translat.h>
 #include <klone/parser.h>
 #include <klone/utils.h>

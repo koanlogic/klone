@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: context.h,v 1.10 2007/09/04 12:15:16 tat Exp $
+ * $Id: context.h,v 1.11 2007/09/15 16:36:12 tat Exp $
  */
 
 #ifndef _KLONE_CONTEXT_H_
@@ -13,7 +13,6 @@
 
 #include "klone_conf.h"
 #include <u/libu.h>
-#include <klone/klone.h>
 #include <klone/server.h>
 #include <klone/backend.h>
 #include <klone/os.h>
