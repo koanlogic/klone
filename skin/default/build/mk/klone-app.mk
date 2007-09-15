@@ -135,6 +135,10 @@ ifdef MAKL_PLATFORM
 		(cd $(KLONE_SRC_HOST) && ./configure --disable_cxx $(CONF_ARGS) )
 	@export MAKL_PLATFORM= MAKL_TC= MAKEFLAGS= && \
 		( cd $(KLONE_SRC_HOST) && $(MAKE) )
+ifdef KLONE_CUSTOM_TC
+	@(cp -f $(KLONE_CUSTOM_TC) $(MAKL_DIR)/tc/custom.tc )
+	@(cd $(MAKL_DIR) && make toolchain )
+endif
 endif
 
 klone-setup:
