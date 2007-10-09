@@ -59,23 +59,23 @@ all: $(KLONE_DIR)/Makefile
 else
 all: 
 endif
-	[ -f $(KLONE_DIR)/configure ] || make klone-src
-	[ -d $(WEBAPP_DIR) ] || make $(WEBAPP_DIR)
+	[ -f $(KLONE_DIR)/configure ] || $(MAKE) klone-src
+	[ -d $(WEBAPP_DIR) ] || $(MAKE) $(WEBAPP_DIR)
 	[ -f $(KLONE_DIR)/Makefile.conf ] || ( cd $(KLONE_DIR) && ./configure )
-	make -C $(KLONE_DIR)
+	$(MAKE) -C $(KLONE_DIR)
 	ln -sf $(KLONE_DIR)/kloned $(KLONE_DAEMON_NAME)
 
 install: all install-pre realinstall install-post
 realinstall: 
-	make -C $(KLONE_DIR) install
+	$(MAKE) -C $(KLONE_DIR) install
 
 clean: clean-pre realclean clean-post
 clean-pre clean-post: 
 realclean: 
 	if [ -d $(KLONE_DIR) ]; then \
-		make MAKL_TC= -C $(KLONE_DIR)/build/makl toolchain ; \
-		make MAKL_TC= -C $(KLONE_DIR) clean; \
-		make MAKL_TC= -C $(KLONE_DIR) dist-clean; \
+		$(MAKE) MAKL_TC= -C $(KLONE_DIR)/build/makl toolchain ; \
+		$(MAKE) MAKL_TC= -C $(KLONE_DIR) clean; \
+		$(MAKE) MAKL_TC= -C $(KLONE_DIR) dist-clean; \
 	fi
 	rm -f kloned
 
@@ -110,6 +110,6 @@ help:
 	@echo 
 
 import-help configure-help makefile-help:
-	[ -f $(KLONE_DIR)/configure ] || make klone-src
-	make -C $(KLONE_DIR) $@
+	[ -f $(KLONE_DIR)/configure ] || $(MAKE) klone-src
+	$(MAKE) -C $(KLONE_DIR) $@
 
