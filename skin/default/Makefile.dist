@@ -19,11 +19,12 @@ $(error missing $(BASE)/makl directory)
 endif
 
 all dist: VERSION ChangeLog build/makl $(KLONE_CORE_TARBALL)
-	rm -f $(TARBALL)
+	rm -f $(TARBALL) $(TARBALL).md5
 	tar zcfh .$(TARBALL) -T DISTFILES $(KLONE_CORE_TARBALL)
 	mkdir klone-$(VERSION)
 	tar zxf .$(TARBALL) -C klone-$(VERSION)
 	tar zvcf $(TARBALL) klone-$(VERSION)
+	md5sum $(TARBALL) > $(TARBALL).md5
 	rm -f .$(TARBALL)
 	rm -rf klone-$(VERSION)
 
