@@ -1,16 +1,16 @@
-$Id: ChangeLog,v 1.22 2007/09/04 12:15:16 tat Exp $
+$Id: ChangeLog,v 1.23 2007/10/09 16:05:31 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone x.y.z:
     - user provided hooks added to get notifies about server startup/stop, 
-      spawn worker children, requests served (--enable_uc is required)
-    - u_{html,url,hex,sql}ncpy() interface changed (return count don't include
+      spawn worker children, requests served (--enable_hooks is required)
+    - u_{html,url,hex,sql}ncpy() interface changed (return count doesn't include
       the trailing '\0' anymore)
 	- added support for CRLs via 'crl' and 'crl_opts' configuration directives
 	- KLONE_TARGET_PATCH_{FILE,URI} and KLONE_HOST_PATCH_{FILE,URI} variables
 	  added to provide an easy way to patch Klone source during the build
-	- --enable_uc configure argument added to support user-provided
+	- --enable_hooks configure argument added to support user-provided
 	  startup/term functions
 	- --daemon_name configure argument added to set Klone daemon name
 	- --install_daemon_only configure argument added to just install the
@@ -24,6 +24,8 @@ KLone x.y.z:
 	  given pattern(s)
 	- -F doesn't force iterative mode anymore (use -Fd instead)
 	- bug fix: embedded configuration overwrite was broken (libu u_config bug)
+	- makl update (ver 1.5.1)
+	- libu update (ver 1.1.0)
 
 KLone 1.2.0:
 	- bug fix: newline always added after <%! %> C translated code

@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.24 2007/09/04 12:15:16 tat Exp $
+# $Id: Makefile.dist,v 1.25 2007/10/09 16:05:31 tat Exp $
 
 include common.mk
 
@@ -7,10 +7,12 @@ PKG_VERSION = $(shell cat VERSION)
 
 # top level
 DISTFILES += Makefile LICENSE README VERSION configure \
-             configure.help ChangeLog LICENSE.OpenSSL
+             configure.help ChangeLog LICENSE.OpenSSL \
+			 BSDmakefile
 
 # MaKL build test
 DISTFILES += $(wildcard build/*.c)
+DISTFILES += $(wildcard build/makecheck/*)
 
 # contrib (iocat, iowc)
 DISTFILES += contrib/Makefile $(wildcard contrib/iocat/*.c) 

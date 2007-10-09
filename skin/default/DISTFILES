@@ -6,6 +6,8 @@ Makefile.help
 README
 VERSION
 build/host/Makefile
+build/makecheck/GNUmakefile
+build/makecheck/Makefile
 build/makl/ChangeLog
 build/makl/INSTALL
 build/makl/LICENSE
