@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.2 2007/10/09 16:05:31 tat Exp $
+# $Id: configure,v 1.3 2007/10/09 17:39:08 tat Exp $
 
 export makl_conf_h=klapp_conf.h
 export MAKL_DIR=`pwd`/build/makl
@@ -10,7 +10,7 @@ if [ -z "$MAKE" ]; then
 fi
 
 # will fail using something different then GNU make
-${MAKE} -C build/makecheck || exit 1
+( cd build/makecheck && ${MAKE} ) || exit 1
 
 # before running configure the toolchain must be present
 if [ ! -r ${MAKL_DIR}/etc/toolchain.cf ]; then
