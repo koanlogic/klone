@@ -1,9 +1,11 @@
-# $Id: Makefile.dist,v 1.25 2007/10/09 16:05:31 tat Exp $
+# $Id: Makefile.dist,v 1.26 2007/10/10 16:16:05 tat Exp $
 
 include common.mk
 
 PKG_NAME = klone-core
 PKG_VERSION = $(shell cat VERSION)
+ZIP = gzip
+ZIPEXT = gz
 
 # top level
 DISTFILES += Makefile LICENSE README VERSION configure \

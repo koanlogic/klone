@@ -12,7 +12,7 @@ TARBALL = klone-$(VERSION).tar.gz
 # base src dir
 BASE = $(shell pwd)/../../
 
-KLONE_CORE_TARBALL = build/dist/klone-core-$(VERSION).tar.bz2
+KLONE_CORE_TARBALL = build/dist/klone-core-$(VERSION).tar.gz
 
 ifeq ($(wildcard $(BASE)/makl/),)
 $(error missing $(BASE)/makl directory)
@@ -34,7 +34,7 @@ $(KLONE_CORE_TARBALL):
 	    make -f Makefile.dist dist
 	mkdir -p build/dist
 	rm -f build/dist/*
-	cd build/dist && ln -sf $(BASE)/klone-core-$(VERSION).tar.bz2
+	cd build/dist && ln -sf $(BASE)/klone-core-$(VERSION).tar.gz
 
 ChangeLog:
 	ln -sf $(BASE)/ChangeLog

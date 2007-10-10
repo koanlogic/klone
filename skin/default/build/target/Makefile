@@ -1,8 +1,8 @@
 include common.mk
 
-XENO_FETCH_URI = http://koanlogic.com/klone/klone-core-$(KLONE_VERSION).tar.bz2
+XENO_FETCH_URI = http://koanlogic.com/klone/klone-core-$(KLONE_VERSION).tar.gz
 
-XENO_UNZIP_FLAGS = jxf
+XENO_UNZIP_FLAGS = zxf
 
 XENO_NO_CONF = true
 XENO_NO_BUILD = true

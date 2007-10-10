@@ -66,6 +66,7 @@ endif
 	ln -sf $(KLONE_DIR)/kloned $(KLONE_DAEMON_NAME)
 
 install: all install-pre realinstall install-post
+install-pre install-post:
 realinstall: 
 	$(MAKE) -C $(KLONE_DIR) install
 
