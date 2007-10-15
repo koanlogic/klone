@@ -1,12 +1,12 @@
-$Id: ChangeLog,v 1.24 2007/10/15 10:50:51 tat Exp $
+$Id: ChangeLog,v 1.25 2007/10/15 20:06:32 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.0.0:
-    - user provided hooks added to get notifies about server startup/stop, 
-      spawn worker children, requests served (--enable_hooks is required)
-    - u_{html,url,hex,sql}ncpy() interface changed (return count doesn't include
-      the trailing '\0' anymore)
+	- user provided hooks added to get notifies about server startup/stop, 
+	  spawn worker children, requests served (--enable_hooks is required)
+	- u_{html,url,hex,sql}ncpy() interface changed (return count doesn't include
+	  the trailing '\0' anymore)
 	- added support for CRLs via 'crl' and 'crl_opts' configuration directives
 	- KLONE_TARGET_PATCH_{FILE,URI} and KLONE_HOST_PATCH_{FILE,URI} variables
 	  added to provide an easy way to patch Klone source during the build
