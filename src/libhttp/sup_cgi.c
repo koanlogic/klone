@@ -5,20 +5,155 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_cgi.c,v 1.3 2007/07/16 12:44:22 tat Exp $
+ * $Id: sup_cgi.c,v 1.4 2007/10/17 22:58:35 tat Exp $
  */
 
 #include "klone_conf.h"
+#include <ctype.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <klone/http.h>
 #include <klone/supplier.h>
 #include <klone/io.h>
 #include <klone/utils.h>
+#include <klone/rsfilter.h>
 
-static int cgi_is_valid_uri(const char *uri, size_t len, time_t *mtime)
+/* holds environment variables passed to the cgi */
+typedef struct cgi_env_s
+{
+    char **env;
+    int size, count;
+} cgi_env_t;
+
+static int cgi_script(http_t *h, const char *fqn)
+{
+    u_config_t *config, *sub;
+    const char  *dir;
+    int i, t;
+
+    if(fqn == NULL)
+        return 0;
+
+    dbg_err_if(http_get_config(h) == NULL);
+
+    /* get cgi. config subtree */
+    dbg_err_if(u_config_get_subkey(http_get_config(h), "cgi", &config));
+
+    /* for each script_di config item */
+    for(i = 0; !u_config_get_subkey_nth(config, "script_alias", i, &sub); ++i)
+    {
+        if((dir = u_config_get_value(sub)) == NULL)
+            continue; /* empty key */
+
+        /* find the dir part of the "alias dir" value */
+        for(t = strlen(dir) - 1; t > 0; --t)
+            if(dir[t] == ' ' || dir[t] == '\t')
+                break;
+
+        if(t == 0)
+            continue; /* malformed value */
+
+        /* skip the blank */
+        dir += ++t;
+
+        /* the first part of fqn must be equal to p and the file must be +x */
+        if(!strncmp(fqn, dir, strlen(dir)) && !access(fqn, X_OK))
+            return 1; /* ok, fqn in in the dir_alias dir or in a subdir */
+    }
+
+err:
+    return 0;
+}
+
+/* returns 1 if the file extension in one of those handled by cgi programs */
+static int cgi_ext(http_t *h, const char *fqn, const char **phandler)
+{
+    u_config_t *config;
+    char buf[U_FILENAME_MAX];
+    char *ext = NULL;
+    const char *handler;
+
+    if(fqn == NULL)
+        return 0;
+
+    for(ext = NULL; *fqn; ++fqn) 
+        if(*fqn == '.')
+            ext = (char*)fqn;
+
+    if(ext == NULL)
+        return 0; /* file with no extension */
+
+    ext++; /* skip '.' */
+
+    dbg_err_if(http_get_config(h) == NULL);
+
+    /* get cgi. config subtree */
+    dbg_err_if(u_config_get_subkey(http_get_config(h), "cgi", &config));
+
+    dbg_err_if(u_snprintf(buf, sizeof(buf), "%s.handler", ext));
+
+    /* check for cgi extension handler */
+    handler = u_config_get_subkey_value(config, buf);
+
+    if(handler)
+    {
+        if(phandler)
+            *phandler = handler;
+        return 1;
+    }
+
+err:
+    return 0;
+}
+
+static int cgi_setenv(cgi_env_t *env, const char *name, const char *value)
+{
+    enum { CHUNK = 32 };
+    char *keyval = NULL, **nenv = NULL;
+    int i, nl, vl;
+
+    dbg_return_if(!env || !name || !value, ~0);
+
+    if((nl = strlen(name)) == 0)
+        return ~0;
+
+    vl = strlen(value);
+
+    /* alloc or realloc the array */
+    if(env->size == 0 || env->size == env->count)
+    {
+        env->size += CHUNK;
+        if(env->env == NULL)
+            nenv = u_zalloc(env->size * sizeof(char*));
+        else {
+            nenv = u_realloc(env->env, env->size * sizeof(char*));
+        }
+        dbg_err_if(nenv == NULL);
+        /* zero-out new elems */
+        for(i = env->count; i < env->size; ++i)
+            nenv[i] = NULL;
+        env->env = nenv;
+    }
+
+    keyval = u_malloc(nl + vl + 2);
+    dbg_err_if(keyval == NULL);
+
+    sprintf(keyval, "%s=%s", name, value);
+
+    env->env[env->count++] = keyval;
+
+    return 0;
+err:
+    U_FREE(keyval);
+    U_FREE(nenv);
+    return ~0;
+}
+
+static int cgi_is_valid_uri(http_t *h, const char *uri, size_t len, 
+        time_t *mtime)
 {
     struct stat st; 
     char fqn[1+U_FILENAME_MAX];
@@ -30,19 +165,44 @@ static int cgi_is_valid_uri(const char *uri, size_t len, time_t *mtime)
     memcpy(fqn, uri, len);
     fqn[len] = 0;
 
-    /* ".." is not allowed in the uri path */
+    /* fqn must be already normalized */
     if(strstr(fqn, ".."))
-        return 0; /* skip it */
+        return 0; 
     
     if( stat(fqn, &st) == 0 && S_ISREG(st.st_mode))
     {
+        /* if it's not a cgi given its extension of uri then exit */
+        if(!cgi_ext(h, fqn, NULL) && !cgi_script(h, fqn))
+            return 0;
+
         *mtime = st.st_mtime;
         return 1;
     } else
         return 0;
 }
 
-static int cgi_setenv_addr(addr_t *addr, 
+static const char *cgi_addr_to_ip(addr_t *addr, char *buf, size_t bufsz)
+{
+    const char *cstr;
+
+#ifndef NO_IPV6
+    cstr = inet_ntop( addr->type == ADDR_IPV4 ? AF_INET : AF_INET6,
+                (addr->type == ADDR_IPV4 ?  
+                    (const void*)&(addr->sa.sin.sin_addr) : 
+                    (const void*)&(addr->sa.sin6.sin6_addr)),
+                 buf, bufsz);
+#else
+    cstr = inet_ntoa(addr->sa.sin.sin_addr);
+#endif
+
+    dbg_err_if(cstr == NULL);
+
+    return cstr;
+err:
+    return NULL;
+}
+
+static int cgi_setenv_addr(cgi_env_t *env, addr_t *addr, 
         const char *label_addr, const char *label_port)
 {
     const char *cstr;
@@ -50,28 +210,18 @@ static int cgi_setenv_addr(addr_t *addr,
 
     dbg_return_if(addr->type == ADDR_UNIX, 0);
 
-#ifndef NO_IPV6
-    cstr = inet_ntop( addr->type == ADDR_IPV4 ? AF_INET : AF_INET6,
-                (addr->type == ADDR_IPV4 ?  
-                    (const void*)&(addr->sa.sin.sin_addr) : 
-                    (const void*)&(addr->sa.sin6.sin6_addr)),
-                 buf, sizeof(buf));
-#else
-    cstr = inet_ntoa(addr->sa.sin.sin_addr);
-#endif
-
-    if(cstr)
-        dbg_err_if(setenv(label_addr, cstr, 1));
+    if((cstr = cgi_addr_to_ip(addr, buf, sizeof(buf))) != NULL)
+        dbg_err_if(cgi_setenv(env, label_addr, cstr));
 
     u_snprintf(buf, sizeof(buf), "%u", ntohs(addr->sa.sin.sin_port));
-    dbg_err_if(setenv(label_port, buf, 1));
+    dbg_err_if(cgi_setenv(env, label_port, buf));
 
     return 0;
 err:
     return ~0;
 }
 
-static int cgi_setenv_clen(request_t *rq)
+static int cgi_setenv_clen(cgi_env_t *env, request_t *rq)
 {
     char buf[32];
     ssize_t len;
@@ -79,7 +229,7 @@ static int cgi_setenv_clen(request_t *rq)
     if((len = request_get_content_length(rq)) > 0)
     {
         dbg_err_if(u_snprintf(buf, sizeof(buf), "%ld", len));
-        dbg_err_if(setenv("CONTENT_LENGTH", buf, 1));
+        dbg_err_if(cgi_setenv(env, "CONTENT_LENGTH", buf));
     }
 
     return 0;
@@ -93,14 +243,14 @@ static int cgi_set_blocking(int fd)
 
     warn_err_sif((flags = fcntl(fd, F_GETFL)) < 0);
 
-    warn_err_sif(fcntl(fd, F_SETFL, flags & (~O_NONBLOCK)) < 0);;
+    warn_err_sif(fcntl(fd, F_SETFL, flags & (~O_NONBLOCK)) < 0);
 
     return 0;
 err:
     return ~0;
 }
 
-static int cgi_setenv(request_t *rq, response_t *rs)
+static int cgi_makeenv(request_t *rq, response_t *rs, cgi_env_t *env)
 {
     addr_t *addr;
     header_t *h;
@@ -109,23 +259,24 @@ static int cgi_setenv(request_t *rq, response_t *rs)
     char *p, buf[1024];
     int i;
 
-    dbg_if(clearenv());
+    u_unused_args(rs);
 
-    dbg_err_if(setenv("SERVER_SOFTWARE", "klone/" KLONE_VERSION, 1));
-    dbg_err_if(setenv("SERVER_PROTOCOL", "HTTP/1.0", 1));
-    dbg_err_if(setenv("GATEWAY_INTERFACE", "CGI/1.1", 1));
-    dbg_err_if(setenv("REDIRECT_STATUS", "200", 1));
+    dbg_err_if(cgi_setenv(env, "SERVER_SOFTWARE", "klone/" KLONE_VERSION));
+    dbg_err_if(cgi_setenv(env, "SERVER_PROTOCOL", "HTTP/1.0"));
+    dbg_err_if(cgi_setenv(env, "GATEWAY_INTERFACE", "CGI/1.1"));
+    dbg_err_if(cgi_setenv(env, "REDIRECT_STATUS", "200"));
 
     /* klone server address */
     if((addr = request_get_addr(rq)) != NULL) 
     {
-        dbg_err_if(cgi_setenv_addr(addr, "SERVER_ADDR", "SERVER_PORT"));
-        dbg_err_if(setenv("SERVER_NAME", getenv("SERVER_ADDR"), 1));
+        dbg_err_if(cgi_setenv_addr(env, addr, "SERVER_ADDR", "SERVER_PORT"));
+        if((cstr = cgi_addr_to_ip(addr, buf, sizeof(buf))) != NULL)
+            dbg_err_if(cgi_setenv(env, "SERVER_NAME", cstr));
     }
 
     /* client address */
     if((addr = request_get_peer_addr(rq)) != NULL) 
-        dbg_err_if(cgi_setenv_addr(addr, "REMOTE_ADDR", "REMOTE_PORT"));
+        dbg_err_if(cgi_setenv_addr(env, addr, "REMOTE_ADDR", "REMOTE_PORT"));
 
     /* method */
     switch(request_get_method(rq))
@@ -136,31 +287,31 @@ static int cgi_setenv(request_t *rq, response_t *rs)
     default:
         cstr = "UNKNOWN";
     }
-    dbg_err_if(setenv("REQUEST_METHOD", cstr, 1));
+    dbg_err_if(cgi_setenv(env, "REQUEST_METHOD", cstr));
 
     if(io_is_secure(request_io(rq)))
-        dbg_err_if(setenv("HTTPS", "on", 1));
+        dbg_err_if(cgi_setenv(env, "HTTPS", "on"));
 
     if((cstr = request_get_path_info(rq)) != NULL)
-        dbg_err_if(setenv("PATH_INFO", cstr, 1));
+        dbg_err_if(cgi_setenv(env, "PATH_INFO", cstr));
 
     if((cstr = request_get_resolved_path_info(rq)) != NULL)
-        dbg_err_if(setenv("PATH_TRANSLATED", cstr, 1));
+        dbg_err_if(cgi_setenv(env, "PATH_TRANSLATED", cstr));
 
     if((cstr = request_get_query_string(rq)) != NULL)
-        dbg_err_if(setenv("QUERY_STRING", cstr, 1));
+        dbg_err_if(cgi_setenv(env, "QUERY_STRING", cstr));
 
     /* CONTENT_LENGTH */
-    dbg_err_if(cgi_setenv_clen(rq));
+    dbg_err_if(cgi_setenv_clen(env, rq));
 
     if((cstr = request_get_filename(rq)) != NULL)
-        dbg_err_if(setenv("SCRIPT_NAME", cstr, 1));
+        dbg_err_if(cgi_setenv(env, "SCRIPT_NAME", cstr));
 
     if((cstr = request_get_resolved_filename(rq)) != NULL)
-        dbg_err_if(setenv("SCRIPT_FILENAME", cstr, 1));
+        dbg_err_if(cgi_setenv(env, "SCRIPT_FILENAME", cstr));
 
     if((cstr = getenv("SYSTEMROOT")) != NULL)
-        dbg_err_if(setenv("SYSTEMROOT", cstr, 1));
+        dbg_err_if(cgi_setenv(env, "SYSTEMROOT", cstr));
 
     dbg_err_if((h = request_get_header(rq)) == NULL);
 
@@ -183,11 +334,10 @@ static int cgi_setenv(request_t *rq, response_t *rs)
         }
 
         if(field_get_value(field))
-            dbg_err_if(setenv(buf, field_get_value(field), 1));
+            dbg_err_if(cgi_setenv(env, buf, field_get_value(field)));
         else
-            dbg_err_if(setenv(buf, "", 1));
+            dbg_err_if(cgi_setenv(env, buf, ""));
     }
-
 
     return 0;
 err:
@@ -200,16 +350,21 @@ err:
         if(fd[1] != -1) close(fd[1]);       \
     } while(0); 
 
-int cgi_exec(request_t *rq, response_t *rs, pid_t *pchild, 
+static int cgi_exec(request_t *rq, response_t *rs, pid_t *pchild, 
         int *pcgi_stdin, int *pcgi_stdout)
 {
     enum { RD_END /* read end point */, WR_END /* write end point */};
     int cgi_stdin[2] = { -1, -1 };
     int cgi_stdout[2] = { -1, -1 };
-    int fd;
-    const char *cgi_file;
+    cgi_env_t cgi_env = { NULL, 0, 0 };
+    http_t *h;
+    const char *argv[] = { NULL, NULL, NULL };
+    const char *cgi_file, *handler;
     char *p, *cgi_path = NULL;
     pid_t child;
+    int fd;
+
+    dbg_err_if((h = request_get_http(rq)) == NULL);
 
     /* create a pair of parent<->child IPC channels */
     dbg_err_if(pipe(cgi_stdin) < 0);
@@ -241,9 +396,9 @@ int cgi_exec(request_t *rq, response_t *rs, pid_t *pchild,
         close(fd);
 
         /* all standard descriptor must be blocking */
-        dbg_err_if(cgi_set_blocking(STDOUT_FILENO));
-        dbg_err_if(cgi_set_blocking(STDIN_FILENO));
-        dbg_err_if(cgi_set_blocking(STDERR_FILENO));
+        dbg_if(cgi_set_blocking(STDOUT_FILENO));
+        dbg_if(cgi_set_blocking(STDIN_FILENO));
+        dbg_if(cgi_set_blocking(STDERR_FILENO));
 
         /* close any other open fd */
         for(fd = 3; fd < 255; ++fd) 
@@ -251,6 +406,7 @@ int cgi_exec(request_t *rq, response_t *rs, pid_t *pchild,
 
         /* extract path name from cgi_file */
         dbg_err_if((cgi_file = request_get_resolved_filename(rq)) == NULL);
+
         cgi_path = u_strdup(cgi_file);
         dbg_err_if(cgi_path == NULL);
 
@@ -260,14 +416,26 @@ int cgi_exec(request_t *rq, response_t *rs, pid_t *pchild,
 
         crit_err_sifm(chdir(cgi_path) < 0, "unable to chdir to %s", cgi_path);
 
-        /* set the CGI environment variables */
-        crit_err_sif(cgi_setenv(rq, rs));
+        U_FREE(cgi_path);
 
-        /* setup cgi argv (fixme: ISINDEX command line handling is missing) */
-        const char *argv[] = { cgi_file, NULL };;
+        /* make the CGI environment vars array */
+        crit_err_sif(cgi_makeenv(rq, rs, &cgi_env));
+
+        /* the handler may be the path of the handler or "exec" that means that
+         * the script must be run as is */
+        if(!cgi_ext(h, cgi_file, &handler) || !strcasecmp(handler, "exec"))
+        {
+            /* setup cgi argv (ISINDEX command line handling is not impl) */
+            argv[0] = cgi_file;
+
+        } else {
+            /* run the handler of this file extension */
+            argv[0] = handler;
+            argv[1] = cgi_file;
+        }
 
         /* run the cgi (never returns) */
-        crit_err_sif(execv(cgi_file, argv));
+        crit_err_sif(execve(argv[0], argv, cgi_env.env));
 
         /* never reached */
 
@@ -304,7 +472,6 @@ static int cgi_serve(request_t *rq, response_t *rs)
     field_t *field = NULL;
     const char *fqn, *filename;
     char buf[4096];
-    FILE *fp = NULL;
     io_t *out = NULL, *cgi_in = NULL, *cgi_out = NULL;;
     ssize_t n, tot = 0, clen;
     int cgi_stdin = -1, cgi_stdout = -1, status;
@@ -322,9 +489,6 @@ static int cgi_serve(request_t *rq, response_t *rs)
 
     /* script file name */
     fqn = request_get_resolved_filename(rq);
-
-    warn_ifm(access(fqn, X_OK), 
-            "[%s] doesn't seem to be executable (bad perm?)", fqn);
 
     /* run the CGI and return its stdin and stdout descriptor */
     crit_err_if(cgi_exec(rq, rs, &child, &cgi_stdin, &cgi_stdout));
@@ -392,7 +556,7 @@ static int cgi_serve(request_t *rq, response_t *rs)
         tot += n;
     }
 
-    /* if nothing has been printed by the sciprt then write a dummy byte so 
+    /* if nothing has been printed by the script; write a dummy byte so 
      * the io_t calls the filter function that, in turn, will print out the 
      * HTTP header (rsfilter will handle it) */
     if(tot == 0)

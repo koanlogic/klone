@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.75 2007/10/09 17:39:08 tat Exp $
+# $Id: configure,v 1.76 2007/10/17 22:58:34 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -29,7 +29,9 @@ makl_args_def   "enable_libu_debug" "" ""   "enables debugging of LibU"
 makl_args_def   "disable_libu_mini" "" ""   "enables minimisation of LibU"
 makl_args_def   "enable_profile"    "" ""   "enables profiling"
 makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
+makl_args_def   "enable_fs"     "" ""   "--enable_sup_fs alias"
 makl_args_def   "enable_sup_cgi"    "" ""   "enables external CGIs"
+makl_args_def   "enable_cgi"    "" ""   "--enable_sup_cgi alias"
 makl_args_def   "enable_warns"      "" ""   "set CFLAGS for extra warnings"
 makl_args_def   "disable_cxx"       "" ""   "disable C++ support"
 makl_args_def   "install_daemon_only"  "" ""  "install just Klone daemon file"
@@ -43,7 +45,9 @@ __makl_enable_libu_debug () { makl_set_var_mk       "LIBU_DEBUG" ;          }
 __makl_disable_libu_mini () { makl_unset_var_mk     "LIBU_MINI" ;           }
 __makl_enable_profile ()    { makl_append_var_mk    "CFLAGS" "-pg -a" ;     }
 __makl_enable_sup_fs ()     { makl_set_var          "ENABLE_SUP_FS" ;       }
+__makl_enable_fs ()         { __makl_enable_sup_fs ;                        }
 __makl_enable_sup_cgi ()    { makl_set_var          "ENABLE_SUP_CGI" ;      }
+__makl_enable_cgi ()        { __makl_enable_sup_cgi;                        }
 __makl_disable_cxx ()       { makl_unset_var        "USE_CXX" ;             }
 __makl_install_daemon_only () 
                             { makl_set_var          "INSTALL_DAEMON_ONLY" ; }

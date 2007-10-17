@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iossl.c,v 1.18 2007/07/20 14:12:30 tat Exp $
+ * $Id: iossl.c,v 1.19 2007/10/17 22:58:35 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -28,7 +28,6 @@ typedef struct io_ssl_s io_ssl_t;
 
 static ssize_t io_ssl_read(io_ssl_t *io, char *buf, size_t size);
 static ssize_t io_ssl_write(io_ssl_t *io, const char *buf, size_t size);
-static int io_ssl_term(io_ssl_t *io);
 
 int io_ssl_get_SSL(io_t *io, SSL **pssl)
 {

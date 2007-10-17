@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005, 2006, 2007 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: broker.c,v 1.15 2007/07/16 12:44:22 tat Exp $
+ * $Id: broker.c,v 1.16 2007/10/17 22:58:35 tat Exp $
  */
 
 #include <u/libu.h>
 #include <klone/supplier.h>
 #include <klone/broker.h>
 #include <klone/request.h>
+#include <klone/http.h>
 #include "klone_conf.h"
 
 enum { MAX_SUP_COUNT = 8 }; /* max number of suppliers */
@@ -29,7 +30,7 @@ struct broker_s
     supplier_t *sup_list[MAX_SUP_COUNT + 1];
 };
 
-int broker_is_valid_uri(broker_t *b, const char *buf, size_t len)
+int broker_is_valid_uri(broker_t *b, http_t *h, const char *buf, size_t len)
 {
     int i;
     time_t mtime;
@@ -38,17 +39,17 @@ int broker_is_valid_uri(broker_t *b, const char *buf, size_t len)
     dbg_goto_if (buf == NULL, notfound);
     
     for(i = 0; b->sup_list[i]; ++i)
-        if(b->sup_list[i]->is_valid_uri(buf, len, &mtime))
+        if(b->sup_list[i]->is_valid_uri(h, buf, len, &mtime))
             return 1; /* found */
 
 notfound:
     return 0;
 }
 
-int broker_serve(broker_t *b, request_t *rq, response_t *rs)
+int broker_serve(broker_t *b, http_t *h, request_t *rq, response_t *rs)
 {
     const char *file_name;
-    int i, rc = HTTP_STATUS_NOT_FOUND;
+    int i;
     time_t mtime, ims;
 
     dbg_err_if (b == NULL);
@@ -58,7 +59,8 @@ int broker_serve(broker_t *b, request_t *rq, response_t *rs)
     file_name = request_get_resolved_filename(rq);
     for(i = 0; b->sup_list[i]; ++i)
     {   
-        if(b->sup_list[i]->is_valid_uri(file_name, strlen(file_name), &mtime) )
+        if(b->sup_list[i]->is_valid_uri(h, file_name, strlen(file_name), 
+                    &mtime) )
         {
             ims = request_get_if_modified_since(rq);
             if(ims && ims >= mtime)

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_fs.c,v 1.9 2007/07/16 12:44:22 tat Exp $
+ * $Id: sup_fs.c,v 1.10 2007/10/17 22:58:35 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -17,7 +17,8 @@
 #include <klone/io.h>
 #include <klone/utils.h>
 
-static int fs_is_valid_uri(const char *uri, size_t len, time_t *mtime)
+static int fs_is_valid_uri(http_t *h, const char *uri, size_t len, 
+        time_t *mtime)
 {
     struct stat st; 
     char fqn[1+U_FILENAME_MAX];
@@ -26,16 +27,19 @@ static int fs_is_valid_uri(const char *uri, size_t len, time_t *mtime)
     dbg_return_if (mtime == NULL, 0);
     dbg_return_if (len > U_FILENAME_MAX, 0);
 
+    u_unused_args(h);
+
     memcpy(fqn, uri, len);
     fqn[len] = 0;
 
-    /* ".." is not allowed in the uri path */
+    /* fqn must be already normalized */
     if(strstr(fqn, ".."))
         return 0; 
 
-    if( stat(fqn, &st) == 0 && S_ISREG(st.st_mode))
+    if(stat(fqn, &st) == 0 && S_ISREG(st.st_mode))
     {
         *mtime = st.st_mtime;
+
         return 1;
     } else
         return 0;
@@ -44,7 +48,7 @@ static int fs_is_valid_uri(const char *uri, size_t len, time_t *mtime)
 static int fs_serve(request_t *rq, response_t *rs)
 {
     enum { BUFSZ = 4096 };
-    io_t *io = NULL;
+    io_t *io = NULL, *out = NULL;;
     const char *mime_type, *fqn;
     size_t c;
     char buf[BUFSZ];
@@ -53,6 +57,10 @@ static int fs_serve(request_t *rq, response_t *rs)
     dbg_err_if (rq == NULL);
     dbg_err_if (rs == NULL);
     
+    /* output stream */
+    out = response_io(rs);
+    dbg_err_if(out == NULL);
+
     fqn = request_get_resolved_filename(rq);
 
     /* we need file size */
@@ -66,11 +74,18 @@ static int fs_serve(request_t *rq, response_t *rs)
     /* add a Last-Modified field */
     dbg_err_if(response_set_last_modified(rs, st.st_mtime));
 
+    /* print the reponse header */
+    dbg_err_if(response_print_header_to_io(rs, out));
+
+    /* if this's a HEAD request don't print the file content */
+    if(response_get_method(rs) == HM_HEAD)
+        return 0;
+
     /* open and write out the whole file */
     dbg_err_if(u_file_open(request_get_resolved_filename(rq), O_RDONLY, &io));
 
     while((c = io_read(io, buf, BUFSZ)) > 0)
-        dbg_err_if(io_write(response_io(rs), buf, c) < 0);
+        dbg_err_if(io_write(out, buf, c) < 0);
 
     io_free(io);
 

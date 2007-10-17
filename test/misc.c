@@ -28,7 +28,7 @@ const struct htmlenc_vec_s htmlenc_vec[] = {
 
     HTMLENC_VEC( "\x01", "\x01"), /* not printable chars are not encoded */
     // FIXME: there are other HTML entities?
-    { NULL, NULL, 0 }
+    { NULL, NULL, 0, 0 }
 };
 
 int test_hexencoding(void)

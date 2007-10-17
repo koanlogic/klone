@@ -1,8 +1,12 @@
-$Id: ChangeLog,v 1.26 2007/10/15 20:13:46 stewy Exp $
+$Id: ChangeLog,v 1.27 2007/10/17 22:58:34 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.0.0:
+	- per-dir (aka cgi-bin), per-extension (.cgi, .php, etc.) CGI support
+	- embfs config file is not loaded if external config file is given (-f file)
+	- --enable_fs and --enable_cgi configure args alias added
+	- bug fix: sup_fs responses didn't include a valid HTTP header
 	- O(1) embfs access via hmap
 	- user provided hooks added to get notifies about server startup/stop, 
 	  spawn worker children, requests served (--enable_hooks is required)
@@ -95,4 +99,3 @@ KLone 1.0.1:
 " vim: ts=4
 " vim: shiftwidth=4
 " vim: tabstop=4
-" vim: expandtab

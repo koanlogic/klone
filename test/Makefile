@@ -1,10 +1,10 @@
-# $Id: Makefile,v 1.2 2007/09/13 10:54:44 tat Exp $
+# $Id: Makefile,v 1.3 2007/10/17 22:58:35 tat Exp $
 
 include common.mk
 include ../Makefile.conf
 
 PROG = runtests
-SRCS = main.c misc.c
+SRCS = main.c misc.c path.c
 
 # add libu flags
 CFLAGS += -I../libu/include

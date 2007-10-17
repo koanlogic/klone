@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.47 2007/09/15 16:36:12 tat Exp $
+ * $Id: http.c,v 1.48 2007/10/17 22:58:35 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -91,54 +91,79 @@ const char *http_get_status_desc(int status)
     return msg;
 }
 
-int http_alias_resolv(http_t *h, char *dst, const char *filename, size_t sz)
+static int http_try_resolv(const char *alias, char *dst, const char *uri, 
+        size_t sz)
 {
     static const char *WP = " \t";
-    u_config_t *config;
-    int i;
-    const char *value;
     char *src, *res, *v = NULL,*pp = NULL;
+
+    dbg_err_if(dst == NULL);
+    dbg_err_if(uri == NULL);
+    dbg_err_if(alias == NULL);
+
+    /* dup to use it in strtok */
+    v = u_strdup(alias);
+    dbg_err_if(v == NULL);
+
+    /* src is the source directory */
+    src = strtok_r(v, WP, &pp); 
+    dbg_err_if(src == NULL);
+
+    /* exit if the URI doesn't match this alias */
+    nop_err_if(strncmp(src, uri, strlen(src)));
+
+    /* if src doesn't end with a slash check that the next char in uri is a / */
+    if(src[strlen(src)-1] != U_PATH_SEPARATOR)
+        nop_err_if(uri[strlen(src)] != U_PATH_SEPARATOR);
+
+    /* alias found, get the resolved prefix */
+    res = strtok_r(NULL, WP, &pp);
+    dbg_err_if(res == NULL);
+
+    /* copy-out the resolved uri to dst */
+    dbg_err_if(u_path_snprintf(dst, sz, '/', "%s/%s", res, uri + strlen(src)));
+
+    U_FREE(v);
+
+    return 0;
+err:
+    U_FREE(v);
+    return ~0;
+}
+
+int http_alias_resolv(http_t *h, char *dst, const char *uri, size_t sz)
+{
+    u_config_t *config, *cgi;
+    int i;
 
     dbg_err_if (h == NULL);
     dbg_err_if (dst == NULL);
-    dbg_err_if (filename == NULL);
+    dbg_err_if (uri == NULL);
 
     /* for each dir_alias config item */
     for(i = 0; !u_config_get_subkey_nth(h->config, "dir_alias", i, &config); 
         ++i)
     {
-        if((value = u_config_get_value(config)) == NULL)
-            continue; /* empty key */
-
-        /* otherwise strtok_r will modify 'value' */
-        v = u_strdup(value);
-        dbg_err_if(v == NULL);
-
-        src = strtok_r(v, WP, &pp); 
-        dbg_err_if(src == NULL);
-
-        if(strncmp(src, filename, strlen(src)) == 0)
-        {
-            /* alias found, get resolved prefix */
-            res = strtok_r(NULL, WP, &pp);
-            dbg_err_if(res == NULL);
-
-            dbg_err_if(u_path_snprintf(dst, sz, '/', "%s/%s", res, 
-                        filename + strlen(src)));
-
-            U_FREE(v); 
-            return 0;
-        }
-
-        U_FREE(v);
+        if(!http_try_resolv(u_config_get_value(config), dst, uri, sz))
+            return 0;   /* alias found, uri resolved */
     }
 
-    /* prepend dir_root */
-    dbg_err_if(u_path_snprintf(dst, sz, '/', "%s/%s", h->dir_root, filename));
+    /* if there's a cgi tree also try to resolv script_alias rules */
+    if(!u_config_get_subkey(h->config, "cgi", &cgi))
+    {
+        for(i = 0; !u_config_get_subkey_nth(cgi, "script_alias", i, &config);
+            ++i)
+        {
+            if(!http_try_resolv(u_config_get_value(config), dst, uri, sz))
+                return 0;   /* alias found, uri resolved */
+        }
+    }
+
+    /* not alias found, prepend dir_root to the uri */
+    dbg_err_if(u_path_snprintf(dst, sz, '/', "%s/%s", h->dir_root, uri));
 
     return 0;
 err:
-    U_FREE(v);
     return ~0;
 }
 
@@ -156,7 +181,7 @@ static int http_is_valid_uri(void *arg, const char *buf, size_t len)
 
     dbg_err_if(http_alias_resolv(h, resolved, uri, URI_MAX));
 
-    return broker_is_valid_uri(h->broker, resolved, strlen(resolved));
+    return broker_is_valid_uri(h->broker, h, resolved, strlen(resolved));
 err:
     return ~0;
 }
@@ -200,7 +225,7 @@ static int http_set_index_request(http_t *h, request_t *rq)
             dbg_err_if(u_path_snprintf(resolved, U_FILENAME_MAX, '/', "%s/%s", 
                     request_get_resolved_filename(rq), *pg));
 
-            if(broker_is_valid_uri(h->broker, resolved, strlen(resolved)))
+            if(broker_is_valid_uri(h->broker, h, resolved, strlen(resolved)))
             {
                 /* a valid index uri has been found; rewrite request */
                 request_set_filename(rq, *pg);
@@ -267,7 +292,7 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
     if(err_page && !request_set_uri(rq, err_page, NULL, NULL))
     {
         http_resolv_request(h, rq);
-        if((rc = broker_serve(h->broker, rq, rs)) == 0)
+        if((rc = broker_serve(h->broker, h, rq, rs)) == 0)
             return 0; 
         else {
             /* configured error page not found */
@@ -417,7 +442,7 @@ static int http_serve(http_t *h, int fd)
     dbg_err_if(response_set_status(rs, HTTP_STATUS_OK));
 
     /* serve the page; on error write out a simple error page */
-    dbg_err_if(rc = broker_serve(h->broker, rq, rs));
+    dbg_err_if(rc = broker_serve(h->broker, h, rq, rs));
 
     /* call the hook that fires on each request */
     hook_call(request, rq, rs);

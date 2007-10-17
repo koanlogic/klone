@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.24 2007/09/15 16:36:12 tat Exp $
+ * $Id: main.c,v 1.25 2007/10/17 22:58:35 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -57,21 +57,7 @@ int app_init(void)
     /* create a config obj */
     dbg_err_if(u_config_create(&ctx->config));
 
-    /* get the io associated to the embedded configuration file (if any) */
-    if(emb_open("/etc/kloned.conf", &io))
-        warn("embedded /etc/kloned.conf not found");
-
-    /* load the embedded config */
-    if(io)
-    {
-        con_err_ifm(u_config_load_from(ctx->config, io_gets_cb, io, 0),
-            "configuration file load error");
-        cfg_found = 1;
-        io_free(io);
-        io = NULL;
-    }
-
-    /* load the external (-f command line switch) config file */
+    /* if -f is provided load the external config file */
     if(ctx->ext_config)
     {
         info("loading external config file: %s", ctx->ext_config);
@@ -79,13 +65,31 @@ int app_init(void)
         con_err_ifm(u_file_open(ctx->ext_config, O_RDONLY, &io),
             "unable to access configuration file: %s", ctx->ext_config);
 
-        con_err_ifm(u_config_load_from(ctx->config, io_gets_cb, io, 1),
+        /* if there's the embconfig then overwrite otherwise laod as-is 
+         * (multiple keys will not get overwritten eg. dir_alias) */
+        con_err_ifm(u_config_load_from(ctx->config, io_gets_cb, io, 0),
             "configuration file load error");
 
         cfg_found = 1;
 
         io_free(io);
         io = NULL;
+    } else {
+        /* if -f is not used try to load the embfs config file */
+
+        /* get the io associated to the embedded configuration file (if any) */
+        if(emb_open("/etc/kloned.conf", &io))
+            warn("embedded /etc/kloned.conf not found");
+
+        /* load the embedded config */
+        if(io)
+        {
+            con_err_ifm(u_config_load_from(ctx->config, io_gets_cb, io, 0),
+                "embfs configuration file load error");
+            cfg_found = 1;
+            io_free(io);
+            io = NULL;
+        }
     }
 
     con_err_ifm(cfg_found == 0, 

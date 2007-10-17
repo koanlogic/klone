@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.38 2007/09/04 12:15:16 tat Exp $
+ * $Id: request.c,v 1.39 2007/10/17 22:58:35 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -555,6 +555,9 @@ int request_set_uri(request_t *rq, const char *uri,
 
     if((p = strchr(cp, '?')) != NULL)
         *p++ = 0; /* remove query string from the uri copy */
+
+    /* normalize the URI (remove /../, /./, ecc) */
+    dbg_err_if(u_path_normalize(cp));
 
     /* set filename is case there's not path_info and/or file does not exists */
     dbg_err_if(request_set_filename(rq, cp));
