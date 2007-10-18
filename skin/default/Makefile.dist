@@ -4,7 +4,7 @@
 #
 # 	find . -follow -type f -or -type l | grep -v CVS | cut -c3- | egrep '.' \
 # 	    > DISTFILES
-#
+
 
 VERSION = $(shell cat ../../VERSION)
 TARBALL = klone-$(VERSION).tar.gz
