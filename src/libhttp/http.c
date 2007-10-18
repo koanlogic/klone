@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.48 2007/10/17 22:58:35 tat Exp $
+ * $Id: http.c,v 1.49 2007/10/18 13:17:16 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -95,7 +95,7 @@ static int http_try_resolv(const char *alias, char *dst, const char *uri,
         size_t sz)
 {
     static const char *WP = " \t";
-    char *src, *res, *v = NULL,*pp = NULL;
+    char *src, *res, *v = NULL, *pp = NULL;
 
     dbg_err_if(dst == NULL);
     dbg_err_if(uri == NULL);
@@ -205,37 +205,96 @@ static void http_resolv_request(http_t *h, request_t *rq)
         request_set_resolved_path_info(rq, resolved);
 }
 
-static int http_set_index_request(http_t *h, request_t *rq)
+static int http_is_valid_index(http_t *h, request_t *rq, const char *uri)
 {
-    static const char *indexes[] = { "/index.klone", "/index.kl1",
-        "/index.html", "/index.htm", NULL };
-    const char **pg;
-    char resolved[U_FILENAME_MAX];
+    char resolved[U_FILENAME_MAX] = { 0 };
+
+    dbg_err_if(u_path_snprintf(resolved, U_FILENAME_MAX, '/', "%s/%s", 
+            request_get_resolved_filename(rq), uri));
+
+    if(broker_is_valid_uri(h->broker, h, resolved, strlen(resolved)))
+        return 1; /* index found */
+
+err:
+    return 0; /* index not found */
+}
+
+static int http_get_config_index(http_t *h, request_t *rq, char *index,
+        size_t sz)
+{
+    char buf[256], *tok, *src, *pp = NULL;
 
     dbg_err_if (h == NULL);
     dbg_err_if (rq == NULL);
 
-    /* user provided index page list (FIXME add list support) */
-    if(h->index == NULL)
-    {   
-        /* try to find an index page between default index uris */
-        for(pg = indexes; *pg; ++pg)
-        {
-            resolved[0] = 0;  /* for valgrind's happyness */
-            dbg_err_if(u_path_snprintf(resolved, U_FILENAME_MAX, '/', "%s/%s", 
-                    request_get_resolved_filename(rq), *pg));
+    if(!h->index)
+        return ~0; /* index config key missing */
 
-            if(broker_is_valid_uri(h->broker, h, resolved, strlen(resolved)))
-            {
-                /* a valid index uri has been found; rewrite request */
-                request_set_filename(rq, *pg);
-                break;
-            }
+    /* try to find an index page between user-given (config) index pages */
+
+    /* copy the string (u_tokenize will modify it) */
+    dbg_err_if(strlcpy(buf, h->index, sizeof(buf)) >= sizeof(buf));
+
+    for(src = buf; (tok = strtok_r(src, " \t", &pp)) != NULL; src = NULL)
+    {
+        if(!strcmp(tok, ""))
+            continue; 
+
+        if(http_is_valid_index(h, rq, tok))
+        {
+            dbg_err_if(strlcpy(index, tok, sz) >= sz);
+            return 0; /* index page found */
         }
-        if(*pg == NULL) /* no index found, set index.html (will return 404 ) */
-            dbg_if(request_set_filename(rq, "/index.html"));
-    } else
-        dbg_if(request_set_filename(rq, h->index));
+    }
+
+    /* fall through */
+err:
+    return ~0;
+}
+
+static int http_get_default_index(http_t *h, request_t *rq, char *index, 
+        size_t sz)
+{
+    static const char *indexes[] = { "/index.klone", "/index.kl1",
+        "/index.html", "/index.htm", NULL };
+    const char **pg;
+
+    dbg_err_if (h == NULL);
+    dbg_err_if (rq == NULL);
+
+    /* try to find an index page between user-given (config) index pages */
+
+    /* try to find an index page between default index uris */
+    for(pg = indexes; *pg; ++pg)
+    {
+        if(http_is_valid_index(h, rq, *pg))
+        {
+            dbg_err_if(strlcpy(index, *pg, sz) >= sz);
+            return 0; /* index page found */
+        }
+    }
+
+    /* fall through */
+err:
+    return ~0;
+}
+
+static int http_set_index_request(http_t *h, request_t *rq)
+{
+    char idx[128], uri[1024];
+
+    dbg_err_if (h == NULL);
+    dbg_err_if (rq == NULL);
+
+    /* find an index page; try first config options then static index names */
+    if(!http_get_config_index(h, rq, idx, sizeof(idx)) || 
+            !http_get_default_index(h, rq, idx, sizeof(idx)))
+    {
+        dbg_err_if(u_snprintf(uri, sizeof(uri), "%s%s", 
+                    request_get_filename(rq), idx));
+
+        dbg_if(request_set_filename(rq, uri));
+    }
 
     http_resolv_request(h, rq);
 
@@ -326,12 +385,12 @@ static int http_serve(http_t *h, int fd)
     request_t *rq = NULL;
     response_t *rs = NULL;
     io_t *in = NULL, *out = NULL;
-    int cgi = 0, port;
-    const char *gwi = NULL;
+    int cgi = 0, port, rc = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+    const char *gwi = NULL, *cstr;
     talarm_t *al = NULL;
     addr_t *addr;
     struct sockaddr sa;
-    int sasz, rc = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+    size_t sasz;
 
     u_unused_args(al);
 
@@ -431,8 +490,8 @@ static int http_serve(http_t *h, int fd)
     /* if we're running in server mode then resolv aliases and dir_root */
     http_resolv_request(h, rq);
 
-    /* if / is requested then return one of index.{klone,kl1,html,htm} */
-    if(strcmp(request_get_filename(rq), "/") == 0)
+    /* if the uri end with a slash then return an index page */
+    if((cstr = request_get_filename(rq)) != NULL && cstr[strlen(cstr)-1] == '/')
         dbg_err_if(http_set_index_request(h, rq)); /* set the index page */
 
     /* add default header fields */

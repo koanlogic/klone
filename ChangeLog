@@ -1,8 +1,10 @@
-$Id: ChangeLog,v 1.27 2007/10/17 22:58:34 tat Exp $
+$Id: ChangeLog,v 1.28 2007/10/18 13:17:16 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.0.0:
+	- index config key added to provide the list of index pages to use when
+	  no filename is given (http://site/ or http://site/dir_a/dir_b)
 	- per-dir (aka cgi-bin), per-extension (.cgi, .php, etc.) CGI support
 	- embfs config file is not loaded if external config file is given (-f file)
 	- --enable_fs and --enable_cgi configure args alias added
