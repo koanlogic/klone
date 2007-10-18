@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_cgi.c,v 1.4 2007/10/17 22:58:35 tat Exp $
+ * $Id: sup_cgi.c,v 1.5 2007/10/18 09:30:44 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -221,6 +221,18 @@ err:
     return ~0;
 }
 
+static int cgi_setenv_ctype(cgi_env_t *env, request_t *rq)
+{
+    char *ct;
+
+    if((ct = request_get_field_value(rq, "Content-type")) != NULL)
+        dbg_err_if(cgi_setenv(env, "CONTENT_TYPE", ct));
+
+    return 0;
+err:
+    return ~0;
+}
+
 static int cgi_setenv_clen(cgi_env_t *env, request_t *rq)
 {
     char buf[32];
@@ -301,11 +313,17 @@ static int cgi_makeenv(request_t *rq, response_t *rs, cgi_env_t *env)
     if((cstr = request_get_query_string(rq)) != NULL)
         dbg_err_if(cgi_setenv(env, "QUERY_STRING", cstr));
 
-    /* CONTENT_LENGTH */
+    /* content length */
     dbg_err_if(cgi_setenv_clen(env, rq));
+
+    /* content type*/
+    dbg_err_if(cgi_setenv_ctype(env, rq));
 
     if((cstr = request_get_filename(rq)) != NULL)
         dbg_err_if(cgi_setenv(env, "SCRIPT_NAME", cstr));
+
+    if((cstr = request_get_uri(rq)) != NULL)
+        dbg_err_if(cgi_setenv(env, "REQUEST_URI", cstr));
 
     if((cstr = request_get_resolved_filename(rq)) != NULL)
         dbg_err_if(cgi_setenv(env, "SCRIPT_FILENAME", cstr));
