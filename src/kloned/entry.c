@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: entry.c,v 1.23 2007/09/15 16:36:12 tat Exp $
+ * $Id: entry.c,v 1.24 2007/10/21 09:54:57 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -39,7 +39,8 @@ static void usage()
 {
     static const char *us = 
 "Usage: kloned OPTIONS ARGUMENTS                                            \n"
-"Version: %s - Copyright (c) 2005, 2006 KoanLogic s.r.l. - All rights reserved.   \n"
+"Version: %s - Copyright (c) 2005, 2006, 2007 KoanLogic s.r.l.\n"
+"All rights reserved.\n"
 "\n"
 "    -d          turn on debugging (forces iterative mode)                  \n"
 "    -f file     load an external config file                               \n"
