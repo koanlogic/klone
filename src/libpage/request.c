@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.40 2007/10/22 15:09:36 tat Exp $
+ * $Id: request.c,v 1.41 2007/10/22 15:11:46 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -618,6 +618,9 @@ err:
  */
 int request_set_client_request(request_t *rq, const char *ln)
 {
+    dbg_err_if(rq == NULL);
+    dbg_err_if(ln == NULL);
+
     rq->cli_rq = u_strdup(ln);
     dbg_err_if(rq->cli_rq == NULL);
 
