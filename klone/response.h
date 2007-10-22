@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.h,v 1.11 2006/04/06 14:02:22 tat Exp $
+ * $Id: response.h,v 1.12 2007/10/22 15:49:47 tat Exp $
  */
 
 #ifndef _KLONE_RESPONSE_H_
@@ -49,6 +49,9 @@ size_t response_get_max_header_size(response_t *rs);
 io_t* response_io(response_t *rs);
 
 header_t* response_get_header(response_t *rs);
+
+field_t* response_get_field(response_t *rs, const char *name);
+const char* response_get_field_value(response_t *rs, const char *name);
 
 int response_set_field(response_t *rs, const char *name, const char *value);
 int response_set_content_type(response_t *rs, const char *mime_type);

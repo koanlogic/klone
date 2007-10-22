@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.c,v 1.23 2007/07/07 09:05:12 tat Exp $
+ * $Id: response.c,v 1.24 2007/10/22 15:49:47 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -681,6 +681,27 @@ int response_free(response_t *rs)
     U_FREE(rs);
 
     return 0;
+}
+
+
+/* return a field obj of the field named 'name' or NULL if the field does not 
+   exist */
+field_t* response_get_field(response_t *rs, const char *name)
+{
+    dbg_return_if (rs == NULL, NULL);
+    dbg_return_if (name == NULL, NULL);
+
+    return header_get_field(rs->header, name);
+}
+
+/* return the string value of the field named 'name' or NULL if the field does
+   not exist */
+const char* response_get_field_value(response_t *rs, const char *name)
+{
+    dbg_return_if (rs == NULL, NULL);
+    dbg_return_if (name == NULL, NULL);
+
+    return header_get_field_value(rs->header, name);
 }
 
 /**

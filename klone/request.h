@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.h,v 1.14 2007/10/22 15:09:36 tat Exp $
+ * $Id: request.h,v 1.15 2007/10/22 15:49:47 tat Exp $
  */
 
 #ifndef _KLONE_REQUEST_H_
@@ -39,8 +39,8 @@ addr_t* request_get_addr(request_t *rq);
 addr_t* request_get_peer_addr(request_t *rq);
 header_t* request_get_header(request_t *rq);
 field_t* request_get_field(request_t *rq, const char *name);
-const char *request_get_client_request(request_t *rq);
 const char* request_get_field_value(request_t *rq, const char *name);
+const char *request_get_client_request(request_t *rq);
 const char *request_get_uri(request_t *rq);
 const char* request_get_protocol(request_t *rq);
 const char *request_get_filename(request_t *rq);
