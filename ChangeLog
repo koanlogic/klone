@@ -1,8 +1,9 @@
-$Id: ChangeLog,v 1.28 2007/10/18 13:17:16 tat Exp $
+$Id: ChangeLog,v 1.29 2007/10/22 15:09:36 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.0.0:
+	- request_get_client_request added 
 	- index config key added to provide the list of index pages to use when
 	  no filename is given (http://site/ or http://site/dir_a/dir_b)
 	- per-dir (aka cgi-bin), per-extension (.cgi, .php, etc.) CGI support

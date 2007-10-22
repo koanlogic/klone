@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.39 2007/10/17 22:58:35 tat Exp $
+ * $Id: request.c,v 1.40 2007/10/22 15:09:36 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -30,6 +30,7 @@ struct request_s
     header_t *header;           /* input header                             */
     io_t *io;                   /* input io stream                          */
     int method;                 /* get,post,etc.                            */
+    char *cli_rq;               /* verbatim client request line             */
     char *uri;                  /* verbatim uri asked by the client         */
     char *protocol;             /* proto/ver                                */
     char *path_info;            /* extra info at the end of the path        */
@@ -603,6 +604,40 @@ static int request_set_proto(request_t *rq, const char *proto)
     return 0;
 err:
     return ~0;
+}
+
+/**
+ * \brief   Save client request
+ *
+ * Save client request line
+ *
+ * \param rq     request object
+ * \param ln     the request line
+ *
+ * \return \c 0 if successful, non-zero on error
+ */
+int request_set_client_request(request_t *rq, const char *ln)
+{
+    rq->cli_rq = u_strdup(ln);
+    dbg_err_if(rq->cli_rq == NULL);
+
+    return 0;
+err:
+    return ~0;
+}
+
+/**
+ * \brief   Return the client request line
+ *
+ * Return the client request (METHOD URI HTTP/HTTP_VERSION)
+ *
+ * \param rq     request object
+ *
+ * \return \c 0 if successful, non-zero on error
+ */
+const char *request_get_client_request(request_t *rq)
+{
+    return rq->cli_rq;
 }
 
 /**
@@ -1399,6 +1434,9 @@ int request_parse_header(request_t *rq,
     {
         /* cp the first line */
         dbg_err_if(io_gets(rq->io, ln, BUFSZ) <= 0);
+
+        /* save the verbatim request line */
+        dbg_err_if(request_set_client_request(rq, ln));
 
         method = strtok_r(ln, WP, &pp); 
         dbg_err_if(!method || request_set_method(rq, method));
