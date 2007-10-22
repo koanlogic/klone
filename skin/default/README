@@ -26,9 +26,3 @@ RUNNING
 
     If something goes wrong you can find log messages in syslog files.
 
-
-CROSS-COMPILATION
------------------
-[...]
-
-
