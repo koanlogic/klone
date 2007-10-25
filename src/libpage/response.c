@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.c,v 1.25 2007/10/25 22:09:24 tat Exp $
+ * $Id: response.c,v 1.26 2007/10/25 22:22:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -19,7 +19,7 @@
 #include <klone/rsfilter.h>
 
 /**
- *  \defgroup response_t response_t - response handling
+ *  \defgroup response_t Response handling
  *  \{
  *      \par 
  *      Basic knowledge of the HTTP protocol is assumed. Hence only the

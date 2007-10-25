@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.35 2007/10/25 22:09:24 tat Exp $
+ * $Id: io.c,v 1.36 2007/10/25 22:22:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -17,7 +17,7 @@
 #include <klone/codec.h>
 
 /**
- *  \defgroup io_t io_t - input/output abstraction object
+ *  \defgroup io_t Input/output abstraction object
  *  \{
  *      \par
  */

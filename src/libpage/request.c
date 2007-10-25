@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.44 2007/10/25 22:09:24 tat Exp $
+ * $Id: request.c,v 1.45 2007/10/25 22:22:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -25,7 +25,7 @@
 #include <klone/timer.h>
 
 /**
- *  \defgroup request_t request_t - request handling
+ *  \defgroup request_t Request handling
  *  \{
  *      \par
  *      Basic knowledge of the HTTP protocol is assumed. Hence only the

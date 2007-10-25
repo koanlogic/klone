@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.c,v 1.17 2007/10/25 22:09:24 tat Exp $
+ * $Id: header.c,v 1.18 2007/10/25 22:22:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -15,7 +15,7 @@
 #include <klone/utils.h>
 
 /**
- *  \defgroup header_t header_t - header manipulation
+ *  \defgroup header_t Header manipulation
  *  \{
  *      \par
  */

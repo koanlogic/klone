@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: field.c,v 1.12 2007/10/25 22:09:24 tat Exp $
+ * $Id: field.c,v 1.13 2007/10/25 22:22:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -15,7 +15,7 @@
 #include <u/libu.h>
 
 /**
- *  \defgroup field_t field_t - field manipulation
+ *  \defgroup field_t Header fields manipulation
  *  \{
  *      \par
  */

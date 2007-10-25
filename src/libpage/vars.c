@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.25 2007/10/25 22:09:24 tat Exp $
+ * $Id: vars.c,v 1.26 2007/10/25 22:22:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -16,16 +16,9 @@
 #include <klone/varprv.h>
 #include <klone/utils.h>
 
-TAILQ_HEAD(var_list_s, var_s);
-
-struct vars_s
-{
-    struct var_list_s list;     /* list of variables (var_t) */
-    size_t count;               /* # of vars in the list     */
-};
 
 /**
- *  \defgroup vars_t vars_t - variables handling
+ *  \defgroup vars_t Variable list handling
  *  \{
  *      \par
  */
@@ -63,6 +56,14 @@ int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **v);
 /**
  *  \}
  */
+
+TAILQ_HEAD(var_list_s, var_s);
+
+struct vars_s
+{
+    struct var_list_s list;     /* list of variables (var_t) */
+    size_t count;               /* # of vars in the list     */
+};
 
 /**
  * \brief   Get \c u_string_t value of a variable

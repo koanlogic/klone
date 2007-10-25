@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: var.c,v 1.16 2007/10/25 22:09:24 tat Exp $
+ * $Id: var.c,v 1.17 2007/10/25 22:22:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -17,7 +17,7 @@
 #include <klone/varprv.h>
 
 /**
- *   \defgroup var_t var_t - variable handling
+ *   \defgroup var_t Variable handling
  *   \{
  *       \par
  */
