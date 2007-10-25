@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.45 2007/10/25 20:26:56 tat Exp $
+ * $Id: utils.c,v 1.46 2007/10/25 22:09:24 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -34,6 +34,33 @@
 /**
  *  \defgroup u_t u_t - utility functions
  *  \{
+ */
+ssize_t u_urlncpy(char *dst, const char *src, size_t slen, int flags);
+ssize_t u_hexncpy(char *dst, const char *src, size_t slen, int flags);
+ssize_t u_htmlncpy(char *dst, const char *src, size_t slen, int flags);
+ssize_t u_sqlncpy(char *dst, const char *src, size_t slen, int flags);
+void u_tohex(char *hex, const char *src, size_t sz);
+char u_tochex(int n);
+
+int u_md5(char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ]);
+int u_md5io(io_t *io, char out[MD5_DIGEST_BUFSZ]);
+
+const char* u_guess_mime_type(const char *file_name);
+const mime_map_t* u_get_mime_map(const char *file_name);
+int u_match_ext(const char *filename, const char *extension);
+
+/* date time conversion funcs */
+int u_tt_to_rfc822(char dst[], time_t ts);
+int u_httpdate_to_tt(const char *str, time_t *tp);
+int u_rfc822_to_tt(const char *str, time_t *tp);
+int u_rfc850_to_tt(const char *str, time_t *tp);
+int u_asctime_to_tt(const char *str, time_t *tp);
+
+int u_path_normalize(char *fqn);
+
+
+/**
+ *  \}
  */
 
 enum { LF = 0xA, CR = 0xD };
@@ -1235,7 +1262,3 @@ err:
 }
 
 #endif
-
-/**
- *  \}
- */

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.43 2007/10/25 20:26:56 tat Exp $
+ * $Id: request.c,v 1.44 2007/10/25 22:09:24 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -23,6 +23,53 @@
 #include <klone/addr.h>
 #include <klone/vars.h>
 #include <klone/timer.h>
+
+/**
+ *  \defgroup request_t request_t - request handling
+ *  \{
+ *      \par
+ *      Basic knowledge of the HTTP protocol is assumed. Hence only the
+ *      essential information is given. Some useful references are:
+ *        - RFC 2616 for a complete description of HTTP 1.1 header fields
+ *        - RFC 2109 for cookie format
+ *        - RFC 822 for standard data type formats
+ *        - http://www.iana.org/assignments/media-types/ for an updated
+ *          list of possible mime-types
+ */
+
+ /* just the following functions will appear in the documentation */
+
+io_t* request_io(request_t *rq);
+http_t* request_get_http(request_t *rq);
+addr_t* request_get_addr(request_t *rq);
+addr_t* request_get_peer_addr(request_t *rq);
+header_t* request_get_header(request_t *rq);
+field_t* request_get_field(request_t *rq, const char *name);
+const char* request_get_field_value(request_t *rq, const char *name);
+const char *request_get_client_request(request_t *rq);
+const char *request_get_uri(request_t *rq);
+const char* request_get_protocol(request_t *rq);
+const char *request_get_filename(request_t *rq);
+const char *request_get_resolved_filename(request_t *rq);
+const char *request_get_query_string(request_t *rq);
+const char *request_get_path_info(request_t *rq);
+const char *request_get_resolved_path_info(request_t *rq);
+int request_get_method(request_t *rq);
+ssize_t request_get_content_length(request_t *rq);
+time_t request_get_if_modified_since(request_t *rq);
+int request_is_encoding_accepted(request_t *rq, const char *encoding);
+vars_t *request_get_uploads(request_t *rq);
+int request_get_uploaded_file(request_t *rq, const char *name, size_t idx, 
+    char local_filename[U_PATH_MAX], char client_filename[U_PATH_MAX], 
+    char mime_type[MIME_TYPE_BUFSZ], size_t *file_size);
+vars_t *request_get_args(request_t *rq);
+const char *request_get_arg(request_t *rq, const char *name);
+vars_t *request_get_cookies(request_t *rq);
+const char *request_get_cookie(request_t *rq, const char *name);
+
+/**
+ *  \}
+ */ 
 
 struct request_s
 {
@@ -76,18 +123,6 @@ enum {
         }                                           \
     } while(0)
 
-/**
- *  \defgroup request_t request_t - request handling
- *  \{
- *      \par
- *      Basic knowledge of the HTTP protocol is assumed. Hence only the
- *      essential information is given. Some useful references are:
- *        - RFC 2616 for a complete description of HTTP 1.1 header fields
- *        - RFC 2109 for cookie format
- *        - RFC 822 for standard data type formats
- *        - http://www.iana.org/assignments/media-types/ for an updated
- *          list of possible mime-types
- */
 
 int request_is_encoding_accepted(request_t *rq, const char *encoding)
 {
@@ -432,15 +467,6 @@ err:
     return ~0;
 }
 
-/*
- * \brief   Clear the URI field of a request
- *
- * Clear the URI field of request \p rq.
- *
- * \param rq  request object
- *
- * \return nothing
- */
 void request_clear_uri(request_t *rq)
 {
     U_FREE(rq->uri);
@@ -1763,7 +1789,3 @@ const char* request_get_field_value(request_t *rq, const char *name)
     return header_get_field_value(rq->header, name);
 }
 
-
-/**
- *  \}
- */ 

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.34 2007/07/20 10:24:48 tat Exp $
+ * $Id: io.c,v 1.35 2007/10/25 22:09:24 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -15,6 +15,38 @@
 #include <klone/io.h>
 #include <klone/ioprv.h>
 #include <klone/codec.h>
+
+/**
+ *  \defgroup io_t io_t - input/output abstraction object
+ *  \{
+ *      \par
+ */
+
+ssize_t io_printf(io_t *io, const char* fmt, ...);
+ssize_t io_write(io_t *io, const char* buf, size_t size);
+ssize_t io_putc(io_t *io, char c);
+int io_is_secure(io_t *io);
+ssize_t io_flush(io_t *io);
+
+ssize_t io_read(io_t *io, char* buf, size_t size);
+ssize_t io_gets(io_t *io, char *buf, size_t size);
+ssize_t io_get_until(io_t *io, char stop_at, char *buf, size_t size);
+ssize_t io_getc(io_t *io, char *c);
+
+
+ssize_t io_copy(io_t *out, io_t *in, size_t size);
+ssize_t io_pipe(io_t *out, io_t *in);
+
+int io_codec_add_head(io_t *io, codec_t* codec);
+int io_codec_add_tail(io_t *io, codec_t* codec);
+int io_codecs_remove(io_t *io);
+
+enum io_type_e io_type(io_t *io);
+
+/**
+ *  \}
+ */
+
 
 enum { 
     IO_RD_BUFSZ = 4096, 
@@ -27,11 +59,6 @@ enum {
 static inline int io_transform_codec_buffer(io_t *, codec_t *, char *, 
         size_t *);
 
-/**
- *  \defgroup io_t io_t - input/output abstraction object
- *  \{
- *      \par
- */
 
 /**
  * \brief  Returns the type of the given io
@@ -1039,8 +1066,3 @@ err:
     U_FREE(io);
     return -1;
 }
-
-/**
- *  \}
- */
-

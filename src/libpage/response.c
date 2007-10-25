@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.c,v 1.24 2007/10/22 15:49:47 tat Exp $
+ * $Id: response.c,v 1.25 2007/10/25 22:09:24 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -17,17 +17,6 @@
 #include <klone/codec.h>
 #include <klone/http.h>
 #include <klone/rsfilter.h>
-
-struct response_s
-{
-    http_t *http;           /* http server handle               */
-    header_t *header;       /* output header                    */
-    io_t *io;               /* output stream                    */
-    int status;             /* http status code                 */
-    int method;             /* HTTP request method              */
-    int cgi;                /* if we're running in cgi context  */
-};
-
 
 /**
  *  \defgroup response_t response_t - response handling
@@ -41,6 +30,42 @@ struct response_s
  *        - http://www.iana.org/assignments/media-types/ for an updated
  *        list of possible mime-types
  */
+
+
+io_t* response_io(response_t *rs);
+int response_set_status(response_t *rs, int code);
+int response_get_status(response_t *rs);
+int response_get_method(response_t *rs);
+int response_redirect(response_t *rs, const char *url);
+header_t* response_get_header(response_t *rs);
+field_t* response_get_field(response_t *rs, const char *name);
+const char* response_get_field_value(response_t *rs, const char *name);
+int response_set_field(response_t *rs, const char *name, const char *value);
+int response_set_content_type(response_t *rs, const char *mime_type);
+int response_set_content_length(response_t *rs, size_t sz);
+int response_set_content_encoding(response_t *rs, const char *encoding);
+int response_set_last_modified(response_t *rs, time_t mtime);
+int response_set_date(response_t *rs, time_t now);
+int response_set_cookie(response_t *rs, const char *name, const char *value,
+    time_t expire, const char *path, const char *domain, int secure);
+int response_enable_caching(response_t *rs);
+int response_disable_caching(response_t *rs);
+
+/**
+ *  \}
+ */ 
+
+struct response_s
+{
+    http_t *http;           /* http server handle               */
+    header_t *header;       /* output header                    */
+    io_t *io;               /* output stream                    */
+    int status;             /* http status code                 */
+    int method;             /* HTTP request method              */
+    int cgi;                /* if we're running in cgi context  */
+};
+
+
 
 /**
  * \brief   Set response content encoding field 
@@ -703,7 +728,3 @@ const char* response_get_field_value(response_t *rs, const char *name)
 
     return header_get_field_value(rs->header, name);
 }
-
-/**
- *  \}
- */ 

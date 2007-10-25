@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: field.c,v 1.11 2006/01/09 12:38:38 tat Exp $
+ * $Id: field.c,v 1.12 2007/10/25 22:09:24 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -18,6 +18,14 @@
  *  \defgroup field_t field_t - field manipulation
  *  \{
  *      \par
+ */
+int field_set(field_t*, const char *name, const char *value);
+int field_set_from_line(field_t*, const char *line);
+const char* field_get_name(field_t *f);
+const char* field_get_value(field_t *f);
+
+/**
+ *  \}
  */
 
 /**
@@ -186,7 +194,3 @@ int field_free(field_t *f)
 
     return 0;
 }
-
-/**
- *  \}
- */

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.c,v 1.16 2007/09/15 16:36:12 tat Exp $
+ * $Id: header.c,v 1.17 2007/10/25 22:09:24 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -18,6 +18,19 @@
  *  \defgroup header_t header_t - header manipulation
  *  \{
  *      \par
+ */
+
+const char* header_get_field_value(header_t *h, const char *name);
+field_t* header_get_field(header_t *h, const char *name);
+field_t* header_get_fieldn(header_t *h, size_t idx);
+size_t header_field_count(header_t *h);
+int header_set_field(header_t *h, const char *name, const char *value);
+int header_add_field(header_t *h, field_t *f);
+int header_del_field(header_t *h, field_t *f);
+int header_clear(header_t *h);
+
+/**
+ *  \}
  */
 
 /**
@@ -398,7 +411,3 @@ int header_free(header_t *h)
 
     return 0;
 }
-
-/**
- *  \}
- */

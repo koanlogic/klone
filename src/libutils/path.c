@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: path.c,v 1.1 2007/10/17 22:58:35 tat Exp $
+ * $Id: path.c,v 1.2 2007/10/25 22:09:24 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -17,8 +17,20 @@
 #include <strings.h>
 #endif
 
-/* removes /./, /../, // (and windows backslash equivs) 
- * see test/path.c for examples */
+/**
+ * \brief   Removes /./, /../ and // from the path
+ * 
+ * Clean ups a path removing /./, /../ and multiple consecutive
+ * slashes from the given path.
+ *
+ * Note that the function modifies the 'path' buffer.
+ *
+ * \param   path        the path to normalize
+ *
+ * \return
+ * - \c 0   successful
+ * - \c ~0  error
+ */
 int u_path_normalize(char *path)
 {
     u_string_t *s = NULL;

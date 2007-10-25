@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.36 2006/04/06 14:02:22 tat Exp $
+ * $Id: session.c,v 1.37 2007/10/25 22:09:24 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -30,6 +30,22 @@
 #include <klone/utils.h>
 #include <klone/ses_prv.h>
 #include <klone/codecs.h>
+
+/**
+ *  \defgroup session_t session_t - session handling
+ *  \{
+ *      \par
+ */
+int session_set(session_t*, const char*, const char*);
+const char *session_get(session_t*, const char*);
+vars_t *session_get_vars(session_t*);
+int session_del(session_t*, const char*);
+int session_clean(session_t*);
+int session_age(session_t*);
+
+/**
+ *  \}
+ */
 
 enum { DEFAULT_SESSION_EXPIRATION = 60*20 }; /* 20 minutes */
 static const char SID_NAME[] = "klone_sid";
@@ -343,12 +359,6 @@ int session_priv_set_id(session_t *ss, const char *sid)
 err:
     return ~0;
 }
-
-/**
- *  \defgroup session_t session_t - session handling
- *  \{
- *      \par
- */
 
 int session_load(session_t *ss)
 {
@@ -824,7 +834,3 @@ err:
         session_free(ss);
     return ~0;
 }
-
-/**
- *  \}
- */

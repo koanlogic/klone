@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: var.c,v 1.15 2006/01/09 12:38:38 tat Exp $
+ * $Id: var.c,v 1.16 2007/10/25 22:09:24 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -20,6 +20,25 @@
  *   \defgroup var_t var_t - variable handling
  *   \{
  *       \par
+ */
+
+const char* var_get_name(var_t *v);
+const char* var_get_value(var_t *v);
+size_t var_get_value_size(var_t *v);
+
+u_string_t* var_get_name_s(var_t *v);
+u_string_t* var_get_value_s(var_t *v);
+
+int var_set(var_t*, const char *name, const char *value);
+int var_set_name(var_t *v, const char *name);
+int var_set_value(var_t *v, const char *value);
+int var_set_bin_value(var_t *v, const char *data, size_t size);
+
+void var_set_opaque(var_t *v, void *blob);
+void* var_get_opaque(var_t *v);
+
+/**
+ *  \}
  */
 
 /**
@@ -268,7 +287,3 @@ int var_set_bin_value(var_t *v, const char *data, size_t size)
 err:
     return ~0;
 }
-
-/**
- *  \}
- */

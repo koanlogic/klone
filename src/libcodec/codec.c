@@ -5,16 +5,11 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: codec.c,v 1.9 2006/01/09 12:38:38 tat Exp $
+ * $Id: codec.c,v 1.10 2007/10/25 22:09:24 tat Exp $
  */
 
 #include <klone/codec.h>
 #include <u/libu.h>
-
-/**
- *  \addtogroup codec_t codec_t - codec funtions
- *  \{
- */
 
 /**
  * \brief   Dispose all the resources allocated to the supplied codec
@@ -36,7 +31,3 @@ int codec_free(codec_t *codec)
     }
     return 0;
 }
-
-/**
- *  \}
- */
