@@ -39,10 +39,10 @@ ALL = host-setup klone-setup subdirs klone-first-import \
 .PHONY: $(ALL) subdirs $(SUBDIR) import
 
 # klone compiled for the target platform
-KLONE_SRC_TARGET = $(TOP)/build/target/klone-core-$(KLONE_VERSION)/
+KLONE_SRC_TARGET = $(TOP)/build/target/klone-core-$(KLONE_VERSION)
 
 # klone compiled for the host platform
-KLONE_SRC_HOST = $(TOP)/build/host/klone-core-$(KLONE_VERSION)/
+KLONE_SRC_HOST = $(TOP)/build/host/klone-core-$(KLONE_VERSION)
 
 # klone top source dir
 KLONE_SRC = $(KLONE_SRC_TARGET)

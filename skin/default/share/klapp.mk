@@ -47,7 +47,7 @@ endif
 
 .PHONY: klone-src help import-help configure-help makefile-help
 
-KLONE_DIR = $(shell pwd)/klone-$(KLONE_VERSION)/
+KLONE_DIR = $(shell pwd)/klone-$(KLONE_VERSION)
 KLONE_TGZ = klone-$(KLONE_VERSION).tar.gz
 KLONE_DAEMON_NAME ?= kloned
 
@@ -63,7 +63,7 @@ endif
 	[ -d $(WEBAPP_DIR) ] || $(MAKE) $(WEBAPP_DIR)
 	[ -f $(KLONE_DIR)/Makefile.conf ] || ( cd $(KLONE_DIR) && ./configure )
 	$(MAKE) -C $(KLONE_DIR)
-	ln -sf $(KLONE_DIR)/kloned $(KLONE_DAEMON_NAME)
+	ln -sf $(KLONE_DIR)/kloned* $(KLONE_DAEMON_NAME)
 
 install: all install-pre realinstall install-post
 install-pre install-post:
