@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.49 2007/10/18 13:17:16 tat Exp $
+ * $Id: http.c,v 1.50 2007/10/25 20:26:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -131,17 +131,68 @@ err:
     return ~0;
 }
 
-int http_alias_resolv(http_t *h, char *dst, const char *uri, size_t sz)
+const char *http_vhost_config_value(http_t *h, request_t *rq, const char *key)
 {
-    u_config_t *config, *cgi;
+    u_config_t *config;
+
+    if(http_get_vhost_config(h, rq, &config))
+        return NULL;
+
+    return u_config_get_subkey_value(config, key);
+}
+
+int http_get_vhost_config(http_t *h, request_t *rq, u_config_t **pc)
+{
+    u_config_t *config = NULL;;
+    const char *host;
+    char *p, hostcp[128];
+
+    dbg_err_if (h == NULL);
+    dbg_err_if (rq == NULL);
+    dbg_err_if (pc == NULL);
+
+    /* if there's not Host: field or there's not config associated to this host
+     * then use the default config values */
+    nop_err_if((host = request_get_field_value(rq, "Host")) == NULL);
+
+    strlcpy(hostcp, host, sizeof(hostcp));
+
+    /* remove :port part */   
+    if((p = strrchr(hostcp, ':')) != NULL)
+        *p = 0;
+
+    /* get Host related config */
+    nop_err_if((config = u_config_get_child(h->config, hostcp)) == NULL);
+
+    *pc = config;
+
+    return 0;
+err:
+    return ~0;
+}
+
+int http_alias_resolv(http_t *h, request_t *rq, char *dst, const char *uri, 
+        size_t sz)
+{
+    u_config_t *config, *cgi, *base = NULL;
+    const char *host, *dir_root = NULL;
+    char *p, hostcp[128];
     int i;
 
     dbg_err_if (h == NULL);
     dbg_err_if (dst == NULL);
     dbg_err_if (uri == NULL);
 
+    /* defaults */
+    base = h->config;
+    dir_root = h->dir_root;
+
+    /* virtual host config overwrites httpd config */
+    if(!http_get_vhost_config(h, rq, &base))
+        dir_root = u_config_get_subkey_value(base, "dir_root");
+
     /* for each dir_alias config item */
-    for(i = 0; !u_config_get_subkey_nth(h->config, "dir_alias", i, &config); 
+    for(i = 0; !u_config_get_subkey_nth(base, "dir_alias", i, &config); 
         ++i)
     {
         if(!http_try_resolv(u_config_get_value(config), dst, uri, sz))
@@ -149,7 +200,7 @@ int http_alias_resolv(http_t *h, char *dst, const char *uri, size_t sz)
     }
 
     /* if there's a cgi tree also try to resolv script_alias rules */
-    if(!u_config_get_subkey(h->config, "cgi", &cgi))
+    if(!u_config_get_subkey(base, "cgi", &cgi))
     {
         for(i = 0; !u_config_get_subkey_nth(cgi, "script_alias", i, &config);
             ++i)
@@ -160,7 +211,7 @@ int http_alias_resolv(http_t *h, char *dst, const char *uri, size_t sz)
     }
 
     /* not alias found, prepend dir_root to the uri */
-    dbg_err_if(u_path_snprintf(dst, sz, '/', "%s/%s", h->dir_root, uri));
+    dbg_err_if(u_path_snprintf(dst, sz, '/', "%s/%s", dir_root, uri));
 
     return 0;
 err:
@@ -171,17 +222,21 @@ static int http_is_valid_uri(void *arg, const char *buf, size_t len)
 {
     enum { URI_MAX = 2048 };
     char resolved[U_FILENAME_MAX], uri[URI_MAX];
-    http_t *h = (http_t*)arg;
+    request_t *rq = (request_t*)arg;
+    http_t *h = NULL;
 
     dbg_err_if (arg == NULL);
     dbg_err_if (buf == NULL);
+
+    h = request_get_http(rq);
+    dbg_err_if (h == NULL);
     
     strncpy(uri, buf, len);
     uri[len] = 0;
 
-    dbg_err_if(http_alias_resolv(h, resolved, uri, URI_MAX));
+    dbg_err_if(http_alias_resolv(h, rq, resolved, uri, URI_MAX));
 
-    return broker_is_valid_uri(h->broker, h, resolved, strlen(resolved));
+    return broker_is_valid_uri(h->broker, h, rq, resolved, strlen(resolved));
 err:
     return ~0;
 }
@@ -196,12 +251,12 @@ static void http_resolv_request(http_t *h, request_t *rq)
     
     /* unalias rq->filename */
     cstr = request_get_filename(rq);
-    if(cstr && !http_alias_resolv(h, resolved, cstr, U_FILENAME_MAX))
+    if(cstr && !http_alias_resolv(h, rq, resolved, cstr, U_FILENAME_MAX))
         request_set_resolved_filename(rq, resolved);
 
     /* unalias rq->path_info */
     cstr = request_get_path_info(rq);
-    if(cstr && !http_alias_resolv(h, resolved, cstr, U_FILENAME_MAX))
+    if(cstr && !http_alias_resolv(h, rq, resolved, cstr, U_FILENAME_MAX))
         request_set_resolved_path_info(rq, resolved);
 }
 
@@ -212,28 +267,30 @@ static int http_is_valid_index(http_t *h, request_t *rq, const char *uri)
     dbg_err_if(u_path_snprintf(resolved, U_FILENAME_MAX, '/', "%s/%s", 
             request_get_resolved_filename(rq), uri));
 
-    if(broker_is_valid_uri(h->broker, h, resolved, strlen(resolved)))
+    if(broker_is_valid_uri(h->broker, h, rq, resolved, strlen(resolved)))
         return 1; /* index found */
 
 err:
     return 0; /* index not found */
 }
 
-static int http_get_config_index(http_t *h, request_t *rq, char *index,
-        size_t sz)
+static int http_get_config_index(http_t *h, request_t *rq, char *idx, size_t sz)
 {
     char buf[256], *tok, *src, *pp = NULL;
+    const char *index = NULL;
+    u_config_t *config;
 
     dbg_err_if (h == NULL);
     dbg_err_if (rq == NULL);
 
-    if(!h->index)
+    if((index = http_vhost_config_value(h, rq, "index")) == NULL)
+        index = h->index;
+
+    if(!index)
         return ~0; /* index config key missing */
 
-    /* try to find an index page between user-given (config) index pages */
-
     /* copy the string (u_tokenize will modify it) */
-    dbg_err_if(strlcpy(buf, h->index, sizeof(buf)) >= sizeof(buf));
+    dbg_err_if(strlcpy(buf, index, sizeof(buf)) >= sizeof(buf));
 
     for(src = buf; (tok = strtok_r(src, " \t", &pp)) != NULL; src = NULL)
     {
@@ -242,7 +299,7 @@ static int http_get_config_index(http_t *h, request_t *rq, char *index,
 
         if(http_is_valid_index(h, rq, tok))
         {
-            dbg_err_if(strlcpy(index, tok, sz) >= sz);
+            dbg_err_if(strlcpy(idx, tok, sz) >= sz);
             return 0; /* index page found */
         }
     }
@@ -261,8 +318,6 @@ static int http_get_default_index(http_t *h, request_t *rq, char *index,
 
     dbg_err_if (h == NULL);
     dbg_err_if (rq == NULL);
-
-    /* try to find an index page between user-given (config) index pages */
 
     /* try to find an index page between default index uris */
     for(pg = indexes; *pg; ++pg)
@@ -369,11 +424,16 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
 
     /* print default error page */
     dbg_err_if(io_printf(response_io(rs), 
+        "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">"
         "<html><head><title>%d %s</title></head>\n"
-        "<body><h1>%s</h1><p>URL: %s</body></html>", 
+        "<body><h1>%s</h1><p>URL: %s</p><hr>"
+        "<address>KLone/%s web server - www.koanlogic.com</address>"
+        "</body></html>", 
         http_status, http_get_status_desc(http_status), 
         http_get_status_desc(http_status), 
-        (request_get_uri(rq) ? request_get_uri(rq) : "") ) < 0);
+        (request_get_uri(rq) ? request_get_uri(rq) : ""),
+        KLONE_VERSION
+        ) < 0);
 
     return 0;
 err:
@@ -483,7 +543,7 @@ static int http_serve(http_t *h, int fd)
     dbg_err_if(response_set_status(rs, HTTP_STATUS_BAD_REQUEST));
 
     /* parse request. may fail on timeout */
-    dbg_err_if(rc = request_parse_header(rq, http_is_valid_uri, h));
+    dbg_err_if(rc = request_parse_header(rq, http_is_valid_uri, rq));
 
     response_set_method(rs, request_get_method(rq));
 
@@ -501,7 +561,7 @@ static int http_serve(http_t *h, int fd)
     dbg_err_if(response_set_status(rs, HTTP_STATUS_OK));
 
     /* serve the page; on error write out a simple error page */
-    dbg_err_if(rc = broker_serve(h->broker, h, rq, rs));
+    nop_err_if((rc = broker_serve(h->broker, h, rq, rs)) != 0);
 
     /* call the hook that fires on each request */
     hook_call(request, rq, rs);
@@ -619,7 +679,7 @@ static int http_backend_serve(struct backend_s *be, int fd)
     h = (http_t *) be->arg;
     
     /* new connection accepted on http listening socket, handle it */
-    dbg_if((rc = http_serve(h, fd)) != 0);
+    rc = http_serve(h, fd);
 
     return rc;
 err:

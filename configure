@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.76 2007/10/17 22:58:34 tat Exp $
+# $Id: configure,v 1.77 2007/10/25 20:26:56 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -140,6 +140,8 @@ makl_add_var_mk "CFLAGS" "\$(LIBZ_CFLAGS)"
 if [ -z "`makl_get_var_mk "KLONE_DEBUG"`" ]; then
     makl_append_var_mk "CFLAGS"   "-O2"
 fi
+
+makl_append_var_mk "CFLAGS"   "-DDOXY_HIDE=\"\""
 
 if [ -d skin/default ]; then
     # Perform skin variable substitution on files

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.44 2007/09/15 16:36:12 tat Exp $
+ * $Id: utils.c,v 1.45 2007/10/25 20:26:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -288,7 +288,7 @@ static ssize_t u_sqlncpy_decode(char *d, const char *s, size_t slen)
  * \param   flags   one of \c SQLCPY_ENCODE or \c SQLCPY_DECODE
  *
  * \return  The number of characters written to \p d not including the 
- *          trailing '\0' or \c -1 on error.
+ *          trailing '\\0' or \c -1 on error.
  */
 ssize_t u_sqlncpy(char *d, const char *s, size_t slen, int flags)
 {
@@ -386,7 +386,7 @@ err:
  * \param   flags   one of \c URLCPY_ENCODE or \c URLCPY_DECODE
  *
  * \return  The number of characters written to \p d not including the 
- *          trailing '\0' or \c -1 on error.
+ *          trailing '\\0' or \c -1 on error.
  */
 ssize_t u_urlncpy(char *d, const char *s, size_t slen, int flags)
 {
@@ -489,7 +489,7 @@ static ssize_t u_hexncpy_encode(char *d, const char *s, size_t slen)
  * \param   flags   one of \c HEXCPY_ENCODE or \c HEXCPY_DECODE
  *
  * \return  The number of characters written to \p d not including the 
- *          trailing '\0' or \c -1 on error.
+ *          trailing '\\0' or \c -1 on error.
  */
 ssize_t u_hexncpy(char *d, const char *s, size_t slen, int flags)
 {
@@ -586,7 +586,7 @@ static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
  * \param   flags   one of \c HTMLCPY_ENCODE or \c HTMLCPY_DECODE
  *
  * \return  The number of characters written to \p d not including the 
- *          trailing '\0' or \c -1 on error.
+ *          trailing '\\0' or \c -1 on error.
  */
 ssize_t u_htmlncpy(char *d, const char *s, size_t slen, int flags)
 {

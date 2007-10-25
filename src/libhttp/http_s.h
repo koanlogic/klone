@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http_s.h,v 1.6 2007/09/15 16:36:12 tat Exp $
+ * $Id: http_s.h,v 1.7 2007/10/25 20:26:56 tat Exp $
  */
 
 #ifndef _KLONE_HTTP_S_H_
@@ -32,7 +32,7 @@ struct http_s
     /* toplevel configuration options */
     const char *server_sig; /* server signature                              */
     const char *dir_root;   /* base html directory                           */
-    const char *index;      /* user-provided index page                      */
+    const char *index;      /* user-provided index page(s)                   */
     int send_enc_deflate;   /* >0 if sending deflated content is not disabled*/
     /* session options struct                        */
     session_opt_t *sess_opt;

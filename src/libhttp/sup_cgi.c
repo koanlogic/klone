@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_cgi.c,v 1.5 2007/10/18 09:30:44 tat Exp $
+ * $Id: sup_cgi.c,v 1.6 2007/10/25 20:26:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -28,19 +28,37 @@ typedef struct cgi_env_s
     int size, count;
 } cgi_env_t;
 
-static int cgi_script(http_t *h, const char *fqn)
+static int cgi_get_config(http_t *h, request_t *rq, u_config_t **pc)
 {
-    u_config_t *config, *sub;
+    u_config_t *config = NULL;
+    dbg_err_if(h == NULL);
+    dbg_err_if(rq  == NULL);
+
+    if(http_get_vhost_config(h, rq, &config) != 0)
+        dbg_err_if((config = http_get_config(h)) == NULL);
+
+    *pc = config;
+
+    return 0;
+err:
+    return ~0;
+}
+
+
+static int cgi_script(http_t *h, request_t *rq, const char *fqn)
+{
+    u_config_t *config, *sub, *base;
     const char  *dir;
     int i, t;
 
     if(fqn == NULL)
         return 0;
 
-    dbg_err_if(http_get_config(h) == NULL);
+    /* get cgi. config subtree */
+    dbg_err_if(cgi_get_config(h, rq, &base));
 
     /* get cgi. config subtree */
-    dbg_err_if(u_config_get_subkey(http_get_config(h), "cgi", &config));
+    nop_err_if(u_config_get_subkey(base, "cgi", &config));
 
     /* for each script_di config item */
     for(i = 0; !u_config_get_subkey_nth(config, "script_alias", i, &sub); ++i)
@@ -69,9 +87,10 @@ err:
 }
 
 /* returns 1 if the file extension in one of those handled by cgi programs */
-static int cgi_ext(http_t *h, const char *fqn, const char **phandler)
+static int cgi_ext(http_t *h, request_t *rq, const char *fqn, 
+        const char **phandler)
 {
-    u_config_t *config;
+    u_config_t *config, *base;
     char buf[U_FILENAME_MAX];
     char *ext = NULL;
     const char *handler;
@@ -88,10 +107,11 @@ static int cgi_ext(http_t *h, const char *fqn, const char **phandler)
 
     ext++; /* skip '.' */
 
-    dbg_err_if(http_get_config(h) == NULL);
+    /* get cgi. config subtree */
+    dbg_err_if(cgi_get_config(h, rq, &base));
 
     /* get cgi. config subtree */
-    dbg_err_if(u_config_get_subkey(http_get_config(h), "cgi", &config));
+    nop_err_if(u_config_get_subkey(base, "cgi", &config));
 
     dbg_err_if(u_snprintf(buf, sizeof(buf), "%s.handler", ext));
 
@@ -152,8 +172,8 @@ err:
     return ~0;
 }
 
-static int cgi_is_valid_uri(http_t *h, const char *uri, size_t len, 
-        time_t *mtime)
+static int cgi_is_valid_uri(http_t *h, request_t *rq, const char *uri, 
+        size_t len, time_t *mtime)
 {
     struct stat st; 
     char fqn[1+U_FILENAME_MAX];
@@ -172,7 +192,7 @@ static int cgi_is_valid_uri(http_t *h, const char *uri, size_t len,
     if( stat(fqn, &st) == 0 && S_ISREG(st.st_mode))
     {
         /* if it's not a cgi given its extension of uri then exit */
-        if(!cgi_ext(h, fqn, NULL) && !cgi_script(h, fqn))
+        if(!cgi_ext(h, rq, fqn, NULL) && !cgi_script(h, rq, fqn))
             return 0;
 
         *mtime = st.st_mtime;
@@ -255,7 +275,7 @@ static int cgi_set_blocking(int fd)
 
     warn_err_sif((flags = fcntl(fd, F_GETFL)) < 0);
 
-    warn_err_sif(fcntl(fd, F_SETFL, flags & (~O_NONBLOCK)) < 0);
+    nop_err_if(fcntl(fd, F_SETFL, flags & (~O_NONBLOCK)) < 0);
 
     return 0;
 err:
@@ -414,9 +434,9 @@ static int cgi_exec(request_t *rq, response_t *rs, pid_t *pchild,
         close(fd);
 
         /* all standard descriptor must be blocking */
-        dbg_if(cgi_set_blocking(STDOUT_FILENO));
-        dbg_if(cgi_set_blocking(STDIN_FILENO));
-        dbg_if(cgi_set_blocking(STDERR_FILENO));
+        cgi_set_blocking(STDOUT_FILENO);
+        cgi_set_blocking(STDIN_FILENO);
+        cgi_set_blocking(STDERR_FILENO);
 
         /* close any other open fd */
         for(fd = 3; fd < 255; ++fd) 
@@ -441,7 +461,7 @@ static int cgi_exec(request_t *rq, response_t *rs, pid_t *pchild,
 
         /* the handler may be the path of the handler or "exec" that means that
          * the script must be run as is */
-        if(!cgi_ext(h, cgi_file, &handler) || !strcasecmp(handler, "exec"))
+        if(!cgi_ext(h, rq, cgi_file, &handler) || !strcasecmp(handler, "exec"))
         {
             /* setup cgi argv (ISINDEX command line handling is not impl) */
             argv[0] = cgi_file;

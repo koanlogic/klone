@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.42 2007/10/22 16:29:07 tat Exp $
+ * $Id: request.c,v 1.43 2007/10/25 20:26:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -36,7 +36,6 @@ struct request_s
     char *path_info;            /* extra info at the end of the path        */
     char *query;                /* query string (data after '?')            */
     char *filename;             /* path of the req resource                 */
-    char *host;                 /* Host: field                              */
     char *resolved_path_info;   /* resolved path_info                       */
     char *resolved_filename;    /* unaliased filename                       */
     vars_t *args;               /* get/post args                            */
@@ -225,17 +224,6 @@ const char *request_get_arg(request_t *rq, const char *name)
     return v ? var_get_value(v): NULL;
 }
 
-/** 
- * \brief   Set a request field
- *  
- * Set field \p name to \p value in request \p rq
- *
- * \param rq     request object
- * \param name   name of the argument
- * \param value  value of the argument
- *  
- * \return \c 0 if successful, non-zero on error
- */
 int request_set_field(request_t *rq, const char *name, const char *value)
 {
     dbg_return_if (rq == NULL, ~0);
@@ -277,7 +265,7 @@ const char *request_get_filename(request_t *rq)
     return rq->filename;
 }
 
-/**
+/*
  * \brief   Set the filename field of a request
  *
  * Set the filename field of request \p rq to \p filename.
@@ -364,7 +352,7 @@ time_t request_get_if_modified_since(request_t *rq)
     return rq->if_modified_since;
 }
 
-/**
+/*
  * \brief   Set the resolved filename field of a request
  *
  * Set the resolved filename field of request \p rq to \p resolved_fn
@@ -402,7 +390,7 @@ http_t* request_get_http(request_t *rq)
     return rq->http;
 }
 
-/**
+/*
  * \brief   Bind request I/O to a given I/O. 
  *  
  * Bind the I/O of request \p rq to \p in.
@@ -422,7 +410,7 @@ int request_bind(request_t *rq, io_t *in)
     return 0;
 }
 
-/**
+/*
  * \brief   Set the query string of a request
  *
  * Parse \p query string and build the \p rq->args list.
@@ -444,7 +432,7 @@ err:
     return ~0;
 }
 
-/**
+/*
  * \brief   Clear the URI field of a request
  *
  * Clear the URI field of request \p rq.
@@ -460,14 +448,13 @@ void request_clear_uri(request_t *rq)
     U_FREE(rq->path_info);
     U_FREE(rq->query);
     U_FREE(rq->filename);
-    U_FREE(rq->host);
     U_FREE(rq->resolved_path_info);
     U_FREE(rq->resolved_filename);
     U_FREE(rq->content_type);
     U_FREE(rq->content_encoding);
 }
 
-/**
+/*
  * \brief   Set the path info field of a request
  *
  * Set the path info field of request \p rq to \p path_info.
@@ -489,7 +476,7 @@ err:
     return ~0;
 }
 
-/**
+/*
  * \brief   Set the resolved path info field of a request
  *
  * Set the resolved path info field of request \p rq to \p resolved_pi.
@@ -606,7 +593,7 @@ err:
     return ~0;
 }
 
-/**
+/*
  * \brief   Save client request
  *
  * Save client request line
@@ -649,9 +636,7 @@ const char *request_get_client_request(request_t *rq)
     return rq->cli_rq;
 }
 
-/**
- * \brief   Set the method of a request
- *
+/*
  * Set the \p method of request \p rq.  Refer to http.h for possible methods.
  *
  * \param rq     request object
@@ -1136,9 +1121,7 @@ err:
     return ~0;
 }
 
-      
-/* internal */
-int request_get_uploaded_filev(request_t *rq, var_t *v,
+static int request_get_uploaded_filev(request_t *rq, var_t *v,
     char local_filename[U_FILENAME_MAX], char client_filename[U_FILENAME_MAX],
     char mime_type[MIME_TYPE_BUFSZ], size_t *file_size)
 {           
@@ -1412,8 +1395,6 @@ err:
 }
 
 /*
- * \brief   Parse a request object
- *  
  * Parse request object \p rq.
  *
  * \param rq            request object
@@ -1697,7 +1678,15 @@ int request_set_peer_addr(request_t *rq, addr_t *addr)
     return 0;
 }
 
-/* return the local socket address */
+/** 
+ * \brief   Return the local address
+ *  
+ * Return the IP address and port of the server end of the socket
+ *
+ * \param rq    request object
+ *  
+ * \return      a pointer to an addr_t type
+ */
 addr_t* request_get_addr(request_t *rq)
 {
     dbg_return_if (rq == NULL, NULL);
@@ -1705,7 +1694,15 @@ addr_t* request_get_addr(request_t *rq)
     return &rq->local_addr;
 }
 
-/* return the peer address */
+/** 
+ * \brief   Return the peer address
+ *  
+ * Return the IP address and port of the client connected to the web server
+ *
+ * \param rq    request object
+ *  
+ * \return      a pointer to an addr_t type
+ */
 addr_t* request_get_peer_addr(request_t *rq)
 {
     dbg_return_if (rq == NULL, NULL);
@@ -1713,7 +1710,16 @@ addr_t* request_get_peer_addr(request_t *rq)
     return &rq->peer_addr;
 }
 
-/* return the header obj */
+/** 
+ * \brief   Return the header object
+ *  
+ * Return the header object
+ *
+ * \param rq    request object
+ *  
+ * \return      a pointer to an header_t type
+ * \sa      header_t
+ */
 header_t* request_get_header(request_t *rq)
 {
     dbg_return_if (rq == NULL, NULL);
@@ -1721,8 +1727,16 @@ header_t* request_get_header(request_t *rq)
     return rq->header;
 }
 
-/* return a field obj of the field named 'name' or NULL if the field does not 
-   exist */
+/** 
+ * \brief   Get an header field
+ *  
+ * Return the header field named \p name.
+ *
+ * \param rq    request object
+ * \param name  the name of the field
+ *  
+ * \return      the header field or NULL if the header is not found
+ */
 field_t* request_get_field(request_t *rq, const char *name)
 {
     dbg_return_if (rq == NULL, NULL);
@@ -1731,8 +1745,16 @@ field_t* request_get_field(request_t *rq, const char *name)
     return header_get_field(rq->header, name);
 }
 
-/* return the string value of the field named 'name' or NULL if the field does
-   not exist */
+/** 
+ * \brief   Get the value of an header field
+ *  
+ * Return the value of an header field named \p name.
+ *
+ * \param rq    request object
+ * \param name  the name of the field
+ *  
+ * \return      the value of the field or NULL if the field is not found
+ */
 const char* request_get_field_value(request_t *rq, const char *name)
 {
     dbg_return_if (rq == NULL, NULL);

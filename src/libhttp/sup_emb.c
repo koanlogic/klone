@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.28 2007/10/17 22:58:35 tat Exp $
+ * $Id: sup_emb.c,v 1.29 2007/10/25 20:26:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -24,8 +24,8 @@
 #include <klone/rsfilter.h>
 #include "http_s.h"
 
-static int supemb_is_valid_uri(http_t *h, const char *uri, size_t len, 
-        time_t *mtime)
+static int supemb_is_valid_uri(http_t *h, request_t *rq, const char *uri, 
+        size_t len, time_t *mtime)
 {
     embres_t *e;
     char filename[U_FILENAME_MAX] = { 0 };
