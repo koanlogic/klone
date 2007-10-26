@@ -1,4 +1,4 @@
-$Id: ChangeLog,v 1.31 2007/10/25 20:26:56 tat Exp $
+$Id: ChangeLog,v 1.32 2007/10/26 10:37:23 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
@@ -27,7 +27,7 @@ KLone 2.0.0:
 	  Klone dameon on 'make install'
 	- request, response, session, in and out variables are always in-scope in
 	  .kl1 and .klx files
-	- CGI support
+	- CGI support (not on Windows)
 	- -Z and -e can be used more then once to provide more then one compress 
 	  and/or encrypt file patterns
 	- -x argument added to klone tool to avoid importing files that match the 

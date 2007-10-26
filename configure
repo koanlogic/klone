@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.78 2007/10/25 22:10:06 tat Exp $
+# $Id: configure,v 1.79 2007/10/26 10:37:23 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -139,6 +139,11 @@ makl_add_var_mk "CFLAGS" "\$(LIBZ_CFLAGS)"
 # if debug is not enabled add optimization flags
 if [ -z "`makl_get_var_mk "KLONE_DEBUG"`" ]; then
     makl_append_var_mk "CFLAGS"   "-O2"
+fi
+
+if [ "`makl_get_var_mk "ENABLE_SUP_CGI"`" -a "`makl_get_var_mk "OS_WIN"`"]; then
+    echo ; echo "    ### Error: CGI is not supported on Windows ###"; echo;
+    exit 1;
 fi
 
 if [ -d skin/default ]; then
