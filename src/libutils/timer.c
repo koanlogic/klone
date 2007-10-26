@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: timer.c,v 1.15 2006/04/22 13:59:01 tat Exp $
+ * $Id: timer.c,v 1.16 2007/10/26 10:14:52 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -90,7 +90,7 @@ void timerm_sigalrm(int sigalrm)
     {
         /* get the topmost item and remove it from the list */
         al = TAILQ_FIRST(&timer->alist);
-        dbg_err_if(al == NULL);
+        nop_err_if(al == NULL);
 
         expire = al->expire;
 
