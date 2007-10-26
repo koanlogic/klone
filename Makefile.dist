@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.26 2007/10/10 16:16:05 tat Exp $
+# $Id: Makefile.dist,v 1.27 2007/10/26 16:06:48 tat Exp $
 
 include common.mk
 
@@ -46,6 +46,10 @@ DISTFILES += $(wildcard etc/*.conf)
 # test stuff
 DISTFILES += $(wildcard test/Makefile)
 DISTFILES += $(wildcard test/*.[ch])
+
+# doxygen source
+DISTFILES += $(wildcard doc/doxy/src/kl*)
+DISTFILES += $(wildcard doc/doxy/src/toc.txt)
 
 # doxy bits
 DISTREMAP += doc/doxy/src/kl.css doc/html/kl.css
