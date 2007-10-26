@@ -1,5 +1,89 @@
 /**
- * \defgroup http   HTTP Bits
+ * \mainpage KLone 
+
+ 
+ Below there's a quick reference list of essential variables and functions 
+ used by all KLone applications. 
+
+ A more complete list is available following the links above.
+
+ 
+\section essvars Essential variables
+
+Any KLone dynamic page (*.kl1) can access the following predefined objects:
+
+<ul>
+<li> \ref request "request_t" *request;  \n
+            \par \n
+            &nbsp;\n
+    Used to access all information relative to the current HTTP request such\n
+    as form variables, cookies, HTTP header fields, uploaded files, etc. \n
+    &nbsp;
+<li>     \ref response "response_t" *response; \n
+            \par \n
+            &nbsp;\n
+    This object lets you access and modify the HTTP response entities like \n
+    header fields and status code. \n
+    &nbsp;
+<li>     \ref session "session_t" *session; \n
+            \par \n
+            &nbsp;\n
+    Sessions are objects which can be used to preserve client related \n
+    information across subsequent accesses.\n
+    Simple functions are provided to set/get {name, value} pairs.\n
+    &nbsp;
+<li>     \ref basic "io_t" *out; \n
+            \par \n
+            &nbsp;\n
+    The output object is used to print out dynamically generated content.\n
+    &nbsp;
+</ul>
+
+\section essfuncs Essential functions
+
+<ul>
+
+<li>
+\code 
+const char* request_get_arg (request_t *rq, const char *name)
+\endcode
+    \par 
+    Return the value of a form variable.
+
+<li>
+\code 
+const char* request_get_field_value(request_t *rq, const char *name);
+\endcode
+    \par 
+    Return the value of an header field.
+
+<li>
+\code 
+int response_redirect(response_t *rs, const char *url)
+\endcode
+    \par 
+    Redirect to the specified URL.
+
+<li>
+\code
+const char *session_get(session_t *ss, const char *name)
+\endcode
+    \par 
+    Get the value of a session variable.
+
+<li>
+\code
+int session_set(session_t *ss, const char *name, const char *value)
+\endcode
+    \par 
+    Set the value of a session variable.
+
+</ul>
+
+ */
+
+/**
+ * \defgroup http   Dynamic page interfaces
  *  \{
  *      \par 
  *      Basic knowledge of the HTTP protocol is assumed. Hence only the
@@ -22,24 +106,12 @@
  */
 
 /**
- *  \defgroup header Header Manipulation
- *  \ingroup http
- */
-
-/**
  *  \defgroup session Sessions
  *  \ingroup http
  */
 
 /**
  * \}
- */
-
-/**
- *  \defgroup vars Form Variables Handling
- *  \{
- *      \par
- *  \}
  */
 
 /**
