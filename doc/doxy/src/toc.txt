@@ -27,7 +27,7 @@
  */
 
 /**
- *  \defgroup session Sessions and Cookies
+ *  \defgroup session Sessions
  *  \ingroup http
  */
 
