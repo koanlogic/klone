@@ -15,28 +15,24 @@ Any KLone dynamic page (*.kl1) can access the following predefined objects:
 <ul>
 <li> \ref request "request_t" *request;  \n
             \par \n
-            &nbsp;\n
     Used to access all information relative to the current HTTP request such\n
-    as form variables, cookies, HTTP header fields, uploaded files, etc. \n
-    &nbsp;
+    as form variables, cookies, HTTP header fields, uploaded files, etc.
+
 <li>     \ref response "response_t" *response; \n
             \par \n
-            &nbsp;\n
     This object lets you access and modify the HTTP response entities like \n
-    header fields and status code. \n
-    &nbsp;
+    header fields and status code. 
+
 <li>     \ref session "session_t" *session; \n
             \par \n
-            &nbsp;\n
     Sessions are objects which can be used to preserve client related \n
     information across subsequent accesses.\n
-    Simple functions are provided to set/get {name, value} pairs.\n
-    &nbsp;
+    Simple functions are provided to set/get {name, value} pairs.
+
 <li>     \ref basic "io_t" *out; \n
             \par \n
-            &nbsp;\n
-    The output object is used to print out dynamically generated content.\n
-    &nbsp;
+    The output object is used to print out dynamically generated content.
+
 </ul>
 
 \section essfuncs Essential functions
