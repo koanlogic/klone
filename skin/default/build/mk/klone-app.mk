@@ -184,6 +184,7 @@ $(KLONE_WEBAPP): Makefile
 	@echo "WEBAPP_CFLAGS ?= $(WEBAPP_CFLAGS)" >> $(KLONE_WEBAPP)
 	@echo "WEBAPP_LDFLAGS ?= $(WEBAPP_LDFLAGS)" >> $(KLONE_WEBAPP)
 	@echo "WEBAPP_LDADD ?= $(WEBAPP_LDADD)" >> $(KLONE_WEBAPP)
+	@touch $(KLONE_SRC)/site/pg_nop.c
 	@touch $(KLONE_SRC)/site/pg_*.c
 	@rm -f .wc .wc.old                                                          
 else
