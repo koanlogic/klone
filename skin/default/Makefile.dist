@@ -32,8 +32,8 @@ $(KLONE_CORE_TARBALL):
 	cd $(BASE)/makl && make toolchain rc
 	cd $(BASE) && . makl/makl.env && ./configure && make && \
 	    make -f Makefile.dist dist
+	rm -rf build/dist
 	mkdir -p build/dist
-	rm -f build/dist/*
 	cd build/dist && ln -sf $(BASE)/klone-core-$(VERSION).tar.gz
 
 ChangeLog:
