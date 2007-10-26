@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: broker.c,v 1.17 2007/10/25 20:26:56 tat Exp $
+ * $Id: broker.c,v 1.18 2007/10/26 11:04:11 tat Exp $
  */
 
 #include <u/libu.h>
@@ -101,7 +101,9 @@ int broker_create(broker_t **pb)
 #ifdef ENABLE_SUP_CGI
     b->sup_list[i++] = &sup_cgi;
 #else
+#ifndef OS_WIN
     warn("CGI support disabled, use --enable_cgi to enable it");
+#endif
 #endif
 
 #ifdef ENABLE_SUP_FS
