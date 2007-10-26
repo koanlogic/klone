@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.h,v 1.29 2007/10/17 22:58:35 tat Exp $
+ * $Id: utils.h,v 1.30 2007/10/26 10:01:09 tat Exp $
  */
 
 #ifndef _KLONE_UTILS_H_
@@ -104,7 +104,7 @@ int u_asctime_to_tt(const char *str, time_t *tp);
 
 void u_print_version_and_exit(void);
 
-int u_path_normalize(char *fqn);
+int u_uri_normalize(char *fqn);
 
 #ifdef HAVE_LIBOPENSSL
 int u_cipher_encrypt(const EVP_CIPHER *cipher, unsigned char *key, 

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: path.c,v 1.2 2007/10/25 22:09:24 tat Exp $
+ * $Id: path.c,v 1.3 2007/10/26 10:01:09 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -31,8 +31,9 @@
  * - \c 0   successful
  * - \c ~0  error
  */
-int u_path_normalize(char *path)
+int u_uri_normalize(char *path)
 {
+    enum { SLASH = '/', BACKSLASH = '\\' };
     u_string_t *s = NULL;
     size_t len;
     char delim[2];
@@ -41,13 +42,18 @@ int u_path_normalize(char *path)
 
     dbg_err_if(path == NULL);
 
-    /* must be an absolute path (i.e. must start with a slash) */
-    dbg_err_if(path[0] != U_PATH_SEPARATOR); 
+    /* convert backslashes to slashes */
+    for(pp = path; *pp; ++pp)
+        if(*pp == BACKSLASH)
+            *pp = SLASH;
 
-    if(path[strlen(path)-1] == U_PATH_SEPARATOR)
+    /* must be an absolute path (i.e. must start with a slash) */
+    dbg_err_if(path[0] != SLASH); 
+
+    if(path[strlen(path)-1] == SLASH)
         trsl = 1;
 
-    dbg_err_if(u_snprintf(delim, sizeof(delim), "%c", U_PATH_SEPARATOR));
+    dbg_err_if(u_snprintf(delim, sizeof(delim), "%c", SLASH));
 
     dbg_err_if(u_string_create(NULL, 0, &s));
 
@@ -65,17 +71,17 @@ int u_path_normalize(char *path)
             /* eat last dir */
             len = u_string_len(s);
             cs = u_string_c(s) + u_string_len(s) - 1;
-            for(; len && *cs != U_PATH_SEPARATOR; --len, --cs)
+            for(; len && *cs != SLASH; --len, --cs)
                 continue;
             /* crop */
             dbg_err_if(u_string_set_length(s, (len ? --len : 0) ));
         } else {
-            dbg_err_if(u_string_aprintf(s, "%c%s", U_PATH_SEPARATOR, tok));
+            dbg_err_if(u_string_aprintf(s, "%c%s", SLASH, tok));
         }
     }
 
     if(!u_string_len(s) || trsl)
-        dbg_err_if(u_string_aprintf(s, "%c", U_PATH_SEPARATOR));
+        dbg_err_if(u_string_aprintf(s, "%c", SLASH));
 
     /* copy out */
     strcpy(path, u_string_c(s));
@@ -88,3 +94,4 @@ err:
         u_string_free(s);
     return ~0;
 }
+

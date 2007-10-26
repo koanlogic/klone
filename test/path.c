@@ -8,11 +8,13 @@ struct path_vec_s
 
 const struct path_vec_s paths[] = {
     { "/",              "/" },
-    { "/",              "/" },
+    { "\\",             "/" },
     { "//.",            "/" },
+    { "\\\\.",          "/" },
     { "///.",           "/" },
     { "//.//",          "/" },
     { "//.//",          "/" },
+    { "\\/./\\",        "/" },
     { "/.",             "/" },
     { "/..",            "/" },
     { "/../",           "/" },
@@ -22,7 +24,7 @@ const struct path_vec_s paths[] = {
     { "/a/../",         "/" },
     { "/../a",          "/a" },
     { "/../../../",     "/" },
-    { "/a/b/.../c",     "/a/b/c" },
+    { "/a/b/.../c",     "/a/b/.../c" },
     { "/a/b/./c",       "/a/b/c" },
     { "/a/b/./c/",      "/a/b/c/" },
     { "/a/b/../c",      "/a/c" },
@@ -42,14 +44,15 @@ static int test_normalize(void)
 
         strlcpy(buf, src, sizeof(buf));
 
-        con_err_if(u_path_normalize(buf));
+        con_err_if(u_uri_normalize(buf));
 
         con_err_if(strcmp(buf, exp));
     }
     return 0;
 err:
     if(src && exp && buf)
-        con("src: [%s]  exp: [%s]   norm: [%s]: FAILED", src, exp, buf);
+        con("[%d]: src: [%s]  exp: [%s]   norm: [%s]: FAILED", 
+                i, src, exp, buf);
     return ~0;
 }
 

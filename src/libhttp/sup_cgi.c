@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_cgi.c,v 1.6 2007/10/25 20:26:56 tat Exp $
+ * $Id: sup_cgi.c,v 1.7 2007/10/26 10:01:09 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -449,7 +449,7 @@ static int cgi_exec(request_t *rq, response_t *rs, pid_t *pchild,
         dbg_err_if(cgi_path == NULL);
 
         /* cut out filename part */
-        dbg_err_if((p = strrchr(cgi_path, U_PATH_SEPARATOR)) == NULL);
+        dbg_err_if((p = strrchr(cgi_path, '/')) == NULL);
         ++p; *p = 0;
 
         crit_err_sifm(chdir(cgi_path) < 0, "unable to chdir to %s", cgi_path);
@@ -558,7 +558,7 @@ static int cgi_serve(request_t *rq, response_t *rs)
     crit_err_sif(io_fd_create(cgi_stdout, O_RDONLY, &cgi_in));
 
     /* extract filename part of the fqn */
-    crit_err_if((filename = strrchr(fqn, U_PATH_SEPARATOR)) == NULL);
+    crit_err_if((filename = strrchr(fqn, '/')) == NULL);
     filename++;
 
     /* header of cgis whose name start with nhp- must not be parsed */

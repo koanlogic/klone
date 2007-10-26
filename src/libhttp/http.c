@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.50 2007/10/25 20:26:56 tat Exp $
+ * $Id: http.c,v 1.51 2007/10/26 10:01:09 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -113,8 +113,8 @@ static int http_try_resolv(const char *alias, char *dst, const char *uri,
     nop_err_if(strncmp(src, uri, strlen(src)));
 
     /* if src doesn't end with a slash check that the next char in uri is a / */
-    if(src[strlen(src)-1] != U_PATH_SEPARATOR)
-        nop_err_if(uri[strlen(src)] != U_PATH_SEPARATOR);
+    if(src[strlen(src)-1] != '/')
+        nop_err_if(uri[strlen(src)] != '/');
 
     /* alias found, get the resolved prefix */
     res = strtok_r(NULL, WP, &pp);
