@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.27 2007/10/26 08:57:59 tho Exp $
+ * $Id: vars.c,v 1.28 2007/10/26 11:21:51 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -16,47 +16,6 @@
 #include <klone/varprv.h>
 #include <klone/utils.h>
 
-
-/**
- *  \defgroup vars Form Variable Handling
- *  \{
- *      \par
- */
-
-/* get first variable called "name" */
-const char* vars_get_value(vars_t *vs, const char *name);
-var_t* vars_get(vars_t *vs, const char *name);
-
-int vars_get_value_i(vars_t *vs, const char *name);
-u_string_t* vars_get_value_s(vars_t *vs, const char *name);
-
-/* get i-th variable called "name" */
-var_t* vars_geti(vars_t *vs, const char *name, size_t ith);
-const char* vars_geti_value(vars_t *vs, const char *name, size_t ith);
-int vars_geti_value_i(vars_t *vs, const char *name, size_t ith);
-u_string_t* vars_geti_value_s(vars_t *vs, const char *name, size_t ith);
-
-
-var_t* vars_getn(vars_t *vs, size_t n);
-size_t vars_count(vars_t *vs);
-
-size_t vars_countn(vars_t *vs, const char *name);
-
-void vars_foreach(vars_t *vs, int (*foreach)(var_t*, void*), void *arg);
-
-int vars_add(vars_t *vs, var_t *v);
-int vars_del(vars_t *vs, var_t *v);
-
-/* str must be a 'name=value' string */
-int vars_add_strvar(vars_t *vs, const char *str);
-
-/* str must be a (possibly url-encoded) 'name=value' string */
-int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **v);
-
-/**
- *  \}
- */
-
 TAILQ_HEAD(var_list_s, var_s);
 
 struct vars_s
@@ -66,6 +25,7 @@ struct vars_s
 };
 
 /**
+ * \ingroup vars
  * \brief   Get \c u_string_t value of a variable
  *
  * Return an \c u_string_t containing the value of variable with \p name in
@@ -148,6 +108,7 @@ int vars_del(vars_t *vs, var_t *v)
 }
 
 /**
+ * \ingroup vars
  * \brief   Get ith variable
  *
  * Return the \c var_t at index \p i in list \p vs.
@@ -175,6 +136,7 @@ notfound:
 }
 
 /**
+ * \ingroup vars
  * \brief   Count the number of variables
  *
  * Return a the number of variables in a list
@@ -191,6 +153,7 @@ size_t vars_count(vars_t *vs)
 }
 
 /**
+ * \ingroup vars
  * \brief   Count the number of variables with given name
  *
  * Return a the number of variables in a list with given name \p name
@@ -217,6 +180,7 @@ size_t vars_countn(vars_t *vs, const char *name)
 }
 
 /**
+ * \ingroup vars
  * \brief   Add an URL variable
  *
  * Parse the "name=value" string \p cstr, url-decode name and value and push 
@@ -331,6 +295,7 @@ err:
 }
 
 /**
+ * \ingroup vars
  * \brief   Get i-th variable with given name
  *
  * Return the \c var_t object at index \p i with name \p var_name in list \p vs.
@@ -364,6 +329,7 @@ notfound:
 }
 
 /**
+ * \ingroup vars
  * \brief   Get a variable with given name
  *
  * Return a \c var_t object with name \p name in list \p vs.
@@ -384,6 +350,7 @@ var_t *vars_get(vars_t *vs, const char *var_name)
 }
 
 /**
+ * \ingroup vars
  * \brief   Get the integer value of a variable with a given name and index
  *
  * Get the integer value of the variable with name \p name and index \p ith 
@@ -412,6 +379,7 @@ int vars_geti_value_i(vars_t *vs, const char *name, size_t ith)
 }
 
 /**
+ * \ingroup vars
  * \brief   Get \c u_string_t value of i-th variable
  *
  * Return an \c u_string_t containing the value of i-th variable with \p name in
@@ -438,6 +406,7 @@ err:
 }
 
 /**
+ * \ingroup vars
  * \brief   Get the integer value of a variable with a given name.
  *
  * Return the integer value of the variable with name \p name in list \p vs.
@@ -458,6 +427,7 @@ int vars_get_value_i(vars_t *vs, const char *name)
 }
 
 /**
+ * \ingroup vars
  * \brief   Get the value of the variable at a given index. 
  *
  * Return the string value of the variable with name \p name and index \p ith 
@@ -484,6 +454,7 @@ const char *vars_geti_value(vars_t *vs, const char *name, size_t ith)
 }
 
 /**
+ * \ingroup vars
  * \brief   Get the value of the variable with given name.
  *
  * Return the string value of the variable with name \p name in list \p vs.
@@ -504,6 +475,7 @@ const char *vars_get_value(vars_t *vs, const char *name)
 }
 
 /**
+ * \ingroup vars
  * \brief   Execute a function on a list of variables
  *
  * Execute function \p cb with optional arguments \p arg on all variables 

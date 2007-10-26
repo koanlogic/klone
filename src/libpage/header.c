@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: header.c,v 1.19 2007/10/26 08:57:59 tho Exp $
+ * $Id: header.c,v 1.20 2007/10/26 11:21:51 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -15,30 +15,7 @@
 #include <klone/utils.h>
 
 /**
- *  \defgroup http HTTP Bits
- */
-
-/**
- *  \defgroup header Header Manipulation
- *  \ingroup http
- *  \{
- *      \par
- */
-
-const char* header_get_field_value(header_t *h, const char *name);
-field_t* header_get_field(header_t *h, const char *name);
-field_t* header_get_fieldn(header_t *h, size_t idx);
-size_t header_field_count(header_t *h);
-int header_set_field(header_t *h, const char *name, const char *value);
-int header_add_field(header_t *h, field_t *f);
-int header_del_field(header_t *h, field_t *f);
-int header_clear(header_t *h);
-
-/**
- *  \}
- */
-
-/**
+ * \ingroup header
  * \brief   Set the value of a field in a header
  *
  * Set the value of field \p name to \p value in header \p h.
@@ -73,6 +50,7 @@ err:
 }
 
 /**
+ * \ingroup header
  * \brief   Clear a header
  *
  * Clear all items in header \p h.
@@ -98,6 +76,7 @@ int header_clear(header_t *h)
 }
 
 /**
+ * \ingroup header
  * \brief   Count fields in a header
  *
  * Return the number of fields in header \p h.
@@ -114,6 +93,7 @@ size_t header_field_count(header_t *h)
 }
 
 /** 
+ * \ingroup header
  * \brief   Get ith field in a header
  *  
  * Return the \c field_t object at index \p idx in header \p h.
@@ -143,6 +123,7 @@ notfound:
 }
 
 /** 
+ * \ingroup header
  * \brief   Get a field given a name
  *  
  * Return the first matching \c field_t object with name \p name in header \p h
@@ -170,6 +151,7 @@ notfound:
 }
 
 /** 
+ * \ingroup header
  * \brief   Get field value
  *  
  * Return a string representation of the field with name \p name in header \p h
@@ -194,6 +176,7 @@ const char *header_get_field_value(header_t *h, const char *name)
 }
 
 /** 
+ * \ingroup header
  * \brief   Delete a field from a header
  *  
  * Delete the supplied field \p f in header \p h.
@@ -215,6 +198,7 @@ int header_del_field(header_t *h, field_t *f)
 }
 
 /** 
+ * \ingroup header
  * \brief   Add a field to a header
  *  
  * Add a field \p f to header \p h.
@@ -416,7 +400,3 @@ int header_free(header_t *h)
 
     return 0;
 }
-
-/**
- *  \}
- */  

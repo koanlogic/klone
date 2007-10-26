@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.47 2007/10/26 10:01:09 tat Exp $
+ * $Id: request.c,v 1.48 2007/10/26 11:21:51 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -24,53 +24,6 @@
 #include <klone/vars.h>
 #include <klone/timer.h>
 
-/**
- *  \defgroup request Request Handling 
- *  \ingroup http
- *  \{
- *      \par
- *      Basic knowledge of the HTTP protocol is assumed. Hence only the
- *      essential information is given. Some useful references are:
- *        - RFC 2616 for a complete description of HTTP 1.1 header fields
- *        - RFC 2109 for cookie format
- *        - RFC 822 for standard data type formats
- *        - http://www.iana.org/assignments/media-types/ for an updated
- *          list of possible mime-types
- */
-
- /* just the following functions will appear in the documentation */
-
-io_t* request_io(request_t *rq);
-http_t* request_get_http(request_t *rq);
-addr_t* request_get_addr(request_t *rq);
-addr_t* request_get_peer_addr(request_t *rq);
-header_t* request_get_header(request_t *rq);
-field_t* request_get_field(request_t *rq, const char *name);
-const char* request_get_field_value(request_t *rq, const char *name);
-const char *request_get_client_request(request_t *rq);
-const char *request_get_uri(request_t *rq);
-const char* request_get_protocol(request_t *rq);
-const char *request_get_filename(request_t *rq);
-const char *request_get_resolved_filename(request_t *rq);
-const char *request_get_query_string(request_t *rq);
-const char *request_get_path_info(request_t *rq);
-const char *request_get_resolved_path_info(request_t *rq);
-int request_get_method(request_t *rq);
-ssize_t request_get_content_length(request_t *rq);
-time_t request_get_if_modified_since(request_t *rq);
-int request_is_encoding_accepted(request_t *rq, const char *encoding);
-vars_t *request_get_uploads(request_t *rq);
-int request_get_uploaded_file(request_t *rq, const char *name, size_t idx, 
-    char local_filename[U_PATH_MAX], char client_filename[U_PATH_MAX], 
-    char mime_type[MIME_TYPE_BUFSZ], size_t *file_size);
-vars_t *request_get_args(request_t *rq);
-const char *request_get_arg(request_t *rq, const char *name);
-vars_t *request_get_cookies(request_t *rq);
-const char *request_get_cookie(request_t *rq, const char *name);
-
-/**
- *  \}
- */ 
 
 struct request_s
 {
@@ -161,6 +114,7 @@ err:
 }
 
 /**
+ * \ingroup request
  * \brief   Get the \c io_t object associated with a request object
  *
  * Return the I/O object (\c io_t) used by the request object passed as 
@@ -182,6 +136,7 @@ io_t *request_io(request_t *rq)
 }
 
 /**
+ * \ingroup request
  * \brief   Get the cookies list
  *
  * Return a \c vars_t object containing the list of all cookies sent by the
@@ -199,6 +154,7 @@ vars_t *request_get_cookies(request_t *rq)
 }
 
 /**
+ * \ingroup request
  * \brief   Get the value of a cookie named \p name
  *
  * Return the value of a cookie sent by the browser
@@ -221,6 +177,7 @@ const char *request_get_cookie(request_t *rq, const char *name)
 }
 
 /**
+ * \ingroup request
  * \brief   Get request arguments
  *
  * Return get/post arguments of request \p rq in a \c vars_t object
@@ -237,6 +194,7 @@ vars_t *request_get_args(request_t *rq)
 }
 
 /**
+ * \ingroup request
  * \brief   Get a request argument
  *
  * Return the string value of argument \p name in request \p rq.
@@ -270,6 +228,7 @@ int request_set_field(request_t *rq, const char *name, const char *value)
 }
 
 /** 
+ * \ingroup request
  * \brief   Get the URI field of a request
  *  
  * Return the string value of the URI in request \p rq.
@@ -286,6 +245,7 @@ const char *request_get_uri(request_t *rq)
 }
 
 /** 
+ * \ingroup request
  * \brief   Get the filename field of a request
  *  
  * Return the string value of the filename field in request \p rq.
@@ -302,6 +262,7 @@ const char *request_get_filename(request_t *rq)
 }
 
 /*
+ * \ingroup request
  * \brief   Set the filename field of a request
  *
  * Set the filename field of request \p rq to \p filename.
@@ -324,6 +285,7 @@ err:
 }
 
 /** 
+ * \ingroup request
  * \brief   Get the query string field of a request
  *  
  * Return the query string field of request \p rq.
@@ -340,6 +302,7 @@ const char *request_get_query_string(request_t *rq)
 }
 
 /** 
+ * \ingroup request
  * \brief   Get the path info field of a request
  *  
  * Return the path info field of request \p rq.
@@ -373,6 +336,7 @@ err: /* ignore if it's not formatted properly */
 }
 
 /**
+ * \ingroup request
  * \brief   Get IMS field of a request
  *
  * Return the \c time_t value of the IMS field of request \p rq
@@ -389,6 +353,7 @@ time_t request_get_if_modified_since(request_t *rq)
 }
 
 /*
+ * \ingroup request
  * \brief   Set the resolved filename field of a request
  *
  * Set the resolved filename field of request \p rq to \p resolved_fn
@@ -411,6 +376,7 @@ err:
 }
 
 /** 
+ * \ingroup request
  * \brief   Get the HTTP server handle of a request
  *  
  * Get the \c http_t object containing the HTTP server handle of request \p rq
@@ -427,6 +393,7 @@ http_t* request_get_http(request_t *rq)
 }
 
 /*
+ * \ingroup request
  * \brief   Bind request I/O to a given I/O. 
  *  
  * Bind the I/O of request \p rq to \p in.
@@ -447,6 +414,7 @@ int request_bind(request_t *rq, io_t *in)
 }
 
 /*
+ * \ingroup request
  * \brief   Set the query string of a request
  *
  * Parse \p query string and build the \p rq->args list.
@@ -482,6 +450,7 @@ void request_clear_uri(request_t *rq)
 }
 
 /*
+ * \ingroup request
  * \brief   Set the path info field of a request
  *
  * Set the path info field of request \p rq to \p path_info.
@@ -504,6 +473,7 @@ err:
 }
 
 /*
+ * \ingroup request
  * \brief   Set the resolved path info field of a request
  *
  * Set the resolved path info field of request \p rq to \p resolved_pi.
@@ -526,6 +496,7 @@ err:
 }
 
 /*
+ * \ingroup request
  * \brief   Set the URI field of a request
  *
  * Set the URI field of request \p rq to \p uri given 
@@ -621,6 +592,7 @@ err:
 }
 
 /*
+ * \ingroup request
  * \brief   Save client request
  *
  * Save client request line
@@ -650,6 +622,7 @@ err:
 }
 
 /**
+ * \ingroup request
  * \brief   Return the client request line
  *
  * Return the client request (METHOD URI HTTP/HTTP_VERSION)
@@ -787,6 +760,7 @@ void request_set_cgi(request_t *rq, int cgi)
 }
 
 /** 
+ * \ingroup request
  * \brief   Get the content length of a request
  *  
  * Retrieve a size_t corresponding to the \e Content-Length field of request 
@@ -1073,22 +1047,23 @@ err:
 
 
 /**
-* \brief   Get uploaded files
-*
-* Return the list of uploaded files. 
-*
-* Any var_t in the list will contain, 
-* within its name/value pair, the name of the HTML form input tag "name" 
-* argument and the filename (with full path) of the temporary file where
-* uploaded content has been stored.
-*
-* This function is only useful to enumerate uploads, 
-* \sa request_get_uploaded_file is what you'll probably use.
-*
-* \param rq  request object
-*
-* \return the arguments' list of the given \p rq
-*/
+ * \ingroup request
+ * \brief   Get uploaded files
+ *
+ * Return the list of uploaded files. 
+ *
+ * Any var_t in the list will contain, 
+ * within its name/value pair, the name of the HTML form input tag "name" 
+ * argument and the filename (with full path) of the temporary file where
+ * uploaded content has been stored.
+ *
+ * This function is only useful to enumerate uploads, 
+ * \sa request_get_uploaded_file is what you'll probably use.
+ *
+ * \param rq  request object
+ *
+ * \return the arguments' list of the given \p rq
+ */
 vars_t *request_get_uploads(request_t *rq)
 {
     return rq->uploads;
@@ -1180,6 +1155,7 @@ err:
 }
 
 /** 
+ * \ingroup request
  * \brief   Get info and handles of an uploaded file
  *  
  * Return information and handles about an uploaded file 
@@ -1493,6 +1469,7 @@ err:
 }
 
 /** 
+ * \ingroup request
  * \brief   Get the method of a request
  *  
  * Return the method of request \p rq. Refer to http.h for possible methods.
@@ -1510,6 +1487,7 @@ int request_get_method(request_t *rq)
 }
 
 /** 
+ * \ingroup request
  * \brief   Get the protocol used by the client request
  *  
  * Return the protocol of request \p rq ("HTTP/1.0", "HTTP/1.1", etc.)
@@ -1527,6 +1505,7 @@ const char* request_get_protocol(request_t *rq)
 }
 
 /** 
+ * \ingroup request
  * \brief   Get resolved filename of a request
  *  
  * Return a string representing the resolved filename of request \p rq.
@@ -1543,6 +1522,7 @@ const char *request_get_resolved_filename(request_t *rq)
 }
 
 /** 
+ * \ingroup request
  * \brief   Get the resolved path info of a request.
  *  
  * Return a string representing the resolved path info of request \p rq.
@@ -1706,6 +1686,7 @@ int request_set_peer_addr(request_t *rq, addr_t *addr)
 }
 
 /** 
+ * \ingroup request
  * \brief   Return the local address
  *  
  * Return the IP address and port of the server end of the socket
@@ -1722,6 +1703,7 @@ addr_t* request_get_addr(request_t *rq)
 }
 
 /** 
+ * \ingroup request
  * \brief   Return the peer address
  *  
  * Return the IP address and port of the client connected to the web server
@@ -1738,6 +1720,7 @@ addr_t* request_get_peer_addr(request_t *rq)
 }
 
 /** 
+ * \ingroup request
  * \brief   Return the header object
  *  
  * Return the header object
@@ -1755,6 +1738,7 @@ header_t* request_get_header(request_t *rq)
 }
 
 /** 
+ * \ingroup request
  * \brief   Get an header field
  *  
  * Return the header field named \p name.
@@ -1773,6 +1757,7 @@ field_t* request_get_field(request_t *rq, const char *name)
 }
 
 /** 
+ * \ingroup request
  * \brief   Get the value of an header field
  *  
  * Return the value of an header field named \p name.

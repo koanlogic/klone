@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.c,v 1.27 2007/10/26 08:57:59 tho Exp $
+ * $Id: response.c,v 1.28 2007/10/26 11:21:51 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -18,44 +18,6 @@
 #include <klone/http.h>
 #include <klone/rsfilter.h>
 
-/**
- *  \defgroup response Response Handling
- *  \ingroup http
- *  \{
- *      \par 
- *      Basic knowledge of the HTTP protocol is assumed. Hence only the
- *      essential information is given. Some useful references are:
- *        - RFC 2616 for a complete description of HTTP 1.1 header fields
- *        - RFC 2109 for cookie format
- *        - RFC 822 for standard data type formats
- *        - http://www.iana.org/assignments/media-types/ for an updated
- *        list of possible mime-types
- */
-
-
-io_t* response_io(response_t *rs);
-int response_set_status(response_t *rs, int code);
-int response_get_status(response_t *rs);
-int response_get_method(response_t *rs);
-int response_redirect(response_t *rs, const char *url);
-header_t* response_get_header(response_t *rs);
-field_t* response_get_field(response_t *rs, const char *name);
-const char* response_get_field_value(response_t *rs, const char *name);
-int response_set_field(response_t *rs, const char *name, const char *value);
-int response_set_content_type(response_t *rs, const char *mime_type);
-int response_set_content_length(response_t *rs, size_t sz);
-int response_set_content_encoding(response_t *rs, const char *encoding);
-int response_set_last_modified(response_t *rs, time_t mtime);
-int response_set_date(response_t *rs, time_t now);
-int response_set_cookie(response_t *rs, const char *name, const char *value,
-    time_t expire, const char *path, const char *domain, int secure);
-int response_enable_caching(response_t *rs);
-int response_disable_caching(response_t *rs);
-
-/**
- *  \}
- */ 
-
 struct response_s
 {
     http_t *http;           /* http server handle               */
@@ -66,9 +28,8 @@ struct response_s
     int cgi;                /* if we're running in cgi context  */
 };
 
-
-
 /**
+ * \ingroup response
  * \brief   Set response content encoding field 
  * 
  * Set the \e Content-Encoding field in a response object \p rs to \p encoding.
@@ -92,6 +53,7 @@ err:
 }
 
 /**
+ * \ingroup response
  * \brief   Add all header field that enable page caching (i.e. disable caching)
  * 
  * Adds all relevant Header fields to the current HTTP response to avoid 
@@ -125,6 +87,7 @@ err:
 }
 
 /**
+ * \ingroup response
  * \brief   Remove all headers that inhibit page caching
  * 
  * Remove all HTTP Header fields that (should) prevent browsers caching. This
@@ -156,6 +119,7 @@ err:
 }
 
 /**
+ * \ingroup response
  * \brief    Set the value of a cookie 
  *
  * Set the value of a cookie named \p name to \p value in response object \p rs.
@@ -230,6 +194,7 @@ err:
 }
 
 /*
+ * \ingroup response
  * \brief   Print the status of a response object.
  *
  * A string representing the status of a response object \p rs is printed to \p
@@ -253,6 +218,7 @@ err:
 }
 
 /*
+ * \ingroup response
  * \brief   Print a response field.
  *
  * Print the name and value of a \p field of \p response to \p io.
@@ -277,6 +243,7 @@ err:
 }
 
 /** 
+ * \ingroup response
  * \brief   Set the response method
  *  
  * Set the response method of \p rs to \p method. For possible values of
@@ -294,6 +261,7 @@ void response_set_method(response_t *rs, int method)
 }
 
 /** 
+ * \ingroup response
  * \brief   Get the response method
  *  
  * Get the response method of \p rs. For possibile values of method, refer to
@@ -345,6 +313,7 @@ size_t response_get_max_header_size(response_t *rs)
 }
 
 /* 
+ * \ingroup response
  * \brief   Output a response header 
  *
  * Print the header of \p rs to \p io.
@@ -380,6 +349,7 @@ err:
 }
 
 /** 
+ * \ingroup response
  * \brief   Print a response header
  *  
  * Print the header of \p rs
@@ -397,6 +367,7 @@ int response_print_header(response_t *rs)
 
 
 /**
+ * \ingroup response
  * \brief   Set an header field of a response object
  *
  * Set field \p name to \p value in reponse object \p rs.
@@ -416,6 +387,7 @@ int response_set_field(response_t *rs, const char *name, const char *value)
 
 
 /**
+ * \ingroup response
  * \brief   Remove an header field of a response object
  *
  * Remove the header field whose name is \p name
@@ -445,6 +417,7 @@ err:
 }
 
 /**
+ * \ingroup response
  * \brief   Set the content type of a response to a mime type
  *
  * Set the \e Content-Type field of response \p rs to \p mime_type.
@@ -468,6 +441,7 @@ err:
 }
 
 /**
+ * \ingroup response
  * \brief   Set the date field in a response header
  *
  * Set the \e Date field of \p rs to \p date. 
@@ -494,6 +468,7 @@ err:
 }
 
 /**
+ * \ingroup response
  * \brief   Set the last modified field in a response header
  *
  * Set the \e Last-Modified field of \p rs to \p mtime.
@@ -520,6 +495,7 @@ err:
 }
 
 /**
+ * \ingroup response
  * \brief   Set the content length field of a response header
  *
  * Set the \e Content-Length field of \p rs to \p sz.
@@ -546,6 +522,7 @@ err:
 }
 
 /** 
+ * \ingroup response
  * \brief   Get the status of a response
  *  
  * Get the status of a response \p rs. For possible values of status refer to
@@ -562,6 +539,7 @@ int response_get_status(response_t *rs)
 }
 
 /**
+ * \ingroup response
  * \brief   Get the header of a response
  *
  * Get the header of a response \p rs.
@@ -577,6 +555,7 @@ header_t* response_get_header(response_t *rs)
 }
 
 /**
+ * \ingroup response
  * \brief   Get the I/O object of a response
  *
  * Get the I/O object of reponse \p rs.
@@ -592,6 +571,7 @@ io_t* response_io(response_t *rs)
 }
 
 /** 
+ * \ingroup response
  * \brief   Redirect to a given url
  *  
  * Redirect to \e url by setting the \e Location field in response \p rs.
@@ -620,6 +600,7 @@ err:
 }
 
 /** 
+ * \ingroup response
  * \brief   Set the status of a response
  *  
  * Set the \p status of response \p rs. For possible values of status
@@ -639,6 +620,7 @@ int response_set_status(response_t *rs, int status)
 }
 
 /*
+ * \ingroup response
  * \brief   Bind the response to a given I/O object
  *  
  * Bind response \p rs to I/O object \p out.
@@ -657,6 +639,7 @@ int response_bind(response_t *rs, io_t *out)
 }
 
 /*
+ * \ingroup response
  * \brief   Create a response object
  *  
  * \param http  parameter \p http description
@@ -689,6 +672,7 @@ err:
 }
 
 /*
+ * \ingroup response
  * \brief   Free a response object
  *  
  * \param rs response object

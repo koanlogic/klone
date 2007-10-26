@@ -1,0 +1,72 @@
+/**
+ * \defgroup http   HTTP Bits
+ *  \{
+ *      \par 
+ *      Basic knowledge of the HTTP protocol is assumed. Hence only the
+ *      essential information is given. Some useful references are:
+ *        - RFC 2616 for a complete description of HTTP 1.1 header fields
+ *        - RFC 2109 for cookie format
+ *        - RFC 822 for standard data type formats
+ *        - http://www.iana.org/assignments/media-types/ for an updated
+ *        list of possible mime-types
+ */
+
+/**
+ *  \defgroup request Request Handling 
+ *  \ingroup http
+ */
+
+/**
+ *  \defgroup response Response Handling
+ *  \ingroup http
+ */
+
+/**
+ *  \defgroup header Header Manipulation
+ *  \ingroup http
+ */
+
+/**
+ *  \defgroup session Sessions and Cookies
+ *  \ingroup http
+ */
+
+/**
+ * \}
+ */
+
+/**
+ *  \defgroup vars Form Variables Handling
+ *  \{
+ *      \par
+ *  \}
+ */
+
+/**
+ *  \defgroup io Input/Output
+ *  \{
+ *      \par
+ */
+
+/**
+ *  \defgroup basic Basic Functions
+ *  \ingroup io
+ */
+
+/**
+ *  \defgroup filters Filters for Compression and Encryption
+ *  \ingroup io
+ */
+
+/**
+ * \}
+ */
+
+/**
+ *  \defgroup ut Miscellaneous Utility Functions
+ *  \{
+ *      \par
+ *  \}
+ */
+ */
+

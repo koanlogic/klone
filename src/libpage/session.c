@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.39 2007/10/26 08:57:59 tho Exp $
+ * $Id: session.c,v 1.40 2007/10/26 11:21:51 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -30,23 +30,6 @@
 #include <klone/utils.h>
 #include <klone/ses_prv.h>
 #include <klone/codecs.h>
-
-/**
- *  \defgroup session Sessions and Cookies
- *  \ingroup http
- *  \{
- *      \par
- */
-int session_set(session_t*, const char*, const char*);
-const char *session_get(session_t*, const char*);
-vars_t *session_get_vars(session_t*);
-int session_del(session_t*, const char*);
-int session_clean(session_t*);
-int session_age(session_t*);
-
-/**
- *  \}
- */
 
 enum { DEFAULT_SESSION_EXPIRATION = 60*20 }; /* 20 minutes */
 static const char SID_NAME[] = "klone_sid";
@@ -519,6 +502,7 @@ int session_free(session_t *ss)
 }
 
 /** 
+ * \ingroup session
  * \brief   Get session variables
  *  
  * Return a vars_t containing the session variables.
@@ -535,6 +519,7 @@ vars_t *session_get_vars(session_t *ss)
 }
 
 /**
+ * \ingroup session
  * \brief   Get session variable with given name
  *
  * Return a string representation of variable in \p ss with given \p name.
@@ -557,6 +542,7 @@ const char *session_get(session_t *ss, const char *name)
 }
 
 /** 
+ * \ingroup session
  * \brief   Set session variable with given name to a value
  *  
  * Put variable with \p name and \p value into \p ss.
@@ -596,6 +582,7 @@ err:
 }
 
 /** 
+ * \ingroup session
  * \brief   Get the amount of time a session has been inactive
  *  
  * Return the number of seconds since the session was last modified.
@@ -619,6 +606,7 @@ int session_age(session_t *ss)
 }
 
 /** 
+ * \ingroup session
  * \brief   Remove all session variables
  *  
  * Remove all session variables from \p ss.
@@ -645,6 +633,7 @@ err:
 }
 
 /**
+ * \ingroup session
  * \brief   Delete session variable given a name
  *  
  * Delete session variable \p name in \p ss.

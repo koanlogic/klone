@@ -5,19 +5,14 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: codec.c,v 1.11 2007/10/26 08:57:59 tho Exp $
+ * $Id: codec.c,v 1.12 2007/10/26 11:21:51 tho Exp $
  */
 
 #include <klone/codec.h>
 #include <u/libu.h>
 
 /**
- *  \defgroup filters Filters for Compression and Encryption
- *  \ingroup io
- *  \{
- */
-
-/**
+ * \ingroup filters
  * \brief   Dispose all the resources allocated to the supplied codec
  *
  * Dispose all the resources allocated to the supplied \p codec
@@ -37,7 +32,3 @@ int codec_free(codec_t *codec)
     }
     return 0;
 }
-
-/**
- *  \}
- */ 

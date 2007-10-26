@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.48 2007/10/26 08:57:59 tho Exp $
+ * $Id: utils.c,v 1.49 2007/10/26 11:21:51 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -30,38 +30,6 @@
 #ifdef HAVE_STRINGS
 #include <strings.h>
 #endif
-
-/**
- *  \defgroup ut Miscellaneous Utility Functions
- *  \{
- */
-ssize_t u_urlncpy(char *dst, const char *src, size_t slen, int flags);
-ssize_t u_hexncpy(char *dst, const char *src, size_t slen, int flags);
-ssize_t u_htmlncpy(char *dst, const char *src, size_t slen, int flags);
-ssize_t u_sqlncpy(char *dst, const char *src, size_t slen, int flags);
-void u_tohex(char *hex, const char *src, size_t sz);
-char u_tochex(int n);
-
-int u_md5(char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ]);
-int u_md5io(io_t *io, char out[MD5_DIGEST_BUFSZ]);
-
-const char* u_guess_mime_type(const char *file_name);
-const mime_map_t* u_get_mime_map(const char *file_name);
-int u_match_ext(const char *filename, const char *extension);
-
-/* date time conversion funcs */
-int u_tt_to_rfc822(char dst[], time_t ts);
-int u_httpdate_to_tt(const char *str, time_t *tp);
-int u_rfc822_to_tt(const char *str, time_t *tp);
-int u_rfc850_to_tt(const char *str, time_t *tp);
-int u_asctime_to_tt(const char *str, time_t *tp);
-
-int u_path_normalize(char *fqn);
-
-
-/**
- *  \}
- */
 
 enum { LF = 0xA, CR = 0xD };
 
@@ -108,6 +76,7 @@ err:
 
 
 /**
+ * \ingroup ut
  * \brief   Locate a substring in another string
  * 
  * The function locates the first occurrence of \p sub in the string 
@@ -146,6 +115,7 @@ char *u_strnstr(const char *buf, const char *sub, size_t buflen)
 }
 
 /**
+ * \ingroup ut
  * \brief   Apply the supplied callback to each file in a given directory
  * 
  * Apply the supplied callback \p cb with additional arguments \p arg to each
@@ -200,6 +170,7 @@ err:
 }
 
 /**
+ * \ingroup ut
  * \brief   Match filename extension
  * 
  * Return 1 if the filename externsion is equal to \p extension
@@ -303,6 +274,7 @@ static ssize_t u_sqlncpy_decode(char *d, const char *s, size_t slen)
 }
 
 /**
+ * \ingroup ut
  * \brief   Copy and SQL escape/unescape a given string 
  *
  * Copy and SQL escape/unescape, depending on \p flags value, the string \p s 
@@ -401,6 +373,7 @@ err:
 }
 
 /**
+ * \ingroup ut
  * \brief   Copy and URL escape/unescape a given string 
  *
  * Copy an URL escaped/unescaped version of string \p s, depending on 
@@ -504,6 +477,7 @@ static ssize_t u_hexncpy_encode(char *d, const char *s, size_t slen)
 }
 
 /**
+ * \ingroup ut
  * \brief   Copy and HEX encode/decode a given string 
  *
  * Copy an HEX encoded/decoded version of string \p s, depending on 
@@ -601,6 +575,7 @@ static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
 }
 
 /**
+ * \ingroup ut
  * \brief   Copy and HTML escape/unescape a given string 
  *
  * Copy an HTML escaped/unescaped version of string \p s, depending on 
@@ -636,6 +611,7 @@ err:
 }
 
 /**
+ * \ingroup ut
  * \brief   Locate a given substring ignoring case
  *
  * Locate the first occurrence of the null-terminated string \p sub in the 
@@ -667,6 +643,7 @@ err: /* fall through */
 }
 
 /**
+ * \ingroup ut
  * \brief   Locate a character in a string
  *
  * Locate the last occurrence of \p c in the substring of length \p len
@@ -692,6 +669,7 @@ err:
 }
 
 /**
+ * \ingroup ut
  * \brief   Create a temporary \c io_t object 
  *
  * Create a temporary \c io_t object at \p *pio.
@@ -727,6 +705,7 @@ err:
 }
 
 /**
+ * \ingroup ut
  * \brief   Create an \c io_t object from the file system object \p file
  *
  * Create an \c io_t object at \p *pio from the file system object \p file.
@@ -770,6 +749,7 @@ err:
 }
 
 /**
+ * \ingroup ut
  * \brief   Read a line from the \c io_t object \p io
  *
  * Read a line and place it into \p ln from the \c io_t object \p io
@@ -808,6 +788,7 @@ err:
 }
 
 /**
+ * \ingroup ut
  * \brief   get a line from a \c FILE object
  *
  * Try to get a line from the \c FILE object \p in and store it at \p ln.
@@ -895,6 +876,7 @@ int u_printf_ccstr(io_t *o, const char *buf, size_t sz)
 }
 
 /**
+ * \ingroup ut
  * \brief   Tell if the given file exists
  *
  * Tell if the given file \p fqn exists
@@ -913,6 +895,7 @@ int u_file_exists(const char *fqn)
 }
 
 /**
+ * \ingroup ut
  * \brief   Convert a given string in hexadecimal representation
  *
  * Convert the string \p src of lenght \p sz into its hexadecimal 
@@ -943,6 +926,7 @@ void u_tohex(char *hex, const char *src, size_t sz)
 }
 
 /**
+ * \ingroup ut
  * \brief   Calculate the MD5 digest over a given buffer
  *
  * Calculate the MD5 digest over the supplied buffer \p buf of size \p sz
@@ -975,6 +959,7 @@ int u_md5(char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ])
 }
 
 /**
+ * \ingroup ut
  * \brief   Calculate the MD5 hash over an \c io_t stream
  *
  * Calculate the MD5 hash over an \c io_t stream \p io and place the result
@@ -1037,6 +1022,7 @@ err:
 }                                                             
 
 /**
+ * \ingroup ut
  * \brief   Get the MIME type of a file
  *
  * Get the MIME type of the given file \p file_name by its extension
@@ -1068,6 +1054,7 @@ notfound:
 }
 
 /**
+ * \ingroup ut
  * \brief   Guess the MIME type of a file
  *
  * Guess the MIME type of the given file \p file_name by its extension
@@ -1098,6 +1085,7 @@ notfound:
 
 #ifdef HAVE_LIBZ
 /**
+ * \ingroup ut
  * \brief   uncompress an HTML block and place it into an \c io_t object
  *
  * Uncompress the HTML block \p data of size \p sz and store the result into
@@ -1144,6 +1132,7 @@ err:
 
 #ifdef HAVE_LIBOPENSSL
 /**
+ * \ingroup ut
  * \brief   Encrypt a given data block
  *
  * Encrypt the data block \p src of size \p ssz using the encryption algorithm
@@ -1204,6 +1193,7 @@ err:
 }
 
 /**
+ * \ingroup ut
  * \brief   Decrypt a given data block
  *
  * Decrypt the data block \p src of size \p ssz using the encryption algorithm

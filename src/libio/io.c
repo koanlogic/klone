@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.37 2007/10/26 08:57:59 tho Exp $
+ * $Id: io.c,v 1.38 2007/10/26 11:21:51 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -16,48 +16,7 @@
 #include <klone/ioprv.h>
 #include <klone/codec.h>
 
-/**
- *  \defgroup io Input/Output
- *  \{
- *      \par
- */
-
-/**
- *  \defgroup basic Basic Functions
- *  \ingroup io
- *  \{
- *      \par
- */
-
-ssize_t io_printf(io_t *io, const char* fmt, ...);
-ssize_t io_write(io_t *io, const char* buf, size_t size);
-ssize_t io_putc(io_t *io, char c);
-int io_is_secure(io_t *io);
-ssize_t io_flush(io_t *io);
-
-ssize_t io_read(io_t *io, char* buf, size_t size);
-ssize_t io_gets(io_t *io, char *buf, size_t size);
-ssize_t io_get_until(io_t *io, char stop_at, char *buf, size_t size);
-ssize_t io_getc(io_t *io, char *c);
-
-
-ssize_t io_copy(io_t *out, io_t *in, size_t size);
-ssize_t io_pipe(io_t *out, io_t *in);
-
-int io_codec_add_head(io_t *io, codec_t* codec);
-int io_codec_add_tail(io_t *io, codec_t* codec);
-int io_codecs_remove(io_t *io);
-
 enum io_type_e io_type(io_t *io);
-
-/**
- *  \}
- */
-
-/**
- *  \}
- */
-
 
 enum { 
     IO_RD_BUFSZ = 4096, 
@@ -70,8 +29,8 @@ enum {
 static inline int io_transform_codec_buffer(io_t *, codec_t *, char *, 
         size_t *);
 
-
 /**
+ * \ingroup basic
  * \brief  Returns the type of the given io
  *
  * Return the type of the given io (see enum io_type_e).
@@ -87,6 +46,7 @@ enum io_type_e io_type(io_t *io)
 }
 
 /**
+ * \ingroup basic
  * \brief  Write the input stream to the output stream 
  *
  * Read all data from \p in and copy it to \p out
@@ -127,6 +87,7 @@ err:
 }
 
 /**
+ * \ingroup basic
  * \brief  Duplicate an IO handle
  *
  * Create a copy of \p io and store it to \p *pio.
@@ -155,6 +116,7 @@ int io_dup(io_t *io, io_t **pio)
 }
 
 /**
+ * \ingroup basic
  * \brief  Copy a block of data between two \c io_t objects
  *
  * Read from \p in a block of data \p size bytes long and write it to
@@ -197,6 +159,7 @@ err:
 
 
 /**
+ * \ingroup basic
  * \brief  Seek to the given position
  *
  *  Moves the read/write file offset so that the next read or the next write
@@ -221,6 +184,7 @@ err:
 }
 
 /**
+ * \ingroup basic
  * \brief  Return the current file position
  *
  * Return the current file position.  There exists a unique read and write 
@@ -464,6 +428,7 @@ err:
 }
 
 /**
+ * \ingroup basic
  * \brief  Close the given io object
  *
  * Close the underlying source/sink of the given \c io_t object. 
@@ -487,6 +452,7 @@ err:
 }
 
 /**
+ * \ingroup basic
  * \brief  Free an \c io_t object
  *
  * Free the given \c io_t object. If \p io has been dup'd and the reference 
@@ -589,6 +555,7 @@ err:
 }
 
 /**
+ * \ingroup basic
  * \brief  Read a block of data from an \c io_t object
  *
  * Read \p size bytes from \p io and save them to \p buf (that must be big
@@ -637,6 +604,7 @@ err:
 }
 
 /**
+ * \ingroup basic
  * \brief  Write a string to \p io using printf-style format strings
  *
  * Printf-like function used to easily write strings to \p io using 
@@ -691,6 +659,7 @@ err:
 }
 
 /**
+ * \ingroup basic
  * \brief  Flush the write buffer
  *
  * Force a write of all buffered data to the output device.
@@ -723,6 +692,7 @@ err:
 }
 
 /**
+ * \ingroup basic
  * \brief  Write a block of data to an \c io_t object
  *
  * Write \p size bytes of \p buf to \p io.
@@ -765,6 +735,7 @@ err:
 }
 
 /**
+ * \ingroup basic
  * \brief  Write a char to an \c io_t object
  *
  * Write the character \p c to \p io
@@ -780,6 +751,7 @@ inline ssize_t io_putc(io_t *io, char c)
 }
 
 /**
+ * \ingroup basic
  * \brief  Read a char from an \c io_t object
  *
  * Read a char from the \c io_t object \p io and save it at \p *pc.
@@ -813,6 +785,7 @@ end:
 }
 
 /**
+ * \ingroup basic
  * \brief  Read a chunk of data until the given character is found
  *
  * Read from \p in and save it to \p buf that must be at least \p size
@@ -887,6 +860,7 @@ err:
 }
 
 /**
+ * \ingroup basic
  * \brief  Read a line from an \c io_t object
  *
  * Read a line from \p in and save it to \p buf that must be at least \p size
@@ -904,6 +878,7 @@ ssize_t io_gets(io_t *io, char *buf, size_t size)
 }
 
 /**
+ * \ingroup basic
  * \brief  Insert a codec at the head the codec chain
  *
  * \param io    the \c io_t object
@@ -923,6 +898,7 @@ int io_codec_add_head(io_t *io, codec_t* c)
 }
 
 /**
+ * \ingroup basic
  * \brief  Append a codec to the codec chain
  *
  * \param io    the \c io_t object
@@ -942,6 +918,7 @@ int io_codec_add_tail(io_t *io, codec_t* c)
 }
 
 /**
+ * \ingroup basic
  * \brief  Flush, remove and free all codecs in the codec chain
  *
  * \param io    the \c io_t object
@@ -972,6 +949,7 @@ int io_codecs_remove(io_t *io)
 }
 
 /**
+ * \ingroup basic
  * \brief  Set the name of an \c io_t object
  *
  * Set the name of the given \p io to \p name.  A name is a label that can 
@@ -1002,6 +980,7 @@ err:
 }
 
 /**
+ * \ingroup basic
  * \brief  Return the name of the given \c io_t object
  *
  * Save in \p name the name of \p io.
@@ -1032,6 +1011,7 @@ err:
 }
 
 /*
+ * \ingroup basic
  * \brief   Return the secure state of the IO object
  *  
  *  Return 0 if the connection is not secure (i.e. not encrypted) or not zero
