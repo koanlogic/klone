@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: gzip.c,v 1.24 2007/06/26 08:57:57 tat Exp $
+ * $Id: gzip.c,v 1.25 2007/10/26 08:57:59 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -13,11 +13,6 @@
 #include <klone/codec.h>
 #include <klone/cgzip.h>
 #include <klone/utils.h>
-
-/**
- *  \addtogroup codec_t
- *  \{
- */
 
 #include <zlib.h>
 
@@ -127,6 +122,11 @@ err:
     dbg("%s", zError(err));
     return ~0;
 }
+
+/**
+ *  \addtogroup filters
+ *  \{
+ */
 
 /**
  * \brief   Create a cipher \c codec_t object 

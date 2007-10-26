@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.26 2007/10/25 22:22:22 tat Exp $
+ * $Id: vars.c,v 1.27 2007/10/26 08:57:59 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -18,7 +18,7 @@
 
 
 /**
- *  \defgroup vars_t Variable list handling
+ *  \defgroup vars Form Variable Handling
  *  \{
  *      \par
  */

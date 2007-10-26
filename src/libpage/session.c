@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.38 2007/10/25 22:22:22 tat Exp $
+ * $Id: session.c,v 1.39 2007/10/26 08:57:59 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -32,7 +32,8 @@
 #include <klone/codecs.h>
 
 /**
- *  \defgroup session_t Sessions
+ *  \defgroup session Sessions and Cookies
+ *  \ingroup http
  *  \{
  *      \par
  */

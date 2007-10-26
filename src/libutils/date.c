@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: date.c,v 1.10 2007/09/15 16:36:12 tat Exp $
+ * $Id: date.c,v 1.11 2007/10/26 08:57:59 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -22,7 +22,7 @@
 #include <klone/utils.h>
 
 /**
- *  \addtogroup u_t 
+ *  \addtogroup ut 
  *  \{
  */
 

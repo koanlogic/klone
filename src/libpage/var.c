@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: var.c,v 1.17 2007/10/25 22:22:22 tat Exp $
+ * $Id: var.c,v 1.18 2007/10/26 08:57:59 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -15,12 +15,6 @@
 #include <klone/var.h>
 #include <klone/utils.h>
 #include <klone/varprv.h>
-
-/**
- *   \defgroup var_t Variable handling
- *   \{
- *       \par
- */
 
 const char* var_get_name(var_t *v);
 const char* var_get_value(var_t *v);
@@ -38,10 +32,7 @@ void var_set_opaque(var_t *v, void *blob);
 void* var_get_opaque(var_t *v);
 
 /**
- *  \}
- */
-
-/**
+ * \ingroup vars
  * \brief   Get name u_string_t of a variable
  *
  * Return an u_string_t containing the name string of variable \p v.
@@ -58,6 +49,7 @@ u_string_t *var_get_name_s(var_t *v)
 }
 
 /**
+ * \ingroup vars
  * \brief   Get u_string_t value of a variable
  *
  * Return an u_string_t containing the name string of variable \p v.
@@ -121,6 +113,7 @@ int var_create(const char* name, const char *value, var_t**pv)
 }
 
 /*
+ * \ingroup vars
  * \brief   Free a variable
  *
  * \return \c 0, always
@@ -146,6 +139,7 @@ int var_free(var_t *v)
 }
 
 /**
+ * \ingroup vars
  * \brief   Get the name of a variable
  *
  * Return a \c char* containing the name of variable \p v.
@@ -162,6 +156,7 @@ const char *var_get_name(var_t *v)
 }
 
 /**
+ * \ingroup vars
  * \brief   Get the value of a variable
  *
  * Return a \c char* containing the value of variable \p v.
@@ -178,6 +173,7 @@ const char *var_get_value(var_t *v)
 }
 
 /**
+ * \ingroup vars
  * \brief   Get the size of a variable value
  * 
  * Return a size_t with the value size of variable \p v.
@@ -194,6 +190,7 @@ size_t var_get_value_size(var_t *v)
 }
 
 /** 
+ * \ingroup vars
  * \brief   Set the name and value of a variable
  *  
  * Set variable \p var to \p name and \p value.
@@ -219,6 +216,7 @@ err:
 }
 
 /**
+ * \ingroup vars
  * \brief   Set the name of a variable
  *
  * Set the name of variable \p v
@@ -240,6 +238,17 @@ err:
     return ~0;
 }
 
+/**
+ * \ingroup vars
+ * \brief   Set the value of a variable
+ *
+ * Set the value of variable \p v to \p value
+ *
+ * \param v     variable object
+ * \param value variable value (null-terminated)
+ *
+ * \return \c 0 if successful, non-zero on error
+ */
 int var_set_value(var_t *v, const char *value)
 {
     dbg_return_if (v == NULL, ~0);
@@ -250,6 +259,7 @@ int var_set_value(var_t *v, const char *value)
 }
 
 /**
+ * \ingroup vars
  * \brief   Set binary value of a variable
  *
  * Set binary value of variable \p v.

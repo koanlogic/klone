@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: cipher.c,v 1.10 2006/01/09 12:38:38 tat Exp $
+ * $Id: cipher.c,v 1.11 2007/10/26 08:57:59 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -149,7 +149,7 @@ static int cipher_free(codec_t *codec)
 }
 
 /**
- *  \addtogroup codec_t
+ *  \addtogroup filters
  *  \{
  */
 

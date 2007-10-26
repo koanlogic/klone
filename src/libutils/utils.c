@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.47 2007/10/25 22:22:22 tat Exp $
+ * $Id: utils.c,v 1.48 2007/10/26 08:57:59 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -32,7 +32,7 @@
 #endif
 
 /**
- *  \defgroup u_t Utility functions
+ *  \defgroup ut Miscellaneous Utility Functions
  *  \{
  */
 ssize_t u_urlncpy(char *dst, const char *src, size_t slen, int flags);

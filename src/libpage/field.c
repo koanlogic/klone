@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: field.c,v 1.13 2007/10/25 22:22:22 tat Exp $
+ * $Id: field.c,v 1.14 2007/10/26 08:57:59 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -14,21 +14,13 @@
 #include <klone/utils.h>
 #include <u/libu.h>
 
-/**
- *  \defgroup field_t Header fields manipulation
- *  \{
- *      \par
- */
 int field_set(field_t*, const char *name, const char *value);
 int field_set_from_line(field_t*, const char *line);
 const char* field_get_name(field_t *f);
 const char* field_get_value(field_t *f);
 
 /**
- *  \}
- */
-
-/**
+ * \ingroup header
  * \brief   Set a field
  *
  * Set field \p f to have \p name and \p value.
@@ -68,6 +60,7 @@ err:
 }
 
 /**
+ * \ingroup header
  * \brief   Set a field from a line
  *
  * Set the name and value of field \p f.  Name and value must be separated by 
@@ -107,6 +100,7 @@ err:
 }
 
 /** 
+ * \ingroup header
  * \brief   Get the name of a field
  *  
  * Return the string value of field \p f.
@@ -123,6 +117,7 @@ const char* field_get_name(field_t *f)
 }
 
 /** 
+ * \ingroup header
  * \brief   Get the value of a field
  *  
  * Return the string value of field \p f.
@@ -139,6 +134,7 @@ const char* field_get_value(field_t *f)
 }
 
 /** 
+ * \ingroup header
  * \brief   Create a field
  *  
  * Create a field from \p name and \p value into \p *pf.
@@ -175,6 +171,7 @@ err:
 }
 
 /** 
+ * \ingroup header
  * \brief   Free a field
  *  
  * Free field \p f.

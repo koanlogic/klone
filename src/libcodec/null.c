@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: null.c,v 1.14 2006/01/11 14:19:21 tat Exp $
+ * $Id: null.c,v 1.15 2007/10/26 08:57:59 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -14,10 +14,6 @@
 #include <klone/cnull.h>
 #include <klone/utils.h>
 
-/**
- *  \addtogroup codec_t
- *  \{
- */
 
 struct codec_null_s
 {
@@ -61,6 +57,11 @@ static int null_free(codec_t *cn)
 
     return 0;
 }
+
+/**
+ *  \addtogroup filters
+ *  \{
+ */
 
 /** 
  * \brief   Create a cipher \c codec_t object 
