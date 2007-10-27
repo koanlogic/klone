@@ -50,6 +50,8 @@ endif
 KLONE_DIR = $(shell pwd)/klone-$(KLONE_VERSION)
 KLONE_TGZ = klone-$(KLONE_VERSION).tar.gz
 KLONE_DAEMON_NAME ?= kloned
+KLONE_SRC = $(KLONE_DIR)/build/target/klone-core-$(KLONE_VERSION)
+KLONE_CFLAGS = -I$(KLONE_SRC) -I$(KLONE_SRC)/libu/include
 
 # klapp_conf.h is in $(KLONE_DIR)
 WEBAPP_CFLAGS += -I$(KLONE_DIR)/
@@ -57,7 +59,7 @@ WEBAPP_CFLAGS += -I$(KLONE_DIR)/
 ifneq ($(wildcard $(KLONE_DIR)/Makefile),)
 all: vars.mk $(KLONE_DIR)/Makefile
 else
-all: 
+all: vars.mk
 endif
 	[ -f $(KLONE_DIR)/configure ] || $(MAKE) klone-src
 	[ -d $(WEBAPP_DIR) ] || $(MAKE) $(WEBAPP_DIR)
@@ -123,8 +125,8 @@ vars.mk:
 	@echo >> $@
 	@echo "KLONE_VERSION=$(KLONE_VERSION)" >>$@
 	@echo "KLONE_DIR=$(KLONE_DIR)" >>$@
-	@echo "KLONE_SRC=$(KLONE_DIR)/build/target/klone-core-$(KLONE_VERSION)" >>$@
-	@echo "KLONE_CFLAGS=-I$(KLONE_DIR) -I$(KLONE_DIR)/libu/include"     >>$@
-	@echo "WEBAPP_DIR=$(WEBAPP_DIR)"     >>$@
+	@echo "KLONE_SRC=$(KLONE_SRC)" >>$@
+	@echo "KLONE_CFLAGS=$(KLONE_CFLAGS)" >>$@
+	@echo "WEBAPP_DIR=$(WEBAPP_DIR)" >>$@
 	@echo >>$@
 
