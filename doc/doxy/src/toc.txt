@@ -2,8 +2,8 @@
  * \mainpage KLone 
 
  
- Below there's a quick reference list of essential variables and functions 
- used by all KLone applications. 
+ Below is a quick reference list of essential variables and functions used by
+ all KLone applications. 
 
  A more complete list is available following the links above.
 
@@ -15,18 +15,18 @@ Any KLone dynamic page (*.kl1) can access the following predefined objects:
 <ul>
 <li> \ref request "request_t" *request;  \n
             \par \n
-    Used to access all information relative to the current HTTP request such\n
+    Used to access all information related to the current HTTP request such\n
     as form variables, cookies, HTTP header fields, uploaded files, etc.
 
 <li>     \ref response "response_t" *response; \n
             \par \n
-    This object lets you access and modify the HTTP response entities like \n
-    header fields and status code. 
+    This object lets you access and modify the HTTP response entities such as \n
+    header fields and status codes. 
 
 <li>     \ref session "session_t" *session; \n
             \par \n
     Sessions are objects which can be used to preserve client related \n
-    information across subsequent accesses.\n
+    information throughout subsequent accesses.\n
     Simple functions are provided to set/get {name, value} pairs.
 
 <li>     \ref basic "io_t" *out; \n
