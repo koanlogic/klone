@@ -95,7 +95,7 @@ $(WEBAPP_DIR):
 	cp -r $(KLONE_DIR)/webapp $@
 
 $(KLONE_TGZ):
-	wget -c http://koanlogic.com/klone/$(KLONE_TGZ)
+	wget -c http://koanlogic.com/download/klone/$(KLONE_TGZ)
 
 help:
 	@echo "List of valid targets:"
