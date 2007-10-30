@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.25 2007/10/17 22:58:35 tat Exp $
+ * $Id: main.c,v 1.26 2007/10/30 18:35:58 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -93,7 +93,7 @@ int app_init(void)
     }
 
     con_err_ifm(cfg_found == 0, 
-        "missing config file (use -f file or embed /etc/kloned.conf");
+        "missing config file (use -f file or embed /etc/kloned.conf)");
 
     if(ctx->debug)
         u_config_print(ctx->config, 0);
