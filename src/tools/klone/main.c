@@ -5,12 +5,12 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.40 2007/09/15 16:36:12 tat Exp $
+ * $Id: main.c,v 1.41 2007/10/30 17:25:37 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <sys/stat.h>
-#ifdef OS_UNIX
+#ifdef HAVE_SYS_DIR
 #include <sys/dir.h>
 #endif
 #include <sys/types.h>
@@ -19,7 +19,12 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <fcntl.h>
+#ifdef HAVE_UNISTD
 #include <unistd.h>
+#endif
+#ifdef HAVE_GETOPT
+#include <getopt.h>
+#endif
 #include <u/libu.h>
 #include <klone/os.h>
 #include <klone/request.h>

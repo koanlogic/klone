@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.80 2007/10/26 10:48:44 tat Exp $
+# $Id: configure,v 1.81 2007/10/30 17:25:37 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -80,14 +80,21 @@ case `makl_target_name` in
         makl_append_var_mk  "POST_LDADD"      "-lwsock32 -L/c/WINDOWS" 
         ;;
 
+    *cygwin*)
+        makl_set_var        "OS_UNIX"
+        makl_append_var_mk  "CFLAGS"    "-D__addr_t_defined"
+        ;;
+
     *qnx*)
         makl_set_var        "OS_UNIX"
         makl_append_var_mk  "POST_LDADD"      "-lsocket"
         ;;
 
     *darwin*)
+        makl_set_var        "OS_UNIX"
         # workaround to avoid circular dependency errors on Mac OS X
-        makl_set_var        "PRE_LDADD" "-ldl"
+        makl_set_var        "PRE_LDADD"       "-ldl"
+        makl_append_var_mk  "POST_LDADD"      "-lc"
         ;;                                                    
 
     *)
@@ -111,6 +118,7 @@ makl_checkheader        0   "getopt"        "<getopt.h>"
 makl_checkheader        0   "unistd"        "<unistd.h>"
 makl_checkheader        0   "sys_select"    "<sys/select.h>"
 makl_checkheader        0   "sys_wait"      "<sys/wait.h>"
+makl_checkheader        0   "sys_dir"       "<sys/dir.h>"
 
 # Library dependencies
 makl_optional           1   "lib"           "openssl"   ""  "-lssl -lcrypto"

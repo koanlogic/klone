@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.29 2007/09/04 19:48:39 tat Exp $
+# $Id: Makefile,v 1.30 2007/10/30 17:25:37 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
@@ -17,9 +17,9 @@ SRCS = server.c main.c entry.c ppc.c atom.c ppc_log_add.c ppc_log_get.c \
 CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
 LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
 
-ifndef OS_WIN
-LDFLAGS += -lc # see checkin 30-09-2005
 LDFLAGS += ${WEBAPP_LDFLAGS}
+
+ifdef OS_UNIX
 SRCS += ppc_fork_child.c
 endif
 

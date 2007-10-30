@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.4 2006/12/19 14:41:00 tat Exp $
+# $Id: Makefile,v 1.5 2007/10/30 17:25:37 tat Exp $
 
 include common.mk
 include ../../../Makefile.conf
@@ -9,7 +9,6 @@ SRCS = main.c
 CFLAGS += -g
 CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
 LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
-LDFLAGS += -lc # see checkin 30-09-2005
 LDFLAGS += ../../../libu/srcs/libu.a
 
 LDADD += ../libklog.a               \
