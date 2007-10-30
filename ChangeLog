@@ -1,6 +1,9 @@
-$Id: ChangeLog,v 1.32 2007/10/26 10:37:23 tat Exp $
+$Id: ChangeLog,v 1.33 2007/10/30 17:37:44 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
+
+KLone x.y.z:
+	- Cygwin support added (kloned can run in prefork mode under Cygwin)
 
 KLone 2.0.0:
 	- virtual hosts support (see etc/kloned-vhost.conf)
