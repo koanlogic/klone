@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.56 2007/09/04 12:15:16 tat Exp $
+ * $Id: server.c,v 1.57 2007/11/05 16:40:48 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -908,7 +908,7 @@ int server_loop(server_t *s)
         dbg_err_if(server_chroot(s));
 
     /* set uid/gid to non-root user */
-    dbg_err_if(server_drop_privileges(s));
+    warn_err_sifm(server_drop_privileges(s), "unable to drop priviledges");
 
     /* if allow_root is not set check that we're not running as root */
     if(!s->allow_root)
