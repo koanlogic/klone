@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.7 2007/08/07 14:47:10 tat Exp $
+# $Id: Makefile,v 1.8 2007/11/05 16:30:37 tat Exp $
 
 include common.mk
 include ../Makefile.conf
@@ -32,7 +32,7 @@ register.c:
 	@echo "void register_pages(){} void unregister_pages(){}" > $@
 
 autogen.dps:
-	@echo -n > $@
+	@echo > $@
 
 autogen.mk:
 	@echo "autogen_src=" > $@
