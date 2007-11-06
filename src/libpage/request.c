@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.48 2007/10/26 11:21:51 tho Exp $
+ * $Id: request.c,v 1.49 2007/11/06 20:08:08 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -942,8 +942,12 @@ static int parse_content_disposition(header_t *h, char *name, char *filename,
     fn_len = strlen("filename=");
 
     /* foreach name=value pair... */
-    for(src = buf; (tok = strtok_r(src, " ;", &pp)) != NULL; src = NULL)
+    for(src = buf; (tok = strtok_r(src, ";", &pp)) != NULL; src = NULL)
     {
+        /* skip trailing blanks */
+        while(isspace(*tok))
+            ++tok;
+
         if(strncmp(tok, "form-data", strlen("form-data")) == 0)
             continue;   /* skip */
         else if(strncmp(tok, "name=", n_len) == 0) {
