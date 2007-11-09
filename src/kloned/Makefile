@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.30 2007/10/30 17:25:37 tat Exp $
+# $Id: Makefile,v 1.31 2007/11/09 22:06:26 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
@@ -12,7 +12,7 @@ endif
 
 INCS = main.h server_s.h server_ppc_cmd.h child.h
 SRCS = server.c main.c entry.c ppc.c atom.c ppc_log_add.c ppc_log_get.c \
-    ppc_nop.c child.c
+    ppc_nop.c child.c ppc_access_log.c
 
 CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
 LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}

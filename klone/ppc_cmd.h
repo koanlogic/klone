@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc_cmd.h,v 1.8 2006/01/09 12:38:37 tat Exp $
+ * $Id: ppc_cmd.h,v 1.9 2007/11/09 22:06:26 tat Exp $
  */
 
 #ifndef _KLONE_PPC_CMD_H_
@@ -27,7 +27,10 @@ enum {
 
     /* logging ppc commands                                         */
     PPC_CMD_LOG_ADD,            /* add a log line                   */
-    PPC_CMD_LOG_GET             /* get a log line (in-mem logging)  */
+    PPC_CMD_LOG_GET,            /* get a log line (in-mem logging)  */
+
+    /* access log commands                                          */
+    PPC_CMD_ACCESS_LOG          /* add an access log line           */
 };
 
 #endif

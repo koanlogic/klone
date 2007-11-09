@@ -4,6 +4,8 @@
 #include <klone/klone.h>
 #include <klone/context.h>
 #include <klone/klog.h>
+#include <klone/access.h>
+#include <klone/server_ppc_cmd.h>
 
 static inline const char *value_or_dash(const char *v)
 {
@@ -30,19 +32,25 @@ int access_log(http_t *h, u_config_t *config, request_t *rq, response_t *rs)
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };
     static const char default_prefix[] = "[access]";
-    static FILE *fp = NULL;
+    const char *ip,  *fn, *value, *prefix;
+    char buf[U_MAX_LOG_LENGTH];
     u_config_t *sub;
-    const char *ip, *p, *fn, *value, *prefix;
+    vhost_t *vhost;
     addr_t *addr;
     struct timeval tv;
     struct tm tm;
     time_t now;
-    int i, logrq, n;
+    int logrq, n;
 
+    dbg_err_if(h == NULL);
     dbg_err_if(config == NULL);
+    dbg_err_if(rq == NULL);
+    dbg_err_if(rs == NULL);
 
-    if((config = u_config_get_child(config, "access_log")) == NULL)
-        return 0; /* access log not configured */
+    dbg_err_if((vhost = http_get_vhost(h, rq)) == NULL);
+
+    /* exit if access logging is not configured */
+    dbg_err_if(vhost->klog == NULL);
 
     fn = request_get_filename(rq);
     dbg_err_if(fn == NULL);
@@ -56,7 +64,7 @@ int access_log(http_t *h, u_config_t *config, request_t *rq, response_t *rs)
         {
             if((value = u_config_get_value(sub)) == NULL)
                 continue;
-            if(!strcmp(value, "*") || !fnmatch(value, fn, 0))
+            if(!fnmatch(value, fn, 0))
             {
                 logrq++;
                 break; /* log it */
@@ -96,7 +104,9 @@ int access_log(http_t *h, u_config_t *config, request_t *rq, response_t *rs)
         prefix = default_prefix;
     }
 
-    info( "%s %s - - [%02d/%s/%4d:%02d:%02d:%02d %ld]"
+    /* build the log message */
+    dbg_err_if(u_snprintf(buf, sizeof(buf),
+            "%s %s - - [%02d/%s/%4d:%02d:%02d:%02d %ld]"
             " \"%s\" %d %s \"%s\" \"%s\" \"-\"", 
             prefix,
             value_or_dash(ip),
@@ -113,7 +123,20 @@ int access_log(http_t *h, u_config_t *config, request_t *rq, response_t *rs)
             /* referer and user-agent */
             value_or_dash(request_get_field_value(rq, "Referer")),
             value_or_dash(request_get_field_value(rq, "User-Agent"))
-            );
+            ));
+
+    /* syslog klog doesn't go through ppc */
+    if(vhost->klog->type == KLOG_TYPE_SYSLOG || ctx->pipc == 0)
+    {   /* syslog klog or parent context */
+        if(vhost->klog)
+            dbg_err_if(klog(vhost->klog, KLOG_INFO, "%s", buf));
+    } else {
+        /* children context */
+        dbg_err_if(ctx->server == NULL);
+        dbg_err_if(ctx->backend == NULL);
+        dbg_err_if(server_ppc_cmd_access_log(ctx->server, ctx->backend->id, 
+                    vhost->id, buf));
+    }
 
     return 0;
 err:

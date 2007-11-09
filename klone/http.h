@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.h,v 1.13 2007/11/09 01:30:45 tat Exp $
+ * $Id: http.h,v 1.14 2007/11/09 22:06:26 tat Exp $
  */
 
 #ifndef _KLONE_HTTP_H_
@@ -83,6 +83,7 @@ u_config_t *http_get_config(http_t* http);
 struct session_opt_s *http_get_session_opt(http_t* http);
 
 struct vhost_s* http_get_vhost(http_t *h, struct request_s *rq);
+struct vhost_list_s* http_get_vhost_list(http_t *h);
 int http_alias_resolv(http_t *h, struct request_s *rq, char *dst, 
         const char *uri, size_t sz);
 const char* http_get_status_desc(int status);

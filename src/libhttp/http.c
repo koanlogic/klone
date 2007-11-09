@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.53 2007/11/09 17:37:39 tat Exp $
+ * $Id: http.c,v 1.54 2007/11/09 22:06:26 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -130,6 +130,15 @@ static int http_try_resolv(const char *alias, char *dst, const char *uri,
     return 0;
 err:
     U_FREE(v);
+    return ~0;
+}
+
+vhost_list_t* http_get_vhost_list(http_t *http)
+{
+    dbg_err_if(http == NULL);
+
+    return http->vhosts;
+err:
     return ~0;
 }
 
@@ -561,7 +570,8 @@ static int http_serve(http_t *h, int fd)
     rc = broker_serve(h->broker, h, rq, rs);
 
     /* log the request */
-    dbg_err_if(access_log(h, vhost->config, rq, rs));
+    if(vhost->klog)
+        dbg_if(access_log(h, vhost->al_config, rq, rs));
 
     /* call the hook that fires on each request */
     hook_call(request, rq, rs);
@@ -609,6 +619,7 @@ static int http_free(http_t *h)
 static int http_add_vhost(http_t *http, const char *host, u_config_t *c)
 {
     vhost_t *top, *vhost = NULL;
+    u_config_t *child;
     const char *v;
 
     dbg_err_if (http == NULL);
@@ -621,13 +632,32 @@ static int http_add_vhost(http_t *http, const char *host, u_config_t *c)
     vhost->config = c;
     vhost->http = http;
 
-    vhost->klog ??
-
     /* set defaults */
     vhost->server_sig = "klone/" KLONE_VERSION;
     vhost->dir_root = "";
     vhost->index = NULL;
     vhost->send_enc_deflate = 0; 
+
+    /* if there's a per-vhost access_log open it, otherwise inherit from the
+       main server configuration */
+    if((child = u_config_get_child(c, "access_log")) != NULL)
+    {
+        v = u_config_get_value(child);
+
+        /* if the access_log key is not "no" then load the log configuration */
+        if(v == NULL || strcasecmp(v, "no"))
+            dbg_err_if(klog_open_from_config(child, &vhost->klog));
+
+        vhost->al_config = child;
+    } else {
+        /* if there's a global access log use it */
+        if((top = vhost_list_get_n(http->vhosts, 0)) != NULL)
+        {
+            /* inherit from the main config (may be NULL) */
+            vhost->klog = top->klog;
+            vhost->al_config = top->al_config;
+        }
+    }
 
     /* send_enc_deflate (disable if not configured) */
     dbg_err_if(u_config_get_subkey_value_b(c, "send_enc_deflate", 0, 
@@ -659,11 +689,15 @@ err:
 static int config_inherit(u_config_t *dst, u_config_t *from)
 {
     static const char *dont_inherit[] = {
-        "addr", "model", "type", "dir_root", "dir_alias", "script_alias", NULL
+        "addr", "model", "type", "dir_root", "dir_alias", "script_alias", 
+        "access_log", NULL
     };
     u_config_t *config, *child = NULL;
     const char **di, *key, *value;
     int n;
+
+    dbg_err_if (dst == NULL);
+    dbg_err_if (from == NULL);
 
     for(n = 0; (config = u_config_get_child_n(from, NULL, n)); ++n)
     {
@@ -695,6 +729,8 @@ static int http_set_vhost_list(http_t *http)
 {
     u_config_t *config;
     int n;
+
+    dbg_err_if (http == NULL);
 
     /* virtual vhost that stores the main server config */
     dbg_err_if(http_add_vhost(http, "", http->config));

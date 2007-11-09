@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.58 2007/11/09 01:30:45 tat Exp $
+ * $Id: server.c,v 1.59 2007/11/09 22:06:26 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -31,8 +31,8 @@
 #include <klone/klog.h>
 #include <klone/hook.h>
 #include <klone/hookprv.h>
+#include <klone/server_ppc_cmd.h>
 #include "server_s.h"
-#include "server_ppc_cmd.h"
 #include "child.h"
 
 #define SERVER_MAX_BACKENDS 8
@@ -1261,6 +1261,8 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
     dbg_err_if(ppc_register(s->ppc, PPC_CMD_FORK_CHILD, 
         server_ppc_cb_fork_child, s));
 #endif
+    dbg_err_if(ppc_register(s->ppc, PPC_CMD_ACCESS_LOG, 
+                server_ppc_cb_access_log, s));
 
     /* redirect logs to the server_log_hook function */
     dbg_err_if(u_log_set_hook(server_log_hook, s, NULL, NULL));

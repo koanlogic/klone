@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ppc_log_get.c,v 1.3 2006/01/10 16:16:59 tat Exp $
+ * $Id: ppc_log_get.c,v 1.4 2007/11/09 22:06:26 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -15,8 +15,8 @@
 #include <klone/server.h>
 #include <klone/ppc.h>
 #include <klone/ppc_cmd.h>
+#include <klone/server_ppc_cmd.h>
 #include "server_s.h"
-#include "server_ppc_cmd.h"
 
 /* struct used for ppc command PPC_CMD_LOG_GET */
 struct ppc_log_get_s

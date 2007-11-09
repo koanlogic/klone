@@ -38,9 +38,13 @@ int vhost_list_add(vhost_list_t *vs, vhost_t *vhost)
         last = elm;
 
     if(last) 
+    {
         LIST_INSERT_AFTER(last, vhost, np);
-    else
+        vhost->id = last->id + 1;
+    } else {
         LIST_INSERT_HEAD(vs, vhost, np);
+        vhost->id = 0;
+    }
 
     return 0;
 err:

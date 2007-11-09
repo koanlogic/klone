@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: file.c,v 1.19 2006/01/10 21:51:41 tat Exp $
+ * $Id: file.c,v 1.20 2007/11/09 22:06:26 tat Exp $
  */
 
 #include <sys/param.h>
@@ -169,6 +169,8 @@ static int klog_file_append (klog_file_t *klf, const char *id, int level,
     fprintf(klf->wfp, "[%s] %s <%s>: %s\n", 
             klog_to_str(level), ct, id, ln);
     klf->offset += 1;
+
+    fflush(klf->wfp);
 
     return 0;
 err:
