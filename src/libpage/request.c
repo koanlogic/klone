@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.49 2007/11/06 20:08:08 tat Exp $
+ * $Id: request.c,v 1.50 2007/11/09 01:30:45 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -23,7 +23,7 @@
 #include <klone/addr.h>
 #include <klone/vars.h>
 #include <klone/timer.h>
-
+#include <klone/vhost.h>
 
 struct request_s
 {
@@ -51,6 +51,8 @@ struct request_s
     size_t idle_timeout;        /* max # of secs to wait for the request    */
     size_t post_timeout;        /* max # of secs for reading POSTed data    */
     size_t post_maxsize;        /* max # of POSTed bytes to accepts         */
+    vhost_t *vhost;             /* cached vhost pointer                     */
+    size_t padding;
 };
 
 typedef struct upload_info_s    /* uploaded file info struct         */
@@ -1185,8 +1187,6 @@ int request_get_uploaded_file(request_t *rq, const char *name, size_t idx,
     char mime_type[MIME_TYPE_BUFSZ], size_t *file_size)
 {
     var_t *v;
-    upload_info_t *info;
-    const char *tmp_fqn;
 
     dbg_err_if (rq == NULL);
     dbg_err_if (name == NULL);
@@ -1213,7 +1213,7 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
     io_t *tmpio = NULL;
     var_t *v = NULL;
     char name[PRMSZ], filename[PRMSZ], buf[BUFSZ];
-    size_t bound_len, len;
+    size_t bound_len;
     int found;
     ssize_t rc;
 
@@ -1777,5 +1777,21 @@ const char* request_get_field_value(request_t *rq, const char *name)
     dbg_return_if (name == NULL, NULL);
 
     return header_get_field_value(rq->header, name);
+}
+
+vhost_t* request_get_vhost(request_t *rq)
+{
+    dbg_return_if (rq == NULL, NULL);
+
+    return rq->vhost; /* may be NULL */
+}
+
+int request_set_vhost(request_t *rq, vhost_t *vhost)
+{
+    dbg_return_if (rq == NULL, ~0);
+
+    rq->vhost = vhost;
+
+    return 0;
 }
 

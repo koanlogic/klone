@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.57 2007/11/05 16:40:48 tat Exp $
+ * $Id: server.c,v 1.58 2007/11/09 01:30:45 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -69,7 +69,7 @@ static int server_be_listen(backend_t *be)
         case ADDR_IPV6:
         case ADDR_UNIX:
         default:
-            dbg_err_if("unupported addr type");
+            crit_err_if("unupported addr type");
     }
 
     if(!u_config_get_subkey(be->config, "backlog", &subkey))
@@ -180,7 +180,9 @@ static void server_kill_children(server_t *s)
 static void server_sigint(int sig)
 {
     u_unused_args(sig);
-    dbg("SIGINT");
+
+    warn("SIGINT");
+
     if(ctx && ctx->server)
         server_stop(ctx->server);
 }
@@ -195,7 +197,7 @@ static void server_sigterm(int sig)
     if(ctx->pipc)
         _exit(0); 
 
-    dbg("SIGTERM");
+    warn("SIGTERM");
 
     if(ctx && ctx->server)
         server_stop(ctx->server);
@@ -325,7 +327,7 @@ again:
     return 0;
 err:
     if(ad < 0)
-        dbg_strerror(errno);
+        warn_strerror(errno);
     return ~0;
 }
 
@@ -361,11 +363,11 @@ static int server_chroot_to(server_t *s, const char *dir)
 
     dbg_err_if(chdir("/"));
 
-    dbg("chroot'd: %s", dir);
+    info("chroot'd: %s", dir);
 
     return 0;
 err:
-    dbg_strerror(errno);
+    warn_strerror(errno);
     return ~0;
 }
 
@@ -442,7 +444,7 @@ static int server_chroot_blind(server_t *s)
 err:
     if(fd_dir >= 0)
         close(fd_dir);
-    dbg_strerror(errno);
+    warn_strerror(errno);
     return ~0;
 }
 
@@ -492,7 +494,7 @@ static int server_drop_privileges(server_t *s)
     
     return 0;
 err:
-    dbg_strerror(errno);
+    warn_strerror(errno);
     return ~0;
 }
 
@@ -776,7 +778,7 @@ static int server_set_socket_opts(server_t *s, int sock)
     dbg_err_if (sock < 0);
 
     /* disable Nagle algorithm */
-    dbg_err_if(setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, 
+    warn_err_sif(setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, 
         (void*) &on, sizeof(int)) < 0);
 
     return 0;
@@ -975,7 +977,7 @@ int server_loop(server_t *s)
             } 
         } /* for each ready fd */
 
-    } /* !s->stop*/
+    } /* !s->stop */
 
     /* children in fork mode exit here */
     if(ctx->pipc)

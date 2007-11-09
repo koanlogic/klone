@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.51 2007/10/26 10:01:09 tat Exp $
+ * $Id: http.c,v 1.52 2007/11/09 01:30:45 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -32,6 +32,8 @@
 #include <klone/ses_prv.h>
 #include <klone/hook.h>
 #include <klone/hookprv.h>
+#include <klone/access.h>
+#include <klone/vhost.h>
 #include "http_s.h"
 
 struct http_status_map_s
@@ -131,68 +133,56 @@ err:
     return ~0;
 }
 
-const char *http_vhost_config_value(http_t *h, request_t *rq, const char *key)
+vhost_t* http_get_vhost(http_t *h, request_t *rq)
 {
-    u_config_t *config;
-
-    if(http_get_vhost_config(h, rq, &config))
-        return NULL;
-
-    return u_config_get_subkey_value(config, key);
-}
-
-int http_get_vhost_config(http_t *h, request_t *rq, u_config_t **pc)
-{
-    u_config_t *config = NULL;;
     const char *host;
     char *p, hostcp[128];
+    vhost_t *vh = NULL;
 
     dbg_err_if (h == NULL);
     dbg_err_if (rq == NULL);
-    dbg_err_if (pc == NULL);
 
-    /* if there's not Host: field or there's not config associated to this host
-     * then use the default config values */
-    nop_err_if((host = request_get_field_value(rq, "Host")) == NULL);
+    if((vh = request_get_vhost(rq)) != NULL)
+        return vh; /* cached */
 
-    strlcpy(hostcp, host, sizeof(hostcp));
+    if((host = request_get_field_value(rq, "Host")) != NULL)
+    {
+        dbg_err_if(strlcpy(hostcp, host, sizeof(hostcp)) >= sizeof(hostcp));
 
-    /* remove :port part */   
-    if((p = strrchr(hostcp, ':')) != NULL)
-        *p = 0;
+        /* remove :port part */   
+        if((p = strrchr(hostcp, ':')) != NULL)
+            *p = 0;
 
-    /* get Host related config */
-    nop_err_if((config = u_config_get_child(h->config, hostcp)) == NULL);
+        vh = vhost_list_get(h->vhosts, hostcp);
+    }
 
-    *pc = config;
+    if(vh == NULL)
+    {
+        /* get the default vhost */
+        vh = vhost_list_get_n(h->vhosts, 0);
+        dbg_err_if(vh == NULL);
+    }
 
-    return 0;
+    return vh;
 err:
-    return ~0;
+    return NULL;
 }
 
 int http_alias_resolv(http_t *h, request_t *rq, char *dst, const char *uri, 
         size_t sz)
 {
-    u_config_t *config, *cgi, *base = NULL;
-    const char *host, *dir_root = NULL;
-    char *p, hostcp[128];
+    u_config_t *config, *cgi;
+    vhost_t *vhost;
     int i;
 
     dbg_err_if (h == NULL);
     dbg_err_if (dst == NULL);
     dbg_err_if (uri == NULL);
 
-    /* defaults */
-    base = h->config;
-    dir_root = h->dir_root;
-
-    /* virtual host config overwrites httpd config */
-    if(!http_get_vhost_config(h, rq, &base))
-        dir_root = u_config_get_subkey_value(base, "dir_root");
+    dbg_err_if((vhost = http_get_vhost(h, rq)) == NULL);
 
     /* for each dir_alias config item */
-    for(i = 0; !u_config_get_subkey_nth(base, "dir_alias", i, &config); 
+    for(i = 0; !u_config_get_subkey_nth(vhost->config,"dir_alias", i, &config); 
         ++i)
     {
         if(!http_try_resolv(u_config_get_value(config), dst, uri, sz))
@@ -200,7 +190,7 @@ int http_alias_resolv(http_t *h, request_t *rq, char *dst, const char *uri,
     }
 
     /* if there's a cgi tree also try to resolv script_alias rules */
-    if(!u_config_get_subkey(base, "cgi", &cgi))
+    if(!u_config_get_subkey(vhost->config, "cgi", &cgi))
     {
         for(i = 0; !u_config_get_subkey_nth(cgi, "script_alias", i, &config);
             ++i)
@@ -210,8 +200,8 @@ int http_alias_resolv(http_t *h, request_t *rq, char *dst, const char *uri,
         }
     }
 
-    /* not alias found, prepend dir_root to the uri */
-    dbg_err_if(u_path_snprintf(dst, sz, '/', "%s/%s", dir_root, uri));
+    /* alias not found, prepend dir_root to the uri */
+    dbg_err_if(u_path_snprintf(dst, sz, '/', "%s/%s", vhost->dir_root, uri));
 
     return 0;
 err:
@@ -276,21 +266,20 @@ err:
 
 static int http_get_config_index(http_t *h, request_t *rq, char *idx, size_t sz)
 {
+    vhost_t *vhost;
     char buf[256], *tok, *src, *pp = NULL;
-    const char *index = NULL;
-    u_config_t *config;
+    const char *cindex = NULL;
 
     dbg_err_if (h == NULL);
     dbg_err_if (rq == NULL);
 
-    if((index = http_vhost_config_value(h, rq, "index")) == NULL)
-        index = h->index;
+    dbg_err_if((vhost = http_get_vhost(h, rq)) == NULL);
 
-    if(!index)
+    if((cindex = u_config_get_subkey_value(vhost->config, "index")) == NULL)
         return ~0; /* index config key missing */
 
     /* copy the string (u_tokenize will modify it) */
-    dbg_err_if(strlcpy(buf, index, sizeof(buf)) >= sizeof(buf));
+    dbg_err_if(strlcpy(buf, cindex, sizeof(buf)) >= sizeof(buf));
 
     for(src = buf; (tok = strtok_r(src, " \t", &pp)) != NULL; src = NULL)
     {
@@ -309,7 +298,7 @@ err:
     return ~0;
 }
 
-static int http_get_default_index(http_t *h, request_t *rq, char *index, 
+static int http_get_default_index(http_t *h, request_t *rq, char *cindex, 
         size_t sz)
 {
     static const char *indexes[] = { "/index.klone", "/index.kl1",
@@ -324,7 +313,7 @@ static int http_get_default_index(http_t *h, request_t *rq, char *index,
     {
         if(http_is_valid_index(h, rq, *pg))
         {
-            dbg_err_if(strlcpy(index, *pg, sz) >= sz);
+            dbg_err_if(strlcpy(cindex, *pg, sz) >= sz);
             return 0; /* index page found */
         }
     }
@@ -358,15 +347,18 @@ err:
     return ~0;
 }
 
-static int http_add_default_header(http_t *h, response_t *rs)
+static int http_add_default_header(http_t *h, request_t *rq, response_t *rs)
 {
+    vhost_t *vhost;
     time_t now;
 
     dbg_err_if (h == NULL);
     dbg_err_if (rs == NULL);
     
+    dbg_err_if((vhost = http_get_vhost(h, rq)) == NULL);
+
     /* set server signature */
-    dbg_err_if(response_set_field(rs, "Server", h->server_sig));
+    dbg_err_if(response_set_field(rs, "Server", vhost->server_sig));
 
     now = time(NULL);
     dbg_err_if(response_set_date(rs, now));
@@ -394,7 +386,7 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
         dbg_err_if(header_clear(response_get_header(rs)));
 
     /* add default header fields */
-    dbg_err_if(http_add_default_header(h, rs));
+    dbg_err_if(http_add_default_header(h, rq, rs));
 
     /* disable page caching */
     dbg_err_if(response_disable_caching(rs));
@@ -449,6 +441,7 @@ static int http_serve(http_t *h, int fd)
     const char *gwi = NULL, *cstr;
     talarm_t *al = NULL;
     addr_t *addr;
+    vhost_t *vhost;
     struct sockaddr sa;
     size_t sasz;
 
@@ -547,6 +540,10 @@ static int http_serve(http_t *h, int fd)
 
     response_set_method(rs, request_get_method(rq));
 
+    /* get and cache the vhost ptr to speed up next lookups */
+    dbg_err_if((vhost = http_get_vhost(h, rq)) == NULL);
+    request_set_vhost(rq, vhost);
+
     /* if we're running in server mode then resolv aliases and dir_root */
     http_resolv_request(h, rq);
 
@@ -555,16 +552,22 @@ static int http_serve(http_t *h, int fd)
         dbg_err_if(http_set_index_request(h, rq)); /* set the index page */
 
     /* add default header fields */
-    dbg_err_if(http_add_default_header(h, rs));
+    dbg_err_if(http_add_default_header(h, rq, rs));
 
     /* set default successfull status code */
     dbg_err_if(response_set_status(rs, HTTP_STATUS_OK));
 
     /* serve the page; on error write out a simple error page */
-    nop_err_if((rc = broker_serve(h->broker, h, rq, rs)) != 0);
+    rc = broker_serve(h->broker, h, rq, rs);
+
+    /* log the request */
+    dbg_err_if(access_log(h, vhost->config, rq, rs));
 
     /* call the hook that fires on each request */
     hook_call(request, rq, rs);
+
+    /* on broker_serve error jump to err */
+    nop_err_if(rc != 0);
 
     /* page successfully served */
 
@@ -575,9 +578,6 @@ static int http_serve(http_t *h, int fd)
                           not be free'd) that happens during the io_free call */
     return 0;
 err:
-    /* hook get fired also on error */
-    hook_call(request, rq, rs);
-
     if(rc && rq && rs && response_io(rs))
         http_print_error_page(h, rq, rs, rc); /* print the error page */
     if(in)
@@ -598,11 +598,140 @@ static int http_free(http_t *h)
     if(h->broker)
         broker_free(h->broker);
 
+    if(h->vhosts)
+        vhost_list_free(h->vhosts);
+
     U_FREE(h);
 
     return 0;
 }
 
+static int http_add_vhost(http_t *http, const char *host, u_config_t *c)
+{
+    vhost_t *top, *vhost = NULL;
+    const char *v;
+
+    dbg_err_if (http == NULL);
+    dbg_err_if (host == NULL);
+    dbg_err_if (c == NULL);
+
+    dbg_err_if(vhost_create(&vhost));
+    
+    vhost->host = host;
+    vhost->config = c;
+    vhost->http = http;
+
+    /* set defaults */
+    if(!strcmp(host, ""))
+    {   
+        /* main server config static defaults */
+        vhost->server_sig = "klone/" KLONE_VERSION;
+        vhost->dir_root = "";
+        vhost->index = NULL;
+        vhost->send_enc_deflate = 0; 
+    } else {
+        /* vhost inherit top-level server config */
+        top = vhost_list_get_n(http->vhosts, 0);
+        dbg_err_if(top == NULL);
+
+        vhost->server_sig = top->server_sig;
+        vhost->dir_root = top->dir_root;
+        vhost->index = top->index;
+        vhost->send_enc_deflate = top->send_enc_deflate;
+    }
+
+    /* send_enc_deflate (disable if not configured) */
+    dbg_err_if(u_config_get_subkey_value_b(c, "send_enc_deflate", 0, 
+        &vhost->send_enc_deflate));
+
+    /* server signature */
+    if((v = u_config_get_subkey_value(c, "server_sig")) != NULL)
+        vhost->server_sig = v;
+
+    /* html dir root */
+    if((v = u_config_get_subkey_value(c, "dir_root")) != NULL)
+        vhost->dir_root = v;
+    else
+        crit_err("dir_root must be set (vhost: %s)", vhost->host);
+
+    /* index page */
+    if((v = u_config_get_subkey_value(c, "index")) != NULL)
+        vhost->index = v;
+
+    dbg_err_if(vhost_list_add(http->vhosts, vhost));
+
+    return 0;
+err:
+    if(vhost)
+        vhost_free(vhost);
+    return ~0;
+}
+
+static int config_inherit(u_config_t *dst, u_config_t *from)
+{
+    static const char *dont_inherit[] = {
+        "addr", "model", "type", "dir_root", "dir_alias", "script_alias", NULL
+    };
+    u_config_t *config, *child = NULL;
+    const char **di, *key, *value;
+    int n;
+
+    for(n = 0; (config = u_config_get_child_n(from, NULL, n)); ++n)
+    {
+        if(u_config_get_child(config, "dir_root"))
+            continue; /* skip vhost config subtree */
+        
+        key = u_config_get_key(config);
+        value = u_config_get_value(config);
+
+        /* don't inherit keys listed in dont_inherit array */
+        for(di = dont_inherit; *di; ++di)
+            if(strcasecmp(*di, key) == 0)
+                goto next;
+
+        dbg_err_if(u_config_add_child(dst, key, &child));
+        dbg_err_if(u_config_set_value(child, value));
+
+        dbg_err_if(config_inherit(child, config));
+
+    next:
+    }
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int http_set_vhost_list(http_t *http)
+{
+    u_config_t *config;
+    int n;
+
+    /* virtual vhost that stores the main server config */
+    dbg_err_if(http_add_vhost(http, "", http->config));
+
+    /* look for vhosts (any key that contain a dir_root subkey is a vhost) */
+    for(n = 0; (config = u_config_get_child_n(http->config, NULL, n)); ++n)
+    {
+        if(u_config_get_child(config, "dir_root") == NULL)
+            continue; /* it's not a vhost config branch */
+
+        dbg_err_if(u_config_get_key(config) == NULL);
+
+        info("configuring virtual host [%s]", u_config_get_key(config));
+
+        /* inherit top-level values */
+        dbg_err_if(config_inherit(config, http->config));
+
+        dbg_err_if(http_add_vhost(http, u_config_get_key(config), config));
+    }
+
+    return 0;
+err:
+    return ~0;
+}
+
+#if 0
 static int http_set_config_opt(http_t *http)
 {
     u_config_t *c = http->config;
@@ -638,6 +767,7 @@ static int http_set_config_opt(http_t *http)
 err:
     return ~0;
 }
+#endif
 
 
 static int http_create(u_config_t *config, http_t **ph)
@@ -652,11 +782,20 @@ static int http_create(u_config_t *config, http_t **ph)
 
     h->config = config;
 
+    dbg_err_if(vhost_list_create(&h->vhosts));
+
     /* init page broker (and page suppliers) */
     dbg_err_if(broker_create(&h->broker));
 
+#if 0
     /* set http struct config opt reading from http->config */
     dbg_err_if(http_set_config_opt(h));
+#endif
+
+    /* load main server and vhosts config */
+    dbg_err_if(http_set_vhost_list(h));
+
+    u_config_print(ctx->config, 0);
 
     *ph = h;
 

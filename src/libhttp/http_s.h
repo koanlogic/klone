@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http_s.h,v 1.7 2007/10/25 20:26:56 tat Exp $
+ * $Id: http_s.h,v 1.8 2007/11/09 01:30:45 tat Exp $
  */
 
 #ifndef _KLONE_HTTP_S_H_
@@ -29,13 +29,9 @@ struct http_s
 #ifdef HAVE_LIBOPENSSL
     SSL_CTX* ssl_ctx;       /* OpenSSL context                               */
 #endif
-    /* toplevel configuration options */
-    const char *server_sig; /* server signature                              */
-    const char *dir_root;   /* base html directory                           */
-    const char *index;      /* user-provided index page(s)                   */
-    int send_enc_deflate;   /* >0 if sending deflated content is not disabled*/
     /* session options struct                        */
     session_opt_t *sess_opt;
+    vhost_list_t *vhosts;
 };
 
 #endif

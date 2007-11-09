@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.29 2007/10/25 20:26:56 tat Exp $
+ * $Id: sup_emb.c,v 1.30 2007/11/09 01:30:45 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -101,6 +101,7 @@ static int supemb_static_set_header_fields(request_t *rq, response_t *rs,
     embfile_t *e, int *sai)
 {
     http_t *http;
+    vhost_t *vhost;
 
     dbg_err_if (rq == NULL);
     dbg_err_if (rs == NULL);
@@ -118,7 +119,9 @@ static int supemb_static_set_header_fields(request_t *rq, response_t *rs,
 
     /* if the client can accept deflated content don't uncompress the 
        resource but send as it is (if enabled by config) */
-    if(http->send_enc_deflate)
+    dbg_err_if((vhost = http_get_vhost(request_get_http(rq), rq)) == NULL);
+
+    if(vhost->send_enc_deflate)
     {
         if(e->comp && (*sai = request_is_encoding_accepted(rq, "deflate")) != 0)
         {   /* we can send compressed responses */

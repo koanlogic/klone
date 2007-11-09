@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_cgi.c,v 1.7 2007/10/26 10:01:09 tat Exp $
+ * $Id: sup_cgi.c,v 1.8 2007/11/09 01:30:45 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -20,6 +20,7 @@
 #include <klone/io.h>
 #include <klone/utils.h>
 #include <klone/rsfilter.h>
+#include <klone/vhost.h>
 
 /* holds environment variables passed to the cgi */
 typedef struct cgi_env_s
@@ -31,13 +32,14 @@ typedef struct cgi_env_s
 static int cgi_get_config(http_t *h, request_t *rq, u_config_t **pc)
 {
     u_config_t *config = NULL;
+    vhost_t *vhost;
+
     dbg_err_if(h == NULL);
-    dbg_err_if(rq  == NULL);
+    dbg_err_if(rq == NULL);
 
-    if(http_get_vhost_config(h, rq, &config) != 0)
-        dbg_err_if((config = http_get_config(h)) == NULL);
+    dbg_err_if((vhost = http_get_vhost(h, rq)) == NULL);
 
-    *pc = config;
+    *pc = vhost->config;
 
     return 0;
 err:
@@ -48,7 +50,7 @@ err:
 static int cgi_script(http_t *h, request_t *rq, const char *fqn)
 {
     u_config_t *config, *sub, *base;
-    const char  *dir;
+    const char *dir;
     int i, t;
 
     if(fqn == NULL)
@@ -243,7 +245,7 @@ err:
 
 static int cgi_setenv_ctype(cgi_env_t *env, request_t *rq)
 {
-    char *ct;
+    const char *ct;
 
     if((ct = request_get_field_value(rq, "Content-type")) != NULL)
         dbg_err_if(cgi_setenv(env, "CONTENT_TYPE", ct));

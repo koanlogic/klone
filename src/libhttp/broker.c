@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: broker.c,v 1.18 2007/10/26 11:04:11 tat Exp $
+ * $Id: broker.c,v 1.19 2007/11/09 01:30:45 tat Exp $
  */
 
 #include <u/libu.h>
@@ -79,7 +79,7 @@ int broker_serve(broker_t *b, http_t *h, request_t *rq, response_t *rs)
     }
 
     response_set_status(rs, HTTP_STATUS_NOT_FOUND); 
-    warn("404, file not found: %s", request_get_filename(rq));
+    dbg("404, file not found: %s", request_get_filename(rq));
 
 err:
     return HTTP_STATUS_NOT_FOUND; /* page not found */

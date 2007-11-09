@@ -5,18 +5,20 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.h,v 1.17 2007/10/25 22:09:24 tat Exp $
+ * $Id: request.h,v 1.18 2007/11/09 01:30:45 tat Exp $
  */
 
 #ifndef _KLONE_REQUEST_H_
 #define _KLONE_REQUEST_H_
 
 #include <sys/types.h>
+#include <u/libu.h>
 #include <klone/header.h>
 #include <klone/io.h>
 #include <klone/http.h>
 #include <klone/vars.h>
 #include <klone/addr.h>
+#include <klone/vhost.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,6 +86,8 @@ const char *request_get_arg(request_t *rq, const char *name);
 vars_t *request_get_cookies(request_t *rq);
 const char *request_get_cookie(request_t *rq, const char *name);
 
+vhost_t *request_get_vhost(request_t *rq);
+int request_set_vhost(request_t *rq, vhost_t *vhost);
 
 #ifdef __cplusplus
 }

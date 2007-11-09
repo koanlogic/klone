@@ -1,8 +1,10 @@
-$Id: ChangeLog,v 1.37 2007/11/06 20:27:00 tat Exp $
+$Id: ChangeLog,v 1.38 2007/11/09 01:30:45 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.0.1:
+    - vhost impl refactored
+	- per-vhost access log support
 	- Content-Disposition parser fix
 	- Darwin 9 (Leopard) toolchain 
 	- Cygwin support added (kloned can run in prefork mode under Cygwin,

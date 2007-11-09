@@ -1,10 +1,10 @@
-# $Id: Makefile,v 1.5 2007/08/07 14:47:10 tat Exp $
+# $Id: Makefile,v 1.6 2007/11/09 01:30:45 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
 
 LIB = http
-SRCS = broker.c cgi.c http.c sup_emb.c 
+SRCS = broker.c cgi.c http.c sup_emb.c access.c vhost.c
 
 ifdef ENABLE_SUP_FS
 SRCS += sup_fs.c
