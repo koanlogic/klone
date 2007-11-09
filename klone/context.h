@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: context.h,v 1.11 2007/09/15 16:36:12 tat Exp $
+ * $Id: context.h,v 1.12 2007/11/09 13:45:52 tat Exp $
  */
 
 #ifndef _KLONE_CONTEXT_H_
@@ -30,6 +30,7 @@ typedef struct context_s
     backend_t *backend; /* the backend served by this child */
     hook_t *hook;       /* object that keep track of hooks */
     char *ext_config;   /* additional external config file */
+    char *pid_file;     /* path of the PID file            */
     int debug;          /* debugging on/off                */
     int daemon;         /* daemon/service mode on/off      */
     char **arg;         /* cmd line args array             */

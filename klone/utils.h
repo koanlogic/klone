@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.h,v 1.30 2007/10/26 10:01:09 tat Exp $
+ * $Id: utils.h,v 1.31 2007/11/09 13:45:52 tat Exp $
  */
 
 #ifndef _KLONE_UTILS_H_
@@ -77,6 +77,7 @@ int u_file_open(const char *file, int flags, io_t **pio);
 int u_tmpfile_open(io_t **pio);
 int u_getline(io_t *io, u_string_t *ln);
 int u_fgetline(FILE *in, u_string_t *ln);
+int u_save_pid(const char *file);
 
 int u_io_unzip_copy(io_t *out, const char *data, size_t size);
 

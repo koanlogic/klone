@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: entry.c,v 1.24 2007/10/21 09:54:57 tat Exp $
+ * $Id: entry.c,v 1.25 2007/11/09 13:45:52 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -44,6 +44,7 @@ static void usage()
 "\n"
 "    -d          turn on debugging (forces iterative mode)                  \n"
 "    -f file     load an external config file                               \n"
+"    -p file     save daemon PID to file                                    \n"
 "    -F          run in foreground                                          \n"
 "    -h          display this help                                          \n"
 #ifdef OS_WIN
@@ -62,9 +63,9 @@ static int parse_opt(int argc, char **argv)
 {
     int ret;
 #ifdef OS_WIN
-        #define CMDLINE_FORMAT "hVFdiuf:"
+        #define CMDLINE_FORMAT "hVFdiuf:p:"
 #else
-        #define CMDLINE_FORMAT "hVFdf:"
+        #define CMDLINE_FORMAT "hVFdf:p:"
 #endif
 
     /* set defaults */
@@ -78,6 +79,12 @@ static int parse_opt(int argc, char **argv)
             ctx->ext_config = u_strdup(optarg);
             dbg_err_if(ctx->ext_config == NULL);
             dbg("ext config: %s", ctx->ext_config);
+            break;
+
+        case 'p':   /* PID file */
+            ctx->pid_file = u_strdup(optarg);
+            dbg_err_if(ctx->pid_file == NULL);
+            dbg("PID file: %s", ctx->pid_file);
             break;
 
         case 'd':   /* turn on debugging */
@@ -392,6 +399,10 @@ int main(int argc, char **argv)
     /* daemonize if not -F */
     if(ctx->daemon && !ctx->cgi)
         con_err_ifm(daemon(0, 0), "daemon error");
+
+    /* save the PID in a file */
+    if(ctx->pid_file)
+        dbg_err_if(u_save_pid(ctx->pid_file));
 
     /* jump to the main loop */
     rc = app_run();

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.49 2007/10/26 11:21:51 tho Exp $
+ * $Id: utils.c,v 1.50 2007/11/09 13:45:52 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1248,6 +1248,21 @@ int u_cipher_decrypt(const EVP_CIPHER *cipher, unsigned char *key,
     return 0;
 err:
     EVP_CIPHER_CTX_cleanup(&ctx);
+    return ~0;
+}
+
+int u_save_pid(const char *file)
+{
+    FILE *fp;
+
+    dbg_err_sif ((fp = fopen(file, "w")) == NULL);
+
+    dbg_err_sif(fprintf(fp, "%ld\n", (long) getpid()) == 0);
+
+    fclose(fp);
+
+    return 0;
+err:
     return ~0;
 }
 
