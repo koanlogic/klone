@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vhost.h,v 1.1 2007/11/09 01:30:45 tat Exp $
+ * $Id: vhost.h,v 1.2 2007/11/09 17:37:39 tat Exp $
  */
 
 #ifndef _KLONE_VHOST_H_
@@ -21,11 +21,13 @@ extern "C" {
 LIST_HEAD(vhost_list_s, vhost_s);
 
 struct http_s;
+struct klog_s;
 
 typedef struct vhost_s
 {
     LIST_ENTRY(vhost_s) np; /* next & prev pointers                          */
     struct http_s *http;    /* parent http object                            */
+    struct klog_s *klog;    /* vhost logging facility                        */
     u_config_t *config;     /* vhost configuration                           */
     const char *host;       /* hostname                                      */
 

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.52 2007/11/09 01:30:45 tat Exp $
+ * $Id: http.c,v 1.53 2007/11/09 17:37:39 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -621,24 +621,13 @@ static int http_add_vhost(http_t *http, const char *host, u_config_t *c)
     vhost->config = c;
     vhost->http = http;
 
-    /* set defaults */
-    if(!strcmp(host, ""))
-    {   
-        /* main server config static defaults */
-        vhost->server_sig = "klone/" KLONE_VERSION;
-        vhost->dir_root = "";
-        vhost->index = NULL;
-        vhost->send_enc_deflate = 0; 
-    } else {
-        /* vhost inherit top-level server config */
-        top = vhost_list_get_n(http->vhosts, 0);
-        dbg_err_if(top == NULL);
+    vhost->klog ??
 
-        vhost->server_sig = top->server_sig;
-        vhost->dir_root = top->dir_root;
-        vhost->index = top->index;
-        vhost->send_enc_deflate = top->send_enc_deflate;
-    }
+    /* set defaults */
+    vhost->server_sig = "klone/" KLONE_VERSION;
+    vhost->dir_root = "";
+    vhost->index = NULL;
+    vhost->send_enc_deflate = 0; 
 
     /* send_enc_deflate (disable if not configured) */
     dbg_err_if(u_config_get_subkey_value_b(c, "send_enc_deflate", 0, 
@@ -731,45 +720,6 @@ err:
     return ~0;
 }
 
-#if 0
-static int http_set_config_opt(http_t *http)
-{
-    u_config_t *c = http->config;
-    const char *v;
-
-    dbg_err_if (http == NULL);
-    
-    /* defaults */
-    http->server_sig = "klone/" KLONE_VERSION;
-    http->dir_root = "";
-    http->index = NULL;
-    http->send_enc_deflate = 0; 
-
-    /* send_enc_deflate (disable if not configured) */
-    dbg_err_if(u_config_get_subkey_value_b(c, "send_enc_deflate", 0, 
-        &http->send_enc_deflate));
-
-    /* server signature */
-    if((v = u_config_get_subkey_value(c, "server_sig")) != NULL)
-        http->server_sig = v;
-
-    /* html dir root */
-    if((v = u_config_get_subkey_value(c, "dir_root")) != NULL)
-        http->dir_root = v;
-    else
-        crit_err("dir_root must be set");
-
-    /* index page */
-    if((v = u_config_get_subkey_value(c, "index")) != NULL)
-        http->index = v;
-
-    return 0;
-err:
-    return ~0;
-}
-#endif
-
-
 static int http_create(u_config_t *config, http_t **ph)
 {
     http_t *h = NULL;
@@ -787,15 +737,12 @@ static int http_create(u_config_t *config, http_t **ph)
     /* init page broker (and page suppliers) */
     dbg_err_if(broker_create(&h->broker));
 
-#if 0
-    /* set http struct config opt reading from http->config */
-    dbg_err_if(http_set_config_opt(h));
-#endif
-
     /* load main server and vhosts config */
     dbg_err_if(http_set_vhost_list(h));
 
-    u_config_print(ctx->config, 0);
+    /* print-out config with inherited values */
+    if(ctx->debug > 1)
+        u_config_print(ctx->config, 0);
 
     *ph = h;
 
