@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.54 2007/11/09 22:06:26 tat Exp $
+ * $Id: http.c,v 1.55 2007/11/13 21:19:36 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -61,6 +61,8 @@ struct http_status_map_s
     { 0                                 , NULL                      }
 };
 
+enum { URI_MAX = 2048 };
+
 /* in cgi.c */
 int cgi_set_request(request_t *rq);
 
@@ -97,15 +99,15 @@ static int http_try_resolv(const char *alias, char *dst, const char *uri,
         size_t sz)
 {
     static const char *WP = " \t";
-    char *src, *res, *v = NULL, *pp = NULL;
+    char *src, *res, *pp = NULL;
+    char v[1024];
 
     dbg_err_if(dst == NULL);
     dbg_err_if(uri == NULL);
     dbg_err_if(alias == NULL);
 
-    /* dup to use it in strtok */
-    v = u_strdup(alias);
-    dbg_err_if(v == NULL);
+    /* copy the alias in a buffer, strtok_r modifies it */
+    dbg_err_if(strlcpy(v, alias, sizeof(v)) >= sizeof(v));
 
     /* src is the source directory */
     src = strtok_r(v, WP, &pp); 
@@ -125,11 +127,8 @@ static int http_try_resolv(const char *alias, char *dst, const char *uri,
     /* copy-out the resolved uri to dst */
     dbg_err_if(u_path_snprintf(dst, sz, '/', "%s/%s", res, uri + strlen(src)));
 
-    U_FREE(v);
-
     return 0;
 err:
-    U_FREE(v);
     return ~0;
 }
 
@@ -219,7 +218,6 @@ err:
 
 static int http_is_valid_uri(void *arg, const char *buf, size_t len)
 {
-    enum { URI_MAX = 2048 };
     char resolved[U_FILENAME_MAX], uri[URI_MAX];
     request_t *rq = (request_t*)arg;
     http_t *h = NULL;
@@ -340,14 +338,13 @@ static int http_set_index_request(http_t *h, request_t *rq)
     dbg_err_if (rq == NULL);
 
     /* find an index page; try first config options then static index names */
-    if(!http_get_config_index(h, rq, idx, sizeof(idx)) || 
-            !http_get_default_index(h, rq, idx, sizeof(idx)))
-    {
-        dbg_err_if(u_snprintf(uri, sizeof(uri), "%s%s", 
-                    request_get_filename(rq), idx));
+    dbg_err_if(http_get_config_index(h, rq, idx, sizeof(idx)) &&
+            http_get_default_index(h, rq, idx, sizeof(idx)));
 
-        dbg_if(request_set_filename(rq, uri));
-    }
+    dbg_err_if(u_snprintf(uri, sizeof(uri), "%s%s", 
+                request_get_filename(rq), idx));
+
+    dbg_if(request_set_filename(rq, uri));
 
     http_resolv_request(h, rq);
 
@@ -453,6 +450,7 @@ static int http_serve(http_t *h, int fd)
     vhost_t *vhost;
     struct sockaddr sa;
     size_t sasz;
+    char *uri, nuri[URI_MAX];
 
     u_unused_args(al);
 
@@ -558,7 +556,7 @@ static int http_serve(http_t *h, int fd)
 
     /* if the uri end with a slash then return an index page */
     if((cstr = request_get_filename(rq)) != NULL && cstr[strlen(cstr)-1] == '/')
-        dbg_err_if(http_set_index_request(h, rq)); /* set the index page */
+        dbg_if(http_set_index_request(h, rq)); /* set the index page */
 
     /* add default header fields */
     dbg_err_if(http_add_default_header(h, rq, rs));
@@ -568,6 +566,30 @@ static int http_serve(http_t *h, int fd)
 
     /* serve the page; on error write out a simple error page */
     rc = broker_serve(h->broker, h, rq, rs);
+
+    /* on 404 (file not found) try to find out if this is a directory request 
+       i.e. http://site:port/dir redirects to /dir/ */
+    if(response_get_status(rs) == 404 && (uri = request_get_uri(rq)) != NULL &&
+            uri[strlen(uri)-1] != '/')
+    {
+        if(!http_set_index_request(h, rq))
+        {
+            strlcpy(nuri, request_get_uri(rq), sizeof(nuri));
+            strlcat(nuri, "/", sizeof(nuri));
+
+            if(request_get_path_info(rq))
+                strlcat(nuri, request_get_path_info(rq), sizeof(nuri));
+
+            if(request_get_query_string(rq))
+            {
+                strlcat(nuri, "?", sizeof(nuri));
+                strlcat(nuri, request_get_query_string(rq), sizeof(nuri));
+            }
+
+            response_redirect(rs, nuri);
+            rc = HTTP_STATUS_MOVED_TEMPORARILY;
+        }
+    }
 
     /* log the request */
     if(vhost->klog)
@@ -717,7 +739,7 @@ static int config_inherit(u_config_t *dst, u_config_t *from)
 
         dbg_err_if(config_inherit(child, config));
 
-    next:
+    next:;
     }
 
     return 0;

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.50 2007/11/09 01:30:45 tat Exp $
+ * $Id: request.c,v 1.51 2007/11/13 21:19:36 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -514,9 +514,9 @@ int request_set_uri(request_t *rq, const char *uri,
         int (*is_valid_uri)(void*, const char *, size_t),
         void* arg)
 {
-    enum { REQUEST_URI_MAX_LENGTH = 4095 };
-    char *p, *fn, *pi, *cp = NULL;
+    char *p, *fn, *pi;
     size_t uri_len = strlen(uri);
+    char cp[4096];
 
     dbg_err_if (rq == NULL);
     dbg_err_if (uri == NULL);
@@ -527,16 +527,13 @@ int request_set_uri(request_t *rq, const char *uri,
 
     /* this is just to avoid recursive infinite redirect loops for pages that 
        appends something to the URI and redirects to the same page */
-    warn_err_ifm(uri_len > REQUEST_URI_MAX_LENGTH, "Request URI too long");
+    warn_err_ifm(uri_len >= sizeof(cp), "Request URI too long");
 
     REQUEST_SET_STRING_FIELD(rq->uri, uri);
 
     /* save (undecoded) query string i.e. everything after '?' */
     if((p = strchr(uri, '?')) != NULL)
         dbg_err_if(request_set_query_string(rq, ++p));
-
-    cp = (char*)u_malloc(uri_len + 1);
-    dbg_err_if(cp == NULL);
 
     /* copy decoded url */
     dbg_err_if(u_urlncpy(cp, rq->uri, uri_len, URLCPY_DECODE) <= 0);
@@ -569,11 +566,8 @@ int request_set_uri(request_t *rq, const char *uri,
         }
     }
 
-    U_FREE(cp);
-
     return 0;
 err:
-    U_FREE(cp);
     return ~0;
 }
 

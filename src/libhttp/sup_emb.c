@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.30 2007/11/09 01:30:45 tat Exp $
+ * $Id: sup_emb.c,v 1.31 2007/11/13 21:19:36 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -269,6 +269,8 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
 
     return 0;
 err:
+    /* remove codecs and rs filter */
+    dbg_if(io_codecs_remove(response_io(rs))); 
     io_flush(response_io(rs));
     if(ss)
         session_free(ss);
