@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.55 2007/11/13 21:19:36 tat Exp $
+ * $Id: http.c,v 1.56 2007/11/13 21:21:31 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -338,7 +338,7 @@ static int http_set_index_request(http_t *h, request_t *rq)
     dbg_err_if (rq == NULL);
 
     /* find an index page; try first config options then static index names */
-    dbg_err_if(http_get_config_index(h, rq, idx, sizeof(idx)) &&
+    nop_err_if(http_get_config_index(h, rq, idx, sizeof(idx)) &&
             http_get_default_index(h, rq, idx, sizeof(idx)));
 
     dbg_err_if(u_snprintf(uri, sizeof(uri), "%s%s", 
