@@ -83,9 +83,12 @@ realclean:
 		$(MAKE) MAKL_TC= -C $(KLONE_DIR) clean; \
 		$(MAKE) MAKL_TC= -C $(KLONE_DIR) dist-clean; \
 	fi
-	for d in $(SUBDIR) ; do \
-	    $(MAKE) -C $$d clean; \
-	done
+	if [ "$(SUBDIR)" ]; then \
+	    for d in $(SUBDIR) ; do \
+	        $(MAKE) -C $$d clean; \
+	    done; \
+	fi
+	rm -f vars.mk
 	rm -f kloned
 
 $(KLONE_DIR)/Makefile: Makefile
