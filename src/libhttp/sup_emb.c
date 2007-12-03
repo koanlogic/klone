@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.31 2007/11/13 21:19:36 tat Exp $
+ * $Id: sup_emb.c,v 1.32 2007/12/03 16:05:55 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -100,7 +100,6 @@ err:
 static int supemb_static_set_header_fields(request_t *rq, response_t *rs, 
     embfile_t *e, int *sai)
 {
-    http_t *http;
     vhost_t *vhost;
 
     dbg_err_if (rq == NULL);
@@ -108,7 +107,7 @@ static int supemb_static_set_header_fields(request_t *rq, response_t *rs,
     dbg_err_if (e == NULL);
     dbg_err_if (sai == NULL);
 
-    dbg_err_if((http = request_get_http(rq)) == NULL);
+    dbg_err_if((vhost = request_get_http(rq)) == NULL);
 
     /* set header fields based on embfile_t struct */
 
@@ -119,8 +118,6 @@ static int supemb_static_set_header_fields(request_t *rq, response_t *rs,
 
     /* if the client can accept deflated content don't uncompress the 
        resource but send as it is (if enabled by config) */
-    dbg_err_if((vhost = http_get_vhost(request_get_http(rq), rq)) == NULL);
-
     if(vhost->send_enc_deflate)
     {
         if(e->comp && (*sai = request_is_encoding_accepted(rq, "deflate")) != 0)
@@ -261,7 +258,7 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
     /* if nothing has been printed by the sciprt then write a dummy byte so 
      * the io_t calls the filter function that, in turn, will print out the 
      * HTTP header (rsfilter will handle it) */
-    if(oio->wcount == 0)
+    if(!response_filter_feeded(filter))
         io_write(oio, "\n", 1);
 
     /* save and destroy the session */
@@ -269,8 +266,6 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
 
     return 0;
 err:
-    /* remove codecs and rs filter */
-    dbg_if(io_codecs_remove(response_io(rs))); 
     io_flush(response_io(rs));
     if(ss)
         session_free(ss);

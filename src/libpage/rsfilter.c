@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: rsfilter.c,v 1.13 2006/01/09 12:38:38 tat Exp $
+ * $Id: rsfilter.c,v 1.14 2007/12/03 16:05:55 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -38,7 +38,7 @@ struct response_filter_s
     request_t *rq;
     response_t *rs;
     session_t *ss;
-    int state;
+    int state, feeded;
     char buf[RFBUFSZ], *ptr;
     size_t off;
     io_t *iob;
@@ -86,10 +86,11 @@ static int rf_flush(codec_t *codec, char *dst, size_t *dcount)
     response_filter_t *rf = (response_filter_t*)codec;
     ssize_t c;
 
+
     dbg_err_if (codec == NULL);
     dbg_err_if (dst == NULL);
     dbg_err_if (dcount == NULL);
-    
+
     if(rf->state == RFS_BUFFERING)
     {
         rf->state = RFS_FLUSHING;
@@ -128,6 +129,8 @@ static ssize_t rf_transform(codec_t *codec,
     dbg_err_if (dst == NULL);
     dbg_err_if (dcount == NULL);
     dbg_err_if (src == NULL);
+
+    rf->feeded = 1;
 
     /* if this's a HEAD request don't print the body of the page */
     if(response_get_method(rf->rs) == HM_HEAD)
@@ -194,6 +197,17 @@ static int rf_free(codec_t *codec)
     U_FREE(rf);
 
     return 0;
+}
+
+int response_filter_feeded(codec_t *codec)
+{
+    response_filter_t *rf;
+
+    dbg_return_if (codec == NULL, 0);   /* it's ok */
+
+    rf = (response_filter_t*)codec;
+
+    return rf->feeded; /* 1 if at least 1 byte has been written */
 }
 
 int response_filter_create(request_t *rq, response_t *rs, session_t *ss,
