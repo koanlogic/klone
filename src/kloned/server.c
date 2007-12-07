@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.59 2007/11/09 22:06:26 tat Exp $
+ * $Id: server.c,v 1.60 2007/12/07 16:37:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -467,7 +467,7 @@ static int server_drop_privileges(server_t *s)
 
     if(s->gid > 0)
     {
-        gid = (gid_t)s->gid;;
+        gid = (gid_t)s->gid;
 
         /* remove all groups except gid */
         dbg_err_if(setgroups(1, &gid));

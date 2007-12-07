@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_fs.c,v 1.11 2007/10/25 20:26:56 tat Exp $
+ * $Id: sup_fs.c,v 1.12 2007/12/07 16:37:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -48,7 +48,7 @@ static int fs_is_valid_uri(http_t *h, request_t *rq, const char *uri,
 static int fs_serve(request_t *rq, response_t *rs)
 {
     enum { BUFSZ = 4096 };
-    io_t *io = NULL, *out = NULL;;
+    io_t *io = NULL, *out = NULL;
     const char *mime_type, *fqn;
     size_t c;
     char buf[BUFSZ];

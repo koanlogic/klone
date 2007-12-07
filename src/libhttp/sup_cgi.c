@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_cgi.c,v 1.8 2007/11/09 01:30:45 tat Exp $
+ * $Id: sup_cgi.c,v 1.9 2007/12/07 16:37:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -512,7 +512,7 @@ static int cgi_serve(request_t *rq, response_t *rs)
     field_t *field = NULL;
     const char *fqn, *filename;
     char buf[4096];
-    io_t *out = NULL, *cgi_in = NULL, *cgi_out = NULL;;
+    io_t *out = NULL, *cgi_in = NULL, *cgi_out = NULL;
     ssize_t n, tot = 0, clen;
     int cgi_stdin = -1, cgi_stdout = -1, status;
     pid_t child;

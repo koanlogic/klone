@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_mem.c,v 1.27 2006/01/09 12:38:38 tat Exp $
+ * $Id: ses_mem.c,v 1.28 2007/12/07 16:37:56 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -209,7 +209,7 @@ static int session_cmd_save(ppc_t *ppc, int fd, unsigned char cmd, char *data,
     size_t size, void *vso)
 {
     session_opt_t *so = vso;
-    enc_ses_mem_t *esm = (enc_ses_mem_t*)data;;
+    enc_ses_mem_t *esm = (enc_ses_mem_t*)data;
 
     u_unused_args(ppc, fd, cmd, size);
 

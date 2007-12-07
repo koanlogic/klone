@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.82 2007/11/09 01:30:45 tat Exp $
+# $Id: configure,v 1.83 2007/12/07 16:37:56 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -119,6 +119,8 @@ makl_checkheader        0   "unistd"        "<unistd.h>"
 makl_checkheader        0   "sys_select"    "<sys/select.h>"
 makl_checkheader        0   "sys_wait"      "<sys/wait.h>"
 makl_checkheader        0   "sys_dir"       "<sys/dir.h>"
+
+makl_checksymbol        0   "SA_RESTART"    "<signal.h>"
 
 # Library dependencies
 makl_optional           1   "lib"           "openssl"   ""  "-lssl -lcrypto"
