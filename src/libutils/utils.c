@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.51 2007/12/07 16:37:56 tat Exp $
+ * $Id: utils.c,v 1.52 2007/12/07 17:16:39 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1086,6 +1086,22 @@ notfound:
     return "application/octet-stream";
 }
 
+int u_save_pid(const char *file)
+{
+    FILE *fp;
+
+    dbg_err_sif ((fp = fopen(file, "w")) == NULL);
+
+    dbg_err_sif(fprintf(fp, "%ld\n", (long) getpid()) == 0);
+
+    fclose(fp);
+
+    return 0;
+err:
+    return ~0;
+}
+
+
 #ifdef HAVE_LIBZ
 /**
  * \ingroup ut
@@ -1251,21 +1267,6 @@ int u_cipher_decrypt(const EVP_CIPHER *cipher, unsigned char *key,
     return 0;
 err:
     EVP_CIPHER_CTX_cleanup(&ctx);
-    return ~0;
-}
-
-int u_save_pid(const char *file)
-{
-    FILE *fp;
-
-    dbg_err_sif ((fp = fopen(file, "w")) == NULL);
-
-    dbg_err_sif(fprintf(fp, "%ld\n", (long) getpid()) == 0);
-
-    fclose(fp);
-
-    return 0;
-err:
     return ~0;
 }
 
