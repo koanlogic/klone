@@ -1,5 +1,4 @@
 #include <time.h>
-#include <syslog.h>
 #include <u/libu.h>
 #include <klone/klone.h>
 #include <klone/context.h>
