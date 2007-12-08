@@ -15,6 +15,7 @@ static inline const char *value_or_dash(const char *v)
 
 static long get_timezone(struct tm *tm)
 {
+#ifdef HAVE_STRUCT_TM_TM_GMTOFF
     long int h, m, sign;
 
     sign = (tm->tm_gmtoff > 0 ? 1 : -1);
@@ -22,6 +23,9 @@ static long get_timezone(struct tm *tm)
     m = (h % 3600) / 60;
 
     return sign * (h * 100 + m);
+#else
+    return 0;
+#endif
 }
 
 int access_log(http_t *h, u_config_t *config, request_t *rq, response_t *rs)
