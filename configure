@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.84 2007/12/08 22:39:45 tat Exp $
+# $Id: configure,v 1.85 2007/12/08 22:46:31 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -133,6 +133,7 @@ makl_checkstructelem    0   "struct tm"     "tm_gmtoff"  "<time.h>"
 
 makl_checkfunc          0   "syslog"
 makl_checkfunc          0   "mkstemp"
+makl_checkfunc          0   "localtime_r"
 
 makl_checkinline        0
 if [ $? -ne 0 ]; then

@@ -98,7 +98,11 @@ int access_log(http_t *h, u_config_t *config, request_t *rq, response_t *rs)
     ip = inet_ntoa(addr->sa.sin.sin_addr);
 
     now = tv.tv_sec;
+#ifdef HAVE_LOCALTIME_R
     localtime_r(&now, &tm);
+#else
+    tm = *localtime(&now);
+#endif
     tm.tm_year += 1900;
 
     if((sub = u_config_get_child(config, "prefix")) == NULL || 
