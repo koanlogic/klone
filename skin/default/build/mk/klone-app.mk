@@ -90,15 +90,13 @@ ifdef MAKL_PLATFORM
 KLONE_TOOL ?= $(KLONE_SRC_HOST)/src/tools/klone/klone
 KLONE_CONF_ARGS += --cross_compile
 export KLONE = $(KLONE_TOOL)
-#export KLONE_TC=$(basename $(notdir $(KLONE_CUSTOM_TC)))
-#export MAKL_TC=custom
+KLONE_IMPORT_ARGS ?= \
+    $(shell grep -q HAVE_LIBZ $(KLONE_SRC_HOST)/Makefile.conf && echo '-z')
 else
 KLONE_TOOL ?= $(KLONE_SRC_TARGET)/src/tools/klone/klone
-endif
-
-# if libz is available then use it
 KLONE_IMPORT_ARGS ?= \
     $(shell grep -q HAVE_LIBZ $(KLONE_SRC_TARGET)/Makefile.conf && echo '-z')
+endif
 
 ifeq ($(wildcard Makefile.conf),)
 help-conf:
