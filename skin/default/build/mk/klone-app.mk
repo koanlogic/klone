@@ -212,7 +212,7 @@ clean:
 	@echo "==> cleaning... "
 	@$(MAKE) -C build/target $@
 	@$(MAKE) -C build/host $@
-	@for dir in $(SUBDIR); do \
+	@for dir in $$SUBDIR; do \
 	    $(MAKE) -C $$dir $@ ; \
 	done
 	@rm -f .wc .wc.old
