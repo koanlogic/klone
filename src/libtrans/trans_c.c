@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.36 2007/12/13 15:21:51 tat Exp $
+ * $Id: trans_c.c,v 1.37 2007/12/13 22:15:38 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -312,20 +312,6 @@ static void print_register_block(io_t *out, lang_c_ctx_t *ctx)
         md5, md5, md5, md5);
 }
 
-static int print_c_line(parser_t *p, lang_c_ctx_t *ctx)
-{
-    dbg_err_if (p == NULL);
-    dbg_err_if (ctx == NULL);
-    dbg_err_if (ctx->ti == NULL);
-
-    dbg_err_if(io_printf(p->out, "#line %d \"%s\"\n", p->code_line, 
-        ctx->ti->file_in) < 0);
-
-    return 0;
-err:
-    return ~0;
-}
-
 static int process_declaration(parser_t *p, void *arg, const char *buf, 
         size_t sz)
 {
@@ -348,7 +334,7 @@ static int process_expression(parser_t *p, void *arg, const char *buf,
 {
     lang_c_ctx_t *ctx;
     const char before[] = "io_printf(out, \"%s\",";
-    const char after[] = ");";
+    const char after[] = ");\n";
 
     dbg_err_if (p == NULL);
     dbg_err_if (arg == NULL);

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.24 2007/09/15 16:36:12 tat Exp $
+ * $Id: translat.c,v 1.25 2007/12/13 22:15:38 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -189,6 +189,7 @@ static int cb_pre_code_block(parser_t *p, int cmd, void *arg, const char *buf,
         dbg_err_if(parse_directive(p, arg, buf, sz));
     } else {
         dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
+
         if(cmd != '=')
             dbg_err_if(io_printf(p->out, "<%%%c #line %d \"%s\" \n%%>", 
                 (cmd == 0 ? ' ' : cmd), p->code_line, file)); 
@@ -199,7 +200,11 @@ static int cb_pre_code_block(parser_t *p, int cmd, void *arg, const char *buf,
         dbg_err_if(io_printf(p->out, "<%%%c ", (cmd == 0 ? ' ' : cmd)) < 0);
         dbg_err_if(io_write(p->out, buf, sz) < 0);
         dbg_err_if(io_printf(p->out, "%%>") < 0);
+
+        /* placeholder to be subst'd in the last translation phase */
+        dbg_err_if(io_printf(p->out, "<%%%c #line 0 __PG_FILE_C__ \n%%>", cmd));
     }
+
     return 0;
 err:
     return ~0;
@@ -225,6 +230,50 @@ static int preprocess(io_t *in, io_t *out)
 err:
     if(p)
         parser_free(p);
+    return ~0;
+}
+
+static int fix_line_decl(trans_info_t *pti)
+{
+    io_t *in = NULL, *tmp = NULL;
+    char tname[U_FILENAME_MAX], buf[1024];
+    int ln = 0;
+
+    /* open the input file */
+    con_err_ifm(u_file_open(pti->file_out, O_RDONLY, &in),
+        "unable to open %s", pti->file_out);
+
+    /* get a temporary io_t */
+    con_err_if(u_tmpfile_open(&tmp));
+
+    while(io_gets(in, buf, sizeof(buf)) > 0)
+    {
+        if(strstr(buf, "#line 0 __PG_FILE_C__") == NULL)
+        {
+            io_printf(tmp, "%s", buf);
+            ln++; /* line number */
+        } else
+            io_printf(tmp, "#line %d \"%s\"", ln + 2, pti->file_out);
+    }
+
+    /* get the filename of the temporary io_t */
+    dbg_err_if(io_name_get(tmp, tname, U_FILENAME_MAX));
+
+    io_free(in), in = NULL;
+    io_free(tmp), tmp = NULL;
+
+    /* move tmp to file_out */
+    unlink(pti->file_out);
+    con_err_ifm(link(tname, pti->file_out) < 0, "unable to move %s to %s", 
+            tname, pti->file_out);
+    unlink(tname);
+
+    return 0;
+err:
+    if(in)
+        io_free(in);
+    if(tmp)
+        io_free(tmp);
     return ~0;
 }
 
@@ -267,7 +316,7 @@ int translate(trans_info_t *pti)
 
         /* remove the tmp file */
         unlink(tname);
-    } else  {
+    } else {
         /* check if compression is requested */
 #ifdef HAVE_LIBZ
         if(pti->comp)
@@ -292,8 +341,12 @@ int translate(trans_info_t *pti)
         dbg_err_if(translate_opaque_to_c(in, out, pti));
     }
 
-    io_free(in);
-    io_free(out);
+    io_free(in), in = NULL;
+    io_free(out), out = NULL;
+
+    /* replace '#line 0 __PG_FILE_C__' lines with '#line N "real_filename.c"' */
+    if(is_a_script(pti->file_in))
+        dbg_err_if(fix_line_decl(pti));
 
     return 0;
 err:
