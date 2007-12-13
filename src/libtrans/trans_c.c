@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.35 2007/09/15 16:36:12 tat Exp $
+ * $Id: trans_c.c,v 1.36 2007/12/13 15:21:51 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -112,6 +112,8 @@ err:
 static void print_header(parser_t *p, lang_c_ctx_t *ctx)
 {
     const char *file;
+    char *dfun;
+    int i;
 
     dbg_ifb (p == NULL) return;
     dbg_ifb (ctx == NULL) return;
@@ -125,8 +127,22 @@ static void print_header(parser_t *p, lang_c_ctx_t *ctx)
 
     for(; *file != '/' && file >= ctx->ti->uri; --file)
             ;
+
     io_printf(p->out, "static const char *SCRIPT_NAME = \"%s\";\n", 
                 ++file);
+
+    dfun = ctx->ti->dfun; /* shortcut */
+
+    if(strlcpy(dfun, file, URI_BUFSZ) >= URI_BUFSZ)
+        dfun[URI_BUFSZ - 1] = 0;
+
+    for(i = 0; i < strlen(dfun); ++i)
+        if(!isalnum(dfun[i]))
+            dfun[i] = '_'; /* just a-zA-Z0-9 allowed */
+
+    io_printf(p->out, 
+            "static int %s (void) { "
+            "volatile int x = &x; return x; }\n", dfun);
 
     io_printf(p->out, 
         "static request_t *request = NULL;\n"
@@ -204,6 +220,7 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
         "   in = request_io(request);           \n"
         "   out = response_io(response);        \n"
         "   u_unused_args(SCRIPT_NAME, request, response, session, in, out); \n"
+        "   %s () ; \n ", ctx->ti->dfun
         );
 
     head = &ctx->code_blocks;

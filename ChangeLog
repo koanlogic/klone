@@ -1,8 +1,9 @@
-$Id: ChangeLog,v 1.42 2007/12/07 17:16:39 tat Exp $
+$Id: ChangeLog,v 1.43 2007/12/13 15:21:51 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.0.1:
+    - debug hook added in pg_*.c pages
     - minor portability fixes, SA_RESTART check
     - redirects uris ending with /dir to /dir/
     - -p added to save daemon PID to a file

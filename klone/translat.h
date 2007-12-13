@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.h,v 1.8 2006/01/09 12:38:38 tat Exp $
+ * $Id: translat.h,v 1.9 2007/12/13 15:21:51 tat Exp $
  */
 
 #ifndef _KLONE_TRANSLAT_H_
@@ -25,6 +25,7 @@ typedef struct trans_info_s
 {
     char file_in[U_FILENAME_MAX], file_out[U_FILENAME_MAX];
     char uri[URI_BUFSZ], mime_type[MIME_BUFSZ];
+    char dfun[URI_BUFSZ];
     char key[CODEC_CIPHER_KEY_SIZE];
     char emsg[EMSG_BUFSZ];
     int comp;
