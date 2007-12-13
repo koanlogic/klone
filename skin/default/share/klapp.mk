@@ -84,7 +84,7 @@ realclean:
 		$(MAKE) MAKL_TC= -C $(KLONE_DIR) dist-clean; \
 	fi
 	if [ "$(SUBDIR)" ]; then \
-	    for d in $(SUBDIR) ; do \
+	    for d in $$SUBDIR ; do \
 	        $(MAKE) -C $$d clean; \
 	    done; \
 	fi
