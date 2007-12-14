@@ -1,56 +1,7 @@
-# $Id: README.dist,v 1.7 2006/01/15 20:56:09 tho Exp $
+# $Id: README.dist,v 1.8 2007/12/14 10:11:28 tho Exp $
 
-Follow the steps below to get a shippable KLone distribution file.
-
-(a) select klone, libu and makl CVS HEAD versions and do cvs tagging
-
-    [ update klone, libu and makl VERSION files]
-    [ check-in everything of the local/personal CVS repository ]
-    $ mkdir /tmp/kl-tag/ && cd /tmp/kl-tag/
-    $ cvs co KL/makl KL/libu KL/klone
-    $ cvs tag -F KLONE_REL_X_Y_Z
-
-(b) create a build directory, say /tmp/klone-<X_Y_Z>/ and move there:
-
-    $ mkdir /tmp/klone-<X_Y_Z>/ && cd /tmp/klone-<X_Y_Z>/
-
-(c) checkout klone, libu and makl with the chosen version (see step (a))
-
-    $ cvs co -rKLONE_REL_X_Y_Z KL/klone KL/libu KL/makl
-
-(d) go to klone root directory and create the needed symlinks to makl and libu:
-
-    $ cd KL/klone
-    $ ln -s ../libu
-    $ ln -s ../makl
-
-(e) setup MaKL subsystem
-
-    $ cd makl && make hints
-
-    [ set MAKEFLAGS and MAKL_DIR as suggested ]
-
-    $ make toolchain
-    $ cd ..
-    
-(f) create a minimal Makefile.conf and klone_conf.h and compile KLone:
-
-    $ ./configure -v && make
-
-(g) create the tbz package, the dist file appears in the working directory and
-    is named klone-<X.Y.Z>.tar.bz:
-
-    $ make -f Makefile.dist dist
-
-    if you want to use another compression algorithm (say gzip) do the 
-    following:
-
-    $ env ZIP=gzip make -f Makefile.dist dist
-
-    and you will end up with klone-<X.Y.Z>.tar.gz
-
-that's all.
-
-
-TODO 
-    - document proprietary LICENSEs step
+$ cvs co KL/{klone,libu,makl}
+$ cd KL/klone
+$ [ -L libu ] || ln -s ../libu
+$ [ -L makl ] || ln -s ../makl
+$ cd skin/default && make -f Makefile.dist 
