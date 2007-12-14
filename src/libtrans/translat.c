@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.25 2007/12/13 22:15:38 tat Exp $
+ * $Id: translat.c,v 1.26 2007/12/14 13:18:58 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -202,7 +202,8 @@ static int cb_pre_code_block(parser_t *p, int cmd, void *arg, const char *buf,
         dbg_err_if(io_printf(p->out, "%%>") < 0);
 
         /* placeholder to be subst'd in the last translation phase */
-        dbg_err_if(io_printf(p->out, "<%%%c #line 0 __PG_FILE_C__ \n%%>", cmd));
+        dbg_err_if(io_printf(p->out, "<%%%c #line 0 __PG_FILE_C__ \n%%>", 
+                    (cmd == '!' ? cmd : ' ')));
     }
 
     return 0;
@@ -230,6 +231,56 @@ static int preprocess(io_t *in, io_t *out)
 err:
     if(p)
         parser_free(p);
+    return ~0;
+}
+
+static int u_copy(const char *src, const char *dst)
+{
+    FILE *sfp = NULL, *dfp = NULL;
+    size_t c;
+    char buf[4096];
+
+    sfp = fopen(src, "rb");
+    crit_err_sifm(sfp == NULL, "unable to open %s for reading", src);
+
+    dfp = fopen(dst, "wb+");
+    crit_err_sifm(dfp == NULL, "unable to open %s for writing", dst);
+
+    while((c = fread(buf, 1, sizeof(buf), sfp)) > 0)
+    {
+        crit_err_sifm(fwrite(buf, 1, c, dfp) == 0, "error writing to %s", dst);
+    }
+
+    crit_err_sif(fclose(sfp));
+
+    crit_err_sifm(fclose(dfp), "error flushing %s", dst);
+
+    return 0;
+err:
+    if(sfp)
+        fclose(sfp);
+    if(dfp)
+        fclose(dfp);
+    return ~0;
+}
+
+static int u_move(const char *src, const char *dst)
+{
+#ifdef HAVE_LINK
+    int rc;
+
+    crit_err_sif((rc = link(src, dst)) < 0 && errno != EXDEV);
+
+    if(rc && errno == EXDEV)
+        dbg_err_if(u_copy(src, dst)); /* deep copy */
+#else
+    dbg_err_if(u_copy(src, dst));
+#endif
+
+    unlink(src);
+
+    return 0;
+err:
     return ~0;
 }
 
@@ -264,9 +315,8 @@ static int fix_line_decl(trans_info_t *pti)
 
     /* move tmp to file_out */
     unlink(pti->file_out);
-    con_err_ifm(link(tname, pti->file_out) < 0, "unable to move %s to %s", 
-            tname, pti->file_out);
-    unlink(tname);
+
+    u_move(tname, pti->file_out);
 
     return 0;
 err:
