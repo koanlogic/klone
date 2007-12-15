@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.27 2007/10/26 16:06:48 tat Exp $
+# $Id: Makefile.dist,v 1.28 2007/12/15 17:25:35 tho Exp $
 
 include common.mk
 
@@ -71,18 +71,21 @@ DISTFILES += $(filter-out CVS/ CVS,$(wildcard doc/example-site/www/*))
 # hook for LibU compilation
 DISTFILES += build/libu/Makefile
 
-# LibU 0.5.0
+# LibU 1.x.y
 
 # top level build and configuration drivers
-DISTFILES +=  libu/Makefile libu/LICENSE libu/ChangeLog libu/README \
-	libu/VERSION libu/configure libu/configure.help
+DISTFILES +=  libu/Makefile libu/LICENSE libu/ChangeLog libu/README
+DISTFILES +=  libu/VERSION libu/configure libu/configure.help
+
+# command line args and handlers
+DISTFILES += $(wildcard libu/build/mk_*)
 
 # headers (include/{u,missing,toolbox})
 DISTFILES += libu/include/Makefile
 DISTFILES += $(wildcard libu/include/missing/*.h) libu/include/missing/Makefile
 DISTFILES += $(wildcard libu/include/toolbox/*.h) libu/include/toolbox/Makefile
-DISTFILES += libu/include/u/libu.h libu/include/u/missing.h \
-	libu/include/u/toolbox.h
+DISTFILES += libu/include/u/libu.h libu/include/u/missing.h
+DISTFILES += libu/include/u/toolbox.h 
 DISTFILES += libu/include/u/Makefile
 
 # sources (srcs/{missing,toolbox})
@@ -101,7 +104,7 @@ DISTREMAP += $(foreach f, $(notdir $(wildcard libu/doc/doxy/html/*.html)), \
                        libu/doc/doxy/html/$f libu/doc/html/$f)
 
 
-# MaKL 1.3.0
+# MaKL 1.x.y
 
 DISTFILES += makl/Makefile makl/VERSION makl/README makl/LICENSE 
 DISTFILES += makl/ChangeLog makl/INSTALL makl/configure makl/configure.help
