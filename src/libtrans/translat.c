@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.26 2007/12/14 13:18:58 tat Exp $
+ * $Id: translat.c,v 1.27 2007/12/23 10:28:45 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -234,56 +234,6 @@ err:
     return ~0;
 }
 
-static int u_copy(const char *src, const char *dst)
-{
-    FILE *sfp = NULL, *dfp = NULL;
-    size_t c;
-    char buf[4096];
-
-    sfp = fopen(src, "rb");
-    crit_err_sifm(sfp == NULL, "unable to open %s for reading", src);
-
-    dfp = fopen(dst, "wb+");
-    crit_err_sifm(dfp == NULL, "unable to open %s for writing", dst);
-
-    while((c = fread(buf, 1, sizeof(buf), sfp)) > 0)
-    {
-        crit_err_sifm(fwrite(buf, 1, c, dfp) == 0, "error writing to %s", dst);
-    }
-
-    crit_err_sif(fclose(sfp));
-
-    crit_err_sifm(fclose(dfp), "error flushing %s", dst);
-
-    return 0;
-err:
-    if(sfp)
-        fclose(sfp);
-    if(dfp)
-        fclose(dfp);
-    return ~0;
-}
-
-static int u_move(const char *src, const char *dst)
-{
-#ifdef HAVE_LINK
-    int rc;
-
-    crit_err_sif((rc = link(src, dst)) < 0 && errno != EXDEV);
-
-    if(rc && errno == EXDEV)
-        dbg_err_if(u_copy(src, dst)); /* deep copy */
-#else
-    dbg_err_if(u_copy(src, dst));
-#endif
-
-    unlink(src);
-
-    return 0;
-err:
-    return ~0;
-}
-
 static int fix_line_decl(trans_info_t *pti)
 {
     io_t *in = NULL, *tmp = NULL;
@@ -314,7 +264,7 @@ static int fix_line_decl(trans_info_t *pti)
     io_free(tmp), tmp = NULL;
 
     /* move tmp to file_out */
-    unlink(pti->file_out);
+    u_remove(pti->file_out);
 
     u_move(tname, pti->file_out);
 
@@ -365,7 +315,7 @@ int translate(trans_info_t *pti)
         io_free(tmp);
 
         /* remove the tmp file */
-        unlink(tname);
+        u_remove(tname);
     } else {
         /* check if compression is requested */
 #ifdef HAVE_LIBZ

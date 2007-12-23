@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_file.c,v 1.19 2006/01/09 12:38:38 tat Exp $
+ * $Id: ses_file.c,v 1.20 2007/12/23 10:28:45 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -30,7 +30,7 @@ static int session_file_save(session_t *ss)
     dbg_err_if (ss == NULL);
     
     /* delete old file (we'll rewrite it from scratch) */
-    dbg_if(unlink(ss->filename));
+    dbg_if(u_remove(ss->filename));
 
     if(vars_count(ss->vars) == 0)
         return 0; /* nothing to save */
@@ -80,7 +80,7 @@ static int session_file_remove(session_t *ss)
 {
     dbg_return_if (ss == NULL, ~0);
 
-    dbg_if(unlink(ss->filename));
+    dbg_if(u_remove(ss->filename));
 
     return 0;
 }

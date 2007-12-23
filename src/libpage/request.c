@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.51 2007/11/13 21:19:36 tat Exp $
+ * $Id: request.c,v 1.52 2007/12/23 10:28:45 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1622,7 +1622,7 @@ static int request_unlink_uploads(var_t *v, void * arg)
 
     if(var_get_opaque(v) && var_get_value(v))
     {   /* it's a file var, unlink v->value */
-        unlink(var_get_value(v));
+        u_remove(var_get_value(v));
     }
 
 err:

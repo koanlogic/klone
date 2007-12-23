@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.40 2007/10/26 11:21:51 tho Exp $
+ * $Id: session.c,v 1.41 2007/12/23 10:28:45 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -356,9 +356,6 @@ int session_save(session_t *ss)
 {
     dbg_err_if (ss == NULL);
     dbg_err_if (ss->save == NULL);
-
-    if(vars_count(ss->vars) == 0)
-        return 0; /* nothing to save */
 
     if(!strlen(ss->id))
     {

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.42 2007/12/12 16:06:44 tat Exp $
+ * $Id: main.c,v 1.43 2007/12/23 10:28:45 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -346,7 +346,7 @@ static int command_trans(void)
     return 0;
 err:
     /* delete output file on error */
-    unlink(ti.file_out);
+    u_remove(ti.file_out);
     con(" ");
     return ~0;
 }
