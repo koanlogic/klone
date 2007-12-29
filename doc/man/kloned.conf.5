@@ -1,4 +1,4 @@
-.\" $Id: kloned.conf.5,v 1.5 2007/08/09 11:00:10 tho Exp $
+.\" $Id: kloned.conf.5,v 1.6 2007/12/29 09:24:37 tat Exp $
 .TH "KLONED.CONF" "5" "03/06/2006" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
@@ -157,7 +157,7 @@ will be mapped to
 Set the server signature string which will be returned in the HTTP head (Server: %s). When setting a custom Product token, the guidelines stated in paragraph 3.7 of RFC 1945 should be followed. The default value is
 "klone/1.0".
 .TP
-\fBserver_model\fR
+\fBmodel\fR
 Set the type of the serving model for this klone instance:
 \fIfork\fR, a child process is spawned for every client request,
 \fIiterative\fR, pending clients are processed one at a time, or
