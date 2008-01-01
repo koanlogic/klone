@@ -101,6 +101,7 @@ build/makl/tc/linux-sh4.tc
 build/makl/tc/linux.tc
 build/makl/tc/makl_tc
 build/makl/tc/mingw.tc
+build/makl/tc/cygwin.tc
 build/makl/tc/netbsd.tc
 build/makl/tc/openbsd.tc
 build/makl/tc/qnx-armbe.tc
