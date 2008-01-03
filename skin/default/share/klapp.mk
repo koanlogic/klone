@@ -47,9 +47,9 @@ endif
 
 .PHONY: klone-src help import-help configure-help makefile-help
 
-KLONE_DIR = $(shell pwd)/klone-$(KLONE_VERSION)
+KLONE_DIR = $(CURDIR)/klone-$(KLONE_VERSION)
 KLONE_TGZ = klone-$(KLONE_VERSION).tar.gz
-KLONE_DAEMON_NAME ?= kloned
+# KLONE_DAEMON_NAME users can set this var to change kloned name
 KLONE_SRC = $(KLONE_DIR)/build/target/klone-core-$(KLONE_VERSION)
 KLONE_CFLAGS = -I$(KLONE_SRC) -I$(KLONE_SRC)/libu/include
 
