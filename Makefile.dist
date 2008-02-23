@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.28 2007/12/15 17:25:35 tho Exp $
+# $Id: Makefile.dist,v 1.29 2008/02/23 17:27:11 tho Exp $
 
 include common.mk
 
@@ -10,7 +10,7 @@ ZIPEXT = gz
 # top level
 DISTFILES += Makefile LICENSE README VERSION configure \
              configure.help ChangeLog LICENSE.OpenSSL \
-			 BSDmakefile
+			 BSDmakefile THANKS
 
 # MaKL build test
 DISTFILES += $(wildcard build/*.c)
