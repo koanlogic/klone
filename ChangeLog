@@ -1,15 +1,15 @@
-$Id: ChangeLog,v 1.45 2007/12/23 10:28:45 tat Exp $
+$Id: ChangeLog,v 1.46 2008/02/25 14:17:31 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.0.1:
-    - sassion_save fix: removing last session var was not possible
-    - #line directives fixed in pg_*.c
-    - debug hook added in pg_*.c pages
-    - minor portability fixes, SA_RESTART check
-    - redirects uris ending with /dir to /dir/
-    - -p added to save daemon PID to a file
-    - vhost impl refactored
+	- session_save fix: removing last session var was not possible
+	- #line directives fixed in pg_*.c
+	- debug hook added in pg_*.c pages
+	- minor portability fixes, SA_RESTART check
+	- redirects uris ending with /dir to /dir/
+	- -p added to save daemon PID to a file
+	- vhost impl refactored
 	- per-vhost access log support through klog (i.e. syslog, file or in memory)
 	- Content-Disposition parser fix
 	- Darwin 9 (Leopard) toolchain 
@@ -116,5 +116,4 @@ KLone 1.0.1:
 	- first public release
 
 " vim: ts=4
-" vim: shiftwidth=4
 " vim: tabstop=4
