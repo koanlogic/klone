@@ -1,6 +1,10 @@
-$Id: ChangeLog,v 1.46 2008/02/25 14:17:31 tho Exp $
+$Id: ChangeLog,v 1.47 2008/03/06 16:00:58 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
+
+KLone 2.0.2:
+    - bug fix: external libraries were mistakenly found by the ./configure 
+      script in cross compilation environments 
 
 KLone 2.0.1:
 	- session_save fix: removing last session var was not possible
