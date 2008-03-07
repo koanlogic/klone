@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.37 2007/12/13 22:15:38 tat Exp $
+ * $Id: trans_c.c,v 1.38 2008/03/07 12:51:28 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -140,9 +140,12 @@ static void print_header(parser_t *p, lang_c_ctx_t *ctx)
         if(!isalnum(dfun[i]))
             dfun[i] = '_'; /* just a-zA-Z0-9 allowed */
 
+    /* add a dummy function that the user can use to set a breakpoint when
+       entering the page code. the "static volatile" variable is used to avoid
+       the compiler to optimize-out (inlining) the function call */
     io_printf(p->out, 
             "static int %s (void) { "
-            "volatile int x = &x; return x; }\n", dfun);
+            "static volatile int dummy; return dummy; }\n", dfun);
 
     io_printf(p->out, 
         "static request_t *request = NULL;\n"
