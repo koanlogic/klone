@@ -1,10 +1,10 @@
-$Id: ChangeLog,v 1.47 2008/03/06 16:00:58 tat Exp $
+$Id: ChangeLog,v 1.48 2008/03/10 09:43:23 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.0.2:
-    - bug fix: external libraries were mistakenly found by the ./configure 
-      script in cross compilation environments 
+	- bug fix: external libraries were mistakenly found by the ./configure 
+	  script in cross compilation environments 
 
 KLone 2.0.1:
 	- session_save fix: removing last session var was not possible
@@ -121,3 +121,4 @@ KLone 1.0.1:
 
 " vim: ts=4
 " vim: tabstop=4
+" vim: noexpandtab
