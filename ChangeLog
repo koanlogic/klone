@@ -1,6 +1,9 @@
-$Id: ChangeLog,v 1.48 2008/03/10 09:43:23 tat Exp $
+$Id: ChangeLog,v 1.49 2008/03/10 09:47:50 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
+
+KLone 2.0.3:
+	- page entry point function fixed to avoid g++ errors 
 
 KLone 2.0.2:
 	- bug fix: external libraries were mistakenly found by the ./configure 
