@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.c,v 1.17 2008/03/14 20:12:55 tho Exp $
+ * $Id: tls.c,v 1.18 2008/03/14 21:03:31 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -135,7 +135,10 @@ static SSL_CTX *tls_init_ctx (tls_ctx_args_t *cargs)
     /* set the session id context */
     dbg_err_if (tls_sid_context(c, &tls_sid));
 
-    /* psk ... */
+#ifdef HAVE_LIBOPENSSL_PSK
+    /* load psk DB and set psk callback */
+    dbg_err_if (tls_psk_init(c, cargs->pskdb));
+#endif
 
     return c;
 err:

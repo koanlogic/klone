@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tlsprv.h,v 1.10 2008/03/14 20:12:55 tho Exp $
+ * $Id: tlsprv.h,v 1.11 2008/03/14 21:03:31 tho Exp $
  */
 
 #ifndef _KLONE_TLS_PRV_H_
@@ -64,6 +64,7 @@ BIO *tls_get_file_bio(const char *res_name);
 STACK_OF(X509_NAME) *tls_load_client_CA_file(const char *);
 int tls_verify_cb (int ok, X509_STORE_CTX *ctx);
 char *tls_get_error (void);
+int tls_psk_init (SSL_CTX *, const char *);
 
 #ifdef __cplusplus
 }
