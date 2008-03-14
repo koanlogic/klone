@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tlsprv.h,v 1.9 2007/08/08 22:42:51 tho Exp $
+ * $Id: tlsprv.h,v 1.10 2008/03/14 20:12:55 tho Exp $
  */
 
 #ifndef _KLONE_TLS_PRV_H_
@@ -21,9 +21,9 @@ extern "C" {
 /* (pseudo) unique data to feed the PRNG */
 struct tls_rand_seed_s 
 {
-    pid_t   pid;
-    long    t1, t2;
-    void    *stack;
+    pid_t pid;
+    long t1, t2;
+    void *stack;
 };
 
 typedef struct tls_rand_seed_s tls_rand_seed_t;
@@ -41,6 +41,9 @@ struct tls_ctx_args_s
     const char *ca;         /* Client Certification Authorities file (PEM) */
     const char *crl;        /* Certificate Revocation List (PEM) */
     const char *dh;         /* Diffie-Hellman parameters (PEM) */
+#ifdef HAVE_LIBOPENSSL_PSK
+    const char *pskdb;      /* Pre Shared Keys password file */
+#endif
     int crlopts;            /* CRL check mode: 'all' or 'client-only' */
     int depth;              /* max depth for the cert chain verification */
     int vmode;              /* SSL verification mode */

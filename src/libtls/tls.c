@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.c,v 1.16 2007/08/09 14:17:42 tho Exp $
+ * $Id: tls.c,v 1.17 2008/03/14 20:12:55 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -86,6 +86,9 @@ static int tls_load_ctx_args (u_config_t *cfg, tls_ctx_args_t **pcargs)
     cargs->ca = u_config_get_subkey_value(cfg, "ca_file");
     cargs->dh = u_config_get_subkey_value(cfg, "dh_file");
     cargs->crl = u_config_get_subkey_value(cfg, "crl_file");
+#ifdef HAVE_LIBOPENSSL_PSK
+    cargs->pskdb = u_config_get_subkey_value(cfg, "pskdb_file");
+#endif
     dbg_err_if (tls_set_ctx_crlopts(cfg, cargs));
     dbg_err_if (tls_set_ctx_vdepth(cfg, cargs));
     dbg_err_if (tls_set_ctx_vmode(cfg, cargs));
@@ -132,6 +135,8 @@ static SSL_CTX *tls_init_ctx (tls_ctx_args_t *cargs)
     /* set the session id context */
     dbg_err_if (tls_sid_context(c, &tls_sid));
 
+    /* psk ... */
+
     return c;
 err:
     if (c)
@@ -163,7 +168,7 @@ static int tls_context (SSL_CTX **pc)
 
     dbg_return_if (pc == NULL, ~0);
 
-    c = SSL_CTX_new(SSLv23_server_method());
+    c = SSL_CTX_new(TLSv1_server_method());
     dbg_err_ifm (c == NULL, "error creating SSL CTX: %s", tls_get_error());
 
     *pc = c;
@@ -365,10 +370,7 @@ err:
 
 static int tls_no_passphrase_cb (char *buf, int num, int w, void *arg)
 {
-    /* avoid gcc complains */
-    buf = NULL;
-    arg = NULL;
-    num = w = 0;
+    u_unused_args(buf, num, w, arg);
 
     return -1;
 }
@@ -382,6 +384,9 @@ static int tls_init_ctx_args (tls_ctx_args_t *cargs)
     cargs->ca = NULL;
     cargs->dh = NULL;
     cargs->crl = NULL;
+#ifdef HAVE_LIBOPENSSL_PSK
+    cargs->pskdb = NULL;
+#endif
     cargs->crlopts = 0;
     cargs->depth = 1;
     cargs->vmode = SSL_VERIFY_NONE;
