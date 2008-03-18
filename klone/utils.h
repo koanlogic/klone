@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.h,v 1.31 2007/11/09 13:45:52 tat Exp $
+ * $Id: utils.h,v 1.32 2008/03/18 17:28:02 tho Exp $
  */
 
 #ifndef _KLONE_UTILS_H_
@@ -43,6 +43,8 @@ extern "C" {
 #define klone_die(...) do { con(__VA_ARGS__); exit(EXIT_FAILURE); } while(0)
 #define klone_die_if(cond, ...) \
     do { dbg_ifb(cond) klone_die(__VA_ARGS__); } while(0)
+
+enum { U_PATH_NOT_FOUND, U_PATH_IN_EMBFS, U_PATH_IN_FS };
 
 int u_file_exists(const char*);
 int u_write_debug_message(const char*, const char*, int, const char*, 
@@ -84,7 +86,7 @@ int u_io_unzip_copy(io_t *out, const char *data, size_t size);
 void u_tohex(char *hex, const char *src, size_t sz);
 char u_tochex(int n);
 
-int u_md5(char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ]);
+int u_md5(const char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ]);
 int u_md5io(io_t *io, char out[MD5_DIGEST_BUFSZ]);
 
 typedef void (*u_sig_t)(int);
@@ -106,6 +108,9 @@ int u_asctime_to_tt(const char *str, time_t *tp);
 void u_print_version_and_exit(void);
 
 int u_uri_normalize(char *fqn);
+int u_path_where_art_thou(const char *fqn, int *where);
+
+int u_pwd_init_agnostic(const char *fqn, int hashed, u_pwd_t **ppwd);
 
 #ifdef HAVE_LIBOPENSSL
 int u_cipher_encrypt(const EVP_CIPHER *cipher, unsigned char *key, 

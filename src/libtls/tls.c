@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005-2008 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.c,v 1.18 2008/03/14 21:03:31 tho Exp $
+ * $Id: tls.c,v 1.19 2008/03/18 17:28:02 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -29,7 +29,7 @@ static int tls_inited = 0;
 /* private methods */
 static int tls_init (void);
 static int tls_context (SSL_CTX **);
-static int tls_load_creds (SSL_CTX *, tls_ctx_args_t *);
+static int tls_load_x509_creds (SSL_CTX *, tls_ctx_args_t *);
 static int tls_gendh_params (SSL_CTX *, const char *);
 static int tls_gen_eph_rsa (SSL_CTX *);
 static void tls_rand_seed (void);
@@ -45,6 +45,9 @@ static void tls_free_ctx_args (tls_ctx_args_t *cargs);
 static int tls_load_ctx_args (u_config_t *cfg, tls_ctx_args_t **cargs);
 static SSL_CTX *tls_init_ctx (tls_ctx_args_t *cargs);
 static int cb_vfy (int ok, X509_STORE_CTX *store_ctx);
+#ifdef HAVE_LIBOPENSSL_PSK
+static int tls_set_ctx_psk_hash (u_config_t *, tls_ctx_args_t *);
+#endif
 
 SSL_CTX *tls_load_init_ctx (u_config_t *cfg)
 {
@@ -87,7 +90,9 @@ static int tls_load_ctx_args (u_config_t *cfg, tls_ctx_args_t **pcargs)
     cargs->dh = u_config_get_subkey_value(cfg, "dh_file");
     cargs->crl = u_config_get_subkey_value(cfg, "crl_file");
 #ifdef HAVE_LIBOPENSSL_PSK
+    /* handle 'pskdb_file' and 'psk_hash' keywords */
     cargs->pskdb = u_config_get_subkey_value(cfg, "pskdb_file");
+    dbg_err_if (tls_set_ctx_psk_hash(cfg, cargs));
 #endif
     dbg_err_if (tls_set_ctx_crlopts(cfg, cargs));
     dbg_err_if (tls_set_ctx_vdepth(cfg, cargs));
@@ -120,12 +125,23 @@ static SSL_CTX *tls_init_ctx (tls_ctx_args_t *cargs)
     dbg_err_if (tls_context(&c));
 
     /* don't ask for unlocking passphrases: this assumes that all 
-     * credentials are stored clear text */
+     * credentials are stored in clear text */
     SSL_CTX_set_default_passwd_cb(c, tls_no_passphrase_cb);
-    
-    /* set key and certs against the SSL context */
-    dbg_err_if (tls_load_creds(c, cargs));
- 
+
+    /* NOTE: configuration has been sanitized earlier by tls_check_ctx, 
+     * so we can be reasonably sure that one (or both) of PSK or X.509 
+     * credentials are in place. */
+
+    if (cargs->cert)
+        /* set key and certs against the SSL context */
+        dbg_err_if (tls_load_x509_creds(c, cargs));
+
+#ifdef HAVE_LIBOPENSSL_PSK
+    if (cargs->pskdb)
+        /* load psk DB and set psk callback */
+        dbg_err_if (tls_psk_init(c, cargs));
+#endif
+
     /* generate RSA ephemeral parameters and load into SSL_CTX */
     dbg_err_if (tls_gen_eph_rsa(c));
 
@@ -134,11 +150,6 @@ static SSL_CTX *tls_init_ctx (tls_ctx_args_t *cargs)
 
     /* set the session id context */
     dbg_err_if (tls_sid_context(c, &tls_sid));
-
-#ifdef HAVE_LIBOPENSSL_PSK
-    /* load psk DB and set psk callback */
-    dbg_err_if (tls_psk_init(c, cargs->pskdb));
-#endif
 
     return c;
 err:
@@ -189,7 +200,7 @@ char *tls_get_error (void)
 }
 
 /* if skey is NULL, assume private key in scert, ca can be NULL */
-static int tls_load_creds (SSL_CTX *c, tls_ctx_args_t *cargs)
+static int tls_load_x509_creds (SSL_CTX *c, tls_ctx_args_t *cargs)
 {
     dbg_return_if (c == NULL, ~0);
     dbg_return_if (cargs == NULL, ~0);
@@ -409,6 +420,22 @@ static int tls_set_ctx_vdepth (u_config_t *cfg, tls_ctx_args_t *cargs)
     return 0;
 }
 
+#ifdef HAVE_LIBOPENSSL_PSK
+static int tls_set_ctx_psk_hash (u_config_t *cfg, tls_ctx_args_t *cargs)
+{
+    int rc; 
+
+    dbg_return_if (cfg == NULL, ~0);
+    dbg_return_if (cargs == NULL, ~0);
+
+    /* default value is 0 (i.e. cleartext) */
+    rc = u_config_get_subkey_value_b(cfg, "psk_hash", 0, &cargs->psk_is_hashed);
+    dbg_return_ifm (rc, ~0, "bad value given to psk_hash directive");
+
+    return 0;
+}
+#endif
+
 static int tls_set_ctx_crlopts (u_config_t *cfg, tls_ctx_args_t *cargs)
 {
     const char *v;
@@ -465,18 +492,27 @@ static int tls_check_ctx (tls_ctx_args_t *cargs)
 {
     dbg_return_if (cargs == NULL, ~0);
 
-    /* cert_file is a MUST */
-    crit_err_ifm (!cargs->cert || strlen(cargs->cert) == 0, 
-        "missing cert_file option parameter");
+#ifdef HAVE_LIBOPENSSL_PSK
+    /* if no PSK password file is set check for certificate/key */
+    if (cargs->pskdb == NULL)
+    {
+#endif
+        /* cert_file is a MUST */
+        crit_err_ifm (!cargs->cert || strlen(cargs->cert) == 0, 
+            "missing cert_file option parameter");
 
-    /* if private key file is missing, assume the key is inside cert_file */
-    warn_ifm (!cargs->key, 
-        "missing certificate key option, assuming the key is inside cert_file");
+        /* if private key file is missing, assume the key is inside cert_file */
+        warn_ifm (cargs->key == NULL, 
+            "missing cert key option, assuming the key is inside cert_file");
 
-    /* if verify_mode == "required" the CA file MUST be present */
-    if (cargs->vmode & SSL_VERIFY_PEER)
-        crit_err_ifm (!cargs->ca, 
-            "SSL verify is required but CA certificate filename is missing");
+        /* if verify_mode == "required" the CA file MUST be present */
+        if (cargs->vmode & SSL_VERIFY_PEER)
+            crit_err_ifm (cargs->ca == NULL, 
+                "SSL verify is required but CA certificate file is missing");
+
+#ifdef HAVE_LIBOPENSSL_PSK
+    }
+#endif
 
     /* if 'crl_file' was given, set crlopts at least to verify the client
      * certificate against the supplied CRL */

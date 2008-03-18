@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005-2008 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls_glue.c,v 1.13 2007/08/08 22:04:12 tho Exp $
+ * $Id: tls_glue.c,v 1.14 2008/03/18 17:28:02 tho Exp $
  */
 
 /*

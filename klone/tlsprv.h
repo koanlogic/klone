@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tlsprv.h,v 1.11 2008/03/14 21:03:31 tho Exp $
+ * $Id: tlsprv.h,v 1.12 2008/03/18 17:28:02 tho Exp $
  */
 
 #ifndef _KLONE_TLS_PRV_H_
@@ -43,6 +43,7 @@ struct tls_ctx_args_s
     const char *dh;         /* Diffie-Hellman parameters (PEM) */
 #ifdef HAVE_LIBOPENSSL_PSK
     const char *pskdb;      /* Pre Shared Keys password file */
+    int psk_is_hashed;      /* !0 if password is hashed (MD5), 0 if cleartext */
 #endif
     int crlopts;            /* CRL check mode: 'all' or 'client-only' */
     int depth;              /* max depth for the cert chain verification */
@@ -64,7 +65,9 @@ BIO *tls_get_file_bio(const char *res_name);
 STACK_OF(X509_NAME) *tls_load_client_CA_file(const char *);
 int tls_verify_cb (int ok, X509_STORE_CTX *ctx);
 char *tls_get_error (void);
-int tls_psk_init (SSL_CTX *, const char *);
+#ifdef HAVE_LIBOPENSSL_PSK
+int tls_psk_init (SSL_CTX *c, tls_ctx_args_t *cargs);
+#endif
 
 #ifdef __cplusplus
 }

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.53 2008/03/18 12:09:52 tho Exp $
+ * $Id: utils.c,v 1.54 2008/03/18 17:28:02 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -939,7 +939,7 @@ void u_tohex(char *hex, const char *src, size_t sz)
  * \return
  * - \c 0   always successful
  */
-int u_md5(char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ])
+int u_md5(const char *buf, size_t sz, char out[MD5_DIGEST_BUFSZ])
 {
     md5_state_t md5ctx;
     md5_byte_t md5_digest[16]; /* binary digest */

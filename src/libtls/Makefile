@@ -1,10 +1,14 @@
-# $Id: Makefile,v 1.9 2008/03/14 21:03:31 tho Exp $
+# $Id: Makefile,v 1.10 2008/03/18 17:28:02 tho Exp $
 
 include common.mk
 include ../../Makefile.conf
 
 LIB = tls
-SRCS = tls_glue.c tls_psk.c
+SRCS = tls_glue.c 
+
+ifdef HAVE_LIBOPENSSL_PSK
+SRCS += tls_psk.c
+endif
 
 ifdef HAVE_LIBOPENSSL
 SRCS += tls.c tls_dh_autogen.c

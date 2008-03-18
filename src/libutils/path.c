@@ -5,13 +5,15 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: path.c,v 1.3 2007/10/26 10:01:09 tat Exp $
+ * $Id: path.c,v 1.4 2008/03/18 17:28:02 tho Exp $
  */
 
 #include "klone_conf.h"
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
 #include <u/libu.h>
+#include <klone/emb.h>
 #include <klone/utils.h>
 #ifdef HAVE_STRINGS
 #include <strings.h>
@@ -95,3 +97,39 @@ err:
     return ~0;
 }
 
+/**
+ *  \brief  Check where the supplied path \p fqn is located
+ *
+ *  \param  fqn     the fully qualified path to check
+ *  \param  where   one of \c U_PATH_IN_EMBFS, \c U_PATH_IN_FS or 
+ *                  \c U_PATH_NOT_FOUND
+ *
+ *  \return \c 0 on success, \c ~0 on error
+ */ 
+int u_path_where_art_thou (const char *fqn, int *where)
+{
+    struct stat sb;
+    embres_t *dummy;
+
+    dbg_return_if (fqn == NULL, ~0)
+    dbg_return_if (where == NULL, ~0)
+
+    /* check embfs first */
+    if (emb_lookup(fqn, &dummy) == 0)
+    {
+        *where = U_PATH_IN_EMBFS;
+        return 0;
+    }
+
+    /* then the file system */
+    if (stat(fqn, &sb) == 0)
+    {
+        *where = U_PATH_IN_FS;
+        return 0;
+    }
+
+    /* then give up */
+    *where = U_PATH_NOT_FOUND;
+
+    return 0;
+}
