@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: path.c,v 1.4 2008/03/18 17:28:02 tho Exp $
+ * $Id: path.c,v 1.5 2008/03/18 22:48:51 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -111,8 +111,8 @@ int u_path_where_art_thou (const char *fqn, int *where)
     struct stat sb;
     embres_t *dummy;
 
-    dbg_return_if (fqn == NULL, ~0)
-    dbg_return_if (where == NULL, ~0)
+    dbg_return_if (fqn == NULL, ~0);
+    dbg_return_if (where == NULL, ~0);
 
     /* check embfs first */
     if (emb_lookup(fqn, &dummy) == 0)
