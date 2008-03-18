@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.52 2007/12/07 17:16:39 tat Exp $
+ * $Id: utils.c,v 1.53 2008/03/18 12:09:52 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -430,7 +430,7 @@ static int u_hex2ch(char c)
 void u_print_version_and_exit(void)
 {
     static const char *vv = 
-    "KLone %s - Copyright (c) 2005, 2006, 2007 KoanLogic s.r.l. - "
+    "KLone %s - Copyright (c) 2005-2008 KoanLogic s.r.l. - "
     "All rights reserved. \n\n";
 
     fprintf(stderr, vv, klone_version());
