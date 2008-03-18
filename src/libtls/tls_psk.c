@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls_psk.c,v 1.2 2008/03/18 17:28:02 tho Exp $
+ * $Id: tls_psk.c,v 1.3 2008/03/18 23:09:09 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -30,10 +30,12 @@ static int __pwd_exdata_idx (void);
 
 int tls_psk_init (SSL_CTX *c, tls_ctx_args_t *cargs)
 {
+    int rc;
     u_pwd_t *pwd = NULL;
 
     /* create pwd instance */
-    dbg_err_if (u_pwd_init_agnostic(cargs->pskdb, cargs->psk_is_hashed, &pwd));
+    rc = u_pwd_init_agnostic(cargs->pskdb, cargs->psk_is_hashed, 0, &pwd);
+    dbg_err_ifm (rc, "psk pwd creation failed (%s)", cargs->pskdb);
 
     /* stick the pwd handler into the SSL context */
     SSL_CTX_set_ex_data(c, __pwd_exdata_idx(), pwd);

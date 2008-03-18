@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: pwd.c,v 1.1 2008/03/18 17:28:02 tho Exp $
+ * $Id: pwd.c,v 1.2 2008/03/18 23:09:09 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -19,7 +19,21 @@ static void __emb_close (void *io);
 static int u_pwd_init_embfs (const char *fqn, u_pwd_hash_cb_t cb_hash, 
         size_t hash_len, int in_memory, u_pwd_t **ppwd);
 
-int u_pwd_init_agnostic (const char *fqn, int hashed, u_pwd_t **ppwd)
+/**
+ *  \brief  Create a pwd instance from a master password db stored at \p fqn
+ *
+ *  \param  fqn         path name of the master password db (will be searched
+ *                      in embfs and then in the file system 
+ *  \param  hashed      boolean to tell if passwords are hashed or cleartext
+ *  \param  in_memory   boolean to tell if a copy of the password db is also
+ *                      kept in memory as an hash map (meaningful only for 
+ *                      on-disk password db's)
+ *  \param  ppwd        pwd instance as a result argument
+ *
+ *  \return \c 0 on success, \c ~0 on error
+ */ 
+int u_pwd_init_agnostic (const char *fqn, int hashed, int in_memory, 
+        u_pwd_t **ppwd)
 {
     int where;
     u_pwd_hash_cb_t hfn = NULL;
@@ -39,9 +53,9 @@ int u_pwd_init_agnostic (const char *fqn, int hashed, u_pwd_t **ppwd)
     switch (where)
     {
         case U_PATH_IN_EMBFS:
-            return u_pwd_init_embfs(fqn, hfn, hlen, 0, ppwd);
+            return u_pwd_init_embfs(fqn, hfn, hlen, in_memory, ppwd);
         case U_PATH_IN_FS:
-            return u_pwd_init_file(fqn, hfn, hlen, 0, ppwd);
+            return u_pwd_init_file(fqn, hfn, hlen, in_memory, ppwd);
         default:
             dbg_err("%s not found !", fqn);
     }
