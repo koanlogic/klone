@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.29 2008/02/23 17:27:11 tho Exp $
+# $Id: Makefile.dist,v 1.30 2008/03/20 15:14:47 tho Exp $
 
 include common.mk
 
@@ -41,7 +41,7 @@ DISTFILES += $(wildcard src/libhook/*.[ch]) src/libhook/Makefile
 DISTFILES += $(wildcard src/tools/klone/*.[ch]) src/tools/klone/Makefile 
 
 # configuration samples (etc)
-DISTFILES += $(wildcard etc/*.conf)
+DISTFILES += $(wildcard etc/*.conf) etc/psk.db
 
 # test stuff
 DISTFILES += $(wildcard test/Makefile)
