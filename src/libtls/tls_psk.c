@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls_psk.c,v 1.3 2008/03/18 23:09:09 tho Exp $
+ * $Id: tls_psk.c,v 1.4 2008/03/20 14:43:15 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -54,6 +54,7 @@ err:
 static unsigned int psk_cb (SSL *ssl, const char *id, unsigned char *psk,
         unsigned int max_psk_len)
 {
+    SSL_CTX *ctx;
     u_pwd_t *pwd = NULL;
     u_pwd_rec_t *pwd_rec = NULL;
     int psk_len = 0;
@@ -61,7 +62,8 @@ static unsigned int psk_cb (SSL *ssl, const char *id, unsigned char *psk,
     BIGNUM *bn = NULL;
 
     /* retrieve pwd handler that we previously cached in SSL_CTX's ex_data */
-    pwd = (u_pwd_t *) SSL_get_ex_data(ssl, __pwd_exdata_idx());
+    ctx = SSL_get_SSL_CTX(ssl);
+    pwd = (u_pwd_t *) SSL_CTX_get_ex_data(ctx, __pwd_exdata_idx());
     dbg_err_if (pwd == NULL);
 
     /* get a pwd record for the supplied id */

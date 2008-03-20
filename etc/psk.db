@@ -1,0 +1,5 @@
+# copy this file to /tmp to test kloned-psk.conf use-case 
+# clear text passwords, hex coded without '0x' prefix
+tho:deadbeef
+tat:deaf
+stewy:0123456789abcdef

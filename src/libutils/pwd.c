@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: pwd.c,v 1.2 2008/03/18 23:09:09 tho Exp $
+ * $Id: pwd.c,v 1.3 2008/03/20 14:43:15 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -57,7 +57,7 @@ int u_pwd_init_agnostic (const char *fqn, int hashed, int in_memory,
         case U_PATH_IN_FS:
             return u_pwd_init_file(fqn, hfn, hlen, in_memory, ppwd);
         default:
-            dbg_err("%s not found !", fqn);
+            dbg_err("%s: resource not found !", fqn);
     }
 
     /* not reached */
