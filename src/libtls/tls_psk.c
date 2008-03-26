@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls_psk.c,v 1.4 2008/03/20 14:43:15 tho Exp $
+ * $Id: tls_psk.c,v 1.5 2008/03/26 08:14:22 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -77,9 +77,7 @@ static unsigned int psk_cb (SSL *ssl, const char *id, unsigned char *psk,
 
     /* dispose temp stuff */
     BN_free(bn);
-
-    if (!u_pwd_in_memory(pwd))
-        u_pwd_rec_free(pwd_rec);
+    u_pwd_rec_free(pwd, pwd_rec);
 
     return psk_len;
 err:
@@ -87,8 +85,8 @@ err:
         BN_free(bn);
 
     /* if we've (pwd_rec != NULL) we also have (pwd != NULL) */
-    if (pwd_rec && !u_pwd_in_memory(pwd))
-        u_pwd_rec_free(pwd_rec);
+    if (pwd_rec)
+        u_pwd_rec_free(pwd, pwd_rec);
 
     return 0;
 }
