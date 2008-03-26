@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.c,v 1.19 2008/03/18 17:28:02 tho Exp $
+ * $Id: tls.c,v 1.20 2008/03/26 09:02:24 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -90,8 +90,9 @@ static int tls_load_ctx_args (u_config_t *cfg, tls_ctx_args_t **pcargs)
     cargs->dh = u_config_get_subkey_value(cfg, "dh_file");
     cargs->crl = u_config_get_subkey_value(cfg, "crl_file");
 #ifdef HAVE_LIBOPENSSL_PSK
-    /* handle 'pskdb_file' and 'psk_hash' keywords */
+    /* handle 'pskdb_file', 'psk_hint' and 'psk_hash' keywords */
     cargs->pskdb = u_config_get_subkey_value(cfg, "pskdb_file");
+    cargs->psk_hint = u_config_get_subkey_value(cfg, "psk_hint");
     dbg_err_if (tls_set_ctx_psk_hash(cfg, cargs));
 #endif
     dbg_err_if (tls_set_ctx_crlopts(cfg, cargs));

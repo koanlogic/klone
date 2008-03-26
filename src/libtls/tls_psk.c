@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls_psk.c,v 1.5 2008/03/26 08:14:22 tho Exp $
+ * $Id: tls_psk.c,v 1.6 2008/03/26 09:02:24 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -43,6 +43,10 @@ int tls_psk_init (SSL_CTX *c, tls_ctx_args_t *cargs)
     /* set psk callback */
     SSL_CTX_set_psk_server_callback(c, psk_cb);
 
+    /* set global hint if provided */
+    if (cargs->psk_hint)
+        dbg_err_if (!SSL_CTX_use_psk_identity_hint(c, cargs->psk_hint));
+
     return 0;
 err:
     if (pwd)
@@ -58,7 +62,7 @@ static unsigned int psk_cb (SSL *ssl, const char *id, unsigned char *psk,
     u_pwd_t *pwd = NULL;
     u_pwd_rec_t *pwd_rec = NULL;
     int psk_len = 0;
-    const char *__psk;
+    const char *__psk, *psk_hint;
     BIGNUM *bn = NULL;
 
     /* retrieve pwd handler that we previously cached in SSL_CTX's ex_data */
@@ -69,6 +73,9 @@ static unsigned int psk_cb (SSL *ssl, const char *id, unsigned char *psk,
     /* get a pwd record for the supplied id */
     dbg_err_if (u_pwd_retr(pwd, id, &pwd_rec));
     dbg_err_if ((__psk = u_pwd_rec_get_password(pwd_rec)) == NULL);
+    /* .opaque field is used to store the optional per-user hint string */
+    if ((psk_hint = u_pwd_rec_get_opaque(pwd_rec)))
+        dbg_err_if (!SSL_use_psk_identity_hint(ssl, psk_hint));
 
     /* do the requested psk conversion */
     dbg_err_if (!BN_hex2bn(&bn, __psk));
