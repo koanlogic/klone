@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.56 2007/11/13 21:21:31 tat Exp $
+ * $Id: http.c,v 1.57 2008/04/07 11:03:19 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -610,6 +610,10 @@ static int http_serve(http_t *h, int fd)
                           not be free'd) that happens during the io_free call */
     return 0;
 err:
+    /* hook get fired also on error */
+    if(rq && rs)
+        hook_call(request, rq, rs);
+
     if(rc && rq && rs && response_io(rs))
         http_print_error_page(h, rq, rs, rc); /* print the error page */
     if(in)

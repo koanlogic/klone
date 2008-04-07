@@ -1,4 +1,4 @@
-$Id: ChangeLog,v 1.50 2008/03/18 23:18:10 tho Exp $
+$Id: ChangeLog,v 1.51 2008/04/07 11:03:19 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
@@ -6,6 +6,7 @@ KLone 2.0.3:
 	- added passwd-like authentication (uses libu::pwd)
 	- added TLS PSK interface
 	- page entry point function fixed to avoid g++ errors 
+	- libu sync to export u_pwd module
 
 KLone 2.0.2:
 	- bug fix: external libraries were mistakenly found by the ./configure 
