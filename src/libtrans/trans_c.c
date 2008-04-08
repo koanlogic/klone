@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.38 2008/03/07 12:51:28 tat Exp $
+ * $Id: trans_c.c,v 1.39 2008/04/08 12:53:49 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -228,7 +228,10 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
 
     head = &ctx->code_blocks;
     for(node = head->tqh_first; node != NULL; node = node->np.tqe_next)
+    {
+        io_printf(p->out, "\n");
         io_write(p->out, node->buf, node->sz);
+    }
 
     io_printf(p->out, 
             "goto klone_script_exit;\n" /* just to avoid a warning */

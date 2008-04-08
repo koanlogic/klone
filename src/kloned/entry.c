@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: entry.c,v 1.25 2007/11/09 13:45:52 tat Exp $
+ * $Id: entry.c,v 1.26 2008/04/08 12:53:49 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -402,7 +402,7 @@ int main(int argc, char **argv)
 
     /* save the PID in a file */
     if(ctx->pid_file)
-        dbg_err_if(u_save_pid(ctx->pid_file));
+        dbg_err_if(u_savepid(ctx->pid_file));
 
     /* jump to the main loop */
     rc = app_run();

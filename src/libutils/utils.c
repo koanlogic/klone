@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.54 2008/03/18 17:28:02 tho Exp $
+ * $Id: utils.c,v 1.55 2008/04/08 12:53:49 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -1085,22 +1085,6 @@ const char *u_guess_mime_type(const char *file_name)
 notfound:
     return "application/octet-stream";
 }
-
-int u_save_pid(const char *file)
-{
-    FILE *fp;
-
-    dbg_err_sif ((fp = fopen(file, "w")) == NULL);
-
-    dbg_err_sif(fprintf(fp, "%ld\n", (long) getpid()) == 0);
-
-    fclose(fp);
-
-    return 0;
-err:
-    return ~0;
-}
-
 
 #ifdef HAVE_LIBZ
 /**
