@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.58 2008/04/10 18:09:29 tat Exp $
+ * $Id: http.c,v 1.59 2008/04/10 20:39:07 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -219,7 +219,6 @@ err:
 static int http_is_valid_uri(request_t *rq, const char *buf, size_t len)
 {
     char resolved[U_FILENAME_MAX], uri[URI_MAX];
-    //request_t *rq = (request_t*)arg;
     http_t *h = NULL;
 
     dbg_err_if (rq == NULL);
