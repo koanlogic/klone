@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.39 2008/04/08 12:53:49 tho Exp $
+ * $Id: trans_c.c,v 1.40 2008/04/10 16:30:58 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -111,6 +111,7 @@ err:
 
 static void print_header(parser_t *p, lang_c_ctx_t *ctx)
 {
+    static const char dfun_prefix[] = "page_";
     const char *file;
     char *dfun;
     int i;
@@ -133,7 +134,12 @@ static void print_header(parser_t *p, lang_c_ctx_t *ctx)
 
     dfun = ctx->ti->dfun; /* shortcut */
 
-    if(strlcpy(dfun, file, URI_BUFSZ) >= URI_BUFSZ)
+    /* we need a prefix to avoid errors with pages whose filename starts with
+       a number (404-handler.kl1) or any other char not allowed by C as the
+       first char of function names */
+    strlcpy(dfun, dfun_prefix, strlen(dfun_prefix));
+
+    if(strlcat(dfun, file, URI_BUFSZ) >= URI_BUFSZ)
         dfun[URI_BUFSZ - 1] = 0;
 
     for(i = 0; i < strlen(dfun); ++i)
