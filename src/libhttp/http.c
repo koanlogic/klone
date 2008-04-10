@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.57 2008/04/07 11:03:19 tat Exp $
+ * $Id: http.c,v 1.58 2008/04/10 18:09:29 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -138,7 +138,7 @@ vhost_list_t* http_get_vhost_list(http_t *http)
 
     return http->vhosts;
 err:
-    return ~0;
+    return NULL;
 }
 
 vhost_t* http_get_vhost(http_t *h, request_t *rq)
@@ -216,13 +216,13 @@ err:
     return ~0;
 }
 
-static int http_is_valid_uri(void *arg, const char *buf, size_t len)
+static int http_is_valid_uri(request_t *rq, const char *buf, size_t len)
 {
     char resolved[U_FILENAME_MAX], uri[URI_MAX];
-    request_t *rq = (request_t*)arg;
+    //request_t *rq = (request_t*)arg;
     http_t *h = NULL;
 
-    dbg_err_if (arg == NULL);
+    dbg_err_if (rq == NULL);
     dbg_err_if (buf == NULL);
 
     h = request_get_http(rq);
@@ -380,7 +380,7 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
     enum { BUFSZ = 64 };
     const char *err_page;
     char buf[BUFSZ];
-    int rc;
+    vhost_t *vhost;
 
     dbg_err_if (h == NULL);
     dbg_err_if (rq == NULL);
@@ -399,17 +399,23 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
 
     /* looking for user provided error page */
     dbg_err_if(u_snprintf(buf, BUFSZ, "error.%d", http_status));
-    err_page = u_config_get_subkey_value(h->config, buf);
+    if((vhost = http_get_vhost(h, rq)) == NULL)
+        err_page = u_config_get_subkey_value(h->config, buf);
+    else
+        err_page = u_config_get_subkey_value(vhost->config, buf);
 
     if(err_page && !request_set_uri(rq, err_page, NULL, NULL))
     {
         http_resolv_request(h, rq);
-        if((rc = broker_serve(h->broker, h, rq, rs)) == 0)
-            return 0; 
-        else {
-            /* configured error page not found */
-            http_status = rc;
+        if(http_is_valid_uri(rq, err_page, strlen(err_page)))
+        {
+            /* user provided error page found */
+            broker_serve(h->broker, h, rq, rs);
+            return 0;
         }
+
+        /* page not found */
+        warn("%d handler page (%s) not found", http_status, err_page);
     }
 
     /* be sure that the status code is properly set */

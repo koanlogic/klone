@@ -7,10 +7,6 @@ MAKEFLAGS := -I ${MAKL_DIR}/mk
 
 SUBDIR = build/libu webapp site src klone contrib doc 
 
-ifndef NO_TEST
-SUBDIR += test
-endif
-
 ifeq ($(wildcard Makefile.conf),)
 help:
 	@echo 
