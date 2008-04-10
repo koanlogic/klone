@@ -29,4 +29,8 @@ ifdef LIBU_MINI
 PARTY_ARGS += --no_net --no_env
 endif
 
+ifneq ($(strip ${LIBU_LIBS}),)
+PARTY_ARGS += --libs=${LIBU_LIBS}
+endif
+
 include party.mk

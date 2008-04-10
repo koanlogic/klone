@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.86 2008/03/14 20:12:55 tho Exp $
+# $Id: configure,v 1.87 2008/04/10 20:39:33 tho Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -166,5 +166,9 @@ if [ -d skin/default ]; then
     # Perform skin variable substitution on files
     makl_file_sub "skin/default/Makefile"
 fi
+
+# check if --libs were supplied: in case forward its value to libu build
+__libs=`makl_get "__libs__"`
+[ "${__libs}" ] && makl_set_var_mk "LIBU_LIBS" "${__libs}"
 
 . ${MAKL_DIR}/cf/makl.term

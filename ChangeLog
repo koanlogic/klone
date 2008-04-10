@@ -1,10 +1,12 @@
-$Id: ChangeLog,v 1.52 2008/04/10 18:09:29 tat Exp $
+$Id: ChangeLog,v 1.53 2008/04/10 20:39:33 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.0.3:
+	- forward --libs configure argument value to libu build
 	- custom error pages response fix
-	- kl1 entry functions prefixed with "page_" (.klone page filenames can now 		  start with numbers)
+	- kl1 entry functions prefixed with "page_" (.klone page filenames can now
+	  start with numbers)
 	- added passwd-like authentication (uses libu::pwd)
 	- added TLS PSK interface
 	- page entry point function fixed to avoid g++ errors 
