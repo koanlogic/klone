@@ -8,7 +8,7 @@ PARTY_NO_CHK = true
 PARTY_NO_DECOMP = true
 PARTY_NO_INSTALL = true
 
-PARTY_CONF = env MAKL_DIR=${SRCDIR}/makl ./configure
+PARTY_CONF = env MAKL_DIR=${SRCDIR}/makl maklconf 
 PARTY_BASE = ../../libu
 PARTY_DEP = ${PARTY_BASE}/src/libu.a
 PARTY_ARGS = --prefix=${DESTDIR}
