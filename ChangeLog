@@ -1,8 +1,9 @@
-$Id: ChangeLog,v 1.53 2008/04/10 20:39:33 tho Exp $
+$Id: ChangeLog,v 1.54 2008/04/16 14:05:17 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.0.3:
+	- response_set_cookie bug fix: s/expire/expires/
 	- forward --libs configure argument value to libu build
 	- custom error pages response fix
 	- kl1 entry functions prefixed with "page_" (.klone page filenames can now
