@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.c,v 1.28 2007/10/26 11:21:51 tho Exp $
+ * $Id: response.c,v 1.29 2008/04/16 14:02:59 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -153,7 +153,6 @@ int response_set_cookie(response_t *rs, const char *name, const char *value,
         dbg_err_if(u_snprintf(buf, BUFSZ, "%s=", name));
 
         /* encoded value */
-        // FIXME buf may be too small....
         dbg_err_if(u_urlncpy(buf + strlen(buf), value, strlen(value), 
             URLCPY_ENCODE) <= 0);
 
@@ -163,7 +162,7 @@ int response_set_cookie(response_t *rs, const char *name, const char *value,
             dbg_err_if(u_tt_to_rfc822(date, expire));
 
             dbg_err_if(u_snprintf(buf + strlen(buf), BUFSZ - strlen(buf), 
-                        "; expire=%s", date));
+                        "; expires=%s", date));
         }
 
         /* path */
