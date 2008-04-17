@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.60 2007/12/07 16:37:56 tat Exp $
+ * $Id: server.c,v 1.61 2008/04/17 09:30:51 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -883,6 +883,9 @@ static int server_spawn_children(server_t *s)
         for(i = 0; i < be->fork_child; ++i)
         {
             dbg_err_if(server_spawn_child(s, be));
+            /* child context? */
+            if(ctx->pipc)
+                break; /* the child previously spawn is dieing, exit */
             be->fork_child--;
         }
     }
