@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.52 2007/12/23 10:28:45 tat Exp $
+ * $Id: request.c,v 1.53 2008/04/18 17:31:11 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -39,7 +39,9 @@ struct request_s
     char *filename;             /* path of the req resource                 */
     char *resolved_path_info;   /* resolved path_info                       */
     char *resolved_filename;    /* unaliased filename                       */
-    vars_t *args;               /* get/post args                            */
+    vars_t *args;               /* mixed get/post args                      */
+    vars_t *args_get;           /* get variables                            */
+    vars_t *args_post;          /* post variables                           */
     vars_t *cookies;            /* cookies                                  */
     vars_t *uploads;            /* uploaded file list                       */
     char *content_type;         /* type/subtype                             */
@@ -180,7 +182,7 @@ const char *request_get_cookie(request_t *rq, const char *name)
 
 /**
  * \ingroup request
- * \brief   Get request arguments
+ * \brief   Get the list of request variables (using either GET or POST method)
  *
  * Return get/post arguments of request \p rq in a \c vars_t object
  *
@@ -197,7 +199,41 @@ vars_t *request_get_args(request_t *rq)
 
 /**
  * \ingroup request
- * \brief   Get a request argument
+ * \brief   Get request variables passed using the GET method
+ *
+ * Return GET arguments of request \p rq in a \c vars_t object
+ *
+ * \param rq  request object
+ *
+ * \return the arguments' list of the given \p rq
+ */
+vars_t *request_get_getargs(request_t *rq)
+{
+    dbg_return_if (rq == NULL, NULL);
+
+    return rq->args_get;
+}
+
+/**
+ * \ingroup request
+ * \brief   Get request variables passed using the POST method
+ *
+ * Return POST arguments of request \p rq in a \c vars_t object
+ *
+ * \param rq  request object
+ *
+ * \return the arguments' list of the given \p rq
+ */
+vars_t *request_get_postargs(request_t *rq)
+{
+    dbg_return_if (rq == NULL, NULL);
+
+    return rq->args_post;
+}
+
+/**
+ * \ingroup request
+ * \brief   Get a request variable (using either GET or POST variable list)
  *
  * Return the string value of argument \p name in request \p rq.
  *
@@ -216,6 +252,56 @@ const char *request_get_arg(request_t *rq, const char *name)
     dbg_return_if (name == NULL, NULL);
 
     v = vars_get(rq->args, name);
+
+    return v ? var_get_value(v): NULL;
+}
+
+/**
+ * \ingroup request
+ * \brief   Return a GET variable
+ *
+ * Return the string value of argument \p name in request \p rq.
+ *
+ * \param rq    request object
+ * \param name  name of the argument
+ *
+ * \return
+ *  - the string value corresponding to the supplied \p name 
+ *  - \c NULL if there's no argument named \p name
+ */
+const char *request_get_getarg(request_t *rq, const char *name)
+{
+    var_t *v;
+
+    dbg_return_if (rq == NULL, NULL);
+    dbg_return_if (name == NULL, NULL);
+
+    v = vars_get(rq->args_get, name);
+
+    return v ? var_get_value(v): NULL;
+}
+
+/**
+ * \ingroup request
+ * \brief   Return a POST variable
+ *
+ * Return the string value of argument \p name in request \p rq.
+ *
+ * \param rq    request object
+ * \param name  name of the argument
+ *
+ * \return
+ *  - the string value corresponding to the supplied \p name 
+ *  - \c NULL if there's no argument named \p name
+ */
+const char *request_get_postarg(request_t *rq, const char *name)
+{
+    var_t *v;
+
+    dbg_return_if (rq == NULL, NULL);
+    dbg_return_if (name == NULL, NULL);
+
+    v = vars_get(rq->args_post, name);
 
     return v ? var_get_value(v): NULL;
 }
@@ -720,9 +806,13 @@ err:
     return ~0;
 }
 
-static int request_parse_query_args(request_t *rq)
+/* parse the query string from 'offset' and all variables to rq->args; if 'vs'
+   is set also add all vars into it */
+static int request_parse_query_args_from(request_t *rq, int offset, 
+        vars_t *vs)
 {
     char *pp, *tok, *src, *query = NULL;
+    var_t *v;
 
     dbg_err_if (rq == NULL);
 
@@ -730,14 +820,18 @@ static int request_parse_query_args(request_t *rq)
         return 0; /* no args */
 
     /* dup to tokenize it */
-    query = u_strdup(rq->query);
+    query = u_strdup(rq->query + offset);
     dbg_err_if(query == NULL);
 
     /* foreach name=value pair... */
     for(src = query; (tok = strtok_r(src, "&", &pp)) != NULL; src = NULL)
     {
         /* create a new var_t obj and push it into the args vars-list */
-        dbg_if(vars_add_urlvar(rq->args, tok, NULL));
+        dbg_if(vars_add_urlvar(rq->args, tok, &v));
+
+        /* add the ptr also into the given vars list */
+        if(vs)
+            dbg_err_if(vars_add(vs, v));
     }
 
     U_FREE(query);
@@ -745,6 +839,81 @@ static int request_parse_query_args(request_t *rq)
     return 0;
 err:
     U_FREE(query);
+    return ~0;
+}
+
+static int request_cb_add_post_var(void *arg, const char *tok)
+{
+    request_t *rq = (request_t*)arg;
+    var_t *v;
+
+    dbg_err_if(rq == NULL);
+
+    /* create a new var_t obj and push it into the args vars-list */
+    dbg_if(vars_add_urlvar(rq->args, tok, &v));
+
+    /* add the ptr also to the POST vars list */
+    dbg_err_if(vars_add(rq->args_post, v));
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int request_cb_add_get_var(void *arg, const char *tok)
+{
+    request_t *rq = (request_t*)arg;
+    var_t *v;
+
+    dbg_err_if(rq == NULL);
+
+    /* create a new var_t obj and push it into the args vars-list */
+    dbg_if(vars_add_urlvar(rq->args, tok, &v));
+
+    /* add the ptr also to the GET vars list */
+    dbg_err_if(vars_add(rq->args_get, v));
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int foreach_query_var(const char *urlquery, int offset, 
+        int(*cb)(void*,const char*), void *arg)
+{
+    char *pp, *tok, *src, *query = NULL;
+
+    dbg_err_if(offset < 0);
+    dbg_err_if(cb == NULL);
+
+    if(!urlquery)
+        return 0; /* no args */
+
+    /* dup to tokenize it */
+    query = u_strdup(urlquery + offset);
+    dbg_err_if(query == NULL);
+
+    /* foreach name=value pair... */
+    for(src = query; (tok = strtok_r(src, "&", &pp)) != NULL; src = NULL)
+    {
+        /* call the callback that will save this var */
+        dbg_err_if(cb(arg, tok));
+    }
+
+    U_FREE(query);
+
+    return 0;
+err:
+    U_FREE(query);
+    return ~0;
+}
+
+static int request_parse_query_args(request_t *rq)
+{
+    dbg_err_if(rq == NULL);
+
+    return foreach_query_var(rq->query, 0, request_cb_add_get_var, (void*)rq); 
+err:
     return ~0;
 }
 
@@ -821,8 +990,9 @@ static int request_parse_urlencoded_data(request_t *rq)
     /* zero terminate it */
     rq->query[qsz + len] = 0;
 
-    /* parse rq->query and build the args var_t* array */
-    dbg_err_if(request_parse_query_args(rq));
+    /* parse and add post vars to the rq->args and rq->args_post array */
+    dbg_err_if(foreach_query_var(rq->query, qsz, 
+                request_cb_add_post_var, (void*)rq));
 
     return 0;
 err:
@@ -1286,6 +1456,9 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
         dbg_err_if(var_bin_create(name, buf, rc, &v));
         dbg_if(vars_add(rq->args, v));
 
+        /* also add it to the post array */
+        dbg_if(vars_add(rq->args_post, v));
+
         /* could be "\r\n" for not-ending boundaries or "--\r\n" */
         dbg_err_if(io_gets(io, buf, BUFSZ) <= 0);
 
@@ -1371,11 +1544,11 @@ int request_parse_data(request_t *rq)
         dbg_err_if(rq->content_length > rq->post_maxsize &&
             (rc = HTTP_STATUS_REQUEST_TOO_LARGE));
 
+        /* some vars may be urlencoded */
+        dbg_err_if(request_parse_query_args(rq));
+
         if(request_is_multipart_formdata(rq))
         { 
-            /* some vars may be urlencoded */
-            dbg_err_if(request_parse_query_args(rq));
-
             /* <form enctype="multipart/form-data" ...> */
             dbg_err_if(request_parse_multipart_data(rq));
         } else {
@@ -1601,6 +1774,13 @@ int request_create(http_t *http, request_t **prq)
     dbg_err_if(vars_create(&rq->cookies));
     dbg_err_if(vars_create(&rq->uploads));
 
+    dbg_err_if(vars_create(&rq->args_get));
+    dbg_err_if(vars_create(&rq->args_post));
+
+    /* args_get and args_post link to var_t owned by the rq->args list */
+    dbg_err_if(vars_set_flags(rq->args_get, VARS_FLAG_FOREIGN));
+    dbg_err_if(vars_set_flags(rq->args_post, VARS_FLAG_FOREIGN));
+
     rq->http = http;
 
     dbg_err_if(request_load_config(rq));
@@ -1651,6 +1831,12 @@ int request_free(request_t *rq)
         
         if(rq->cookies)
             vars_free(rq->cookies);
+
+        if(rq->args_get)
+            vars_free(rq->args_get);
+
+        if(rq->args_post)
+            vars_free(rq->args_post);
 
         if(rq->args)
             vars_free(rq->args);

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.h,v 1.9 2006/01/09 12:38:38 tat Exp $
+ * $Id: vars.h,v 1.10 2008/04/18 17:31:11 tat Exp $
  */
 
 #ifndef _KLONE_VARLIST_H_
@@ -18,6 +18,11 @@
 extern "C" {
 #endif
 
+enum { 
+    VARS_FLAG_NONE = 0,
+    VARS_FLAG_FOREIGN = 1 << 0  /* don't free the list of var_t on vars_free */
+};
+
 struct vars_s;
 typedef struct vars_s vars_t;
 
@@ -25,6 +30,8 @@ typedef int (*vars_cb_t)(var_t*, void*);
 
 int vars_create(vars_t ** pvs);
 int vars_free(vars_t *vs);
+
+int vars_set_flags(vars_t *vs, int flags);
 
 int vars_add(vars_t *vs, var_t *v);
 int vars_del(vars_t *vs, var_t *v);

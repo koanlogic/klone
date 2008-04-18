@@ -1,8 +1,10 @@
-$Id: ChangeLog,v 1.55 2008/04/17 09:31:22 tat Exp $
+$Id: ChangeLog,v 1.56 2008/04/18 17:31:11 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.0.3:
+	- GET and POST variables can now be accessed indipendently using
+	  request_get_{get,post}args and request_get_{get,post}arg functions
 	- respawn race fixed
 	- response_set_cookie bug fix: s/expire/expires/
 	- forward --libs configure argument value to libu build

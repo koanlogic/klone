@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.28 2007/10/26 11:21:51 tho Exp $
+ * $Id: vars.c,v 1.29 2008/04/18 17:31:11 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -20,8 +20,8 @@ TAILQ_HEAD(var_list_s, var_s);
 
 struct vars_s
 {
-    struct var_list_s list;     /* list of variables (var_t) */
-    size_t count;               /* # of vars in the list     */
+    u_list_t *list;              /* list of variables (var_t) */
+    int flags;
 };
 
 /**
@@ -59,7 +59,7 @@ int vars_create(vars_t **pvs)
     vs = u_zalloc(sizeof(vars_t));
     dbg_err_if(vs == NULL);
 
-    TAILQ_INIT(&vs->list);
+    dbg_err_if(u_list_create(&vs->list));
 
     *pvs = vs;
 
@@ -70,18 +70,35 @@ err:
     return ~0;
 }
 
+int vars_set_flags(vars_t *vs, int flags)
+{
+    dbg_err_if (vs == NULL);
+
+    vs->flags = flags;
+
+    return 0;
+err:
+    return ~0;
+}
+
 int vars_free(vars_t *vs)
 {
     var_t *v;
+    int t;
 
     if(vs)
     {
-        /* free all variables */
-        while((v = TAILQ_FIRST(&vs->list)) != NULL)
+        /* if the var_t objects are owned by this vars_t then free them all */
+        if((vs->flags & VARS_FLAG_FOREIGN) != 0)
         {
-            vars_del(vs, v);
-            var_free(v);
+            /* free all variables */
+            for(t = 0; (v = u_list_get_n(vs->list, t)) != NULL; ++t)
+                var_free(v);
         }
+
+        if(vs->list)
+            u_list_free(vs->list);
+
         U_FREE(vs);
     }
 
@@ -90,21 +107,26 @@ int vars_free(vars_t *vs)
 
 int vars_add(vars_t *vs, var_t *v)
 {
-    TAILQ_INSERT_TAIL(&vs->list, v, np);
-    vs->count++;
+    dbg_err_if(vs == NULL);
+    dbg_err_if(v == NULL);
+
+    dbg_err_if(u_list_add(vs->list, v));
 
     return 0;
+err:
+    return ~0;
 }
 
 int vars_del(vars_t *vs, var_t *v)
 {
-    dbg_return_if (vs == NULL, ~0);
-    dbg_return_if (v == NULL, ~0);
+    dbg_err_if(vs == NULL);
+    dbg_err_if(v == NULL);
    
-    TAILQ_REMOVE(&vs->list, v, np);
-    vs->count--;
+    dbg_err_if(u_list_del(vs->list, v));
 
     return 0;
+err:
+    return ~0;
 }
 
 /**
@@ -120,17 +142,11 @@ int vars_del(vars_t *vs, var_t *v)
  */
 var_t *vars_getn(vars_t *vs, size_t i)
 {
-    var_t *v;
-
     dbg_goto_if (vs == NULL, notfound);
-    dbg_goto_if (i >= vs->count, notfound); /* out of bounds */
 
-    TAILQ_FOREACH(v, &vs->list, np)
-    {
-        if(i-- == 0)
-            return v;
-    }
+    dbg_goto_if (i >= u_list_count(vs->list), notfound); /* out of bounds */
 
+    return u_list_get_n(vs->list, i);
 notfound:
     return NULL;
 }
@@ -149,7 +165,7 @@ size_t vars_count(vars_t *vs)
 {
     dbg_return_if (vs == NULL, 0);
 
-    return vs->count;
+    return u_list_count(vs->list);
 }
 
 /**
@@ -167,10 +183,11 @@ size_t vars_countn(vars_t *vs, const char *name)
 {
     var_t *v;
     size_t c = 0;
+    int t;
 
     dbg_return_if (vs == NULL || name == NULL, 0);
 
-    TAILQ_FOREACH(v, &vs->list, np)
+    for(t = 0; (v = u_list_get_n(vs->list, t)) != NULL; ++t)
     {
         if(strcasecmp(u_string_c(v->sname), name) == 0)
             c++;
@@ -311,11 +328,12 @@ err:
 var_t *vars_geti(vars_t *vs, const char *var_name, size_t i)
 {
     var_t *v;
+    int t;
 
     dbg_goto_if (vs == NULL, notfound);
     dbg_goto_if (var_name == NULL, notfound);
 
-    TAILQ_FOREACH(v, &vs->list, np)
+    for(t = 0; (v = u_list_get_n(vs->list, t)) != NULL; ++t)
     {
         if(strcasecmp(u_string_c(v->sname), var_name) == 0)
         {
@@ -490,11 +508,12 @@ const char *vars_get_value(vars_t *vs, const char *name)
 void vars_foreach(vars_t *vs, int (*cb)(var_t *, void *), void *arg)
 {
     var_t *v;
+    int t;
 
     dbg_ifb (vs == NULL) return;
     dbg_ifb (cb == NULL) return;
 
-    TAILQ_FOREACH(v, &vs->list, np)
+    for(t = 0; (v = u_list_get_n(vs->list, t)) != NULL; ++t)
     {
         if(cb(v, arg))
             break;
@@ -502,3 +521,4 @@ void vars_foreach(vars_t *vs, int (*cb)(var_t *, void *), void *arg)
 
     return;
 }
+
