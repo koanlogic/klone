@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.59 2008/04/10 20:39:07 tat Exp $
+ * $Id: http.c,v 1.60 2008/04/21 17:04:18 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -511,7 +511,7 @@ static int http_serve(http_t *h, int fd)
     /* create input io buffer (no IO_FD_CLOSE used because 'out' 
        will close it */
     if(h->ssl && !cgi)
-        dbg_err_if(io_ssl_create(fd, IO_FD_CLOSE, h->ssl_ctx, &in));
+        dbg_err_if(io_ssl_create(fd, IO_FD_CLOSE, 0, h->ssl_ctx, &in));
     else
         dbg_err_if(io_fd_create(fd, IO_FD_CLOSE, &in));
 #else

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: iossl.c,v 1.19 2007/10/17 22:58:35 tat Exp $
+ * $Id: iossl.c,v 1.20 2008/04/21 17:04:18 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -120,7 +120,52 @@ err:
     return -1;
 }
 
-int io_ssl_create(int fd, int flags, SSL_CTX *ssl_ctx, io_t **pio)
+static int io_ssl_connect(io_ssl_t *io_ssl)
+{
+    int rc;
+
+    /* accept a SSL connection */
+    while((rc = SSL_connect(io_ssl->ssl)) <= 0)
+    {
+        /* will return 1 if accept has been blocked by a signal or async IO */
+        if(BIO_sock_should_retry(rc))
+            continue;
+
+        if(SSL_get_error(io_ssl->ssl, rc) == SSL_ERROR_WANT_READ)
+            break; 
+
+        warn_err("SSL accept error: %d", SSL_get_error(io_ssl->ssl, rc));
+    }
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int io_ssl_accept(io_ssl_t *io_ssl)
+{
+    int rc;
+
+    /* accept a SSL connection */
+    while((rc = SSL_accept(io_ssl->ssl)) <= 0)
+    {
+        /* will return 1 if accept has been blocked by a signal or async IO */
+        if(BIO_sock_should_retry(rc))
+            continue;
+
+        if(SSL_get_error(io_ssl->ssl, rc) == SSL_ERROR_WANT_READ)
+            break; 
+
+        warn_err("SSL accept error: %d", SSL_get_error(io_ssl->ssl, rc));
+    }
+
+    return 0;
+err:
+    return ~0;
+}
+
+int io_ssl_create(int fd, int flags, int client_mode, 
+        SSL_CTX *ssl_ctx, io_t **pio)
 {
     io_ssl_t *io_ssl = NULL;
     int rc = 0;
@@ -151,18 +196,11 @@ int io_ssl_create(int fd, int flags, SSL_CTX *ssl_ctx, io_t **pio)
     /* set the secure flag (encrypted connection) */
     io_ssl->io.is_secure = 1;
     
-    /* accept a SSL connection */
-    while((rc = SSL_accept(io_ssl->ssl)) <= 0)
-    {
-        /* will return 1 if accept has been blocked by a signal or async IO */
-        if(BIO_sock_should_retry(rc))
-            continue;
-
-        if(SSL_get_error(io_ssl->ssl, rc) == SSL_ERROR_WANT_READ)
-            break; 
-
-        warn_err("SSL accept error: %d", SSL_get_error(io_ssl->ssl, rc));
-    }
+    /* wait for the peer to start the TLS handshake */
+    if(client_mode)
+        dbg_err_if(io_ssl_connect(io_ssl));
+    else
+        dbg_err_if(io_ssl_accept(io_ssl));
 
     *pio = (io_t*)io_ssl;
 
@@ -180,3 +218,4 @@ err:
         io_free((io_t *)io_ssl);
     return ~0;
 }
+
