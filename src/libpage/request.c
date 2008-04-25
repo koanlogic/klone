@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.54 2008/04/25 18:59:08 tat Exp $
+ * $Id: request.c,v 1.55 2008/04/25 19:27:55 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -535,6 +535,7 @@ void request_clear_uri(request_t *rq)
     U_FREE(rq->resolved_filename);
     U_FREE(rq->content_type);
     U_FREE(rq->content_encoding);
+    U_FREE(rq->cli_rq);
 }
 
 /*
@@ -1825,7 +1826,7 @@ int request_free(request_t *rq)
             vars_foreach(rq->uploads, request_unlink_uploads, NULL);
             vars_free(rq->uploads);
         }
-        
+
         if(rq->cookies)
             vars_free(rq->cookies);
 
