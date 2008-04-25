@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.29 2008/04/18 17:31:11 tat Exp $
+ * $Id: vars.c,v 1.30 2008/04/25 19:44:48 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -89,7 +89,7 @@ int vars_free(vars_t *vs)
     if(vs)
     {
         /* if the var_t objects are owned by this vars_t then free them all */
-        if((vs->flags & VARS_FLAG_FOREIGN) != 0)
+        if((vs->flags & VARS_FLAG_FOREIGN) == 0)
         {
             /* free all variables */
             for(t = 0; (v = u_list_get_n(vs->list, t)) != NULL; ++t)
