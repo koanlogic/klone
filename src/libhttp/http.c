@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.60 2008/04/21 17:04:18 tat Exp $
+ * $Id: http.c,v 1.61 2008/04/25 18:59:08 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -224,36 +224,48 @@ static int http_is_valid_uri(request_t *rq, const char *buf, size_t len)
     dbg_err_if (rq == NULL);
     dbg_err_if (buf == NULL);
 
+    dbg_err_if (len >= URI_MAX);
+
     h = request_get_http(rq);
     dbg_err_if (h == NULL);
     
     strncpy(uri, buf, len);
     uri[len] = 0;
 
-    dbg_err_if(http_alias_resolv(h, rq, resolved, uri, URI_MAX));
+    dbg_err_if(http_alias_resolv(h, rq, resolved, uri, U_FILENAME_MAX));
 
     return broker_is_valid_uri(h->broker, h, rq, resolved, strlen(resolved));
 err:
-    return ~0;
+    return 0; /* error, not a valid uri */
 }
 
-static void http_resolv_request(http_t *h, request_t *rq)
+static int http_resolv_request(http_t *h, request_t *rq)
 {
     const char *cstr;
     char resolved[U_FILENAME_MAX];
 
-    dbg_ifb(h == NULL) return;
-    dbg_ifb(rq == NULL) return;
+    dbg_err_if(h == NULL);
+    dbg_err_if(rq == NULL);
     
     /* unalias rq->filename */
-    cstr = request_get_filename(rq);
-    if(cstr && !http_alias_resolv(h, rq, resolved, cstr, U_FILENAME_MAX))
-        request_set_resolved_filename(rq, resolved);
+    if((cstr = request_get_filename(rq)) != NULL)
+    {
+        dbg_err_if(http_alias_resolv(h, rq, resolved, cstr, U_FILENAME_MAX));
+
+        dbg_err_if(request_set_resolved_filename(rq, resolved));
+    }
 
     /* unalias rq->path_info */
-    cstr = request_get_path_info(rq);
-    if(cstr && !http_alias_resolv(h, rq, resolved, cstr, U_FILENAME_MAX))
-        request_set_resolved_path_info(rq, resolved);
+    if((cstr = request_get_path_info(rq)) != NULL)
+    {
+        dbg_err_if(http_alias_resolv(h, rq, resolved, cstr, U_FILENAME_MAX));
+
+        dbg_err_if(request_set_resolved_path_info(rq, resolved));
+    }
+
+    return 0;
+err:
+    return ~0;
 }
 
 static int http_is_valid_index(http_t *h, request_t *rq, const char *uri)
@@ -345,7 +357,7 @@ static int http_set_index_request(http_t *h, request_t *rq)
 
     dbg_if(request_set_filename(rq, uri));
 
-    http_resolv_request(h, rq);
+    dbg_err_if(http_resolv_request(h, rq));
 
     return 0;
 err:
@@ -405,7 +417,7 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
 
     if(err_page && !request_set_uri(rq, err_page, NULL, NULL))
     {
-        http_resolv_request(h, rq);
+        dbg_err_if(http_resolv_request(h, rq));
         if(http_is_valid_uri(rq, err_page, strlen(err_page)))
         {
             /* user provided error page found */
@@ -545,10 +557,12 @@ static int http_serve(http_t *h, int fd)
     dbg_err_if(response_bind(rs, out));
     out = NULL;
 
+    /* server ready, parse the request */
     dbg_err_if(response_set_status(rs, HTTP_STATUS_BAD_REQUEST));
+    rc = HTTP_STATUS_BAD_REQUEST;
 
     /* parse request. may fail on timeout */
-    dbg_err_if(rc = request_parse_header(rq, http_is_valid_uri, rq));
+    dbg_err_if(request_parse_header(rq, http_is_valid_uri, rq));
 
     response_set_method(rs, request_get_method(rq));
 
@@ -557,7 +571,7 @@ static int http_serve(http_t *h, int fd)
     request_set_vhost(rq, vhost);
 
     /* if we're running in server mode then resolv aliases and dir_root */
-    http_resolv_request(h, rq);
+    dbg_err_if(http_resolv_request(h, rq));
 
     /* if the uri end with a slash then return an index page */
     if((cstr = request_get_filename(rq)) != NULL && cstr[strlen(cstr)-1] == '/')

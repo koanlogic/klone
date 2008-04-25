@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_cgi.c,v 1.9 2007/12/07 16:37:56 tat Exp $
+ * $Id: sup_cgi.c,v 1.10 2008/04/25 18:59:08 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -178,11 +178,11 @@ static int cgi_is_valid_uri(http_t *h, request_t *rq, const char *uri,
         size_t len, time_t *mtime)
 {
     struct stat st; 
-    char fqn[1+U_FILENAME_MAX];
+    char fqn[U_FILENAME_MAX];
 
     dbg_return_if (uri == NULL, 0);
     dbg_return_if (mtime == NULL, 0);
-    dbg_return_if (len > U_FILENAME_MAX, 0);
+    dbg_return_if (len >= U_FILENAME_MAX, 0);
 
     memcpy(fqn, uri, len);
     fqn[len] = 0;

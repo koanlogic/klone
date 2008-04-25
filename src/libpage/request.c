@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.53 2008/04/18 17:31:11 tat Exp $
+ * $Id: request.c,v 1.54 2008/04/25 18:59:08 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1585,7 +1585,6 @@ int request_parse_header(request_t *rq,
     const char WP[] = " \t\r\n";
     char ln[BUFSZ], *pp, *method, *uri, *proto;
     talarm_t *al = NULL;
-    int rc = HTTP_STATUS_BAD_REQUEST;
     
     dbg_err_if (rq == NULL);
     dbg_err_if (rq->io == NULL); /* must call rq_bind before rq_parse */
@@ -1613,8 +1612,9 @@ int request_parse_header(request_t *rq,
         dbg_err_if(!proto || request_set_proto(rq, proto)); 
 
         dbg_err_if(header_load(rq->header, rq->io));
-    } else
+    } else {
         dbg_err_if(header_load_from_cgienv(rq->header));
+    }
 
     /* set if-modified-since time_t value */
     dbg_err_if(request_parse_ims(rq));
@@ -1629,14 +1629,11 @@ int request_parse_header(request_t *rq,
     /* idle timeout not expired, clear it */
     dbg_if(timerm_del(al)); al = NULL;
 
-    /* parse URL encoded or POSTed data */
-    /* dbg_err_if((rc = request_parse_data(rq))); */
-
     return 0;
 err:
     if(al)
         timerm_del(al);
-    return rc;
+    return ~0;
 }
 
 /** 

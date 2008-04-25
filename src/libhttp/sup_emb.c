@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.32 2007/12/03 16:05:55 tat Exp $
+ * $Id: sup_emb.c,v 1.33 2008/04/25 18:59:08 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -34,9 +34,10 @@ static int supemb_is_valid_uri(http_t *h, request_t *rq, const char *uri,
     dbg_err_if (mtime == NULL);
     dbg_err_if (len >= U_FILENAME_MAX);
 
-    u_unused_args(h);
+    u_unused_args(h, rq);
 
     strncpy(filename, uri, len);
+    filename[len] = 0;
 
     if(emb_lookup(filename, &e) == 0)
     {   /* resource found */
@@ -107,7 +108,7 @@ static int supemb_static_set_header_fields(request_t *rq, response_t *rs,
     dbg_err_if (e == NULL);
     dbg_err_if (sai == NULL);
 
-    dbg_err_if((vhost = request_get_http(rq)) == NULL);
+    dbg_err_if((vhost = request_get_vhost(rq)) == NULL);
 
     /* set header fields based on embfile_t struct */
 
