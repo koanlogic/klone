@@ -91,7 +91,9 @@ KLONE_TOOL ?= $(KLONE_SRC_HOST)/src/tools/klone/klone
 KLONE_CONF_ARGS += --cross_compile
 export KLONE = $(KLONE_TOOL)
 KLONE_IMPORT_ARGS ?= \
-    $(shell grep -q HAVE_LIBZ $(KLONE_SRC_HOST)/Makefile.conf && echo '-z')
+    $(shell grep -q HAVE_LIBZ $(KLONE_SRC_HOST)/Makefile.conf &&  \
+            grep -q HAVE_LIBZ $(KLONE_SRC_TARGET)/Makefile.conf && \
+            echo '-z')
 else
 KLONE_TOOL ?= $(KLONE_SRC_TARGET)/src/tools/klone/klone
 KLONE_IMPORT_ARGS ?= \
