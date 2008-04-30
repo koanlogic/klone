@@ -1,6 +1,10 @@
-$Id: ChangeLog,v 1.57 2008/04/21 17:04:18 tat Exp $
+$Id: ChangeLog,v 1.58 2008/04/30 13:32:16 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
+
+KLone 2.1.x:
+	- default error page is not printed out if the .kl1 page runs correctly
+	  (so the user can set his own error status code from .kl1 pages)
 
 KLone 2.1.0:
 	- io_ssl_create client mode support added
