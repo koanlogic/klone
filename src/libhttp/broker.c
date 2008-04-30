@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: broker.c,v 1.19 2007/11/09 01:30:45 tat Exp $
+ * $Id: broker.c,v 1.20 2008/04/30 13:00:00 tat Exp $
  */
 
 #include <u/libu.h>
@@ -70,7 +70,9 @@ int broker_serve(broker_t *b, http_t *h, request_t *rq, response_t *rs)
                 dbg_err_if(response_print_header(rs));
             } else {
                 dbg_err_if(b->sup_list[i]->serve(rq, rs));
-                if(response_get_status(rs) >= 400)
+
+                /* if the user explicitly set the status from a kl1 return 0 */
+                if(response_get_status(rs) >= 400 && b->sup_list[i] != &sup_emb)
                     return response_get_status(rs);
             }
 
