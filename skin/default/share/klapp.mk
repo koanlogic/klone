@@ -101,10 +101,14 @@ $(WEBAPP_DIR):
 	cp -r $(KLONE_DIR)/webapp $@
 
 $(KLONE_TGZ):
-	if [ -f "$(KLONE_CACHE_DIR)/$(KLONE_TGZ)" ]; then \
+	@if [ -f "$(KLONE_CACHE_DIR)/$(KLONE_TGZ)" ]; then \
 	    cp "$(KLONE_CACHE_DIR)/$(KLONE_TGZ)" . ; \
 	else \
-	    wget -c http://koanlogic.com/download/klone/$(KLONE_TGZ) ; \
+	    wget -c http://koanlogic.com/download/klone/$(KLONE_TGZ) && \
+        if [ -n "$(KLONE_CACHE_DIR)" ]; then \
+            mkdir -p "$(KLONE_CACHE_DIR)" ; \
+	        cp $(KLONE_TGZ) "$(KLONE_CACHE_DIR)" ; \
+        fi; \
 	fi
 
 help:
