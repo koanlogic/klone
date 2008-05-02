@@ -101,7 +101,11 @@ $(WEBAPP_DIR):
 	cp -r $(KLONE_DIR)/webapp $@
 
 $(KLONE_TGZ):
-	wget -c http://koanlogic.com/download/klone/$(KLONE_TGZ)
+	if [ -f "$(KLONE_CACHE_DIR)/$(KLONE_TGZ)" ]; then \
+	    cp "$(KLONE_CACHE_DIR)/$(KLONE_TGZ)" . ; \
+	else \
+	    wget -c http://koanlogic.com/download/klone/$(KLONE_TGZ) ; \
+	fi
 
 help:
 	@echo "List of valid targets:"
