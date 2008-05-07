@@ -4,15 +4,11 @@ QUICKSTART
 NOTE: KLone needs GNU make in order to be built, which is not the default 'make'
       on most *BSD systems (usually you will find it as 'gmake' or 'gnumake').
 
-1) Setup compilation environment:
-
-    $ ${GNUMAKE} toolchain
-
-2) Configure and build KLone:
+1) Configure and build KLone:
 
     $ ./configure && ${GNUMAKE}
 
-3) Import the example web-application
+2) Import the example web-application
 
     [ on Windows edit doc/example-site/etc/kloned.conf and remove syslog 
       logging paragraph ]
@@ -23,14 +19,14 @@ NOTE: KLone needs GNU make in order to be built, which is not the default 'make'
     $ su
     # ${GNUMAKE} install
 
-4) Launch the KLone executable:
+3) Launch the KLone executable:
 
     [ on Windows register the service with "kloned -i" and start it using
       the Services console ]
 
     $ kloned
 
-5) Start your web browser:
+4) Start your web browser:
 
     [ start your web browser and go to http://localhost:8080/ ]
 
