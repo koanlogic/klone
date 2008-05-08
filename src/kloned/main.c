@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.26 2007/10/30 18:35:58 tat Exp $
+ * $Id: main.c,v 1.27 2008/05/08 17:19:27 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -29,7 +29,49 @@
 
 extern context_t* ctx;
 
-static char *io_gets_cb(void *arg, char *buf, size_t size)
+/* embfs load config driver */
+static int drv_io_open(const char *uri, void **parg);
+static int drv_io_close(void *arg);
+static char *drv_io_gets(void *arg, char *buf, size_t size);
+
+static u_config_driver_t drv_embfs = { 
+    drv_io_open, drv_io_close, drv_io_gets, NULL 
+};
+
+static int drv_io_open(const char *uri, void **parg)
+{
+    io_t *io = NULL;
+
+    dbg_err_if(uri == NULL);
+    dbg_err_if(strlen(uri) == 0);
+    dbg_err_if(parg == NULL);
+
+    warn_err_ifm(emb_open(uri, &io), 
+            "unable to open embedded resource: %s", uri);
+
+    *parg = io;
+
+    return 0;
+err: 
+    if(io)
+        io_free(io);
+    return ~0;
+}
+
+static int drv_io_close(void *arg)
+{
+    io_t *io = (io_t*) arg;
+
+    dbg_err_if(io == NULL);
+
+    io_free(io);
+
+    return 0;
+err: 
+    return ~0;
+}
+
+static char *drv_io_gets(void *arg, char *buf, size_t size)
 {
     io_t *io = (io_t*)arg;
 
@@ -46,54 +88,27 @@ err:
 int app_init(void)
 {
     io_t *io = NULL;
-    int cfg_found = 0;
 
     /* create a hook obj */
     dbg_err_if(hook_create(&ctx->hook));
 
     /* init embedded resources */
     emb_init();
-    
-    /* create a config obj */
-    dbg_err_if(u_config_create(&ctx->config));
 
     /* if -f is provided load the external config file */
     if(ctx->ext_config)
     {
         info("loading external config file: %s", ctx->ext_config);
 
-        con_err_ifm(u_file_open(ctx->ext_config, O_RDONLY, &io),
-            "unable to access configuration file: %s", ctx->ext_config);
-
-        /* if there's the embconfig then overwrite otherwise laod as-is 
-         * (multiple keys will not get overwritten eg. dir_alias) */
-        con_err_ifm(u_config_load_from(ctx->config, io_gets_cb, io, 0),
-            "configuration file load error");
-
-        cfg_found = 1;
-
-        io_free(io);
-        io = NULL;
+        con_err_ifm(u_config_load_from_file(ctx->ext_config, &ctx->config),
+                    "unable to load the configuration file: %s", 
+                    ctx->ext_config);
     } else {
-        /* if -f is not used try to load the embfs config file */
-
-        /* get the io associated to the embedded configuration file (if any) */
-        if(emb_open("/etc/kloned.conf", &io))
-            warn("embedded /etc/kloned.conf not found");
-
-        /* load the embedded config */
-        if(io)
-        {
-            con_err_ifm(u_config_load_from(ctx->config, io_gets_cb, io, 0),
-                "embfs configuration file load error");
-            cfg_found = 1;
-            io_free(io);
-            io = NULL;
-        }
+        /* if -f is not used load the default embfs config file */
+        con_err_ifm(u_config_load_from_drv("/etc/kloned.conf", &drv_embfs, 0,
+                    &ctx->config), 
+                    "embfs configuration file load error");
     }
-
-    con_err_ifm(cfg_found == 0, 
-        "missing config file (use -f file or embed /etc/kloned.conf)");
 
     if(ctx->debug)
         u_config_print(ctx->config, 0);
