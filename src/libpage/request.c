@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.55 2008/04/25 19:27:55 tat Exp $
+ * $Id: request.c,v 1.56 2008/05/15 17:29:07 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -807,51 +807,16 @@ err:
     return ~0;
 }
 
-/* parse the query string from 'offset' and all variables to rq->args; if 'vs'
-   is set also add all vars into it */
-static int request_parse_query_args_from(request_t *rq, int offset, 
-        vars_t *vs)
-{
-    char *pp, *tok, *src, *query = NULL;
-    var_t *v;
-
-    dbg_err_if (rq == NULL);
-
-    if(!rq->query)
-        return 0; /* no args */
-
-    /* dup to tokenize it */
-    query = u_strdup(rq->query + offset);
-    dbg_err_if(query == NULL);
-
-    /* foreach name=value pair... */
-    for(src = query; (tok = strtok_r(src, "&", &pp)) != NULL; src = NULL)
-    {
-        /* create a new var_t obj and push it into the args vars-list */
-        dbg_if(vars_add_urlvar(rq->args, tok, &v));
-
-        /* add the ptr also into the given vars list */
-        if(vs)
-            dbg_err_if(vars_add(vs, v));
-    }
-
-    U_FREE(query);
-
-    return 0;
-err:
-    U_FREE(query);
-    return ~0;
-}
-
 static int request_cb_add_post_var(void *arg, const char *tok)
 {
     request_t *rq = (request_t*)arg;
-    var_t *v;
+    var_t *v = NULL;
 
     dbg_err_if(rq == NULL);
+    dbg_err_if(tok == NULL);
 
     /* create a new var_t obj and push it into the args vars-list */
-    dbg_if(vars_add_urlvar(rq->args, tok, &v));
+    dbg_err_if(vars_add_urlvar(rq->args, tok, &v));
 
     /* add the ptr also to the POST vars list */
     dbg_err_if(vars_add(rq->args_post, v));
@@ -864,12 +829,13 @@ err:
 static int request_cb_add_get_var(void *arg, const char *tok)
 {
     request_t *rq = (request_t*)arg;
-    var_t *v;
+    var_t *v = NULL;
 
     dbg_err_if(rq == NULL);
+    dbg_err_if(tok == NULL);
 
     /* create a new var_t obj and push it into the args vars-list */
-    dbg_if(vars_add_urlvar(rq->args, tok, &v));
+    dbg_err_if(vars_add_urlvar(rq->args, tok, &v));
 
     /* add the ptr also to the GET vars list */
     dbg_err_if(vars_add(rq->args_get, v));
@@ -1190,7 +1156,7 @@ static ssize_t read_until(io_t *io, const char *stop_at, char *obuf,
         shift[i] = sa_len;
 
     for(i = 0; i < sa_len; ++i)
-        shift[ stop_at[i] ] = sa_len - i - 1;
+        shift[ (int)stop_at[i] ] = sa_len - i - 1;
 
     *found = 0;
 

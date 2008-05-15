@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.30 2008/04/25 19:44:48 tat Exp $
+ * $Id: vars.c,v 1.31 2008/05/15 17:29:07 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -209,7 +209,7 @@ size_t vars_countn(vars_t *vs, const char *name)
  *
  * \return \c 0 if successful, non-zero on error
  */
-int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **v)
+int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **pv)
 {
     enum { NAMESZ = 256, VALSZ = 4096 };
     char sname[NAMESZ], svalue[VALSZ];
@@ -252,8 +252,8 @@ int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **v)
     /* push into the var list */
     dbg_err_if(vars_add(vs, var));
 
-    if(v)
-        *v = var;
+    if(pv)
+        *pv = var;
 
     /* if the buffer has been alloc'd on the heap then free it */
     if(value && value != svalue)
