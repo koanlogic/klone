@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.56 2008/05/15 17:29:07 tat Exp $
+ * $Id: request.c,v 1.57 2008/05/16 15:04:47 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -807,42 +807,41 @@ err:
     return ~0;
 }
 
-static int request_cb_add_post_var(void *arg, const char *tok)
+static int request_cb_add_var(vars_t *args, vars_t *also_to, const char *tok)
 {
-    request_t *rq = (request_t*)arg;
     var_t *v = NULL;
 
-    dbg_err_if(rq == NULL);
+    dbg_err_if(args == NULL);
+    dbg_err_if(also_to == NULL);
     dbg_err_if(tok == NULL);
 
-    /* create a new var_t obj and push it into the args vars-list */
-    dbg_err_if(vars_add_urlvar(rq->args, tok, &v));
+    /* may fail with bad var encoding (url?a=b&v); bad vars are ignored */
+    dbg_if(vars_add_urlvar(args, tok, &v));
 
-    /* add the ptr also to the POST vars list */
-    dbg_err_if(vars_add(rq->args_post, v));
+    if(v)
+    {
+        /* add the ptr also to the other vars list */
+        dbg_err_if(vars_add(also_to, v));
+    }
 
     return 0;
 err:
     return ~0;
 }
 
+
+static int request_cb_add_post_var(void *arg, const char *tok)
+{
+    request_t *rq = (request_t*)arg;
+
+    return request_cb_add_var(rq->args, rq->args_post, tok);
+}
+
 static int request_cb_add_get_var(void *arg, const char *tok)
 {
     request_t *rq = (request_t*)arg;
-    var_t *v = NULL;
 
-    dbg_err_if(rq == NULL);
-    dbg_err_if(tok == NULL);
-
-    /* create a new var_t obj and push it into the args vars-list */
-    dbg_err_if(vars_add_urlvar(rq->args, tok, &v));
-
-    /* add the ptr also to the GET vars list */
-    dbg_err_if(vars_add(rq->args_get, v));
-
-    return 0;
-err:
-    return ~0;
+    return request_cb_add_var(rq->args, rq->args_get, tok);
 }
 
 static int foreach_query_var(const char *urlquery, int offset, 

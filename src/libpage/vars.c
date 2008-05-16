@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: vars.c,v 1.31 2008/05/15 17:29:07 tat Exp $
+ * $Id: vars.c,v 1.32 2008/05/16 15:04:47 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -216,6 +216,7 @@ int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **pv)
     char *val, *str = NULL, *name = sname, *value = svalue;
     var_t *var = NULL;
     ssize_t vsz;
+    size_t val_len;
 
     dbg_return_if (vs == NULL, ~0);
     dbg_return_if (cstr == NULL, ~0);
@@ -231,19 +232,29 @@ int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **pv)
     /* zero-term the name part and set the value pointer */
     *val++ = 0; 
 
+    val_len = strlen(val);
+
     /* if the buffer on the stack is too small alloc a bigger one */
     if(strlen(str) >= NAMESZ)
         dbg_err_if((name = u_zalloc(1 + strlen(str))) == NULL);
 
     /* if the buffer on the stack is too small alloc a bigger one */
-    if(strlen(val) >= VALSZ)
-        dbg_err_if((value = u_zalloc(1 + strlen(val))) == NULL);
+    if(val_len >= VALSZ)
+        dbg_err_if((value = u_zalloc(1 + val_len)) == NULL);
 
     /* url-decode var name */
     dbg_err_if(u_urlncpy(name, str, strlen(str), URLCPY_DECODE) <= 0);
 
     /* url-decode var value */
-    dbg_err_if((vsz = u_urlncpy(value, val, strlen(val), URLCPY_DECODE)) <= 0);
+    if(val_len)
+    {
+        dbg_err_if((
+            vsz = u_urlncpy(value, val, val_len, URLCPY_DECODE)) <= 0);
+    } else {
+        /* an empty value */
+        value[0] = 0;
+        vsz = 1;
+    }
 
     /* dbg("name: [%s]  value: [%s]", name, value); */
 
@@ -270,8 +281,6 @@ err:
         U_FREE(value);
     if(name && name != sname)
         U_FREE(name);
-    if(cstr)
-        dbg("%s", cstr);
     U_FREE(str);
     if(var)
         var_free(var);

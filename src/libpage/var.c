@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: var.c,v 1.19 2007/10/26 11:21:51 tho Exp $
+ * $Id: var.c,v 1.20 2008/05/16 15:04:47 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -94,7 +94,7 @@ int var_create(const char* name, const char *value, var_t**pv)
     dbg_return_if (name == NULL, ~0);
     dbg_return_if (value == NULL, ~0);
 
-    return var_bin_create(name, value, strlen(value), pv);
+    return var_bin_create(name, value, 1 + strlen(value), pv);
 }
 
 /*
@@ -240,7 +240,7 @@ int var_set_value(var_t *v, const char *value)
     dbg_return_if (value == NULL, ~0);
 
     /* copy the string and the trailing '\0' */
-    return var_set_bin_value(v, value, strlen(value) + 1);
+    return var_set_bin_value(v, value, 1 + strlen(value));
 }
 
 /**
