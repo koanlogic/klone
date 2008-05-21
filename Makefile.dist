@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.31 2008/04/28 15:32:19 tat Exp $
+# $Id: Makefile.dist,v 1.32 2008/05/21 16:50:38 tat Exp $
 
 include common.mk
 
@@ -63,11 +63,11 @@ DISTREMAP += pkg/Makefile.doxy.doc doc/html/Makefile
 DISTFILES += $(wildcard doc/man/*.[158]) doc/man/Makefile
 
 # doc/var stuff
-DISTFILES += $(filter-out CVS/ CVS,$(wildcard doc/var/*))
+DISTFILES += $(wildcard doc/var/*)
 
 # doc/example-site stuff
-DISTFILES += $(filter-out CVS/ CVS,$(wildcard doc/example-site/etc/*))
-DISTFILES += $(filter-out CVS/ CVS,$(wildcard doc/example-site/www/*))
+DISTFILES += $(wildcard doc/example-site/etc/*)
+DISTFILES += $(wildcard doc/example-site/www/*)
 
 # hook for LibU compilation
 DISTFILES += build/libu/Makefile
@@ -154,6 +154,9 @@ DISTFILES += makl/test/autoprog/Makefile
 DISTFILES += $(wildcard makl/test/lib/*.c*) makl/test/lib/Makefile
 DISTFILES += $(wildcard makl/test/include/*.h) makl/test/include/Makefile
 DISTFILES += $(wildcard makl/test/man/*.[13]) makl/test/man/Makefile
+
+# filter-out CVS dirs 
+DISTFILES := $(filter-out %/CVS %/CVS/,$(DISTFILES))
 
 dist-hook-pre:
 	@echo "Creating KLone HTML documentation..." && cd doc/doxy && make

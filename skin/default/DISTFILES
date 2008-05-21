@@ -64,6 +64,7 @@ build/makl/mk/party.mk
 build/makl/mk/prog.mk
 build/makl/mk/script.mk
 build/makl/mk/subdir.mk
+build/makl/mk/subdir-hooks.mk
 build/makl/mk/subst.mk
 build/makl/mk/target-options.mk
 build/makl/mk/xeno-fetch.mk
