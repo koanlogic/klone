@@ -202,7 +202,7 @@ klone-make: $(KLONE_WEBAPP)
 		    ( $(MAKE) import || (rm -f .wc .wc.old; exit 1) ) \
 		fi
 	@$(KLONE_MAKE)
-	@if [ ! -h kloned* ]; then ln -fs $(KLONE_SRC)/src/kloned/kloned*; fi
+	@ln -fs $(KLONE_SRC)/src/kloned/kloned*
 
 subdirs: $(SUBDIR)
 
