@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.57 2008/05/16 15:04:47 tat Exp $
+ * $Id: request.c,v 1.58 2008/05/22 22:49:22 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -535,7 +535,6 @@ void request_clear_uri(request_t *rq)
     U_FREE(rq->resolved_filename);
     U_FREE(rq->content_type);
     U_FREE(rq->content_encoding);
-    U_FREE(rq->cli_rq);
 }
 
 /*
@@ -1778,6 +1777,9 @@ int request_free(request_t *rq)
     {
         /* free internal stuff */
         request_clear_uri(rq);
+
+        /* verbatim client request line */
+        U_FREE(rq->cli_rq);
 
         if(rq->header)
             header_free(rq->header);

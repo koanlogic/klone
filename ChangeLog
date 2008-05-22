@@ -1,8 +1,9 @@
-$Id: ChangeLog,v 1.61 2008/05/21 16:50:38 tat Exp $
+$Id: ChangeLog,v 1.62 2008/05/22 22:49:21 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.1.x:
+	- bug fix: client request line wasn't properly logged
 	- makl and libu resync
 	- vars_t now support empty string ("") vars
 	- KLONE_CACHE_DIR top-level variable added to cache downloaded files
