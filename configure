@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.88 2008/04/28 11:06:19 tat Exp $
+# $Id: configure,v 1.89 2008/05/28 16:07:44 tho Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -134,7 +134,7 @@ makl_checktype          0   "pid_t"         "<sys/types.h>"
 makl_checkstructelem    0   "struct tm"     "tm_gmtoff"  "<time.h>" 
 
 # working fork()?
-makl_checkfork
+makl_checkfork          0
 
 makl_checkfunc          0   "syslog"
 makl_checkfunc          0   "mkstemp"
