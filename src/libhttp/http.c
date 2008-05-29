@@ -5,13 +5,19 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.61 2008/04/25 18:59:08 tat Exp $
+ * $Id: http.c,v 1.62 2008/05/29 15:44:36 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <sys/types.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifdef HAVE_NETINET_IN
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_SYS_SOCKET
+#include <sys/socket.h>
+#endif
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -466,7 +472,7 @@ static int http_serve(http_t *h, int fd)
     addr_t *addr;
     vhost_t *vhost;
     struct sockaddr sa;
-    size_t sasz;
+    socklen_t sasz;
     char *uri, nuri[URI_MAX];
 
     u_unused_args(al);

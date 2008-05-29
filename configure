@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.89 2008/05/28 16:07:44 tho Exp $
+# $Id: configure,v 1.90 2008/05/29 15:44:36 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -27,7 +27,6 @@ makl_args_init "$@"
 # Custom arguments ...
 makl_args_def   "enable_debug"      "" ""   "enables debugging of KLone app"
 makl_args_def   "enable_libu_debug" "" ""   "enables debugging of LibU"
-makl_args_def   "disable_libu_mini" "" ""   "enables minimisation of LibU"
 makl_args_def   "enable_profile"    "" ""   "enables profiling"
 makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
 makl_args_def   "enable_fs"     "" ""   "--enable_sup_fs alias"
@@ -43,7 +42,6 @@ makl_args_def   "enable_hooks"  "" ""   "call user-provided hooks_setup() to reg
 __makl_enable_debug ()      { makl_set_var_mk       "KLONE_DEBUG" ;
                               makl_append_var_mk    "CFLAGS" "-g -DDEBUG" ; }
 __makl_enable_libu_debug () { makl_set_var_mk       "LIBU_DEBUG" ;          }
-__makl_disable_libu_mini () { makl_unset_var_mk     "LIBU_MINI" ;           }
 __makl_enable_profile ()    { makl_append_var_mk    "CFLAGS" "-pg -a" ;     }
 __makl_enable_sup_fs ()     { makl_set_var          "ENABLE_SUP_FS" ;       }
 __makl_enable_fs ()         { __makl_enable_sup_fs ;                        }
@@ -106,9 +104,6 @@ esac
 makl_append_var_mk "CFLAGS"   "-I`pwd` -DHAVE_CONF_H"
 
 
-# pick up just what we need from LibU (unless --disable_libu_mini is set)
-makl_set_var_mk "LIBU_MINI" "1"
-
 # these enable .klx pages
 makl_set_var_mk "USE_CXX"  "1"
 makl_append_var_mk "CXXFLAGS" "\${CFLAGS}"
@@ -120,8 +115,13 @@ makl_checkheader        0   "unistd"        "<unistd.h>"
 makl_checkheader        0   "sys_select"    "<sys/select.h>"
 makl_checkheader        0   "sys_wait"      "<sys/wait.h>"
 makl_checkheader        0   "sys_dir"       "<sys/dir.h>"
-
+makl_checkheader        0   "sys_socket"    "<sys/socket.h>"
+makl_checkheader        0   "netinet_in"    "<netinet/in.h>"
+makl_checkheader        0   "netinet_tcp"   "<netinet/tcp.h>" "<sys/types.h>"
+ 
 makl_checksymbol        0   "SA_RESTART"    "<signal.h>"
+makl_checksymbol        0   "TCP_NODELAY"   "<sys/types.h>" \
+                                             "<netinet/tcp.h>"
 
 # Library dependencies
 makl_optional           1   "lib"   "openssl"       ""  "-lssl -lcrypto"

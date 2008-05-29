@@ -5,13 +5,17 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.63 2008/05/28 17:18:25 tho Exp $
+ * $Id: server.c,v 1.64 2008/05/29 15:44:36 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <sys/types.h>
+#ifdef HAVE_SYS_SOCKET
 #include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_TCP
 #include <netinet/tcp.h>
+#endif
 #include <sys/stat.h>
 #ifdef HAVE_SYS_WAIT
 #include <sys/wait.h>
@@ -779,9 +783,11 @@ static int server_set_socket_opts(server_t *s, int sock)
 
     dbg_err_if (sock < 0);
 
+#ifdef HAVE_TCP_NODELAY
     /* disable Nagle algorithm */
     warn_err_sif(setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, 
         (void*) &on, sizeof(int)) < 0);
+#endif
 
     return 0;
 err:

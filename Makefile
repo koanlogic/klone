@@ -5,7 +5,7 @@ KLONE_SRC_DIR := $(shell pwd)
 export MAKL_DIR := ${KLONE_SRC_DIR}/makl
 MAKEFLAGS := -I ${MAKL_DIR}/mk
 
-SUBDIR = build/libu webapp site src klone contrib doc 
+SUBDIR = build/libu webapp site src klone doc 
 
 ifeq ($(wildcard Makefile.conf),)
 help:

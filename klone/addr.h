@@ -5,14 +5,17 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: addr.h,v 1.12 2008/05/28 16:38:30 tho Exp $
+ * $Id: addr.h,v 1.13 2008/05/29 15:44:36 tat Exp $
  */
 
 #ifndef _KLONE_ADDR_H_
 #define _KLONE_ADDR_H_
 
 #include <sys/types.h>
+
+#ifdef HAVE_NETINET_IN
 #include <netinet/in.h>
+#endif
 
 #include <u/libu.h>
 
