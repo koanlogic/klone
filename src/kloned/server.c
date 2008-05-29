@@ -5,17 +5,11 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.64 2008/05/29 15:44:36 tat Exp $
+ * $Id: server.c,v 1.65 2008/05/29 16:13:55 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <sys/types.h>
-#ifdef HAVE_SYS_SOCKET
-#include <sys/socket.h>
-#endif
-#ifdef HAVE_NETINET_TCP
-#include <netinet/tcp.h>
-#endif
 #include <sys/stat.h>
 #ifdef HAVE_SYS_WAIT
 #include <sys/wait.h>

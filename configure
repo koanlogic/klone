@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.90 2008/05/29 15:44:36 tat Exp $
+# $Id: configure,v 1.91 2008/05/29 16:13:55 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -115,9 +115,8 @@ makl_checkheader        0   "unistd"        "<unistd.h>"
 makl_checkheader        0   "sys_select"    "<sys/select.h>"
 makl_checkheader        0   "sys_wait"      "<sys/wait.h>"
 makl_checkheader        0   "sys_dir"       "<sys/dir.h>"
+
 makl_checkheader        0   "sys_socket"    "<sys/socket.h>"
-makl_checkheader        0   "netinet_in"    "<netinet/in.h>"
-makl_checkheader        0   "netinet_tcp"   "<netinet/tcp.h>" "<sys/types.h>"
  
 makl_checksymbol        0   "SA_RESTART"    "<signal.h>"
 makl_checksymbol        0   "TCP_NODELAY"   "<sys/types.h>" \

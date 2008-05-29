@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: addr.c,v 1.17 2008/05/29 15:44:36 tat Exp $
+ * $Id: addr.c,v 1.18 2008/05/29 16:13:55 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -13,9 +13,6 @@
 #ifdef HAVE_STDINT
 #include <stdint.h>
 #endif /* HAVE_STDINT */
-#ifdef HAVE_SYS_SOCKET
-#include <sys/socket.h>
-#endif
 #include <klone/addr.h>
 #include <klone/server.h>
 #include <u/libu.h>

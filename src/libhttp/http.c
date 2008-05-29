@@ -5,19 +5,13 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.62 2008/05/29 15:44:36 tat Exp $
+ * $Id: http.c,v 1.63 2008/05/29 16:13:55 tat Exp $
  */
 
 #include "klone_conf.h"
 #include <sys/types.h>
 #include <stdlib.h>
 #include <unistd.h>
-#ifdef HAVE_NETINET_IN
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_SYS_SOCKET
-#include <sys/socket.h>
-#endif
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>
