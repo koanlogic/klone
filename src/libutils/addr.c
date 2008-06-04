@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: addr.c,v 1.18 2008/05/29 16:13:55 tat Exp $
+ * $Id: addr.c,v 1.19 2008/06/04 17:48:02 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -17,13 +17,13 @@
 #include <klone/server.h>
 #include <u/libu.h>
 
-int addr_free(addr_t *a)
+int addr_free(kaddr_t *a)
 {
     U_FREE(a);
     return 0;
 }
 
-static int addr_ipv4_create(u_config_t *c, addr_t *addr)
+static int addr_ipv4_create(u_config_t *c, kaddr_t *addr)
 {
     u_config_t *subkey;
     int portn;
@@ -75,7 +75,7 @@ static int addr_is_ipv4(const char *ip)
     return 0;
 }
 
-int addr_set_ipv4_port(addr_t *addr, int port)
+int addr_set_ipv4_port(kaddr_t *addr, int port)
 {
     dbg_return_if (addr == NULL, ~0);
     dbg_return_if (port == 0, ~0);
@@ -85,7 +85,7 @@ int addr_set_ipv4_port(addr_t *addr, int port)
     return 0;
 }
 
-int addr_set_ipv4_ip(addr_t *addr, const char *ip)
+int addr_set_ipv4_ip(kaddr_t *addr, const char *ip)
 {
     dbg_return_if (addr == NULL, ~0);
     dbg_return_if (ip == NULL, ~0);
@@ -100,7 +100,7 @@ int addr_set_ipv4_ip(addr_t *addr, const char *ip)
     return 0;
 }
 
-int addr_set(addr_t *addr, const char *ip, int port)
+int addr_set(kaddr_t *addr, const char *ip, int port)
 {
     dbg_return_if (addr == NULL, ~0);
     dbg_return_if (ip == NULL, ~0);
@@ -122,7 +122,7 @@ int addr_set(addr_t *addr, const char *ip, int port)
     return 0;
 }
 
-int addr_set_from_sa(addr_t *addr, struct sockaddr *sa, size_t sz)
+int addr_set_from_sa(kaddr_t *addr, struct sockaddr *sa, size_t sz)
 {
     dbg_return_if (addr == NULL, ~0);
     dbg_return_if (sa == NULL, ~0);
@@ -153,7 +153,7 @@ int addr_set_from_sa(addr_t *addr, struct sockaddr *sa, size_t sz)
     return 0;
 }
 
-int addr_set_from_config(addr_t *addr, u_config_t *c)
+int addr_set_from_config(kaddr_t *addr, u_config_t *c)
 {
     u_config_t *subkey;
     const char *type;
@@ -178,13 +178,13 @@ err:
     return ~0;
 }
 
-int addr_create(addr_t **pa)
+int addr_create(kaddr_t **pa)
 {
-    addr_t *addr = NULL;
+    kaddr_t *addr = NULL;
 
     dbg_return_if (pa == NULL, ~0);
     
-    addr = u_zalloc(sizeof(addr_t));
+    addr = u_zalloc(sizeof(kaddr_t));
     dbg_err_if(addr == NULL);
 
     /* set default ipv4 values */

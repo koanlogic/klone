@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.65 2008/05/29 16:13:55 tat Exp $
+ * $Id: server.c,v 1.66 2008/06/04 17:48:01 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1064,7 +1064,7 @@ static int server_setup_backend(server_t *s, backend_t *be)
     /* server count */
     s->nbackend++;
 
-    /* parse and create the bind addr_t */
+    /* parse and create the bind kaddr_t */
     warn_err_ifm(u_config_get_subkey(be->config, "addr", &subkey),
         "missing or bad '<servname>.addr' value");
 

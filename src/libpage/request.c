@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.58 2008/05/22 22:49:22 tat Exp $
+ * $Id: request.c,v 1.59 2008/06/04 17:48:02 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -48,7 +48,7 @@ struct request_s
     char *content_encoding;     /* 7bit/8bit/base64/qp, etc                 */
 	size_t content_length;      /* content-length http header field         */
     time_t if_modified_since;   /* time_t IMS header                        */
-    addr_t local_addr, peer_addr; /* local and perr address                 */
+    kaddr_t local_addr, peer_addr; /* local and perr address                 */
     int cgi;                    /* if running in cgi mode                   */
     size_t idle_timeout;        /* max # of secs to wait for the request    */
     size_t post_timeout;        /* max # of secs for reading POSTed data    */
@@ -1813,23 +1813,23 @@ int request_free(request_t *rq)
 }
 
 /* save the local address struct (ip and port) in the request obj */
-int request_set_addr(request_t *rq, addr_t *addr)
+int request_set_addr(request_t *rq, kaddr_t *addr)
 {
     dbg_return_if (rq == NULL, ~0);
     dbg_return_if (addr == NULL, ~0);
 
-    memcpy(&rq->local_addr, addr, sizeof(addr_t));
+    memcpy(&rq->local_addr, addr, sizeof(kaddr_t));
 
     return 0;
 }
 
 /* save the peer address struct (ip and port) in the request obj */
-int request_set_peer_addr(request_t *rq, addr_t *addr)
+int request_set_peer_addr(request_t *rq, kaddr_t *addr)
 {
     dbg_return_if (rq == NULL, ~0);
     dbg_return_if (addr == NULL, ~0);
 
-    memcpy(&rq->peer_addr, addr, sizeof(addr_t));
+    memcpy(&rq->peer_addr, addr, sizeof(kaddr_t));
 
     return 0;
 }
@@ -1842,9 +1842,9 @@ int request_set_peer_addr(request_t *rq, addr_t *addr)
  *
  * \param rq    request object
  *  
- * \return      a pointer to an addr_t type
+ * \return      a pointer to an kaddr_t type
  */
-addr_t* request_get_addr(request_t *rq)
+kaddr_t* request_get_addr(request_t *rq)
 {
     dbg_return_if (rq == NULL, NULL);
 
@@ -1859,9 +1859,9 @@ addr_t* request_get_addr(request_t *rq)
  *
  * \param rq    request object
  *  
- * \return      a pointer to an addr_t type
+ * \return      a pointer to an kaddr_t type
  */
-addr_t* request_get_peer_addr(request_t *rq)
+kaddr_t* request_get_peer_addr(request_t *rq)
 {
     dbg_return_if (rq == NULL, NULL);
 

@@ -39,7 +39,7 @@ int access_log(http_t *h, u_config_t *config, request_t *rq, response_t *rs)
     char buf[U_MAX_LOG_LENGTH];
     u_config_t *sub;
     vhost_t *vhost;
-    addr_t *addr;
+    kaddr_t *addr;
     struct timeval tv;
     struct tm tm;
     time_t now;

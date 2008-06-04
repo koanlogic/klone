@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: backend.h,v 1.16 2006/01/09 12:38:37 tat Exp $
+ * $Id: backend.h,v 1.17 2008/06/04 17:48:01 tat Exp $
  */
 
 #ifndef _KLONE_BACKEND_H_
@@ -34,7 +34,7 @@ struct backend_s
     /* runtime values */
     struct server_s *server;
     u_config_t *config;
-    struct addr_s *addr; 
+    struct kaddr_s *addr; 
     int model;
     int ld;
     void *arg;

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_cgi.c,v 1.10 2008/04/25 18:59:08 tat Exp $
+ * $Id: sup_cgi.c,v 1.11 2008/06/04 17:48:02 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -203,7 +203,7 @@ static int cgi_is_valid_uri(http_t *h, request_t *rq, const char *uri,
         return 0;
 }
 
-static const char *cgi_addr_to_ip(addr_t *addr, char *buf, size_t bufsz)
+static const char *cgi_addr_to_ip(kaddr_t *addr, char *buf, size_t bufsz)
 {
     const char *cstr;
 
@@ -224,7 +224,7 @@ err:
     return NULL;
 }
 
-static int cgi_setenv_addr(cgi_env_t *env, addr_t *addr, 
+static int cgi_setenv_addr(cgi_env_t *env, kaddr_t *addr, 
         const char *label_addr, const char *label_port)
 {
     const char *cstr;
@@ -286,7 +286,7 @@ err:
 
 static int cgi_makeenv(request_t *rq, response_t *rs, cgi_env_t *env)
 {
-    addr_t *addr;
+    kaddr_t *addr;
     header_t *h;
     field_t *field;
     const char *cstr;

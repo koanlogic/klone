@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.h,v 1.19 2008/04/18 17:31:11 tat Exp $
+ * $Id: request.h,v 1.20 2008/06/04 17:48:01 tat Exp $
  */
 
 #ifndef _KLONE_REQUEST_H_
@@ -37,8 +37,8 @@ int request_parse_data(request_t *rq);
 
 io_t* request_io(request_t *rq);
 http_t* request_get_http(request_t *rq);
-addr_t* request_get_addr(request_t *rq);
-addr_t* request_get_peer_addr(request_t *rq);
+kaddr_t* request_get_addr(request_t *rq);
+kaddr_t* request_get_peer_addr(request_t *rq);
 header_t* request_get_header(request_t *rq);
 field_t* request_get_field(request_t *rq, const char *name);
 const char* request_get_field_value(request_t *rq, const char *name);
@@ -66,8 +66,8 @@ int request_set_path_info(request_t *rq, const char *path_info);
 int request_set_query_string(request_t *rq, const char *query);
 int request_set_resolved_filename(request_t *rq, const char *resolved);
 int request_set_resolved_path_info(request_t *rq, const char *resolved);
-int request_set_addr(request_t *rq, addr_t *addr);
-int request_set_peer_addr(request_t *rq, addr_t *addr);
+int request_set_addr(request_t *rq, kaddr_t *addr);
+int request_set_peer_addr(request_t *rq, kaddr_t *addr);
 void request_set_cgi(request_t *rq, int cgi);
 void request_clear_uri(request_t *rq);
 
