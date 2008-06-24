@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.67 2008/06/24 16:22:02 tat Exp $
+ * $Id: server.c,v 1.68 2008/06/24 16:31:17 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -53,7 +53,6 @@ static int server_be_listen(backend_t *be)
     enum { DEFAULT_BACKLOG = 1024 };
     int d = 0, backlog = 0, val = 1;
     u_config_t *subkey;
-    int opts;
 
     dbg_return_if (be == NULL, ~0);
     dbg_return_if (be->addr == NULL, ~0);
@@ -62,13 +61,13 @@ static int server_be_listen(backend_t *be)
     {
         case ADDR_IPV4:
             dbg_err_if((d = socket(AF_INET, SOCK_STREAM, 0)) < 0);
-            opts = SO_REUSEADDR;
-            #ifdef OS_WIN
-            /* just one process can succedd binding to the given port */
-            opts |= SO_EXCLUSIVEADDRUSE;
-            #endif
-            dbg_err_if(setsockopt(d, SOL_SOCKET, opts, (void *)&val, 
+            #ifndef OS_WIN
+            /* on win with this flag more then on process will be allowed to
+               bind to the same port (SO_EXCLUSIVEADDRUSE is for releases 
+               newer then Windows XP */
+            dbg_err_if(setsockopt(d, SOL_SOCKET, SO_REUSEADDR, (void *)&val, 
                 sizeof(int)) < 0);
+            #endif
             dbg_err_if(bind(d, (void*)&be->addr->sa.sin, 
                 sizeof(struct sockaddr_in)));
             break;
