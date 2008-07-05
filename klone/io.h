@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.h,v 1.19 2008/04/21 17:04:18 tat Exp $
+ * $Id: io.h,v 1.20 2008/07/05 16:41:07 tat Exp $
  */
 
 #ifndef _KLONE_IO_H_ 
@@ -14,6 +14,7 @@
 #include "klone_conf.h"
 #include <sys/types.h>
 #include <stdio.h>
+#include <stdarg.h>
 #ifdef HAVE_LIBOPENSSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -75,6 +76,7 @@ ssize_t io_gets(io_t *io, char *buf, size_t size);
 ssize_t io_get_until(io_t *io, char stop_at, char *buf, size_t size);
 ssize_t io_getc(io_t *io, char *c);
 ssize_t io_printf(io_t *io, const char* fmt, ...);
+ssize_t io_vprintf(io_t *io, const char *fmt, va_list ap);
 ssize_t io_putc(io_t *io, char c);
 int io_codec_add_head(io_t *io, codec_t* codec);
 int io_codec_add_tail(io_t *io, codec_t* codec);

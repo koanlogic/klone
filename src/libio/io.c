@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.38 2007/10/26 11:21:51 tho Exp $
+ * $Id: io.c,v 1.39 2008/07/05 16:41:07 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -605,6 +605,53 @@ err:
 
 /**
  * \ingroup basic
+ * \brief  Write a string to \p io using printf-style va_list
+ *
+ * Vprintf-like function used to easily write strings to \p io using 
+ * well-known printf format strings. See printf(3) manual for format 
+ * description.
+ *
+ * \param io    the \c io_t object to write to
+ * \param fmt   printf-style format string
+ * \param ap    variable list arguments
+ *
+ * \return the number of chars written on success, \c -1 on error
+ */
+ssize_t io_vprintf(io_t *io, const char *fmt, va_list ap)
+{
+    enum { BUFSZ = 2048 };
+    char *bbuf = NULL; 
+    int sz;
+    char buf[BUFSZ];
+
+    dbg_err_if (io == NULL);
+    dbg_err_if (fmt == NULL);
+
+    /* build the message to print */
+    sz = vsnprintf(buf, BUFSZ, fmt, ap);
+
+    if(sz >= BUFSZ)
+    {   /* stack buffer too small, alloc a bigger one on the heap */
+
+        bbuf = (char*)u_malloc(++sz);
+        dbg_err_if(bbuf == NULL);
+
+        if((sz = vsnprintf(bbuf, sz, fmt, ap)) > 0)
+            dbg_err_if(io_write(io, bbuf, sz) < 0);
+
+        U_FREE(bbuf);
+
+    } else if(sz > 0) {
+        dbg_err_if(io_write(io, buf, sz) < 0);
+    }
+
+    return 0;
+err:
+    return -1;
+}
+
+/**
+ * \ingroup basic
  * \brief  Write a string to \p io using printf-style format strings
  *
  * Printf-like function used to easily write strings to \p io using 
@@ -619,10 +666,8 @@ err:
  */
 ssize_t io_printf(io_t *io, const char *fmt, ...)
 {
-    enum { BUFSZ = 2048 };
-    char buf[BUFSZ], *bbuf = NULL; 
-    va_list ap, ap2;
-    int sz;
+    va_list ap;
+    ssize_t ret;
 
     dbg_err_if (io == NULL);
     dbg_err_if (fmt == NULL);
@@ -630,30 +675,11 @@ ssize_t io_printf(io_t *io, const char *fmt, ...)
     /* build the message to print */
     va_start(ap, fmt); /* init variable list arguments */
 
-    sz = vsnprintf(buf, BUFSZ, fmt, ap);
+    ret = io_vprintf(io, fmt, ap);
 
     va_end(ap);
 
-    if(sz >= BUFSZ)
-    { /* stack buffer too small, alloc a bigger one on the heap */
-        va_start(ap2, fmt); /* don't know if ap can be reused... */
-
-        bbuf = (char*)u_malloc(++sz);
-        dbg_err_if(bbuf == NULL);
-
-        if((sz = vsnprintf(bbuf, sz, fmt, ap2)) > 0)
-        {
-            dbg_err_if(io_write(io, bbuf, sz) < 0);
-        }
-
-        va_end(ap2);
-
-        U_FREE(bbuf);
-    } else if(sz > 0) {
-        dbg_err_if(io_write(io, buf, sz) < 0);
-    }
-
-    return 0;
+    return ret;
 err:
     return -1;
 }
