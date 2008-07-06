@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.39 2008/07/05 16:41:07 tat Exp $
+ * $Id: io.c,v 1.40 2008/07/06 11:45:18 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -623,6 +623,10 @@ ssize_t io_vprintf(io_t *io, const char *fmt, va_list ap)
     char *bbuf = NULL; 
     int sz;
     char buf[BUFSZ];
+    va_list apcpy;
+
+    /* vnsprintf may modify the va_list so make a copy before using it */
+    va_copy(apcpy, ap);
 
     dbg_err_if (io == NULL);
     dbg_err_if (fmt == NULL);
@@ -636,7 +640,8 @@ ssize_t io_vprintf(io_t *io, const char *fmt, va_list ap)
         bbuf = (char*)u_malloc(++sz);
         dbg_err_if(bbuf == NULL);
 
-        if((sz = vsnprintf(bbuf, sz, fmt, ap)) > 0)
+        /* use apcpy, ap has been already "consumed" by va_arg() calls */
+        if((sz = vsnprintf(bbuf, sz, fmt, apcpy)) > 0)
             dbg_err_if(io_write(io, bbuf, sz) < 0);
 
         U_FREE(bbuf);
@@ -645,8 +650,11 @@ ssize_t io_vprintf(io_t *io, const char *fmt, va_list ap)
         dbg_err_if(io_write(io, buf, sz) < 0);
     }
 
+    va_end(apcpy);
+
     return 0;
 err:
+    va_end(apcpy);
     return -1;
 }
 
