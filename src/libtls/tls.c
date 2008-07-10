@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.c,v 1.20 2008/03/26 09:02:24 tho Exp $
+ * $Id: tls.c,v 1.21 2008/07/10 08:56:13 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -27,7 +27,6 @@ static int tls_sid = 1;
 static int tls_inited = 0; 
 
 /* private methods */
-static int tls_init (void);
 static int tls_context (SSL_CTX **);
 static int tls_load_x509_creds (SSL_CTX *, tls_ctx_args_t *);
 static int tls_gendh_params (SSL_CTX *, const char *);
@@ -183,7 +182,7 @@ static int tls_context (SSL_CTX **pc)
 
     dbg_return_if (pc == NULL, ~0);
 
-    c = SSL_CTX_new(TLSv1_server_method());
+    c = SSL_CTX_new(SSLv23_server_method());
     dbg_err_ifm (c == NULL, "error creating SSL CTX: %s", tls_get_error());
 
     *pc = c;
@@ -279,7 +278,7 @@ static int cb_vfy (int ok, X509_STORE_CTX *store_ctx)
     return 0;
 }
 
-static int tls_init (void)
+int tls_init (void)
 {
     if (tls_inited)
         return 0;

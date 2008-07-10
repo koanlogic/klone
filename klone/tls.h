@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: tls.h,v 1.10 2007/08/08 22:42:51 tho Exp $
+ * $Id: tls.h,v 1.11 2008/07/10 08:56:13 tat Exp $
  */
 
 #ifndef _KLONE_TLS_H_
@@ -20,6 +20,7 @@
 extern "C" {
 #endif
 
+int tls_init (void);
 SSL_CTX *tls_load_init_ctx (u_config_t *);
 
 #ifdef __cplusplus
