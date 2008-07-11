@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.59 2008/06/04 17:48:02 tat Exp $
+ * $Id: request.c,v 1.60 2008/07/11 18:50:33 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1334,6 +1334,63 @@ err:
     return ~0;
 }
 
+static ssize_t request_read_until_boundary(request_t *rq, io_t *io, 
+        const char *boundary, char *buf, size_t size, u_buf_t **pubuf)
+{
+    u_buf_t *ubuf = NULL;
+    int found;
+    size_t bound_len, trb;
+    ssize_t rc;
+
+    /* shortcut */
+    bound_len = strlen(boundary);
+
+    trb = 0;
+
+    for(found = 0; !found; /* nothing */)
+    {
+        rc = read_until(io, boundary, buf, size, &found);
+        dbg_err_if(rc <= 0); /* on error or eof exit */
+
+        /* write all but the last bound_len + 2 (\r\n) bytes */
+        if(found)
+        {
+            rc -= (bound_len + 2);
+            dbg_err_if(rc < 0);
+
+            /* zero-term the buffer (removing the boundary) */
+            buf[rc] = 0;
+
+        } else {
+
+            /* buffer too small, alloc (and use) a dynamic buffer */
+            if(ubuf == NULL)
+            {
+                dbg_err_if(u_buf_create(&ubuf));
+                dbg_err_if(u_buf_reserve(ubuf, 2 * size));
+            }
+        }
+
+        /* total read bytes */
+        trb += rc;
+
+        warn_err_ifm(trb > rq->post_maxsize, "POST data exceed post_maxsize");
+
+        /* if we're using the buf on the heap then append read data */
+        if(ubuf)
+            dbg_err_if(u_buf_append(ubuf, buf, rc));
+    }
+
+    *pubuf = ubuf;
+
+    return (ubuf ? u_buf_len(ubuf) : rc);
+err:
+    if(ubuf)
+        u_buf_free(ubuf);
+    return -1;
+
+}
+
 static int request_parse_multipart_chunk(request_t *rq, io_t *io, 
     const char *boundary, int *eof)
 {
@@ -1341,6 +1398,7 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
     header_t *h = NULL;
     io_t *tmpio = NULL;
     var_t *v = NULL;
+    u_buf_t *ubuf = NULL;
     char name[PRMSZ], filename[PRMSZ], buf[BUFSZ];
     size_t bound_len;
     int found;
@@ -1404,21 +1462,18 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
             *eof = 1; /* end of MIME stuff */
 
     } else {
-        /* read the value of the variable (all until the next boundary) */
-        rc = read_until(io, boundary, buf, BUFSZ, &found);
-        dbg_err_if(rc <= 0); /* on error or eof exit */
-
-        /* write all but the last bound_len + 2 (\r\n) bytes */
-        warn_err_ifm(!found, "malformed request or BUFSZ too small");
-
-        rc -= (bound_len + 2);
+        /* read data before the boundary into the buffer. if the buffer is too 
+           small the function will return all data in a new ubuf that must be 
+           freed by the caller */
+        rc = request_read_until_boundary(rq, io, boundary, buf, BUFSZ, &ubuf);
         dbg_err_if(rc < 0);
 
-        /* zero-term the buffer (removing the boundary) */
-        buf[rc] = 0;
-
         /* add a new binary var to request arguments list */
-        dbg_err_if(var_bin_create(name, buf, rc, &v));
+        dbg_err_if(var_bin_create(name, 
+                    (ubuf ? u_buf_ptr(ubuf) : buf), 
+                    (ubuf ? u_buf_len(ubuf) : rc), 
+                    &v));
+
         dbg_if(vars_add(rq->args, v));
 
         /* also add it to the post array */
@@ -1431,10 +1486,15 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
             *eof = 1; /* end of MIME stuff */
     }
 
+    if(ubuf)
+        u_buf_free(ubuf);
+
     header_free(h);
 
     return 0;
 err:
+    if(ubuf)
+        u_buf_free(ubuf);
     if(tmpio)
         io_free(tmpio);
     if(h)
@@ -1530,6 +1590,8 @@ int request_parse_data(request_t *rq)
 
     return 0;
 err:
+    if(al)
+        dbg_if(timerm_del(al));
     return rc;
 }
 
@@ -1690,13 +1752,16 @@ int request_print(request_t *rq)
 static int request_load_config(request_t *rq)
 {
     u_config_t *c;
+    vhost_t *vhost;
     const char *v;
 
     dbg_err_if (rq == NULL);
     dbg_err_if (rq->http == NULL);
-    dbg_err_if (http_get_config(rq->http) == NULL);
 
-    c = http_get_config(rq->http);
+    dbg_err_if((vhost = http_get_vhost(rq->http, rq)) == NULL);
+
+    /* vhost can override those fields */
+    dbg_err_if((c = vhost->config) == NULL);
     
     /* defaults */
     rq->idle_timeout = REQUEST_DEFAULT_IDLE_TIMEOUT;
