@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: response.c,v 1.29 2008/04/16 14:02:59 tat Exp $
+ * $Id: response.c,v 1.30 2008/07/25 09:38:56 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -299,9 +299,11 @@ size_t response_get_max_header_size(response_t *rs)
     n = header_field_count(rs->header);
     for(i = 0; i < n; ++i)
     {
+        const char *p;
+
         field =  header_get_fieldn(rs->header, i);
-        sz += strlen(field_get_name(field));
-        sz += strlen(field_get_value(field));
+        sz += ((p = field_get_name(field)) != NULL) ? strlen(p) : 0;
+        sz += ((p = field_get_value(field)) != NULL) ? strlen(p) : 0;
         sz += 4; /* blanks and new lines */
     }
 
