@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.40 2008/07/06 11:45:18 tat Exp $
+ * $Id: io.c,v 1.41 2008/09/12 21:01:43 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -836,7 +836,7 @@ end:
 ssize_t io_get_until(io_t *io, char stop_at, char *buf, size_t size)
 {
     ssize_t wr, c, len = 0;
-    char *p;
+    char *p, *base = buf;
 
     dbg_err_if (io == NULL);
     dbg_err_if (buf == NULL);
@@ -887,7 +887,7 @@ ssize_t io_get_until(io_t *io, char stop_at, char *buf, size_t size)
         }
     }
 
-    buf[len] = 0;
+    base[len] = 0;
     return len; /* return the # of chars in the line (strlen(line)) */
 err:
     return -1;
