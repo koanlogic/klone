@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.42 2008/06/04 17:48:02 tat Exp $
+ * $Id: session.c,v 1.43 2008/09/30 15:27:35 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -54,7 +54,6 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     session_opt_t *so = NULL;
     u_config_t *c = NULL;
     const char *v;
-    int max_age;
 
     dbg_err_if (config == NULL);
     dbg_err_if (pso == NULL);
@@ -90,7 +89,7 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
 
         /* set max_age */
         if((v = u_config_get_subkey_value(c, "max_age")) != NULL)
-            max_age = MAX(atoi(v) * 60, 60); /* min value: 1 min */
+            so->max_age = MAX(atoi(v) * 60, 60); /* min value: 1 min */
 
         /* set compression flag */
         dbg_err_if(u_config_get_subkey_value_b(c, "compress", 0,
