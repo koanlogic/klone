@@ -1,8 +1,9 @@
-$Id: ChangeLog,v 1.65 2008/09/12 21:01:43 tat Exp $
+$Id: ChangeLog,v 1.66 2008/09/30 15:46:23 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.1.x:
+	- use session max_age if specified in kloned.conf
 	- io_get_until bug fix
 	- io_vprintf added
 	- contrib/ not built by default
