@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: va.h,v 1.1 2008/10/03 10:19:07 tho Exp $
+ * $Id: va.h,v 1.2 2008/10/03 16:03:04 tho Exp $
  */
 
 #ifndef _KLONE_VA_H_
@@ -22,9 +22,6 @@
 #elif defined(__va_copy)
     /* GNU libc va_copy replacement */
     #define kl_va_copy(a, b)  __va_copy(a, b)
-#elif defined(VA_LIST_BY_VALUE)
-    /* just create an alias since called function has its own copy of va_list */
-    #define kl_va_copy(a, b) ((a) = (b))
 #else
     #define VA_COPY_UNAVAIL 1
 #endif

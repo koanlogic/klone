@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.42 2008/10/03 10:19:07 tho Exp $
+ * $Id: io.c,v 1.43 2008/10/03 16:03:04 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -630,8 +630,12 @@ ssize_t io_vprintf(io_t *io, const char *fmt, va_list ap)
 
 #ifdef VA_COPY_UNAVAIL
     u_unused_args(apcpy);
+#elif defined(VA_LIST_BY_VALUE)
+    /* we're sure about vnsprintf not consuming its 'ap' argument, so just do
+     * simple aliasing here: remember not to va_end() the alias */
+    apcpy = ap;
 #else
-    /* vnsprintf may modify the va_list so make a copy before using it */
+    /* vnsprintf modifies the va_list so make a copy before using it */
     kl_va_copy(apcpy, ap);
 #endif
 
@@ -645,7 +649,7 @@ ssize_t io_vprintf(io_t *io, const char *fmt, va_list ap)
         bbuf = (char*)u_malloc(++sz);
         dbg_err_if(bbuf == NULL);
 
-        /* use apcpy, ap has been already "consumed" by va_arg() calls */
+        /* use apcpy in case ap has been consumed by previous vsnprintf */
         if((sz = vsnprintf(bbuf, sz, fmt, apcpy)) > 0)
             dbg_err_if(io_write(io, bbuf, sz) < 0);
 
@@ -659,13 +663,12 @@ ssize_t io_vprintf(io_t *io, const char *fmt, va_list ap)
         dbg_err_if(io_write(io, buf, sz) < 0);
     }
 
-#if defined(va_copy) || defined(__va_copy)
+#if !defined(VA_LIST_BY_VALUE) && !defined(VA_COPY_UNAVAIL)
     va_end(apcpy);
 #endif
-
     return 0;
 err:
-#if defined(va_copy) || defined(__va_copy)
+#if !defined(VA_LIST_BY_VALUE) && !defined(VA_COPY_UNAVAIL)
     va_end(apcpy);
 #endif
     return -1;
