@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: klone.h,v 1.8 2007/09/15 16:36:12 tat Exp $
+ * $Id: klone.h,v 1.9 2008/10/03 10:19:07 tho Exp $
  */
 
 #ifndef _KLONE_H_
@@ -26,5 +26,6 @@
 #include <klone/field.h>
 #include <klone/header.h>
 #include <klone/version.h>
+#include <klone/va.h>
 
 #endif

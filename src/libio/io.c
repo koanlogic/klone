@@ -5,13 +5,13 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: io.c,v 1.41 2008/09/12 21:01:43 tat Exp $
+ * $Id: io.c,v 1.42 2008/10/03 10:19:07 tho Exp $
  */
 
 #include "klone_conf.h"
 #include <unistd.h>
 #include <u/libu.h>
-#include <klone/io.h>
+#include <klone/va.h>
 #include <klone/io.h>
 #include <klone/ioprv.h>
 #include <klone/codec.h>
@@ -625,18 +625,23 @@ ssize_t io_vprintf(io_t *io, const char *fmt, va_list ap)
     char buf[BUFSZ];
     va_list apcpy;
 
-    /* vnsprintf may modify the va_list so make a copy before using it */
-    va_copy(apcpy, ap);
-
     dbg_err_if (io == NULL);
     dbg_err_if (fmt == NULL);
+
+#ifdef VA_COPY_UNAVAIL
+    u_unused_args(apcpy);
+#else
+    /* vnsprintf may modify the va_list so make a copy before using it */
+    kl_va_copy(apcpy, ap);
+#endif
 
     /* build the message to print */
     sz = vsnprintf(buf, BUFSZ, fmt, ap);
 
     if(sz >= BUFSZ)
-    {   /* stack buffer too small, alloc a bigger one on the heap */
-
+    {   
+#ifndef VA_COPY_UNAVAIL
+        /* stack buffer too small, alloc a bigger one on the heap */
         bbuf = (char*)u_malloc(++sz);
         dbg_err_if(bbuf == NULL);
 
@@ -645,16 +650,24 @@ ssize_t io_vprintf(io_t *io, const char *fmt, va_list ap)
             dbg_err_if(io_write(io, bbuf, sz) < 0);
 
         U_FREE(bbuf);
-
+#else
+        /* push out all we can (sz-BUFSZ+1 bytes will be lost) */
+        warn("last %d byte(s) could not be written out", sz - BUFSZ + 1);
+        dbg_err_if(io_write(io, buf, BUFSZ) < 0);
+#endif
     } else if(sz > 0) {
         dbg_err_if(io_write(io, buf, sz) < 0);
     }
 
+#if defined(va_copy) || defined(__va_copy)
     va_end(apcpy);
+#endif
 
     return 0;
 err:
+#if defined(va_copy) || defined(__va_copy)
     va_end(apcpy);
+#endif
     return -1;
 }
 

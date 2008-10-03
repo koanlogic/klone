@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.32 2008/05/21 16:50:38 tat Exp $
+# $Id: Makefile.dist,v 1.33 2008/10/03 10:19:07 tho Exp $
 
 include common.mk
 
@@ -15,6 +15,7 @@ DISTFILES += Makefile LICENSE README VERSION configure \
 # MaKL build test
 DISTFILES += $(wildcard build/*.c)
 DISTFILES += $(wildcard build/makl_checkfork)
+DISTFILES += $(wildcard build/makl_va_list_by_value)
 DISTFILES += $(wildcard build/makecheck/*)
 
 # contrib (iocat, iowc)

@@ -1,0 +1,17 @@
+##
+##  (un)define VA_LIST_BY_VALUE
+##
+makl_va_list_by_value ()
+{
+    [ -z `makl_get "__noconfig__"` ] || return
+
+    makl_info "checking va_list behaviour"
+
+    cat build/va_list_by_value.c | makl_exec_code 0 
+    if [ $? -eq 0 ]
+    then
+        makl_set_var "VA_LIST_BY_VALUE"
+    else
+        makl_unset_var "VA_LIST_BY_VALUE"
+    fi
+}

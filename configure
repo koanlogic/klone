@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.91 2008/05/29 16:13:55 tat Exp $
+# $Id: configure,v 1.92 2008/10/03 10:19:07 tho Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -20,6 +20,7 @@ fi
 # MaKL preamble
 . ${MAKL_DIR}/cf/makl.init
 . build/makl_checkfork
+. build/makl_va_list_by_value
 
 # Preprocess arguments
 makl_args_init "$@"
@@ -134,6 +135,9 @@ makl_checkstructelem    0   "struct tm"     "tm_gmtoff"  "<time.h>"
 
 # working fork()?
 makl_checkfork          0
+
+# check va_list behaviour
+makl_va_list_by_value
 
 makl_checkfunc          0   "syslog"
 makl_checkfunc          0   "mkstemp"
