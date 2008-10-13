@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.60 2008/07/11 18:50:33 tat Exp $
+ * $Id: request.c,v 1.61 2008/10/13 16:21:04 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -921,9 +921,25 @@ static int match_content_type(header_t *h, const char *mime_type)
     return 1;
 }
 
+static int request_is_content_type(request_t *rq, const char *ct)
+{
+    return match_content_type(rq->header, ct);
+}
+
 static int request_is_multipart_formdata(request_t *rq)
 {
-    return match_content_type(rq->header, "multipart/form-data");
+    return request_is_content_type(rq, "multipart/form-data");
+}
+
+static int request_is_urlencoded(request_t *rq)
+{
+    if(header_get_field_value(rq->header, "Content-Type") == NULL)
+        return 1; /* yes; no content-type field provided */
+
+    if(request_is_content_type(rq, "application/x-www-form-urlencoded"))
+        return 1; /* yes */
+
+    return 0; /* no */
 }
 
 static int request_parse_urlencoded_data(request_t *rq)
@@ -1576,9 +1592,12 @@ int request_parse_data(request_t *rq)
         { 
             /* <form enctype="multipart/form-data" ...> */
             dbg_err_if(request_parse_multipart_data(rq));
-        } else {
-            /* <form [enctype="application/x-www-form-urlencoded"] ...> */
+        } else if(request_is_urlencoded(rq)) {
+            /* if there's no content-type field or
+               <form [enctype="application/x-www-form-urlencoded"] ...> */
             dbg_err_if(request_parse_urlencoded_data(rq));
+        } else {
+            /* nothing to do, the user will handle incoming data in his .kl1 */
         }
 
         /* post timeout not expired, clear it */

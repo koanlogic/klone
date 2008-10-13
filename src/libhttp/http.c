@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.64 2008/06/04 17:48:02 tat Exp $
+ * $Id: http.c,v 1.65 2008/10/13 16:21:04 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -546,9 +546,9 @@ static int http_serve(http_t *h, int fd)
     /* create the output io_t */
     if(cgi)
         dbg_err_if(io_fd_create((cgi ? 1 : fd), IO_FD_CLOSE, &out));
-    else
-        /* create the response io_t dup'ping the request io_t object */
-        dbg_err_if(io_dup(request_io(rq), &out));
+    else {
+        dbg_err_if(io_fd_create( dup(fd), IO_FD_CLOSE, &out));
+    }
 
     /* default method used if we cannot parse the request (bad request) */
     response_set_method(rs, HM_GET);
