@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.27 2007/12/23 10:28:45 tat Exp $
+ * $Id: translat.c,v 1.28 2008/10/18 00:03:00 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -35,7 +35,164 @@
 #define tr_err_ifm(expr, ...)    \
     do { if( (expr) ) { con_p_ctx(p); con(__VA_ARGS__); goto err; } } while(0)
 
-static int preprocess(io_t *in, io_t *out);
+
+typedef struct block_s
+{
+    char *name;                 /* block name (is NULL for unnamed blocks) */
+    u_buf_t *ubuf;              /* block content */
+    struct block_s *parent;     /* the parent block in the block tree */
+    struct block_s *ancestor;   /* the ancestor block this block overrides */
+    u_list_t *children;         /* list of children blocks */
+} block_t;
+
+typedef struct ppctx_s
+{
+    block_t *cur;       /* currently selected block */
+    block_t *top;       /* top block in the tree */
+    block_t *dead;      /* tree for dead blocks */
+    int lev;            /* blocks nesting level */
+    int extending;      /* nesting level from the extended block */
+} ppctx_t;
+
+static int preprocess(io_t *in, io_t *out, ppctx_t*);
+
+static int block_free(block_t *block)
+{
+    block_t *child;
+    int i;
+
+    dbg_err_if(block == NULL);
+
+    /* free children first */
+    for(i = 0; (child = u_list_get_n(block->children, i)) != NULL; ++i)
+        block_free(child);
+
+    if(block->ancestor)
+        block_free(block->ancestor);
+
+    if(block->name)
+        u_free(block->name);
+
+    if(block->ubuf)
+        u_buf_free(block->ubuf);
+
+    u_free(block);
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int block_push_child(block_t *parent, block_t *child)
+{
+    dbg_err_if(u_list_add(parent->children, child));
+
+    child->parent = parent;
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int block_create(const char *name, const char *buf, size_t size, 
+            block_t **pblock)
+{
+    block_t *b = NULL;
+
+    b = u_zalloc(sizeof(block_t));
+    dbg_err_if(b == NULL);
+
+    dbg_err_if(u_buf_create(&b->ubuf));
+
+    dbg_err_if(u_list_create(&b->children));
+
+    if(name)
+    {
+        b->name = u_strdup(name);
+        dbg_err_if(b->name == NULL);
+    }
+
+    if(buf && size)
+        dbg_err_if(u_buf_append(b->ubuf, buf, size));
+
+    *pblock = b;
+
+    return 0;
+err:
+    if(b)
+        block_free(b);
+    return ~0;
+}
+
+static int ppctx_print_block(block_t *block, io_t *out)
+{
+    block_t *b;
+    size_t i;
+
+    if(block->name == NULL)
+    {
+        if(u_buf_len(block->ubuf))
+            dbg_err_if(io_write(out, u_buf_ptr(block->ubuf), 
+                        u_buf_len(block->ubuf)) < 0);
+    } else {
+        /* named block */
+        for(i = 0; (b = u_list_get_n(block->children, i)) != NULL; ++i)
+            dbg_err_if(ppctx_print_block(b, out));
+    }
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int ppctx_print(ppctx_t *ppc, io_t *out)
+{
+    block_t *b;
+    size_t i;
+
+    dbg_err_if(ppc == NULL);
+    dbg_err_if(out == NULL);
+
+    for(i = 0; (b = u_list_get_n(ppc->top->children, i)) != NULL; ++i)
+        dbg_err_if(ppctx_print_block(b, out));
+
+    return 0;
+err:
+    return ~0;
+
+}
+
+static int ppctx_free(ppctx_t *ppc)
+{
+    if(ppc->top)
+        block_free(ppc->top);
+
+    u_free(ppc);
+
+    return 0;
+}
+
+static int ppctx_create(ppctx_t **pppc)
+{
+    ppctx_t *ppc = NULL;
+
+    ppc = u_zalloc(sizeof(ppctx_t));
+    dbg_err_if(ppc == NULL);
+
+    dbg_err_if(block_create(NULL, NULL, 0, &ppc->top));
+    dbg_err_if(block_create(NULL, NULL, 0, &ppc->dead));
+
+    ppc->cur = ppc->top;
+    ppc->dead->parent = ppc->top;
+
+    *pppc = ppc;
+
+    return 0;
+err:
+    if(ppc)
+        ppctx_free(ppc);
+    return ~0;
+}
 
 /* print parser context to the console */
 static void con_p_ctx(parser_t *p)
@@ -45,7 +202,8 @@ static void con_p_ctx(parser_t *p)
     dbg_err_if(io_name_get(p->in, fn, U_FILENAME_MAX));
 
     /* con_ macro should be used here; we'd need a con_no_newline(...) */
-    fprintf(stderr, "[%s:%d]: error:  ", fn, p->code_line);
+    fprintf(stderr, "[%s:%d]: error: ", fn, p->code_line);
+
 err:
     return;
 }
@@ -74,6 +232,7 @@ static int is_a_script(const char *filename)
 static int process_directive_include(parser_t *p, char *inc_file)
 {
     enum { BUFSZ = 4096 };
+    ppctx_t *ppc;
     char buf[U_FILENAME_MAX], *pc;
     char file[U_FILENAME_MAX];
     io_t *io = NULL;
@@ -98,7 +257,9 @@ static int process_directive_include(parser_t *p, char *inc_file)
 
     dbg_err_if(io_printf(p->out, "<%% #line 1 \"%s\" \n %%>", buf));
 
-    dbg_err_if(preprocess(io, p->out));
+    /* get the current preprocessor context */
+    ppc = parser_get_cb_arg(p);
+    dbg_err_if(preprocess(io, p->out, ppc));
 
     dbg_err_if(io_printf(p->out, "<%% #line %d \"%s\" \n %%>", 
         p->code_line, file));
@@ -112,12 +273,178 @@ err:
     return ~0;
 }
 
+static int block_get_by_name(block_t *parent, const char *name, 
+    block_t **pfound, size_t *pidx)
+{
+    block_t *b;
+    size_t i;
+
+    dbg_err_if(parent == NULL);
+
+    for(i = 0; (b = u_list_get_n(parent->children, i)) != NULL; ++i)
+    {
+        if(b->name && strcasecmp(b->name, name) == 0)
+        {
+            *pfound = b;
+            *pidx = i;
+            return 0;
+        }
+        if(block_get_by_name(b, name, pfound, pidx) == 0)
+            return 0;
+    }
+        
+err:
+    return ~0;
+}
+
+static int process_directive_block(parser_t *p, const char *name)
+{
+    block_t *block = NULL, *old;
+    ppctx_t *ppc;
+    char file[U_FILENAME_MAX];
+    size_t idx;
+
+    dbg_err_if((ppc = parser_get_cb_arg(p)) == NULL);
+
+    /* create a named block */
+    dbg_err_if(block_create(name, NULL, 0, &block));
+
+    dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
+
+    ppc->lev++;
+
+    if(!ppc->extending)
+    {
+        con_err_ifm(!block_get_by_name(ppc->top, name, &old, &idx),
+            "[%s:%d] error: block named %s already exists", file, p->code_line,
+            name);
+
+        /* new block -> append to the block list */
+        dbg_err_if(block_push_child(ppc->cur, block));
+
+        ppc->cur = block;
+
+        return 0;
+    }
+
+    ppc->extending++; /* increase the nesting level */
+
+    /* we're extending a base template... */
+     
+    if(block_get_by_name(ppc->top, name, &old, &idx))
+    {
+        if(ppc->cur == ppc->top)
+        {
+            /* top-level block */
+            con("[%s:%d] warning: extending a block (%s) that does not exist "
+                "in the base templates, ignoring", file, p->code_line, name);
+
+            /* attach it to a dead tree (i.e. a tree that doesn't get printed)*/
+            dbg_err_if(block_push_child(ppc->dead, block));
+        } 
+
+        if(ppc->lev)
+        {
+            /* nested block */
+            dbg_err_if(block_push_child(ppc->cur, block));
+        }
+
+    } else {
+        /* overriding block */
+
+        /* block with the same name as been found at position 'idx' of
+           its parent's list; replace the old block with the new one
+           and save the old in new->ancestor (we may need it for
+           <% block inherit %>) */
+
+        /* save the old block ptr */
+        block->ancestor = old;
+        block->parent = old->parent;
+
+        /* insert the new block in the position of the old block */
+        dbg_err_if(u_list_insert(old->parent->children, block, idx));
+
+        /* remove the old block from the list */
+        dbg_err_if(u_list_del(old->parent->children, old));
+    }
+
+    ppc->cur = block;
+
+    return 0;
+err:
+    if(block)
+        block_free(block);
+    return ~0;
+}
+
+static int process_directive_endblock(parser_t *p, const char *name)
+{
+    ppctx_t *ppc;
+
+    dbg_err_if((ppc = parser_get_cb_arg(p)) == NULL);
+
+    dbg_err_if(ppc->cur == NULL);
+
+    tr_err_ifm(--ppc->lev < 0, "unbalanced endblock directive");
+
+    /* if name is provided check that it's correct */
+    if(name)
+        tr_err_ifm(ppc->cur->name == NULL || strcasecmp(name, ppc->cur->name),
+            "endblock name is not correct (\"%s\" used when closing to "
+            "\"%s\" block)", name, ppc->cur->name);
+
+    ppc->cur = ppc->cur->parent; /* may be NULL */
+
+    if(ppc->extending)
+    {
+        /* decrease the nesting level */
+        if(--ppc->extending == 1)
+            ppc->cur = ppc->top;
+    }
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int process_directive_inherit(parser_t *p)
+{
+    ppctx_t *ppc;
+    block_t *anc, *b;
+    int i;
+
+    dbg_err_if((ppc = parser_get_cb_arg(p)) == NULL);
+
+    dbg_err_if(ppc->cur == NULL);
+
+    anc = ppc->cur->ancestor;
+    tr_err_ifm(anc == NULL, "inherit directive used in a block "
+        "(\"%s\") that is not extending another block", ppc->cur->name);
+
+    /* move all ancestor children to the current block (that's the block whom
+     * is extending the ancestor */
+    for(i = 0; (b = u_list_get_n(anc->children, i)) != NULL; ++i)
+        dbg_err_if(block_push_child(ppc->cur, b));
+
+    /* remove all elems */
+    while(u_list_count(anc->children))
+        dbg_err_if(u_list_del_n(anc->children, 0, NULL));
+
+    return 0;
+err:
+    return ~0;
+}
+
 static int process_directive(parser_t *p, char *buf)
 {
+    ppctx_t *ppc;
     char *tok, *pp;
 
     dbg_return_if (p == NULL, ~0);
     dbg_return_if (buf == NULL, ~0);
+
+    /* preprocessor context */
+    dbg_err_if((ppc = parser_get_cb_arg(p)) == NULL);
 
     /* get preprocessor command */
     tr_err_ifm((tok = strtok_r(buf, " \t", &pp)) == NULL,
@@ -130,6 +457,43 @@ static int process_directive(parser_t *p, char *buf)
             "bad or missing include filename");
 
         dbg_err_if(process_directive_include(p, tok));
+
+    } else if(strcasecmp(tok, "extends") == 0) { 
+
+        /* get base file name */
+        tr_err_ifm((tok = strtok_r(NULL, " \t\"", &pp)) == NULL,
+            "bad or missing 'extends' filename");
+
+        tr_err_ifm(p->code_line > 1, "child templates must start with the "
+            "'<%@ extends \"FILE\" %>' directive (first line) %d");
+
+        /* no difference with include? */
+        dbg_err_if(process_directive_include(p, tok));
+
+        con_err_ifm(ppc->lev, "[%s] error: unclosed block \"%s\"", tok, 
+            ppc->cur->name);
+
+        ppc->extending++;
+
+    } else if(strcasecmp(tok, "block") == 0) { 
+
+        /* get block name */
+        tr_err_ifm((tok = strtok_r(NULL, " \t\"", &pp)) == NULL,
+            "bad or missing 'block' name");
+
+        dbg_err_if(process_directive_block(p, tok));
+
+    } else if(strcasecmp(tok, "endblock") == 0) { 
+
+        /* try get the block name (it's not mandatory) */
+        tok = strtok_r(NULL, " \t\"", &pp);
+
+        dbg_err_if(process_directive_endblock(p, tok));
+
+    } else if(strcasecmp(tok, "inherit") == 0) { 
+
+        dbg_err_if(process_directive_inherit(p));
+
     } else {
         tr_err("unknown preprocessor directive: %s", tok);
     }
@@ -166,11 +530,41 @@ err:
 
 static int cb_pre_html_block(parser_t *p, void *arg, const char *buf, size_t sz)
 {
+    ppctx_t *ppc = (ppctx_t*)arg;
+    block_t *block = NULL;
+    char file[U_FILENAME_MAX];
+    int i, ln;
+
     u_unused_args(arg);
 
     dbg_err_if (p == NULL);
+    dbg_err_if (ppc == NULL);
 
-    dbg_err_if(io_write(p->out, buf, sz) < 0);
+    /* create and append un unnamed */
+    dbg_err_if(block_create(NULL, buf, sz, &block));
+
+    if(ppc->cur == ppc->top && ppc->extending)
+    {
+        for(ln = p->code_line, i = 0; i < sz; ++i)
+        {
+            if(buf[i] == '\n')
+                ln++; /* find out the line of the first not-blank char */
+            if(!isspace(buf[i]))
+            {
+                dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
+                con("[%s:%d] warning: text out of blocks is not allowed in "
+                    "child templates, ignoring", file, ln);
+                break;
+            }
+        }
+
+        /* attach it to a dead tree (i.e. a tree that doesn't get printed)*/
+        dbg_err_if(block_push_child(ppc->dead, block));
+    } else {
+
+        /* append the text block to the block list */
+        dbg_err_if(block_push_child(ppc->cur, block));
+    }
 
     return 0;
 err:
@@ -180,55 +574,113 @@ err:
 static int cb_pre_code_block(parser_t *p, int cmd, void *arg, const char *buf, 
         size_t sz)
 {
+    u_string_t *ustr = NULL;
+    block_t *block = NULL;
+    ppctx_t *ppc;
     char file[U_FILENAME_MAX];
 
     dbg_err_if (p == NULL);
+    dbg_err_if((ppc = parser_get_cb_arg(p)) == NULL);
 
     if(cmd == '@')
     {   /* do preprocess */
         dbg_err_if(parse_directive(p, arg, buf, sz));
     } else {
+        /* append the code to the current block */
+        dbg_err_if(u_string_create(NULL, 0, &ustr));
+
         dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
 
-        if(cmd != '=')
-            dbg_err_if(io_printf(p->out, "<%%%c #line %d \"%s\" \n%%>", 
-                (cmd == 0 ? ' ' : cmd), p->code_line, file)); 
-        else
-            dbg_err_if(io_printf(p->out, "<%% #line %d \"%s\" \n%%>", 
-                p->code_line, file)); 
-
-        dbg_err_if(io_printf(p->out, "<%%%c ", (cmd == 0 ? ' ' : cmd)) < 0);
-        dbg_err_if(io_write(p->out, buf, sz) < 0);
-        dbg_err_if(io_printf(p->out, "%%>") < 0);
+        /* we must know the file:line where this code is coming from */
+        if(cmd == 0 || cmd == '=')
+        {
+            dbg_err_if(u_string_aprintf(ustr, "<%% #line %d \"%s\" \n%%><%%", 
+                 p->code_line, file)); 
+        } else {
+            dbg_err_if(u_string_aprintf(ustr, 
+                "<%%%c #line %d \"%s\" \n%%><%%%c", 
+                 cmd, p->code_line, file, cmd)); 
+        }
+        dbg_err_if(u_string_aprintf(ustr, "%.*s", sz, buf));
+        dbg_err_if(u_string_aprintf(ustr, "%%>"));
 
         /* placeholder to be subst'd in the last translation phase */
-        dbg_err_if(io_printf(p->out, "<%%%c #line 0 __PG_FILE_C__ \n%%>", 
-                    (cmd == '!' ? cmd : ' ')));
+        dbg_err_if(u_string_aprintf(ustr, "<%%%c #line 0 __PG_FILE_C__ \n%%>", 
+                    (cmd == '!' && cmd != 0 ? cmd : ' ')));
+
+        dbg_err_if(block_create(NULL, u_string_c(ustr), u_string_len(ustr), 
+                    &block));
+
+        if(ppc->cur == ppc->top && ppc->extending)
+        {
+            dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
+            con("[%s:%d] warning: code out of blocks is not allowed in child "
+                "templates, ignoring", file, p->code_line);
+
+            /* attach it to a dead tree (i.e. a tree that doesn't get printed)*/
+            dbg_err_if(block_push_child(ppc->dead, block));
+        } else {
+
+            dbg_err_if(block_push_child(ppc->cur, block));
+        }
+
+        dbg_err_if(u_string_free(ustr));
+        ustr = NULL;
     }
 
     return 0;
 err:
+    if(ustr)
+        u_string_free(ustr);
+    if(block)
+        block_free(block);
     return ~0;
 }
 
-static int preprocess(io_t *in, io_t *out)
+static int preprocess(io_t *in, io_t *out, ppctx_t *ppc_cur)
 {
+    ppctx_t *ppctx = NULL, *ppc = NULL;
     parser_t *p = NULL;
+    char file[U_FILENAME_MAX];
 
     /* create a parse that reads from in and writes to out */
     dbg_err_if(parser_create(&p));
 
+    /* input filename */
+    dbg_err_if(io_name_get(in, file, U_FILENAME_MAX));
+
+    if(ppc_cur == NULL)
+    {
+        /* new preprocessor context; create a new ppc object */
+        dbg_err_if(ppctx_create(&ppctx));
+        parser_set_cb_arg(p, ppctx);
+        ppc = ppctx;
+    } else {
+        /* use the caller ppc context */
+        parser_set_cb_arg(p, ppc_cur);
+        ppc = ppc_cur;
+    }
     parser_set_io(p, in, out);
 
     parser_set_cb_code(p, cb_pre_code_block);
     parser_set_cb_html(p, cb_pre_html_block);
 
     dbg_err_if(parser_run(p));
+    con_err_ifm(ppc->lev, "[%s] error: unclosed block \"%s\"", file, 
+        ppc->cur->name);
+
+    if(ppc_cur == NULL)
+        ppctx_print(ppctx, out);
+
+    if(ppctx)
+        ppctx_free(ppctx);
 
     parser_free(p);
 
     return 0;
 err:
+    if(ppctx)
+        ppctx_free(ppctx);
     if(p)
         parser_free(p);
     return ~0;
@@ -300,7 +752,7 @@ int translate(trans_info_t *pti)
         con_err_if(u_tmpfile_open(&tmp));
 
         /* save the preprocessed in file to tmp */
-        dbg_err_if(preprocess(in, tmp));
+        dbg_err_if(preprocess(in, tmp, NULL));
 
         /* reset the tmp io */
         io_seek(tmp, 0);

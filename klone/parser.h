@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: parser.h,v 1.7 2006/01/09 12:38:37 tat Exp $
+ * $Id: parser.h,v 1.8 2008/10/18 00:03:00 tat Exp $
  */
 
 #ifndef _KLONE_PARSER_H_
@@ -45,6 +45,8 @@ void parser_set_io(parser_t *, io_t *, io_t *);
 void parser_set_cb_code(parser_t *, parser_cb_code_t);
 void parser_set_cb_html(parser_t *, parser_cb_html_t);
 void parser_set_cb_arg(parser_t *, void *);
+
+void* parser_get_cb_arg(parser_t *p);
 
 #ifdef __cplusplus
 }

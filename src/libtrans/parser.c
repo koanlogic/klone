@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: parser.c,v 1.13 2007/09/15 16:36:12 tat Exp $
+ * $Id: parser.c,v 1.14 2008/10/18 00:03:00 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -211,6 +211,12 @@ void parser_set_cb_html(parser_t *p, parser_cb_html_t cb)
 {
     dbg_ifb (p == NULL) return;
     p->cb_html = cb;
+}
+
+void* parser_get_cb_arg(parser_t *p)
+{
+    dbg_ifb (p == NULL) return NULL;
+    return p->cb_arg;
 }
 
 void parser_set_cb_arg(parser_t *p, void *opaque)
