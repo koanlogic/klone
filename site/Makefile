@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.8 2007/11/05 16:30:37 tat Exp $
+# $Id: Makefile,v 1.9 2008/10/18 17:23:32 tat Exp $
 
 include common.mk
 include ../Makefile.conf
@@ -12,7 +12,7 @@ NO_INSTALL = true
 endif
 
 CFLAGS += ${WEBAPP_CFLAGS}
-CLEANFILES += *.c *.cc *.a *.o autogen.*
+CLEANFILES += *.c *.cc *.a *.o *.d *.kld autogen.*
 
 # if already set don't change it
 KLONE ?= ../src/tools/klone/klone

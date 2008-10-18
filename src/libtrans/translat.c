@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.28 2008/10/18 00:03:00 tat Exp $
+ * $Id: translat.c,v 1.29 2008/10/18 17:23:32 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -52,6 +52,7 @@ typedef struct ppctx_s
     block_t *dead;      /* tree for dead blocks */
     int lev;            /* blocks nesting level */
     int extending;      /* nesting level from the extended block */
+    u_list_t *depend;   /* list of depends (path+filename) */
 } ppctx_t;
 
 static int preprocess(io_t *in, io_t *out, ppctx_t*);
@@ -145,6 +146,58 @@ err:
     return ~0;
 }
 
+
+static int ppctx_depend_push(ppctx_t *ppc, const char *filepath)
+{
+    const char *s;
+
+    dbg_err_if((s = u_strdup(filepath)) == NULL);
+
+    dbg_err_if(u_list_add(ppc->depend, (void*)s));
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int ppctx_print_depend(ppctx_t *ppc, io_t *in, io_t *out, io_t *depend)
+{
+    char infile[U_FILENAME_MAX], outfile[U_FILENAME_MAX];
+    char fullpath[U_FILENAME_MAX];
+    const char *dfile;
+    size_t i;
+
+    dbg_err_if(ppc == NULL);
+    dbg_err_if(in == NULL);
+    dbg_err_if(out == NULL);
+    dbg_err_if(depend == NULL);
+
+    /* print make-style depends list:
+       srcfile: depfile0 depfile1 ... depfileN */
+
+    dbg_err_if(io_name_get(in, infile, U_FILENAME_MAX));
+    dbg_err_if(io_name_get(out, outfile, U_FILENAME_MAX));
+
+    /* input filename (makefile-style) */
+    dbg_err_if(translate_makefile_filepath(infile, "$(srcdir)", fullpath, 
+        sizeof(fullpath)));
+
+    io_printf(depend, "%s %s.kld: %s ", outfile, outfile, fullpath);
+
+    for(i = 0; (dfile = u_list_get_n(ppc->depend, i)) != NULL; ++i)
+    {
+        dbg_err_if(translate_makefile_filepath(dfile, "$(srcdir)", fullpath, 
+            sizeof(fullpath)));
+        io_printf(depend, "%s ", fullpath);
+    }
+    io_printf(depend, "\n");
+
+    return 0;
+err:
+    return ~0;
+
+}
+
 static int ppctx_print(ppctx_t *ppc, io_t *out)
 {
     block_t *b;
@@ -164,8 +217,19 @@ err:
 
 static int ppctx_free(ppctx_t *ppc)
 {
+    char *str;
+    size_t i;
+
     if(ppc->top)
         block_free(ppc->top);
+
+    if(ppc->depend)
+    {
+        for(i = 0; (str = u_list_get_n(ppc->depend, i)) != NULL; ++i)
+            u_free(str);
+
+        u_list_free(ppc->depend);
+    }
 
     u_free(ppc);
 
@@ -181,6 +245,8 @@ static int ppctx_create(ppctx_t **pppc)
 
     dbg_err_if(block_create(NULL, NULL, 0, &ppc->top));
     dbg_err_if(block_create(NULL, NULL, 0, &ppc->dead));
+
+    dbg_err_if(u_list_create(&ppc->depend));
 
     ppc->cur = ppc->top;
     ppc->dead->parent = ppc->top;
@@ -208,7 +274,32 @@ err:
     return;
 }
 
-static int is_a_script(const char *filename)
+int translate_makefile_filepath(const char *filepath, const char *prefix, 
+    char *buf, size_t size)
+{
+    char file_in[U_FILENAME_MAX];
+
+    /* input file */
+    if(filepath[0] == '/' || filepath[0] == '\\')
+    {   /* absolute path */
+        dbg_err_if(u_snprintf(file_in, U_FILENAME_MAX, "%s", filepath));
+    } else if(isalpha(filepath[0]) && filepath[1] == ':') {
+        /* absolute path Windows (X:/....) */
+        dbg_err_if(u_snprintf(file_in, U_FILENAME_MAX, "%s", filepath));
+    } else {
+        /* relative path, use $(srcdir) */
+        dbg_err_if(u_snprintf(file_in, U_FILENAME_MAX, "%s/%s", prefix, 
+            filepath ));
+    }
+
+    dbg_err_if(strlcpy(buf, file_in, size) >= size);
+
+    return 0;
+err:
+    return ~0;
+}
+
+int translate_is_a_script(const char *filename)
 {
     static const char *script_ext[] = { 
         ".klone", ".kl1", ".klc", 
@@ -229,33 +320,46 @@ static int is_a_script(const char *filename)
     return 0;
 }
 
-static int process_directive_include(parser_t *p, char *inc_file)
+static int include_file_full_path(parser_t *p, char *inc_file, char *obuf, 
+    size_t size)
 {
-    enum { BUFSZ = 4096 };
-    ppctx_t *ppc;
     char buf[U_FILENAME_MAX], *pc;
-    char file[U_FILENAME_MAX];
-    io_t *io = NULL;
 
-    dbg_return_if (p == NULL, ~0);
-    dbg_return_if (inc_file == NULL, ~0);
-
-    dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
+    /* get the name of the input file (that include filename path is relative
+     * to the one of the input file) */
     dbg_err_if(io_name_get(p->in, buf, U_FILENAME_MAX));
 
     /* remove file name, just path is needed */
     dbg_err_if((pc = strrchr(buf, '/')) == NULL);
     ++pc; *pc = 0;
 
-    dbg_err_if(strlen(buf) + strlen(inc_file) >= BUFSZ);
+    dbg_err_if(strlcat(buf, inc_file, U_FILENAME_MAX) >= U_FILENAME_MAX);
 
-    strcat(buf, inc_file);
+    dbg_err_if(strlcpy(obuf, buf, size) >= size);
+
+    return 0;
+err:
+    return ~0;
+}
+
+static int process_directive_include(parser_t *p, char *inc_file)
+{
+    ppctx_t *ppc;
+    char fullpath[U_FILENAME_MAX], file[U_FILENAME_MAX];
+    io_t *io = NULL;
+
+    dbg_return_if (p == NULL, ~0);
+    dbg_return_if (inc_file == NULL, ~0);
+
+    dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
+
+    dbg_err_if(include_file_full_path(p, inc_file, fullpath, U_FILENAME_MAX));
 
     /* copy include file to p->out */
-    tr_err_ifm(u_file_open(buf, O_RDONLY, &io), 
-        "unable to open included file %s", buf);
+    tr_err_ifm(u_file_open(fullpath, O_RDONLY, &io), 
+        "unable to open included file %s", fullpath);
 
-    dbg_err_if(io_printf(p->out, "<%% #line 1 \"%s\" \n %%>", buf));
+    dbg_err_if(io_printf(p->out, "<%% #line 1 \"%s\" \n %%>", fullpath));
 
     /* get the current preprocessor context */
     ppc = parser_get_cb_arg(p);
@@ -439,6 +543,7 @@ static int process_directive(parser_t *p, char *buf)
 {
     ppctx_t *ppc;
     char *tok, *pp;
+    char fullpath[U_FILENAME_MAX];
 
     dbg_return_if (p == NULL, ~0);
     dbg_return_if (buf == NULL, ~0);
@@ -456,6 +561,11 @@ static int process_directive(parser_t *p, char *buf)
         tr_err_ifm((tok = strtok_r(NULL, " \t\"", &pp)) == NULL,
             "bad or missing include filename");
 
+        /* calc the full path of the included file and add it to the deps list*/
+        dbg_err_if(include_file_full_path(p, tok, fullpath, U_FILENAME_MAX));
+
+        dbg_err_if(ppctx_depend_push(ppc, fullpath));
+
         dbg_err_if(process_directive_include(p, tok));
 
     } else if(strcasecmp(tok, "extends") == 0) { 
@@ -466,6 +576,11 @@ static int process_directive(parser_t *p, char *buf)
 
         tr_err_ifm(p->code_line > 1, "child templates must start with the "
             "'<%@ extends \"FILE\" %>' directive (first line) %d");
+
+        /* calc the full path of the included file and add it to the deps list*/
+        dbg_err_if(include_file_full_path(p, tok, fullpath, U_FILENAME_MAX));
+
+        dbg_err_if(ppctx_depend_push(ppc, fullpath));
 
         /* no difference with include? */
         dbg_err_if(process_directive_include(p, tok));
@@ -637,50 +752,37 @@ err:
     return ~0;
 }
 
-static int preprocess(io_t *in, io_t *out, ppctx_t *ppc_cur)
+static int preprocess(io_t *in, io_t *out, ppctx_t *ppc)
 {
-    ppctx_t *ppctx = NULL, *ppc = NULL;
     parser_t *p = NULL;
     char file[U_FILENAME_MAX];
+
+    dbg_err_if(in == NULL);
+    dbg_err_if(out == NULL);
+    dbg_err_if(ppc == NULL);
 
     /* create a parse that reads from in and writes to out */
     dbg_err_if(parser_create(&p));
 
+    parser_set_cb_arg(p, ppc);
+
     /* input filename */
     dbg_err_if(io_name_get(in, file, U_FILENAME_MAX));
 
-    if(ppc_cur == NULL)
-    {
-        /* new preprocessor context; create a new ppc object */
-        dbg_err_if(ppctx_create(&ppctx));
-        parser_set_cb_arg(p, ppctx);
-        ppc = ppctx;
-    } else {
-        /* use the caller ppc context */
-        parser_set_cb_arg(p, ppc_cur);
-        ppc = ppc_cur;
-    }
     parser_set_io(p, in, out);
 
     parser_set_cb_code(p, cb_pre_code_block);
     parser_set_cb_html(p, cb_pre_html_block);
 
     dbg_err_if(parser_run(p));
+
     con_err_ifm(ppc->lev, "[%s] error: unclosed block \"%s\"", file, 
         ppc->cur->name);
-
-    if(ppc_cur == NULL)
-        ppctx_print(ppctx, out);
-
-    if(ppctx)
-        ppctx_free(ppctx);
 
     parser_free(p);
 
     return 0;
 err:
-    if(ppctx)
-        ppctx_free(ppctx);
     if(p)
         parser_free(p);
     return ~0;
@@ -731,7 +833,8 @@ err:
 
 int translate(trans_info_t *pti)
 {
-    io_t *in = NULL, *out = NULL, *tmp = NULL;
+    io_t *in = NULL, *out = NULL, *tmp = NULL, *depend = NULL;
+    ppctx_t *ppc = NULL;
     codec_t *gzip = NULL, *aes = NULL;
     char tname[U_FILENAME_MAX];
 
@@ -745,14 +848,25 @@ int translate(trans_info_t *pti)
     con_err_ifm(u_file_open(pti->file_out, O_CREAT | O_TRUNC | O_WRONLY, &out),
         "unable to open %s", pti->file_out);
 
+    /* open the depend output file */
+    if(pti->depend_out[0])
+        con_err_ifm(u_file_open(pti->depend_out, O_CREAT | O_TRUNC | O_WRONLY, 
+            &depend), "unable to open %s", pti->depend_out);
+
     /* should choose the right translator based on file extensions or config */
-    if(is_a_script(pti->file_in))
+    if(translate_is_a_script(pti->file_in))
     {
         /* get a temporary io_t */
         con_err_if(u_tmpfile_open(&tmp));
 
+        /* create a preprocessor context */
+        dbg_err_if(ppctx_create(&ppc));
+
         /* save the preprocessed in file to tmp */
-        dbg_err_if(preprocess(in, tmp, NULL));
+        dbg_err_if(preprocess(in, tmp, ppc));
+
+        /* print out the preprocessed file */
+        dbg_err_if(ppctx_print(ppc, tmp));
 
         /* reset the tmp io */
         io_seek(tmp, 0);
@@ -764,10 +878,16 @@ int translate(trans_info_t *pti)
         dbg_err_if(io_name_get(tmp, tname, U_FILENAME_MAX));
 
         /* free the tmp io */
-        io_free(tmp);
+        io_free(tmp); tmp = NULL;
 
         /* remove the tmp file */
         u_remove(tname);
+
+        /* print out the depend .kld file */
+        if(depend)
+            dbg_err_if(ppctx_print_depend(ppc, in, out, depend));
+
+        dbg_err_if(ppctx_free(ppc)); ppc = NULL;
     } else {
         /* check if compression is requested */
 #ifdef HAVE_LIBZ
@@ -793,11 +913,14 @@ int translate(trans_info_t *pti)
         dbg_err_if(translate_opaque_to_c(in, out, pti));
     }
 
-    io_free(in), in = NULL;
+    if(pti->depend_out[0])
+        io_free(depend), depend = NULL;
+
     io_free(out), out = NULL;
+    io_free(in), in = NULL;
 
     /* replace '#line 0 __PG_FILE_C__' lines with '#line N "real_filename.c"' */
-    if(is_a_script(pti->file_in))
+    if(translate_is_a_script(pti->file_in))
         dbg_err_if(fix_line_decl(pti));
 
     return 0;
@@ -808,6 +931,8 @@ err:
         codec_free(gzip);
     if(tmp)
         io_free(tmp);
+    if(depend)
+        io_free(depend);
     if(in)
         io_free(in);
     if(out)

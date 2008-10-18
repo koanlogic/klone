@@ -1,6 +1,12 @@
-$Id: ChangeLog,v 1.67 2008/10/06 14:41:27 tat Exp $
+$Id: ChangeLog,v 1.68 2008/10/18 17:23:32 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
+
+KLone 2.2.x:
+	- better depencecies check: .d and .kld depend files created (and included)
+	  when building (-d switch of klone tool)
+	- .kl1 inheritance (new directives: extends, block, endblock, inherit)
+	- session init/load/save optimizations
 
 KLone 2.1.1:
 	- use session max_age if specified in kloned.conf

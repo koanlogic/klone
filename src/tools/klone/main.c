@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: main.c,v 1.43 2007/12/23 10:28:45 tat Exp $
+ * $Id: main.c,v 1.44 2008/10/18 17:23:32 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -47,6 +47,7 @@ enum flags_e { FLAG_NONE, FLAG_VERBOSE };
 typedef struct 
 {
     char *file_in, *file_out;   /* [trans] input, output file       */
+    char *depend_out;           /* [trans] depend output file       */
     char *uri;                  /* [trans] translated file uri      */
     int verbose;                /* >0 when verbose mode is on       */
     char **arg;                 /* argv                             */
@@ -68,11 +69,13 @@ context_t *ctx;
 
 #define KL1_FILE_FMT "pg_%s.%s"
 
+#define usage_if(expr)  if(expr) usage(); 
+
 static void usage(void)
 {
     static const char * us = 
 "Usage: klone [-hvV] -c COMMAND OPTIONS ARGUMENTS\n"
-"Version: %s - Copyright (c) 2005, 2006, 2007 KoanLogic s.r.l.\n"
+"Version: %s - Copyright (c) 2005-2008 KoanLogic s.r.l.\n"
 "All rights reserved.\n"
 "\n"
 "       -h            display this help\n"
@@ -144,7 +147,7 @@ static int parse_opt(int argc, char **argv)
         usage();
 
     /* common switches */
-    strcpy(opts, "hvVx:b:i:o:u:c:");
+    strcpy(opts, "hvVx:b:i:o:u:c:d:");
 
     /* encryption switches */
 #ifdef HAVE_LIBOPENSSL
@@ -219,6 +222,10 @@ static int parse_opt(int argc, char **argv)
             ctx->file_out = u_strdup(optarg);
             warn_err_if(ctx->file_out == NULL);
             break;
+        case 'd': /* kld depend output file */
+            ctx->depend_out = u_strdup(optarg);
+            warn_err_if(ctx->depend_out == NULL);
+            break;
         case 'u': /* translated page uri */
             /* skip the first char to avoid MSYS path translation bug
              * (see klone-site.c) */
@@ -290,6 +297,10 @@ static int command_trans(void)
 
     /* output file */
     strncpy(ti.file_out, ctx->file_out, U_FILENAME_MAX);
+
+    /* kld depend file */
+    if(ctx->depend_out)
+        strncpy(ti.depend_out, ctx->depend_out, U_FILENAME_MAX);
 
     /* uri */
     strncpy(ti.uri, ctx->uri, URI_BUFSZ);
@@ -369,33 +380,26 @@ err:
     return 0;
 }
 
+
 static int cb_file(struct dirent *de, const char *path , void *arg)
 {
     static const char *prefix = "$(srcdir)";
     const mime_map_t *mm;
     char uri_md5[MD5_DIGEST_BUFSZ];
     char file_in[U_FILENAME_MAX], uri[URI_BUFSZ], *base_uri = (char*)arg;
+    char fullpath[U_FILENAME_MAX];
     const char *ext;
-    int enc = 0, zip = 0;
+    int is_a_script, enc = 0, zip = 0;
 
     dbg_err_if (de == NULL);
     dbg_err_if (path == NULL);
     dbg_err_if (arg == NULL);
 
-    /* input file */
-    if(path[0] == '/' || path[0] == '\\')
-    {   /* absolute path */
-        dbg_err_if(u_snprintf(file_in, U_FILENAME_MAX, "%s/%s", path, 
-            de->d_name));
-    } else if(isalpha(path[0]) && path[1] == ':') {
-        /* absolute path Windows (X:/....) */
-        dbg_err_if(u_snprintf(file_in, U_FILENAME_MAX, "%s/%s", path, 
-            de->d_name));
-    } else {
-        /* relative path, use $(srcdir) */
-        dbg_err_if(u_snprintf(file_in, U_FILENAME_MAX, "%s/%s/%s", prefix, 
-            path, de->d_name));
-    }
+    dbg_err_if(u_snprintf(fullpath, U_FILENAME_MAX, "%s/%s", path, de->d_name));
+
+    /* input filename (makefile-style) */
+    dbg_err_if(translate_makefile_filepath(fullpath, prefix, file_in, 
+        sizeof(file_in)));
 
     /* base uri */
     dbg_err_if(u_snprintf(uri, URI_BUFSZ, "%s/%s", base_uri, de->d_name));
@@ -411,6 +415,8 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
 
         return 0; /* skip it */
     } 
+
+    is_a_script = translate_is_a_script(de->d_name);
 
     ctx->nfile++;
 
@@ -451,13 +457,26 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
      * to avoid MSYS (win32) automatic path translation oddity */
     dbg_err_if(io_printf(ctx->iod, 
             "\n" KL1_FILE_FMT 
-            ": %s\n\t$(KLONE) -c translate -i $< -o $@ -u /%s %s %s %s %s\n", 
-            uri_md5, ext, file_in, uri, 
+            ": %s\n\t$(KLONE) -c translate -i $< -o $@ %s -u /%s %s %s %s %s\n"
+            "%s", /* compiler depend-file generation command */
+            uri_md5, ext, file_in, 
+            is_a_script ? "-d $@.kld" : "",
+            uri, 
             zip ? "-z" : "",
             enc ? "-E" : "", 
             enc && ctx->key_file ? "-k" : "", 
-            enc && ctx->key_file ? ctx->key_file  : ""
+            enc && ctx->key_file ? ctx->key_file  : "",
+            is_a_script ? "\t$(MKDEP) -f $@.d $(CFLAGS) -a $@\n" : ""
             ) < 0);
+
+    /* include depend files */
+    if(is_a_script)
+    {
+        dbg_err_if(io_printf(ctx->iod, "\n-include " KL1_FILE_FMT ".kld\n", 
+            uri_md5, ext) < 0);
+        dbg_err_if(io_printf(ctx->iod, "\n-include " KL1_FILE_FMT ".d\n", 
+            uri_md5, ext) < 0);
+    }
 
     return 0;
 err:
