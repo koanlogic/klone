@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.c,v 1.17 2007/05/26 16:18:21 tat Exp $
+ * $Id: emb.c,v 1.18 2008/10/18 13:04:02 tat Exp $
  */
 
 #include <klone/emb.h>
@@ -93,7 +93,7 @@ int emb_lookup(const char *filename, embres_t **pr)
     u_hmap_o_t *obj = NULL;
 
     dbg_err_if (init == 0);
-    dbg_err_if (filename == NULL || !strlen(filename));
+    dbg_err_if (filename == NULL || filename[0] == 0);
     dbg_err_if (pr == NULL);
 
     nop_err_if (u_hmap_get(embmap, (void *) filename, &obj));

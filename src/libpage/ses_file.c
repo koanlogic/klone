@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_file.c,v 1.20 2007/12/23 10:28:45 tat Exp $
+ * $Id: ses_file.c,v 1.21 2008/10/18 13:04:02 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -28,14 +28,14 @@ static int session_file_save(session_t *ss)
     io_t *io = NULL;
 
     dbg_err_if (ss == NULL);
-    
+
     /* delete old file (we'll rewrite it from scratch) */
-    dbg_if(u_remove(ss->filename));
+    u_remove(ss->filename);
 
     if(vars_count(ss->vars) == 0)
         return 0; /* nothing to save */
 
-    // FIXME may be busy, must retry
+    /* FIXME may be busy, must retry */
     dbg_err_if(u_file_open(ss->filename, O_WRONLY | O_CREAT, &io));
 
     dbg_err_if(session_prv_save_to_io(ss, io));
@@ -54,9 +54,9 @@ static int session_file_load(session_t *ss)
     io_t *io = NULL;
 
     dbg_err_if (ss == NULL);
-    dbg_err_if (ss->filename == NULL || strlen(ss->filename) == 0);
+    dbg_err_if (ss->filename == NULL || ss->filename[0] == 0);
 
-    // FIXME may be busy, must retry
+    /* FIXME may be busy, must retry */
     dbg_err_if(u_file_open(ss->filename, O_RDONLY | O_CREAT, &io));
 
     dbg_err_if(session_prv_load_from_io(ss, io));
@@ -107,7 +107,7 @@ int session_file_create(session_opt_t *so, request_t *rq, response_t *rs,
 
     dbg_err_if(session_prv_init(ss, rq, rs));
 
-    if(stat(ss->filename, &st))
+    if(ss->filename[0] != 0 && stat(ss->filename, &st))
         ss->mtime = time(0); /* file not found or err */
     else
         ss->mtime = st.st_mtime;

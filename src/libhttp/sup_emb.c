@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.33 2008/04/25 18:59:08 tat Exp $
+ * $Id: sup_emb.c,v 1.34 2008/10/18 13:04:02 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -196,7 +196,8 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
 
     /* print out page content (the header will be autoprinted by the 
        response io filter) */
-    dbg_err_if(!io_write(response_io(rs), (const char*)e->data, e->size));
+    dbg_err_if(io_write(response_io(rs), (const char*)e->data, e->size) 
+        < e->size);
 
     /* remove and free the gzip codec (if it has been set) */
     dbg_err_if(io_codecs_remove(response_io(rs))); 
@@ -256,7 +257,7 @@ static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
     /* flush the output buffer */
     io_flush(oio);
 
-    /* if nothing has been printed by the sciprt then write a dummy byte so 
+    /* if nothing has been printed by the script then write a dummy byte so 
      * the io_t calls the filter function that, in turn, will print out the 
      * HTTP header (rsfilter will handle it) */
     if(!response_filter_feeded(filter))

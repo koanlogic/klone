@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.43 2008/09/30 15:27:35 tho Exp $
+ * $Id: session.c,v 1.44 2008/10/18 13:04:02 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -303,7 +303,7 @@ static int session_gen_id(session_t *ss)
     struct timeval tv;
 
     dbg_err_if (ss == NULL);
-    
+
     /* gen a new one */
     gettimeofday(&tv, NULL);
 
@@ -353,11 +353,22 @@ int session_load(session_t *ss)
 
 int session_save(session_t *ss)
 {
+    size_t vcount;
     dbg_err_if (ss == NULL);
     dbg_err_if (ss->save == NULL);
 
-    if(!strlen(ss->id))
+    vcount = vars_count(ss->vars);
+
+    if(ss->id[0] == 0 && vcount == 0)
+        return 0; /* new user, no vars set -> nothing to save */
+
+    if(ss->id[0] != 0 && vcount == 0)
+        return session_remove(ss); /* old user, all vars removed */
+
+    if(ss->id[0] == 0)
     {
+        /* new user, need to save some vars */
+
         /* generate a new SID and set session filename accordingly */
         dbg_err_if(session_priv_set_id(ss, NULL)); 
     }
@@ -371,6 +382,9 @@ int session_remove(session_t *ss)
 {
     dbg_return_if (ss == NULL, ~0);
     dbg_return_if (ss->remove == NULL, ~0);
+
+    /* remove the cookie */
+    response_set_cookie(ss->rs, SID_NAME, NULL, 0, NULL, NULL, 0);
 
     ss->removed = 1;
 
@@ -804,13 +818,16 @@ int session_create(session_opt_t *so, request_t *rq, response_t *rs,
     }
 
     /* may fail if the session does not exist */
-    session_load(ss);
-
-    dbg_ifb(session_age(ss) > so->max_age)
+    if(ss->id[0] != 0)
     {
-        session_clean(ss);  /* remove all session variables */
-        session_remove(ss); /* remove the session itself    */
-    }
+        session_load(ss);
+
+        dbg_ifb(session_age(ss) > so->max_age)
+        {
+            session_clean(ss);  /* remove all session variables */
+            session_remove(ss); /* remove the session itself    */
+        }
+    } 
 
     *pss = ss;
 
