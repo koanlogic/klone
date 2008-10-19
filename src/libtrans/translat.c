@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.29 2008/10/18 17:23:32 tat Exp $
+ * $Id: translat.c,v 1.30 2008/10/19 10:53:55 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -711,6 +711,8 @@ static int cb_pre_code_block(parser_t *p, int cmd, void *arg, const char *buf,
         {
             dbg_err_if(u_string_aprintf(ustr, "<%% #line %d \"%s\" \n%%><%%", 
                  p->code_line, file)); 
+            if(cmd == '=')
+                dbg_err_if(u_string_aprintf(ustr, "="));
         } else {
             dbg_err_if(u_string_aprintf(ustr, 
                 "<%%%c #line %d \"%s\" \n%%><%%%c", 
