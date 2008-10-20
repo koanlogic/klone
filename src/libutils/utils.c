@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.55 2008/04/08 12:53:49 tho Exp $
+ * $Id: utils.c,v 1.56 2008/10/20 09:45:52 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1078,7 +1078,7 @@ const char *u_guess_mime_type(const char *file_name)
     {
         ++ext; /* skip '.' */
         for(mm = mime_map; mm->ext && mm->mime_type; ++mm)
-            if(strcmp(mm->ext, ext) == 0)
+            if(strcasecmp(mm->ext, ext) == 0)
                 return mm->mime_type;
     }
 
