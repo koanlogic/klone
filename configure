@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.92 2008/10/03 10:19:07 tho Exp $
+# $Id: configure,v 1.93 2008/10/21 12:44:40 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -21,6 +21,7 @@ fi
 . ${MAKL_DIR}/cf/makl.init
 . build/makl_checkfork
 . build/makl_va_list_by_value
+. build/makl_checkstackp
 
 # Preprocess arguments
 makl_args_init "$@"
@@ -38,6 +39,8 @@ makl_args_def   "disable_cxx"       "" ""   "disable C++ support"
 makl_args_def   "install_daemon_only"  "" ""  "install just Klone daemon file"
 makl_args_def   "daemon_name"  "=NAME" ""   "set the name of Klone daemon"
 makl_args_def   "enable_hooks"  "" ""   "call user-provided hooks_setup() to register hooks"
+makl_args_def   "disable_stack_protector"      "" ""   "set CFLAGS for stack smashing protection (gcc 4.x)"
+
 
 # ... and their handlers
 __makl_enable_debug ()      { makl_set_var_mk       "KLONE_DEBUG" ;
@@ -61,6 +64,9 @@ __makl_enable_warns ()
         "-Wwrite-strings -Wswitch -Wshadow -Wwrite-strings"         \
         "-Wunreachable-code -Wunused -Wcast-qual"
         #"-pedantic -std=c99"
+}
+__makl_disable_stack_protector()       { 
+    makl_set_var_mk        "DISABLE_STACK_PROTECTOR"    "1";   
 }
 
 # General settings
@@ -103,7 +109,6 @@ case `makl_target_name` in
 esac
 
 makl_append_var_mk "CFLAGS"   "-I`pwd` -DHAVE_CONF_H"
-
 
 # these enable .klx pages
 makl_set_var_mk "USE_CXX"  "1"
@@ -161,6 +166,13 @@ makl_add_var_mk "CFLAGS" "\$(LIBZ_CFLAGS)"
 # if debug is not enabled add optimization flags
 if [ -z "`makl_get_var_mk "KLONE_DEBUG"`" ]; then
     makl_append_var_mk "CFLAGS"   "-O2"
+fi
+
+# adds -fstack-protector-all to the CFLAGS when supported by the compiler
+if [ -z "`makl_get_var_mk "DISABLE_STACK_PROTECTOR"`" ]; then
+    if [ "`makl_get_var_mk "HAVE_STACK_PROTECTOR"`" ]; then
+        makl_append_var_mk "CFLAGS"   "-fstack-protector-all"
+    fi
 fi
 
 if [ "`makl_get_var_mk "ENABLE_SUP_CGI"`" -a "`makl_get_var_mk "OS_WIN"`" ]; 

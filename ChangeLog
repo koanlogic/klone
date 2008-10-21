@@ -1,8 +1,9 @@
-$Id: ChangeLog,v 1.68 2008/10/18 17:23:32 tat Exp $
+$Id: ChangeLog,v 1.69 2008/10/21 12:44:40 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.2.x:
+	- -fstack-protector-all added by default when supported by the compiler
 	- better depencecies check: .d and .kld depend files created (and included)
 	  when building (-d switch of klone tool)
 	- .kl1 inheritance (new directives: extends, block, endblock, inherit)

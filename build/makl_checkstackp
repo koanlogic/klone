@@ -1,0 +1,33 @@
+#
+# $Id: makl_checkstackp,v 1.1 2008/10/21 12:44:40 tat Exp $
+#
+
+##\brief Check if -fstack-protector-all is supported by the compiler
+##
+##  Define HAVE_STACK_PROTECTOR
+##
+##   \param $1 0:optional/1:required
+##
+makl_checkfork ()
+{
+    tmpfile=${makl_run_dir}/snippet.c
+
+    [ -z `makl_get "__noconfig__"` ] || return
+    [ -z "$1" ] && makl_err 1 "missing argument (0=optional, 1=required)"
+
+    makl_info "checking for fork() support"
+
+    ${ECHO} "int main(){return 0;}" > ${tmpfile}
+
+    makl_compile_code 0 ${tmpfile} "-fstack-protector-all"
+    
+    if [ $? -eq 0 ]; then
+        makl_set_var_mk "HAVE_STACK_PROTECTOR"
+        return 0
+    else
+        [ $1 -eq 0 ] || makl_err 1 "failed -fstack-protector-all not supported!"
+        makl_unset_var_mk "HAVE_STACK_PROTECTOR"
+        makl_warn "failed check on optional -fstack-protector-all feature check"
+        return 1
+    fi
+}
