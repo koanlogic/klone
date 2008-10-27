@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.c,v 1.18 2008/10/18 13:04:02 tat Exp $
+ * $Id: emb.c,v 1.19 2008/10/27 21:28:04 tat Exp $
  */
 
 #include <klone/emb.h>
@@ -101,7 +101,6 @@ int emb_lookup(const char *filename, embres_t **pr)
     *pr = obj->val;
 
     return 0;
-
 err:
     /* not found */
     return ~0;

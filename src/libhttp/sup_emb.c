@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_emb.c,v 1.34 2008/10/18 13:04:02 tat Exp $
+ * $Id: sup_emb.c,v 1.35 2008/10/27 21:28:04 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -22,10 +22,11 @@
 #include <klone/codecs.h>
 #include <klone/ses_prv.h>
 #include <klone/rsfilter.h>
+#include <klone/dypage.h>
 #include "http_s.h"
 
 static int supemb_is_valid_uri(http_t *h, request_t *rq, const char *uri, 
-        size_t len, time_t *mtime)
+        size_t len, void **handle, time_t *mtime)
 {
     embres_t *e;
     char filename[U_FILENAME_MAX] = { 0 };
@@ -46,6 +47,8 @@ static int supemb_is_valid_uri(http_t *h, request_t *rq, const char *uri,
             *mtime = ((embfile_t*)e)->mtime;
         else
             *mtime = 0; /* dynamic pages cannot be cached */
+
+        *handle = NULL;
 
         return 1;
     }
@@ -217,60 +220,18 @@ err:
 
 static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)
 {
-    session_t *ss = NULL;
-    http_t *http = NULL;
-    codec_t *filter = NULL;
-    session_opt_t *so;
-    io_t *oio;
+    dypage_args_t args;
 
-    dbg_return_if (rq == NULL, ~0);
-    dbg_return_if (rs == NULL, ~0);
-    dbg_return_if (e == NULL, ~0);
+    args.rq = rq;
+    args.rs = rs;
+    args.ss = NULL; /* dypage_serve will set it before calling args.fun() */
+    args.fun = e->fun;
+    args.opaque = NULL;
 
-    /* output io object */
-    oio = response_io(rs);
-
-    /* get session options */
-    dbg_err_if((http = request_get_http(rq)) == NULL);
-    dbg_err_if((so = http_get_session_opt(http)) == NULL);
-
-    /* parse URL encoded or POSTed data (POST must be read before) */
-    dbg_err_if(request_parse_data(rq));
-
-    /* create/get the session */
-    dbg_err_if(session_create(so, rq, rs, &ss));
-
-    /* set some default values */
-    dbg_err_if(response_set_content_type(rs, "text/html"));
-
-    /* by default disable caching */
-    response_disable_caching(rs);
-
-    /* create a response filter (used to automatically print all header fields 
-     * when the header buffer fills up) and attach it to the response io */
-    dbg_err_if(response_filter_create(rq, rs, ss, &filter));
-    io_codec_add_tail(oio, filter);
-
-    /* run the page code */
-    e->run(rq, rs, ss);
-
-    /* flush the output buffer */
-    io_flush(oio);
-
-    /* if nothing has been printed by the script then write a dummy byte so 
-     * the io_t calls the filter function that, in turn, will print out the 
-     * HTTP header (rsfilter will handle it) */
-    if(!response_filter_feeded(filter))
-        io_write(oio, "\n", 1);
-
-    /* save and destroy the session */
-    session_free(ss);
+    dbg_err_if(dypage_serve(&args));
 
     return 0;
 err:
-    io_flush(response_io(rs));
-    if(ss)
-        session_free(ss);
     return ~0;
 }
 

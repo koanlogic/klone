@@ -1,10 +1,10 @@
-# $Id: Makefile,v 1.6 2007/11/09 01:30:45 tat Exp $
+# $Id: Makefile,v 1.7 2008/10/27 21:28:04 tat Exp $
 
 include common.mk
 include ../../Makefile.conf
 
 LIB = http
-SRCS = broker.c cgi.c http.c sup_emb.c access.c vhost.c
+SRCS = broker.c cgi.c http.c sup_emb.c access.c vhost.c dypage.c
 
 ifdef ENABLE_SUP_FS
 SRCS += sup_fs.c
@@ -14,6 +14,10 @@ ifndef OS_WIN
 ifdef ENABLE_SUP_CGI
 SRCS += sup_cgi.c
 endif
+endif
+
+ifdef ENABLE_SUP_KILT
+SRCS += sup_kilt.c
 endif
 
 ifdef INSTALL_DAEMON_ONLY

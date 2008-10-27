@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.h,v 1.16 2007/09/15 16:36:12 tat Exp $
+ * $Id: emb.h,v 1.17 2008/10/27 21:28:03 tat Exp $
  */
 
 #ifndef _KLONE_EMB_H_
@@ -18,6 +18,7 @@
 #endif /* HAVE_STDINT */
 #include <u/libu.h>
 #include <klone/klone.h>
+#include <klone/dypage.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,7 +58,7 @@ typedef struct embfile_s
 typedef struct embpage_s
 {
     embres_t res;           /* any emb resource must start with a embres_t  */
-    void (*run)(request_t*, response_t*, session_t*);   /* page code        */
+    dypage_fun_t fun;
 } embpage_t;
 
 int emb_init(void);

@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.34 2008/10/21 12:52:54 tat Exp $
+# $Id: Makefile.dist,v 1.35 2008/10/27 21:28:03 tat Exp $
 
 include common.mk
 
@@ -25,7 +25,6 @@ DISTFILES += contrib/iocat/test.sh contrib/iocat/Makefile
 DISTFILES += $(wildcard contrib/iowc/*.c) contrib/iowc/Makefile
 
 # klone sources and headers
-DISTFILES += site/Makefile
 DISTFILES += $(wildcard klone/*.h) klone/Makefile
 DISTFILES += $(wildcard webapp/*.[ch]) webapp/Makefile webapp/Makefile-webapp
 DISTFILES += src/Makefile src/tools/Makefile
@@ -42,6 +41,10 @@ DISTFILES += $(wildcard src/libtrans/*.[ch]) src/libtrans/Makefile
 DISTFILES += $(wildcard src/libutils/*.[ch]) src/libutils/Makefile
 DISTFILES += $(wildcard src/libhook/*.[ch]) src/libhook/Makefile
 DISTFILES += $(wildcard src/tools/klone/*.[ch]) src/tools/klone/Makefile 
+
+# site/ dir
+DISTFILES += site/Makefile
+DISTFILES += $(wildcard site/*.[ch]) 
 
 # configuration samples (etc)
 DISTFILES += $(wildcard etc/*.conf) etc/psk.db

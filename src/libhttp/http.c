@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.65 2008/10/13 16:21:04 tat Exp $
+ * $Id: http.c,v 1.66 2008/10/27 21:28:04 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -34,6 +34,7 @@
 #include <klone/hookprv.h>
 #include <klone/access.h>
 #include <klone/vhost.h>
+#include <klone/supplier.h>
 #include "http_s.h"
 
 struct http_status_map_s
@@ -232,6 +233,11 @@ static int http_is_valid_uri(request_t *rq, const char *buf, size_t len)
     strncpy(uri, buf, len);
     uri[len] = 0;
 
+    /* try the url itself */
+    if(broker_is_valid_uri(h->broker, h, rq, uri, strlen(uri)))
+        return 1;
+
+    /* try the path-resolved url */
     dbg_err_if(http_alias_resolv(h, rq, resolved, uri, U_FILENAME_MAX));
 
     return broker_is_valid_uri(h->broker, h, rq, resolved, strlen(resolved));
@@ -468,6 +474,7 @@ static int http_serve(http_t *h, int fd)
     struct sockaddr sa;
     socklen_t sasz;
     char *uri, nuri[URI_MAX];
+    supplier_t *sup;
 
     u_unused_args(al);
 
@@ -574,7 +581,9 @@ static int http_serve(http_t *h, int fd)
     dbg_err_if(http_resolv_request(h, rq));
 
     /* if the uri end with a slash then return an index page */
-    if((cstr = request_get_filename(rq)) != NULL && cstr[strlen(cstr)-1] == '/')
+    request_get_sup_info(rq, &sup, NULL, NULL);
+    if(sup == NULL && (cstr = request_get_filename(rq)) != NULL && 
+            cstr[strlen(cstr)-1] == '/')
         dbg_if(http_set_index_request(h, rq)); /* set the index page */
 
     /* add default header fields */

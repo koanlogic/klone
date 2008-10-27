@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.93 2008/10/21 12:44:40 tat Exp $
+# $Id: configure,v 1.94 2008/10/27 21:28:03 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -34,6 +34,8 @@ makl_args_def   "enable_sup_fs"     "" ""   "enables filesystem web access"
 makl_args_def   "enable_fs"     "" ""   "--enable_sup_fs alias"
 makl_args_def   "enable_sup_cgi"    "" ""   "enables external CGIs"
 makl_args_def   "enable_cgi"    "" ""   "--enable_sup_cgi alias"
+makl_args_def   "enable_sup_kilt"     "" ""   "enables kilt module"
+makl_args_def   "enable_kilt"     "" ""   "--enable_sup_kilt alias"
 makl_args_def   "enable_warns"      "" ""   "set CFLAGS for extra warnings"
 makl_args_def   "disable_cxx"       "" ""   "disable C++ support"
 makl_args_def   "install_daemon_only"  "" ""  "install just Klone daemon file"
@@ -47,10 +49,16 @@ __makl_enable_debug ()      { makl_set_var_mk       "KLONE_DEBUG" ;
                               makl_append_var_mk    "CFLAGS" "-g -DDEBUG" ; }
 __makl_enable_libu_debug () { makl_set_var_mk       "LIBU_DEBUG" ;          }
 __makl_enable_profile ()    { makl_append_var_mk    "CFLAGS" "-pg -a" ;     }
+
 __makl_enable_sup_fs ()     { makl_set_var          "ENABLE_SUP_FS" ;       }
 __makl_enable_fs ()         { __makl_enable_sup_fs ;                        }
+
+__makl_enable_sup_kilt ()     { makl_set_var          "ENABLE_SUP_KILT" ;   }
+__makl_enable_kilt ()         { __makl_enable_sup_kilt ;                    }
+
 __makl_enable_sup_cgi ()    { makl_set_var          "ENABLE_SUP_CGI" ;      }
 __makl_enable_cgi ()        { __makl_enable_sup_cgi;                        }
+
 __makl_disable_cxx ()       { makl_unset_var        "USE_CXX" ;             }
 __makl_install_daemon_only () 
                             { makl_set_var          "INSTALL_DAEMON_ONLY" ; }

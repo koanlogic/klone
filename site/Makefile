@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.9 2008/10/18 17:23:32 tat Exp $
+# $Id: Makefile,v 1.10 2008/10/27 21:28:04 tat Exp $
 
 include common.mk
 include ../Makefile.conf
@@ -12,7 +12,7 @@ NO_INSTALL = true
 endif
 
 CFLAGS += ${WEBAPP_CFLAGS}
-CLEANFILES += *.c *.cc *.a *.o *.d *.kld autogen.*
+CLEANFILES += pg_*.c pg_*.cc pg_*.o pg_*.d pg_*.kld autogen.* register.c libsite.a
 
 # if already set don't change it
 KLONE ?= ../src/tools/klone/klone
@@ -28,8 +28,8 @@ include lib.mk
 
 beforedepend: register.c
 
-register.c:
-	@echo "void register_pages(){} void unregister_pages(){}" > $@
+register.c: register-def.c
+	@cp -f $< $@
 
 autogen.dps:
 	@echo > $@

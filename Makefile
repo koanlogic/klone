@@ -19,6 +19,6 @@ endif
 include $(MAKL_DIR)/mk/subdir.mk
 
 # deps
-webapp site src: build/libu
+webapp site src: build/libu 
 contrib: src
 

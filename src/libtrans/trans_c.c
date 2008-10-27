@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.40 2008/04/10 16:30:58 tat Exp $
+ * $Id: trans_c.c,v 1.41 2008/10/27 21:28:04 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -123,6 +123,7 @@ static void print_header(parser_t *p, lang_c_ctx_t *ctx)
 
     io_printf(p->out, "%s", copyright_hdr);
     io_printf(p->out, "#include <klone/emb.h>\n");
+    io_printf(p->out, "#include <klone/dypage.h>\n");
 
     file = ctx->ti->uri + strlen(ctx->ti->uri) - 1;
 
@@ -221,11 +222,11 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
 
     io_printf(p->out, 
         "\n\n"
-        "static void exec_page(request_t *rq, response_t *rs, session_t *ses)\n"
+        "static void exec_page(dypage_args_t *args)\n"
         "{\n"
-        "   request = rq;                       \n"
-        "   response = rs;                      \n"
-        "   session = ses;                      \n"
+        "   request = args->rq;                       \n"
+        "   response = args->rs;                      \n"
+        "   session = args->ss;                      \n"
         "   in = request_io(request);           \n"
         "   out = response_io(response);        \n"
         "   u_unused_args(SCRIPT_NAME, request, response, session, in, out); \n"
@@ -288,7 +289,7 @@ static void print_dynamic_page_block(io_t *out, lang_c_ctx_t *ctx)
         "{                                  \n"
         "   e.res.type = ET_PAGE;           \n"
         "   e.res.filename = \"%s\";        \n"
-        "   e.run = exec_page;              \n"
+        "   e.fun = exec_page;              \n"
         "}                                  \n",
         ctx->ti->uri);
 }

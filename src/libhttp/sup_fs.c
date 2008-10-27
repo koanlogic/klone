@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: sup_fs.c,v 1.13 2008/04/25 18:59:08 tat Exp $
+ * $Id: sup_fs.c,v 1.14 2008/10/27 21:28:04 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -18,7 +18,7 @@
 #include <klone/utils.h>
 
 static int fs_is_valid_uri(http_t *h, request_t *rq, const char *uri, 
-        size_t len, time_t *mtime)
+        size_t len, void **handle, time_t *mtime)
 {
     struct stat st; 
     char fqn[U_FILENAME_MAX];
@@ -39,6 +39,7 @@ static int fs_is_valid_uri(http_t *h, request_t *rq, const char *uri,
     if(stat(fqn, &st) == 0 && S_ISREG(st.st_mode))
     {
         *mtime = st.st_mtime;
+        *handle = NULL;
 
         return 1;
     } else

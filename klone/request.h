@@ -5,13 +5,14 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.h,v 1.20 2008/06/04 17:48:01 tat Exp $
+ * $Id: request.h,v 1.21 2008/10/27 21:28:04 tat Exp $
  */
 
 #ifndef _KLONE_REQUEST_H_
 #define _KLONE_REQUEST_H_
 
 #include <sys/types.h>
+#include <time.h>
 #include <u/libu.h>
 #include <klone/header.h>
 #include <klone/io.h>
@@ -94,6 +95,11 @@ const char *request_get_cookie(request_t *rq, const char *name);
 
 vhost_t *request_get_vhost(request_t *rq);
 int request_set_vhost(request_t *rq, vhost_t *vhost);
+
+/* internal */
+struct supplier_s;
+void request_set_sup_info(request_t *, struct supplier_s*, void *, time_t);
+void request_get_sup_info(request_t *, struct supplier_s **, void **, time_t *);
 
 #ifdef __cplusplus
 }

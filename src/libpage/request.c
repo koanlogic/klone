@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.61 2008/10/13 16:21:04 tat Exp $
+ * $Id: request.c,v 1.62 2008/10/27 21:28:04 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -24,6 +24,7 @@
 #include <klone/vars.h>
 #include <klone/timer.h>
 #include <klone/vhost.h>
+#include <klone/supplier.h>
 
 struct request_s
 {
@@ -55,6 +56,10 @@ struct request_s
     size_t post_maxsize;        /* max # of POSTed bytes to accepts         */
     vhost_t *vhost;             /* cached vhost pointer                     */
     size_t padding;
+    /* cached supplier info data */
+    supplier_t *si_sup;
+    void *si_handle;
+    time_t si_mtime;
 };
 
 typedef struct upload_info_s    /* uploaded file info struct         */
@@ -1612,6 +1617,33 @@ err:
     if(al)
         dbg_if(timerm_del(al));
     return rc;
+}
+
+/* cache data found in broker_is_valid_uri so we don't have to look for it 
+   again in broker_serve */
+void request_set_sup_info(request_t *rq, supplier_t *sup, void *handle, 
+        time_t mtime)
+{
+    rq->si_sup = sup;
+    rq->si_handle = handle;
+    rq->si_mtime = mtime;
+
+    return;
+}
+
+void request_get_sup_info(request_t *rq, supplier_t **psup, void **phandle, 
+        time_t *pmtime)
+{
+    if(psup)
+        *psup = rq->si_sup;
+
+    if(phandle)
+        *phandle = rq->si_handle;
+
+    if(pmtime)
+        *pmtime = rq->si_mtime;
+
+    return;
 }
 
 /*
