@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.30 2008/10/19 10:53:55 tat Exp $
+ * $Id: translat.c,v 1.31 2008/10/28 23:05:51 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -222,6 +222,9 @@ static int ppctx_free(ppctx_t *ppc)
 
     if(ppc->top)
         block_free(ppc->top);
+
+    if(ppc->dead)
+        block_free(ppc->dead);
 
     if(ppc->depend)
     {
@@ -445,12 +448,14 @@ static int process_directive_block(parser_t *p, const char *name)
 
             /* attach it to a dead tree (i.e. a tree that doesn't get printed)*/
             dbg_err_if(block_push_child(ppc->dead, block));
-        } 
 
-        if(ppc->lev)
-        {
-            /* nested block */
-            dbg_err_if(block_push_child(ppc->cur, block));
+        } else {
+
+            if(ppc->lev)
+            {
+                /* nested block */
+                dbg_err_if(block_push_child(ppc->cur, block));
+            }
         }
 
     } else {
