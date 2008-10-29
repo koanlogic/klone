@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: path.c,v 1.5 2008/03/18 22:48:51 tho Exp $
+ * $Id: path.c,v 1.6 2008/10/29 15:21:26 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -39,7 +39,8 @@ int u_uri_normalize(char *path)
     u_string_t *s = NULL;
     size_t len;
     char delim[2];
-    char *pp, *tok, *src, *cs;
+    char *pp, *tok, *src; 
+    const char *cs;
     int trsl = 0; /* trailing slash */
 
     dbg_err_if(path == NULL);
