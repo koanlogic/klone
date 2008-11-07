@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.95 2008/11/07 14:53:00 stewy Exp $
+# $Id: configure,v 1.96 2008/11/07 19:49:51 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -41,7 +41,7 @@ makl_args_def   "disable_cxx"       "" ""   "disable C++ support"
 makl_args_def   "install_daemon_only"  "" ""  "install just Klone daemon file"
 makl_args_def   "daemon_name"  "=NAME" ""   "set the name of Klone daemon"
 makl_args_def   "enable_hooks"  "" ""   "call user-provided hooks_setup() to register hooks"
-makl_args_def   "disable_stack_protector"      "" ""   "set CFLAGS for stack smashing protection (gcc 4.x)"
+makl_args_def   "disable_stack_protector"      "" ""   "disable stack smashing protection (gcc 4.x)"
 
 
 # ... and their handlers
@@ -148,6 +148,9 @@ makl_checkstructelem    0   "struct tm"     "tm_gmtoff"  "<time.h>"
 
 # working fork()?
 makl_checkfork          0
+
+# -fstack-protector-all
+makl_checkstackp          0
 
 # check va_list behaviour
 makl_va_list_by_value
