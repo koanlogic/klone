@@ -7,7 +7,8 @@ makl_va_list_by_value ()
 
     makl_info "checking va_list behaviour"
 
-    cat build/va_list_by_value.c | makl_exec_code 0 
+    makl_exec_code 0  build/va_list_by_value.c 
+
     if [ $? -eq 0 ]
     then
         makl_set_var "VA_LIST_BY_VALUE"
