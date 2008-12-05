@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.62 2008/10/27 21:28:04 tat Exp $
+ * $Id: request.c,v 1.63 2008/12/05 19:24:45 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1575,16 +1575,16 @@ int request_parse_data(request_t *rq)
 
     if(rq->method == HM_POST)
     {
-        /* set a timeout to abort POST if it takes too much... */
-        dbg_err_if(timerm_add(rq->post_timeout, request_cb_close_socket, 
-            (void*)rq->io, &al));
-
         /* Content-Length is required when using POST */
         dbg_err_if(request_set_content_length(rq) && 
             (rc = HTTP_STATUS_LENGTH_REQUIRED));
 
         if(rq->content_length == 0)
             return 0; /* no data posted */
+
+        /* set a timeout to abort POST if it takes too long ... */
+        dbg_err_if(timerm_add(rq->post_timeout, request_cb_close_socket, 
+            (void*)rq->io, &al));
 
         /* abort if the client is pushing too much data */
         dbg_err_if(rq->content_length > rq->post_maxsize &&
