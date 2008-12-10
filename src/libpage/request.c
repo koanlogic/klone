@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.63 2008/12/05 19:24:45 tat Exp $
+ * $Id: request.c,v 1.64 2008/12/10 13:34:27 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -742,6 +742,10 @@ int request_set_method(request_t *rq, const char *method)
         rq->method = HM_HEAD;
     else if(!strcasecmp(method, "post"))
         rq->method = HM_POST;
+    else if(!strcasecmp(method, "put"))
+        rq->method = HM_PUT;
+    else if(!strcasecmp(method, "delete"))
+        rq->method = HM_DELETE;
     else {
         /* put, delete, * */
         rq->method = HM_UNKNOWN;

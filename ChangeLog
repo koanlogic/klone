@@ -1,8 +1,9 @@
-$Id: ChangeLog,v 1.69 2008/10/21 12:44:40 tat Exp $
+$Id: ChangeLog,v 1.70 2008/12/10 13:34:27 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.2.x:
+	- don't fail on PUT and DELETE requests
 	- -fstack-protector-all added by default when supported by the compiler
 	- better depencecies check: .d and .kld depend files created (and included)
 	  when building (-d switch of klone tool)
