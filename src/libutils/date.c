@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: date.c,v 1.11 2007/10/26 08:57:59 tho Exp $
+ * $Id: date.c,v 1.12 2008/12/17 08:40:53 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -26,14 +26,11 @@
  *  \{
  */
 
-const char* days3[] = { 
+static const char* days3[] = { 
     "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" 
 };
-const char* days[] = { 
-    "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",  "Friday",
-    "Saturday", "Sunday" 
-};
-const char* months[] = { 
+
+static const char* months[] = { 
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" 
 };
