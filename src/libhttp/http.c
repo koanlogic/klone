@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.66 2008/10/27 21:28:04 tat Exp $
+ * $Id: http.c,v 1.67 2009/01/05 15:21:22 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -326,7 +326,7 @@ static int http_get_default_index(http_t *h, request_t *rq, char *cindex,
         size_t sz)
 {
     static const char *indexes[] = { "/index.klone", "/index.kl1",
-        "/index.html", "/index.htm", NULL };
+        "/index.klc", "/index.klx", "/index.html", "/index.htm", NULL };
     const char **pg;
 
     dbg_err_if (h == NULL);
