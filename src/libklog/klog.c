@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: klog.c,v 1.27 2006/01/11 14:19:21 tat Exp $
+ * $Id: klog.c,v 1.28 2009/01/27 12:27:21 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -18,7 +18,7 @@ static int klog_args_new (klog_args_t **pka);
 static int klog_args_check (klog_args_t *ka);
 
 static int klog_type (const char *type);
-static int klog_facility (const char *fac);
+static int klog_facility (klog_args_t *ka, const char *fac);
 static int klog_threshold (const char *threshold);
 static int klog_logopt (const char *options);
 
@@ -67,7 +67,7 @@ int klog_args (u_config_t *ls, klog_args_t **pka)
 
     #ifdef HAVE_SYSLOG
     ka->sfacility = 
-        klog_facility(u_config_get_subkey_value(ls, "syslog.facility"));
+        klog_facility(ka, u_config_get_subkey_value(ls, "syslog.facility"));
 
     ka->soptions = klog_logopt(u_config_get_subkey_value(ls, "syslog.options"));
     #endif
@@ -412,9 +412,10 @@ err:
 #endif
 
 /* map LOG_LOCAL[0-7] strings into syslog(3) #define'd values */
-static int klog_facility (const char *fac)
+static int klog_facility (klog_args_t *ka, const char *fac)
 {
-    dbg_err_if (fac == NULL);
+    dbg_goto_if (fac == NULL, end);
+    nop_goto_if (ka->type != KLOG_TYPE_SYSLOG, end);
 
     if (!strcasecmp(fac, "LOG_LOCAL0")) 
         return LOG_LOCAL0;
@@ -432,9 +433,10 @@ static int klog_facility (const char *fac)
         return LOG_LOCAL6;
     else if (!strcasecmp(fac, "LOG_LOCAL7")) 
         return LOG_LOCAL7;
-
-err:    
-    warn("bad facility value \'%s\'", fac);
+    else
+        warn("unknown facility value \'%s\'", fac);
+        /* fall through */
+end:
     return KLOG_FACILITY_UNKNOWN; 
 }
 
@@ -458,7 +460,7 @@ static int klog_args_check (klog_args_t *ka)
     /* do not filter if not specified or if a wrong value has been supplied */
     if (ka->threshold == KLOG_LEVEL_UNKNOWN)
     {
-        warn("threshold unspecified: assuming lowest possible (DEBUG)");
+        dbg("threshold unspecified: assuming lowest possible (DEBUG)");
         ka->threshold = KLOG_DEBUG;
     }
 
