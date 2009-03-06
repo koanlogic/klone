@@ -30,7 +30,7 @@ all dist: VERSION ChangeLog build/makl $(KLONE_CORE_TARBALL)
 
 $(KLONE_CORE_TARBALL):
 	cd $(BASE)/makl && make toolchain rc
-	cd $(BASE) && . makl/makl.env && ./configure && make && \
+	cd $(BASE) && . makl/makl.env && ./configure && make clean && make && \
 	    make -f Makefile.dist dist
 	rm -rf build/dist
 	mkdir -p build/dist
