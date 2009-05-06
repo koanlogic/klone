@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.64 2008/12/10 13:34:27 tat Exp $
+ * $Id: request.c,v 1.65 2009/05/06 17:26:04 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -1579,6 +1579,9 @@ int request_parse_data(request_t *rq)
 
     if(rq->method == HM_POST)
     {
+        /* some vars may be urlencoded */
+        dbg_err_if(request_parse_query_args(rq));
+
         /* Content-Length is required when using POST */
         dbg_err_if(request_set_content_length(rq) && 
             (rc = HTTP_STATUS_LENGTH_REQUIRED));
@@ -1593,9 +1596,6 @@ int request_parse_data(request_t *rq)
         /* abort if the client is pushing too much data */
         dbg_err_if(rq->content_length > rq->post_maxsize &&
             (rc = HTTP_STATUS_REQUEST_TOO_LARGE));
-
-        /* some vars may be urlencoded */
-        dbg_err_if(request_parse_query_args(rq));
 
         if(request_is_multipart_formdata(rq))
         { 

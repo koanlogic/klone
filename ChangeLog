@@ -1,6 +1,9 @@
-$Id: ChangeLog,v 1.71 2009/03/06 13:39:31 tat Exp $
+$Id: ChangeLog,v 1.72 2009/05/06 17:26:04 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
+
+KLone 2.2.x:
+	- urlencoded variables parsed also when Content-Length == 0 on POSTs
 
 KLone 2.2.0:
 	- new url-regex dispatcher (kilt)
