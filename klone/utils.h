@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.h,v 1.34 2008/04/08 12:53:49 tho Exp $
+ * $Id: utils.h,v 1.35 2009/05/29 10:26:00 tho Exp $
  */
 
 #ifndef _KLONE_UTILS_H_
@@ -76,7 +76,7 @@ ssize_t u_sqlncpy(char *dst, const char *src, size_t slen, int flags);
 int u_printf_ccstr(io_t *o, const char *buf, size_t sz);
 
 int u_file_open(const char *file, int flags, io_t **pio);
-int u_tmpfile_open(io_t **pio);
+int u_tmpfile_open(const char *tmpdir, io_t **pio);
 int u_getline(io_t *io, u_string_t *ln);
 int u_fgetline(FILE *in, u_string_t *ln);
 

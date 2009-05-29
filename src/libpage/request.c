@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: request.c,v 1.65 2009/05/06 17:26:04 tat Exp $
+ * $Id: request.c,v 1.66 2009/05/29 10:26:00 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -54,6 +54,7 @@ struct request_s
     size_t idle_timeout;        /* max # of secs to wait for the request    */
     size_t post_timeout;        /* max # of secs for reading POSTed data    */
     size_t post_maxsize;        /* max # of POSTed bytes to accepts         */
+    const char *temp_dir;       /* where temp files go                      */
     vhost_t *vhost;             /* cached vhost pointer                     */
     size_t padding;
     /* cached supplier info data */
@@ -1452,7 +1453,7 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
         dbg_err_if(BUFSZ <= bound_len);
 
         /* open a temporary file to dump uploaded data */
-        dbg_err_if(u_tmpfile_open(&tmpio));
+        dbg_err_if(u_tmpfile_open(rq->temp_dir, &tmpio));
 
         for(found = 0; !found; /* nothing */)
         {
@@ -1822,6 +1823,7 @@ static int request_load_config(request_t *rq)
     rq->idle_timeout = REQUEST_DEFAULT_IDLE_TIMEOUT;
     rq->post_timeout = REQUEST_DEFAULT_POST_TIMEOUT;
     rq->post_maxsize = REQUEST_DEFAULT_POST_MAXSIZE;
+    rq->temp_dir = NULL;    /* use system default */
 
     /* idle timeout */
     if((v = u_config_get_subkey_value(c, "idle_timeout")) != NULL)
@@ -1834,6 +1836,9 @@ static int request_load_config(request_t *rq)
     /* post maxsize */
     if((v = u_config_get_subkey_value(c, "post_maxsize")) != NULL)
         rq->post_maxsize = MAX(1024, atoi(v));
+
+    /* temp dir to use on file upload.  when 'NULL' use system default */
+    rq->temp_dir = u_config_get_subkey_value(c, "temp_dir");
 
     return 0;
 err:

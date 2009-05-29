@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: translat.c,v 1.31 2008/10/28 23:05:51 tat Exp $
+ * $Id: translat.c,v 1.32 2009/05/29 10:26:01 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -806,7 +806,7 @@ static int fix_line_decl(trans_info_t *pti)
         "unable to open %s", pti->file_out);
 
     /* get a temporary io_t */
-    con_err_if(u_tmpfile_open(&tmp));
+    con_err_if(u_tmpfile_open(NULL, &tmp));
 
     while(io_gets(in, buf, sizeof(buf)) > 0)
     {
@@ -864,7 +864,7 @@ int translate(trans_info_t *pti)
     if(translate_is_a_script(pti->file_in))
     {
         /* get a temporary io_t */
-        con_err_if(u_tmpfile_open(&tmp));
+        con_err_if(u_tmpfile_open(NULL, &tmp));
 
         /* create a preprocessor context */
         dbg_err_if(ppctx_create(&ppc));

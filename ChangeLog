@@ -1,9 +1,11 @@
-$Id: ChangeLog,v 1.72 2009/05/06 17:26:04 tat Exp $
+$Id: ChangeLog,v 1.73 2009/05/29 10:26:00 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.2.x:
 	- urlencoded variables parsed also when Content-Length == 0 on POSTs
+	- added temp_dir configuration variable to override system default temp 
+	  directory (L_tmpnam, TMPDIR & friends)
 
 KLone 2.2.0:
 	- new url-regex dispatcher (kilt)

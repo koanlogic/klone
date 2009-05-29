@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.56 2008/10/20 09:45:52 tat Exp $
+ * $Id: utils.c,v 1.57 2009/05/29 10:26:01 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -674,21 +674,28 @@ err:
  *
  * Create a temporary \c io_t object at \p *pio.
  *
+ * \param   tmpdir  optional base temp directory, supply \c NULL to use the
+ *                  default value
  * \param   pio     pointer to the temporary \c io_t object
  *
  * \return
  * - \c 0   successful
  * - \c ~0  error
  */
-int u_tmpfile_open(io_t **pio)
+int u_tmpfile_open(const char *tmpdir, io_t **pio)
 {
+    const char *pfx = "kloned";
+    char *f_temp = NULL;
     char tmp[U_FILENAME_MAX];
     io_t *io = NULL;
 
     dbg_return_if (pio == NULL, ~0);
-    
-    if(tmpnam(tmp) != NULL)
+
+    if((f_temp = tempnam(tmpdir, pfx)) != NULL)
     {
+        dbg_err_if (strlcpy(tmp, f_temp, sizeof tmp) >= sizeof tmp); 
+        u_free(f_temp), f_temp = NULL;
+
         dbg_err_if(u_file_open(tmp, O_CREAT | O_EXCL | O_RDWR, &io));
 
         dbg_err_if(io_name_set(io, tmp));
@@ -701,6 +708,8 @@ int u_tmpfile_open(io_t **pio)
 err:
     if(io)
         io_free(io);
+    if (f_temp)
+        u_free(f_temp);
     return ~0;
 }
 
