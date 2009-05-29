@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: utils.c,v 1.57 2009/05/29 10:26:01 tho Exp $
+ * $Id: utils.c,v 1.58 2009/05/29 12:14:59 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -684,7 +684,7 @@ err:
  */
 int u_tmpfile_open(const char *tmpdir, io_t **pio)
 {
-    const char *pfx = "kloned";
+    const char *pfx = "kloned_tmp_";
     char *f_temp = NULL;
     char tmp[U_FILENAME_MAX];
     io_t *io = NULL;
