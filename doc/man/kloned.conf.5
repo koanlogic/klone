@@ -1,4 +1,4 @@
-.\" $Id: kloned.conf.5,v 1.7 2009/05/29 12:14:59 tho Exp $
+.\" $Id: kloned.conf.5,v 1.8 2009/05/29 12:53:25 tho Exp $
 .TH "KLONED.CONF" "5" "03/06/2006" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
@@ -90,7 +90,7 @@ Set the maximum number of bytes the server is willing to accept for a given HTTP
 the connection is immediately terminated. The default value is 5 MB.
 .TP
 \fBtemp_dir\fR
-Set the base directory where temporary resources (e.g. uploaded files) are created.  When provided, the system default is overridden.  Currently, this value has per-backend/per-vhost scoping.
+Set the base directory where temporary resources (e.g. uploaded files) are created.  When provided, the system default is overridden.  Currently, this value has per-backend scope.
 .SS "SERVER"
 .PP
 Per server\-type configuration parameters.
