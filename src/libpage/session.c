@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.44 2008/10/18 13:04:02 tat Exp $
+ * $Id: session.c,v 1.45 2009/05/31 18:50:27 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -66,6 +66,7 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     so->max_age = DEFAULT_SESSION_EXPIRATION;
     so->compress = 0;
     so->encrypt = 0;
+    (void) u_strlcpy(so->name, SID_NAME, sizeof so->name);
 
     if(!u_config_get_subkey(config, "session", &c))
     {
@@ -97,6 +98,10 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
 
         /* set encryption flag */
         dbg_err_if(u_config_get_subkey_value_b(c, "encrypt", 0, &so->encrypt));
+
+        /* set cookie name */
+        if ((v = u_config_get_subkey_value(c, "sid_name")) != NULL)
+            dbg_err_if (u_strlcpy(so->name, v, sizeof so->name));
 
 #ifndef HAVE_LIBZ
         if(so->compress)
@@ -314,11 +319,12 @@ static int session_gen_id(session_t *ss)
     dbg_err_if(u_md5(buf, strlen(buf), ss->id));
 
     /* remove previous sid if any */ 
-    dbg_err_if(response_set_cookie(ss->rs, SID_NAME, NULL, 0, NULL, NULL, 0));
+    dbg_err_if(response_set_cookie(ss->rs, ss->so->name, NULL, 0, NULL, 
+                NULL, 0));
 
     /* set the cookie ID */
-    dbg_err_if(response_set_cookie(ss->rs, SID_NAME, ss->id, 0, NULL, 
-        NULL, 0));
+    dbg_err_if(response_set_cookie(ss->rs, ss->so->name, ss->id, 0, NULL, 
+                NULL, 0));
 
     return 0;
 err:
@@ -384,7 +390,7 @@ int session_remove(session_t *ss)
     dbg_return_if (ss->remove == NULL, ~0);
 
     /* remove the cookie */
-    response_set_cookie(ss->rs, SID_NAME, NULL, 0, NULL, NULL, 0);
+    response_set_cookie(ss->rs, ss->so->name, NULL, 0, NULL, NULL, 0);
 
     ss->removed = 1;
 
@@ -405,7 +411,7 @@ int session_prv_init(session_t *ss, request_t *rq, response_t *rs)
     ss->rs = rs;
 
     /* if the client has a SID set and it's a good one then use it */
-    sid = request_get_cookie(ss->rq, SID_NAME);
+    sid = request_get_cookie(ss->rq, ss->so->name);
     if(sid)
         dbg_err_if(session_priv_set_id(ss, sid));
 

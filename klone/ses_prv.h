@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: ses_prv.h,v 1.18 2006/01/09 12:38:38 tat Exp $
+ * $Id: ses_prv.h,v 1.19 2009/05/31 18:50:27 tho Exp $
  */
 
 #ifndef _KLONE_SESPRV_H_
@@ -67,6 +67,7 @@ typedef struct session_opt_s
     int max_age;    /* max allowed age of sessions                   */
     int encrypt;    /* >0 when client-side session encryption is on  */
     int compress;   /* >0 when client-side session compression is on */
+    char name[128]; /* cookie name                                   */
     #ifdef HAVE_LIBOPENSSL
     const EVP_CIPHER *cipher; /* encryption cipher algorithm         */
     unsigned char cipher_key[CIPHER_KEY_SIZE]; /* cipher secret key  */

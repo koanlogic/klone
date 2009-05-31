@@ -1,4 +1,4 @@
-.\" $Id: kloned.conf.5,v 1.8 2009/05/29 12:53:25 tho Exp $
+.\" $Id: kloned.conf.5,v 1.9 2009/05/31 18:50:27 tho Exp $
 .TH "KLONED.CONF" "5" "03/06/2006" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
@@ -201,6 +201,9 @@ for storing data on the client. The default value is
 .TP
 \fBmax_age\fR
 Set the inactivity threshold timeout for the session. The default value is 60*20 seconds (20 minutes).
+.TP
+\fBsid_name\fR
+Set a custom cookie name.
 .TP
 \fBencrypt\fR
 A boolean specifying whether the session data should be encrypted before being sent to the client. The default is
