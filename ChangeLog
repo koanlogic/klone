@@ -1,4 +1,4 @@
-$Id: ChangeLog,v 1.74 2009/05/31 18:50:27 tho Exp $
+$Id: ChangeLog,v 1.75 2009/07/25 12:45:17 tat Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
@@ -7,6 +7,7 @@ KLone 2.2.x:
 	- added 'temp_dir' configuration variable to override system default temp 
 	  directory (L_tmpnam, TMPDIR & friends)
 	- added 'klone_sid' configuration variable to override default cookie name
+	- HTTPS fix (rollback to http.c:1.64) output io_t dup'd from input io_t
 
 KLone 2.2.0:
 	- new url-regex dispatcher (kilt)

@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.67 2009/01/05 15:21:22 tho Exp $
+ * $Id: http.c,v 1.68 2009/07/25 12:45:17 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -527,8 +527,7 @@ static int http_serve(http_t *h, int fd)
     addr = NULL;
 
 #ifdef HAVE_LIBOPENSSL
-    /* create input io buffer (no IO_FD_CLOSE used because 'out' 
-       will close it */
+    /* create input io buffer */
     if(h->ssl && !cgi)
         dbg_err_if(io_ssl_create(fd, IO_FD_CLOSE, 0, h->ssl_ctx, &in));
     else
@@ -552,9 +551,10 @@ static int http_serve(http_t *h, int fd)
 
     /* create the output io_t */
     if(cgi)
-        dbg_err_if(io_fd_create((cgi ? 1 : fd), IO_FD_CLOSE, &out));
+        dbg_err_if(io_fd_create((cgi ? 1 : dup(fd)), IO_FD_CLOSE, &out));
     else {
-        dbg_err_if(io_fd_create( dup(fd), IO_FD_CLOSE, &out));
+        /* create the response io_t dup'ping the request io_t object */
+        dbg_err_if(io_dup(request_io(rq), &out));
     }
 
     /* default method used if we cannot parse the request (bad request) */
