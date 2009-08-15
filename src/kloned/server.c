@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.68 2008/06/24 16:31:17 tat Exp $
+ * $Id: server.c,v 1.69 2009/08/15 22:12:33 stewy Exp $
  */
 
 #include "klone_conf.h"
@@ -190,6 +190,8 @@ static void server_sigint(int sig)
 
     if(ctx && ctx->server)
         server_stop(ctx->server);
+    
+    emb_term();
 }
 
 static void server_sigterm(int sig)
