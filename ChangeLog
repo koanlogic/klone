@@ -1,4 +1,4 @@
-$Id: ChangeLog,v 1.75 2009/07/25 12:45:17 tat Exp $
+$Id: ChangeLog,v 1.76 2009/10/23 14:08:28 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
@@ -8,6 +8,9 @@ KLone 2.2.x:
 	  directory (L_tmpnam, TMPDIR & friends)
 	- added 'klone_sid' configuration variable to override default cookie name
 	- HTTPS fix (rollback to http.c:1.64) output io_t dup'd from input io_t
+	- added session_get_id to retrieve the session id
+	- fix request_get_uploaded_file prototype
+	- added '-n' command line switch: don't chdir(2) when daemon'izing 
 
 KLone 2.2.0:
 	- new url-regex dispatcher (kilt)

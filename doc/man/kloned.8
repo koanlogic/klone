@@ -1,4 +1,4 @@
-.\" $Id: kloned.8,v 1.1 2005/11/24 23:54:13 stewy Exp $
+.\" $Id: kloned.8,v 1.2 2009/10/23 14:08:28 tho Exp $
 .TH "KLONED" "8" "11/03/2005" "KoanLogic Srl" "KoanLogic Srl"
 .\" disable hyphenation
 .nh
@@ -8,7 +8,7 @@
 kloned \- klone daemon
 .SH "SYNOPSIS"
 .HP 7
-\fBkloned\fR [\fB\-d\fR] [\fB\-f\ \fR\fB\fIfile\fR\fR] [\fB\-F\fR] [\fB\-h\fR] [\fB\-i\fR] [\fB\-u\fR]
+\fBkloned\fR [\fB\-d\fR] [\fB\-f\ \fR\fB\fIfile\fR\fR] [\fB\-F\fR] [\fB\-h\fR] [\fB\-i\fR] [\fB\-u\fR] [\fB\-p\ \fR\fB\fIfile\fR\fR] [\fB\-n\fR]
 .SH "DESCRIPTION"
 .PP
 \fBkloned\fR
@@ -37,8 +37,17 @@ If specified, this parameter causes the main
 \fBkloned\fR
 process to not detach from the terminal. HTTP/HTTPS requests are served iteratively: no child is forked to handle the client connection.
 .TP
+\-p \fIpid_file\fR
+Save 
+\fBkloned\fR 
+daemon pid to 
+\fIpid_file\fR.
+.TP
 \-h
 Display a summary of command\-line options and exit.
+.TP
+\-n
+Do not change dir when becoming daemon.
 .TP
 \-i
 Install

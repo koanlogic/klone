@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.c,v 1.45 2009/05/31 18:50:27 tho Exp $
+ * $Id: session.c,v 1.46 2009/10/23 14:08:28 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -555,6 +555,23 @@ const char *session_get(session_t *ss, const char *name)
     
     v = vars_get(ss->vars, name);
     return v ? var_get_value(v): NULL;
+}
+
+/** 
+ * \ingroup session
+ * \brief   Get session id string
+ *  
+ * Return a string carrying the session id.
+ *
+ * \param ss  session object
+ *  
+ * \return a string carrying the session id of the given \p ss (may be \c NULL)
+ */
+const char *session_get_id (session_t *ss)
+{
+    dbg_return_if (ss == NULL, NULL);
+
+    return ss->id;
 }
 
 /** 

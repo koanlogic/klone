@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: session.h,v 1.9 2006/01/09 12:38:38 tat Exp $
+ * $Id: session.h,v 1.10 2009/10/23 14:08:28 tho Exp $
  */
 
 #ifndef _KLONE_SESSION_H_
@@ -30,6 +30,7 @@ int session_age(session_t*);
 
 vars_t *session_get_vars(session_t*);
 const char *session_get(session_t*, const char*);
+const char *session_get_id (session_t *ss);
 int session_set(session_t*, const char*, const char*);
 int session_del(session_t*, const char*);
 int session_load(session_t *ss);

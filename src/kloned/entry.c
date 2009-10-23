@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: entry.c,v 1.26 2008/04/08 12:53:49 tho Exp $
+ * $Id: entry.c,v 1.27 2009/10/23 14:08:28 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -39,8 +39,8 @@ static void usage()
 {
     static const char *us = 
 "Usage: kloned OPTIONS ARGUMENTS                                            \n"
-"Version: %s - Copyright (c) 2005, 2006, 2007 KoanLogic s.r.l.\n"
-"All rights reserved.\n"
+"Version: %s - Copyright (c) 2005-2009 KoanLogic s.r.l.                     \n"
+"All rights reserved.                                                       \n"
 "\n"
 "    -d          turn on debugging (forces iterative mode)                  \n"
 "    -f file     load an external config file                               \n"
@@ -52,6 +52,7 @@ static void usage()
 "    -u          remove KLone Windows service                               \n"
 #endif
 "    -V          print KLone version and exit                               \n"
+"    -n          do not chdir when daemonizing                              \n"
 "\n";
 
     fprintf(stderr, us, klone_version());
@@ -63,9 +64,9 @@ static int parse_opt(int argc, char **argv)
 {
     int ret;
 #ifdef OS_WIN
-        #define CMDLINE_FORMAT "hVFdiuf:p:"
+        #define CMDLINE_FORMAT "nhVFdiuf:p:"
 #else
-        #define CMDLINE_FORMAT "hVFdf:p:"
+        #define CMDLINE_FORMAT "nhVFdf:p:"
 #endif
 
     /* set defaults */
@@ -97,6 +98,10 @@ static int parse_opt(int argc, char **argv)
 
         case 'V':   /* print version and exit */
             u_print_version_and_exit();
+            break;
+
+        case 'n':   /* don't chdir in daemon mode */
+            ctx->nochdir = 1;
             break;
 
 #ifdef OS_WIN
@@ -398,7 +403,7 @@ int main(int argc, char **argv)
 
     /* daemonize if not -F */
     if(ctx->daemon && !ctx->cgi)
-        con_err_ifm(daemon(0, 0), "daemon error");
+        con_err_ifm(daemon(ctx->nochdir, 0), "daemon error");
 
     /* save the PID in a file */
     if(ctx->pid_file)

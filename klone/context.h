@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: context.h,v 1.12 2007/11/09 13:45:52 tat Exp $
+ * $Id: context.h,v 1.13 2009/10/23 14:08:28 tho Exp $
  */
 
 #ifndef _KLONE_CONTEXT_H_
@@ -37,6 +37,7 @@ typedef struct context_s
     size_t narg;        /* # of cmd line args              */
     int pipc;           /* parent IPC socket descriptor    */
     int cgi;            /* if we're in cgi mode            */
+    int nochdir;        /* do not chdir when daemon'izing  */
 
     #ifdef OS_WIN
     SERVICE_STATUS_HANDLE hServiceStatus;
