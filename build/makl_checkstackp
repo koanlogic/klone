@@ -1,5 +1,5 @@
 #
-# $Id: makl_checkstackp,v 1.2 2008/11/07 19:49:51 tat Exp $
+# $Id: makl_checkstackp,v 1.3 2009/10/26 14:38:58 tho Exp $
 #
 
 ##\brief Check if -fstack-protector-all is supported by the compiler
@@ -15,7 +15,7 @@ makl_checkstackp()
     [ -z `makl_get "__noconfig__"` ] || return
     [ -z "$1" ] && makl_err 1 "missing argument (0=optional, 1=required)"
 
-    makl_info "checking for fork() support"
+    makl_info "checking for gcc stack-protector support"
 
     ${ECHO} "int main(){return 0;}" > ${tmpfile}
 
