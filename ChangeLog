@@ -1,8 +1,8 @@
-$Id: ChangeLog,v 1.77 2009/10/23 18:41:10 tho Exp $
+$Id: ChangeLog,v 1.78 2009/10/26 14:54:57 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
-KLone 2.2.x:
+KLone 2.2.1:
 	- urlencoded variables parsed also when Content-Length == 0 on POSTs
 	- added 'temp_dir' configuration variable to override system default temp 
 	  directory (L_tmpnam, TMPDIR & friends)
