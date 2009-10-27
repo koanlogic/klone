@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: configure,v 1.96 2008/11/07 19:49:51 tat Exp $
+# $Id: configure,v 1.97 2009/10/27 16:14:43 tat Exp $
 
 export makl_conf_h=klone_conf.h
 export MAKL_DIR=`pwd`/makl
@@ -155,9 +155,9 @@ makl_checkstackp          0
 # check va_list behaviour
 makl_va_list_by_value
 
-makl_checkfunc          0   "syslog"
-makl_checkfunc          0   "mkstemp"
-makl_checkfunc          0   "localtime_r"
+makl_checkfunc          0   "syslog" "" ""
+makl_checkfunc          0   "mkstemp" "" ""
+makl_checkfunc          0   "localtime_r" "" ""
 
 makl_checkinline        0
 if [ $? -ne 0 ]; then
