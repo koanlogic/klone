@@ -1,0 +1,69 @@
+#!/bin/bash
+#
+#       /etc/rc.d/init.d/kloned
+#
+#       Control the kloned daemon.
+#
+# chkconfig: 2345 20 80
+# description: Control the kloned daemon.
+# processname: kloned
+
+# Source function library.
+. /etc/init.d/functions
+
+# change these as needed ("name" is the file name of this script)
+name="kloned"
+path="/usr/local/sbin/kloned"
+lock="/var/lock/subsys/kloned"
+
+start()
+{
+    echo -n "Starting $name: "
+    daemon $path
+    RETVAL=$?
+
+    echo
+    [ $RETVAL -eq 0 ] && touch $lock
+    return $RETVAL
+}
+
+stop() 
+{
+    echo -n "Shutting down $name: "
+    killproc $path
+    RETVAL=$?
+
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lock
+    return $RETVAL  
+}
+
+rhstatus ()
+{
+    status $path
+}
+
+case "$1" 
+in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        rhstatus
+        ;;
+    restart|reload)
+        stop
+        start
+        ;;
+    condrestart)
+        [ -f $lock ] && restart || :
+        ;;
+    *)
+        echo "Usage: $name {start|stop|status|reload|restart}"
+        exit 1
+        ;;
+esac
+exit $?

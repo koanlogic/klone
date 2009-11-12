@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.35 2008/10/27 21:28:03 tat Exp $
+# $Id: Makefile.dist,v 1.36 2009/11/12 15:16:17 tho Exp $
 
 include common.mk
 
@@ -47,7 +47,7 @@ DISTFILES += site/Makefile
 DISTFILES += $(wildcard site/*.[ch]) 
 
 # configuration samples (etc)
-DISTFILES += $(wildcard etc/*.conf) etc/psk.db
+DISTFILES += $(wildcard etc/*.conf) etc/psk.db etc/kloned-rhel.init
 
 # test stuff
 DISTFILES += $(wildcard test/Makefile)

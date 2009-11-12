@@ -1,8 +1,12 @@
-$Id: ChangeLog,v 1.78 2009/10/26 14:54:57 tho Exp $
+$Id: ChangeLog,v 1.79 2009/11/12 15:16:17 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
+KLone X.Y.Z:
+	- added sample RedHat init script
+
 KLone 2.2.1:
+	- fix "can't shift that many" build error on Ubuntu 9 and NetBSD
 	- urlencoded variables parsed also when Content-Length == 0 on POSTs
 	- added 'temp_dir' configuration variable to override system default temp 
 	  directory (L_tmpnam, TMPDIR & friends)
