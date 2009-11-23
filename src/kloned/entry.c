@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: entry.c,v 1.27 2009/10/23 14:08:28 tho Exp $
+ * $Id: entry.c,v 1.28 2009/11/23 15:51:03 stewy Exp $
  */
 
 #include "klone_conf.h"
@@ -191,7 +191,7 @@ int RemoveService(void)
     dbg_err_if(rc == 0);
 
     /* success */
-    MessageBox(NULL, "Uninstall secceded", ss_name, MB_OK);
+    MessageBox(NULL, "Uninstall succeeded", ss_name, MB_OK);
     return 0;
 err:
     /* common error handling */
