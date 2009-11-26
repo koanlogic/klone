@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: server.c,v 1.69 2009/08/15 22:12:33 stewy Exp $
+ * $Id: server.c,v 1.70 2009/11/26 09:11:33 stewy Exp $
  */
 
 #include "klone_conf.h"
@@ -928,6 +928,11 @@ int server_loop(server_t *s)
     if(!s->allow_root)
         warn_err_ifm(!getuid() || !geteuid() || !getgid() || !getegid(),
             "you must set the allow_root config option to run kloned as root");
+
+#elif OS_WIN
+    if(s->chroot)
+        dbg_err_if(SetCurrentDirectory(s->chroot) == 0);
+
 #endif
 
     /* server startup hook */
