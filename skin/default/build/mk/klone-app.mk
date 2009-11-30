@@ -224,7 +224,6 @@ dist-clean:
 	@$(MAKE) -C build/makl toolchain
 	@$(MAKE) -C build/target clean
 	@$(MAKE) -C build/host clean
-	@$(MAKE) -C build/makl clean
 	@if [ -d $(KLONE_SRC_HOST) ]; then rm -rf $(KLONE_SRC_HOST) ; fi
 	@if [ -d $(KLONE_SRC_TARGET) ]; then rm -rf $(KLONE_SRC_TARGET) ; fi
 	@rm -f kloned kloned.exe
