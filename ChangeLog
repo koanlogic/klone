@@ -1,11 +1,13 @@
-$Id: ChangeLog,v 1.81 2009/11/30 12:54:09 tat Exp $
+$Id: ChangeLog,v 1.82 2009/12/01 15:17:38 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone X.Y.Z:
 	- added sample RedHat init script
 	- apply chroot from configuration under OS_WIN
-    - 'make -C makl clean' removed
+	- 'make -C makl clean' removed
+	- exec_page() argument name switched from 'args' to a slightly less 
+	  common '_dyp_args' :)
 
 KLone 2.2.1:
 	- fix "can't shift that many" build error on Ubuntu 9 and NetBSD

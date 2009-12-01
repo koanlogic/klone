@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.41 2008/10/27 21:28:04 tat Exp $
+ * $Id: trans_c.c,v 1.42 2009/12/01 15:17:38 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -45,15 +45,14 @@ struct lang_c_ctx_s
 typedef struct lang_c_ctx_s lang_c_ctx_t;
 
 static const char copyright_hdr[] =
-    "/*\n"
-    " * Copyright (c) 2005, 2006, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>\n"
-    " * All rights reserved.\n"
-    " *\n"
+    "/*                                                                     \n"
+    " * Copyright (c) 2005-2009 by KoanLogic s.r.l. <http://koanlogic.com>  \n"
+    " * All rights reserved.                                                \n"
+    " *                                                                     \n"
     " * This file is part of KLone, and as such it is subject to the license\n"
-    " * stated in the LICENSE file which you have received as part of this\n"
-    " * distribution\n"
-    " *\n"
-    " */\n";
+    " * stated in the LICENSE file which you have received as part of this  \n"
+    " * distribution                                                        \n"
+    " */                                                                    \n";
 
 static void free_code_block(code_block_t *node)
 {
@@ -222,14 +221,14 @@ static void print_code_blocks(parser_t *p, lang_c_ctx_t *ctx)
 
     io_printf(p->out, 
         "\n\n"
-        "static void exec_page(dypage_args_t *args)\n"
-        "{\n"
-        "   request = args->rq;                       \n"
-        "   response = args->rs;                      \n"
-        "   session = args->ss;                      \n"
-        "   in = request_io(request);           \n"
-        "   out = response_io(response);        \n"
-        "   u_unused_args(SCRIPT_NAME, request, response, session, in, out); \n"
+        "static void exec_page(dypage_args_t *_dyp_args)                    \n"
+        "{                                                                  \n"
+        "   request = _dyp_args->rq;                                        \n"
+        "   response = _dyp_args->rs;                                       \n"
+        "   session = _dyp_args->ss;                                        \n"
+        "   in = request_io(request);                                       \n"
+        "   out = response_io(response);                                    \n"
+        "   u_unused_args(SCRIPT_NAME, request, response, session, in, out);\n"
         "   %s () ; \n ", ctx->ti->dfun
         );
 
