@@ -1,6 +1,7 @@
-# $Id: README.dist,v 1.8 2007/12/14 10:11:28 tho Exp $
+# $Id: README.dist,v 1.9 2009/12/29 10:27:08 tho Exp $
 
-$ cvs co KL/{klone,libu,makl}
+$ cvs co KL/{klone,makl}
+$ cvs co -r LIBU_1_5_MAINT_BRANCH KL/libu
 $ cd KL/klone
 $ [ -L libu ] || ln -s ../libu
 $ [ -L makl ] || ln -s ../makl
