@@ -1,4 +1,4 @@
-# $Id: Makefile.dist,v 1.36 2009/11/12 15:16:17 tho Exp $
+# $Id: Makefile.dist,v 1.37 2010/04/13 18:12:59 tho Exp $
 
 include common.mk
 
@@ -77,7 +77,7 @@ DISTFILES += $(wildcard doc/example-site/www/*)
 # hook for LibU compilation
 DISTFILES += build/libu/Makefile
 
-# LibU 1.x.y
+# LibU 2.x.y
 
 # top level build and configuration drivers
 DISTFILES +=  libu/Makefile libu/LICENSE libu/ChangeLog libu/README
@@ -91,7 +91,7 @@ DISTFILES += libu/include/Makefile
 DISTFILES += $(wildcard libu/include/missing/*.h) libu/include/missing/Makefile
 DISTFILES += $(wildcard libu/include/toolbox/*.h) libu/include/toolbox/Makefile
 DISTFILES += libu/include/u/libu.h libu/include/u/missing.h
-DISTFILES += libu/include/u/toolbox.h 
+DISTFILES += libu/include/u/toolbox.h libu/include/u/compat.h
 DISTFILES += libu/include/u/Makefile
 
 # sources (srcs/{missing,toolbox})
