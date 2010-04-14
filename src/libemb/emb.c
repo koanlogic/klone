@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.c,v 1.19 2008/10/27 21:28:04 tat Exp $
+ * $Id: emb.c,v 1.20 2010/04/14 19:26:16 stewy Exp $
  */
 
 #include <klone/emb.h>
@@ -23,9 +23,16 @@ static int init = 0;
 
 int emb_init(void)
 {
+    u_hmap_opts_t hopts;
+
     if(init++ == 0)
     {
-        dbg_err_if (u_hmap_new(NULL, &embmap));
+        u_hmap_opts_init(&hopts);
+
+        /* no free function needed for static values */
+        dbg_err_if (u_hmap_opts_set_val_freefunc(&hopts, NULL));
+
+        dbg_err_if (u_hmap_easy_new(&hopts, &embmap));
 
         /* call autogen external function (cannot be called more then once!) */
         dbg("registering embedded resources");
@@ -44,10 +51,7 @@ int emb_term(void)
 
     unregister_pages();
 
-    if (embmap) {
-        u_hmap_free(embmap);
-        embmap = NULL;
-    }
+    U_FREEF(embmap, u_hmap_easy_free);
 
     return 0;
 err:
@@ -56,8 +60,6 @@ err:
 
 int emb_register(embres_t *res)
 {
-    u_hmap_o_t *obj = NULL;
-
     dbg_err_if(init == 0 || res == NULL);
 
     if(res->type == ET_FILE) 
@@ -66,10 +68,7 @@ int emb_register(embres_t *res)
     else 
         dbg("registering %s", res->filename);
 
-    obj = u_hmap_o_new((void *) res->filename, res); 
-    dbg_err_if (obj == NULL);
-
-    dbg_err_if (u_hmap_put(embmap, obj, NULL)); 
+    dbg_err_if (u_hmap_easy_put(embmap, res->filename, (const void *) res));
     
     return 0;
 err:
@@ -80,7 +79,7 @@ int emb_unregister(embres_t *res)
 {
     dbg_err_if(init == 0 || res == NULL);
 
-    dbg_err_if (u_hmap_del(embmap, (void *) res->filename, NULL));
+    dbg_err_if (u_hmap_easy_del(embmap, res->filename));
 
     return 0;
 err:
@@ -90,15 +89,15 @@ err:
 int emb_lookup(const char *filename, embres_t **pr)
 {
     embres_t *res;
-    u_hmap_o_t *obj = NULL;
 
     dbg_err_if (init == 0);
     dbg_err_if (filename == NULL || filename[0] == 0);
     dbg_err_if (pr == NULL);
 
-    nop_err_if (u_hmap_get(embmap, (void *) filename, &obj));
+    res = u_hmap_easy_get(embmap, filename);
+    dbg_err_if (res == NULL);
 
-    *pr = obj->val;
+    *pr = res;
 
     return 0;
 err:

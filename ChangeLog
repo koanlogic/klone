@@ -1,8 +1,10 @@
-$Id: ChangeLog,v 1.82 2009/12/01 15:17:38 tho Exp $
+$Id: ChangeLog,v 1.83 2010/04/14 19:26:16 stewy Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone X.Y.Z:
+	- libu2 merge
+	- embfs uses libu2's new hmap_easy API
 	- added sample RedHat init script
 	- apply chroot from configuration under OS_WIN
 	- 'make -C makl clean' removed
