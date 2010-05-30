@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.c,v 1.20 2010/04/14 19:26:16 stewy Exp $
+ * $Id: emb.c,v 1.21 2010/05/30 13:05:18 stewy Exp $
  */
 
 #include <klone/emb.h>
@@ -79,7 +79,8 @@ int emb_unregister(embres_t *res)
 {
     dbg_err_if(init == 0 || res == NULL);
 
-    dbg_err_if (u_hmap_easy_del(embmap, res->filename));
+    if (embmap)
+        dbg_err_if (u_hmap_easy_del(embmap, res->filename));
 
     return 0;
 err:
