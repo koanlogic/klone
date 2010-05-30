@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: http.c,v 1.68 2009/07/25 12:45:17 tat Exp $
+ * $Id: http.c,v 1.69 2010/05/30 12:51:13 stewy Exp $
  */
 
 #include "klone_conf.h"
@@ -396,7 +396,7 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
 {
     enum { BUFSZ = 64 };
     const char *err_page;
-    char buf[BUFSZ];
+    char buf[BUFSZ], *pp = NULL;
     vhost_t *vhost;
 
     dbg_err_if (h == NULL);
@@ -424,6 +424,11 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
     if(err_page && !request_set_uri(rq, err_page, NULL, NULL))
     {
         dbg_err_if(http_resolv_request(h, rq));
+
+        /* http_is_valid_uri() expects uri without parameters */
+        err_page = strtok_r(err_page, "?", &pp);
+        dbg_err_if (err_page == NULL);
+
         if(http_is_valid_uri(rq, err_page, strlen(err_page)))
         {
             /* user provided error page found */
