@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: trans_c.c,v 1.42 2009/12/01 15:17:38 tho Exp $
+ * $Id: trans_c.c,v 1.43 2010/05/31 13:41:12 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -46,7 +46,7 @@ typedef struct lang_c_ctx_s lang_c_ctx_t;
 
 static const char copyright_hdr[] =
     "/*                                                                     \n"
-    " * Copyright (c) 2005-2009 by KoanLogic s.r.l. <http://koanlogic.com>  \n"
+    " * Copyright (c) 2005-2010 by KoanLogic s.r.l. <http://koanlogic.com>  \n"
     " * All rights reserved.                                                \n"
     " *                                                                     \n"
     " * This file is part of KLone, and as such it is subject to the license\n"
