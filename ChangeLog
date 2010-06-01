@@ -1,4 +1,4 @@
-$Id: ChangeLog,v 1.84 2010/05/30 12:51:13 stewy Exp $
+$Id: ChangeLog,v 1.85 2010/06/01 20:20:51 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
@@ -11,6 +11,7 @@ KLone X.Y.Z:
 	- exec_page() argument name switched from 'args' to a slightly less 
 	  common '_dyp_args' :)
 	- fix error page configuration failure on uris with arguments
+	- new emb_list (and emb_list_free) interface to list embfs resources
 
 KLone 2.2.1:
 	- fix "can't shift that many" build error on Ubuntu 9 and NetBSD

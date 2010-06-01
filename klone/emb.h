@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.h,v 1.17 2008/10/27 21:28:03 tat Exp $
+ * $Id: emb.h,v 1.18 2010/06/01 20:20:51 tho Exp $
  */
 
 #ifndef _KLONE_EMB_H_
@@ -69,6 +69,10 @@ int emb_lookup(const char *filename, embres_t **pr);
 int emb_count(void);
 int emb_getn(size_t n, embres_t **pr);
 int emb_open(const char *file, io_t **pio);
+
+int emb_list (char ***plist);
+void emb_list_free (char **list);
+
 
 #ifdef __cplusplus
 }

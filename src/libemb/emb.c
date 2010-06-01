@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.c,v 1.21 2010/05/30 13:05:18 stewy Exp $
+ * $Id: emb.c,v 1.22 2010/06/01 20:20:51 tho Exp $
  */
 
 #include <klone/emb.h>
@@ -20,6 +20,8 @@ void unregister_pages(void);
 
 static u_hmap_t *embmap = NULL;     /* hashmap of embedded resources */
 static int init = 0;
+
+static int listadd (const void *val, const void *arg);
 
 int emb_init(void)
 {
@@ -137,3 +139,61 @@ err:
     return ~0;
 }
 
+int emb_list (char ***plist)
+{
+    ssize_t nelems;
+    char **list = NULL;
+
+    /* See how many elements are there. */
+    dbg_err_if ((nelems = u_hmap_count(embmap)) <= 0);
+
+    /* Create the array of strings needed to hold the list. */
+    list = u_zalloc((size_t) nelems * sizeof(char *) + 1);
+    dbg_err_sif (list == NULL);
+
+    /* Walk through the embfs to collect res names. */
+    u_hmap_foreach_arg(embmap, listadd, list);
+
+    /* Copy out result. */
+    *plist = list;
+
+    return 0;
+err:
+    if (list)
+        emb_list_free(list);
+    return ~0;
+}
+
+void emb_list_free (char **list)
+{
+    size_t i;
+
+    if (list == NULL)
+        return;
+
+    for (i = 0; list[i] != NULL; i++)
+        u_free(list[i]);
+
+    u_free(list);
+
+    return;
+}
+
+/* Here 'val' is an embres_t object and 'arg' the res names' list. */
+static int listadd (const void *val, const void *arg)
+{
+    size_t i;
+    const char **list = (const char **) arg;
+    embres_t *res = (embres_t *) val;
+
+    /* Skip over already filled slots. */
+    for (i = 0; list[i] != NULL; i++)
+        ;
+
+    /* Attach the resource filename. */
+    dbg_err_sif ((list[i] = u_strdup(res->filename)) == NULL);
+
+    return 0;
+err:
+    return ~0;
+}
