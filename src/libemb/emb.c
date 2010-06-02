@@ -5,7 +5,7 @@
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
  *
- * $Id: emb.c,v 1.22 2010/06/01 20:20:51 tho Exp $
+ * $Id: emb.c,v 1.23 2010/06/02 07:46:57 tho Exp $
  */
 
 #include <klone/emb.h>
@@ -148,7 +148,7 @@ int emb_list (char ***plist)
     dbg_err_if ((nelems = u_hmap_count(embmap)) <= 0);
 
     /* Create the array of strings needed to hold the list. */
-    list = u_zalloc((size_t) nelems * sizeof(char *) + 1);
+    list = u_zalloc(((size_t) nelems + 1) * sizeof(char *));
     dbg_err_sif (list == NULL);
 
     /* Walk through the embfs to collect res names. */
