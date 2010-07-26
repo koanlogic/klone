@@ -110,6 +110,12 @@ int app_init(void)
                     "embfs configuration file load error");
     }
 
+    if (ctx->cmd_config) {
+        /* override with command-line arg config from standard input */
+        con_err_ifm(u_config_load(ctx->config, 0, 1), 
+                    "command-line configuration load error");
+    }
+
     if(ctx->debug)
         u_config_print(ctx->config, 0);
 

@@ -8,7 +8,7 @@
 kloned \- klone daemon
 .SH "SYNOPSIS"
 .HP 7
-\fBkloned\fR [\fB\-d\fR] [\fB\-f\ \fR\fB\fIfile\fR\fR] [\fB\-F\fR] [\fB\-h\fR] [\fB\-i\fR] [\fB\-u\fR] [\fB\-p\ \fR\fB\fIfile\fR\fR] [\fB\-n\fR]
+\fBkloned\fR [\fB\-d\fR] [\fB\-f\ \fR\fB\fIfile\fR\fR] [\fB\-c\fR] [\fB\-F\fR] [\fB\-h\fR] [\fB\-i\fR] [\fB\-u\fR] [\fB\-p\ \fR\fB\fIfile\fR\fR] [\fB\-n\fR]
 .SH "DESCRIPTION"
 .PP
 \fBkloned\fR
@@ -31,6 +31,22 @@ besides those found in the embedded configuration file
 \fIsup://etc/kloned.conf\fR. Parameters in
 \fIconf_file\fR
 override the values of those with the same name in the embedded configuration file.
+.TP
+\-c
+Read configuration sections from standard input (until EOF is found), overriding
+values contained in default and custom configuration files. For example:
+.sp
+.nf
+    $ cat << EOF | ./kloned -c
+    > app_http
+    > {
+    > addr.port 8081
+    > dir_root  /www2
+    > }
+    > EOF
+.fi
+.sp
+will override the default port and root directory values for a previously defined backend "app_http".
 .TP
 \-F
 If specified, this parameter causes the main

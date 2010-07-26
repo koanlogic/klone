@@ -6,7 +6,8 @@ KLone X.Y.Z:
 	- libu2 merge
 	- embfs uses libu2's new hmap_easy API
 	- added sample RedHat init script
-	- apply chroot from configuration under OS_WIN
+	- -c command-line argument to override configuration ; 
+	  apply chroot from configuration under OS_WIN
 	- 'make -C makl clean' removed
 	- exec_page() argument name switched from 'args' to a slightly less 
 	  common '_dyp_args' :)

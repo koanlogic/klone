@@ -64,9 +64,9 @@ static int parse_opt(int argc, char **argv)
 {
     int ret;
 #ifdef OS_WIN
-        #define CMDLINE_FORMAT "nhVFdiuf:p:"
+        #define CMDLINE_FORMAT "nhVFdiuf:cp:"
 #else
-        #define CMDLINE_FORMAT "nhVFdf:p:"
+        #define CMDLINE_FORMAT "nhVFdf:cp:"
 #endif
 
     /* set defaults */
@@ -80,6 +80,10 @@ static int parse_opt(int argc, char **argv)
             ctx->ext_config = u_strdup(optarg);
             dbg_err_if(ctx->ext_config == NULL);
             dbg("ext config: %s", ctx->ext_config);
+            break;
+
+        case 'c':   /* override config from command-line */
+            ctx->cmd_config = 1;
             break;
 
         case 'p':   /* PID file */

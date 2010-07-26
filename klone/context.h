@@ -25,19 +25,20 @@ extern "C" {
 /* global applicaton context */
 typedef struct context_s
 {
-    server_t *server;   /* server object                   */
-    u_config_t *config; /* server config object            */
-    backend_t *backend; /* the backend served by this child */
-    hook_t *hook;       /* object that keep track of hooks */
-    char *ext_config;   /* additional external config file */
-    char *pid_file;     /* path of the PID file            */
-    int debug;          /* debugging on/off                */
-    int daemon;         /* daemon/service mode on/off      */
-    char **arg;         /* cmd line args array             */
-    size_t narg;        /* # of cmd line args              */
-    int pipc;           /* parent IPC socket descriptor    */
-    int cgi;            /* if we're in cgi mode            */
-    int nochdir;        /* do not chdir when daemon'izing  */
+    server_t *server;   /* server object                                */
+    u_config_t *config; /* server config object                         */
+    backend_t *backend; /* the backend served by this child             */
+    hook_t *hook;       /* object that keep track of hooks              */
+    char *ext_config;   /* additional external config file              */
+    int cmd_config;     /* whether to override config from command-line */
+    char *pid_file;     /* path of the PID file                         */
+    int debug;          /* debugging on/off                             */
+    int daemon;         /* daemon/service mode on/off                   */
+    char **arg;         /* cmd line args array                          */
+    size_t narg;        /* # of cmd line args                           */
+    int pipc;           /* parent IPC socket descriptor                 */
+    int cgi;            /* if we're in cgi mode                         */
+    int nochdir;        /* do not chdir when daemon'izing               */
 
     #ifdef OS_WIN
     SERVICE_STATUS_HANDLE hServiceStatus;
