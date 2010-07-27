@@ -396,6 +396,7 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
 {
     enum { BUFSZ = 64 };
     const char *err_page;
+    char s[URI_MAX], *sp = NULL;
     char buf[BUFSZ], *pp = NULL;
     vhost_t *vhost;
 
@@ -426,10 +427,12 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
         dbg_err_if(http_resolv_request(h, rq));
 
         /* http_is_valid_uri() expects uri without parameters */
-        err_page = strtok_r(err_page, "?", &pp);
-        dbg_err_if (err_page == NULL);
+        dbg_err_if (u_strlcpy(s, err_page, sizeof s));
 
-        if(http_is_valid_uri(rq, err_page, strlen(err_page)))
+        sp = strtok_r(s, "?", &pp);
+        dbg_err_if (sp == NULL);
+
+        if(http_is_valid_uri(rq, sp, strlen(sp)))
         {
             /* user provided error page found */
             broker_serve(h->broker, h, rq, rs);
@@ -437,7 +440,7 @@ static int http_print_error_page(http_t *h, request_t *rq, response_t *rs,
         }
 
         /* page not found */
-        warn("%d handler page (%s) not found", http_status, err_page);
+        warn("%d handler page (%s) not found", http_status, sp);
     }
 
     /* be sure that the status code is properly set */
