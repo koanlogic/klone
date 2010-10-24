@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005-2010 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
@@ -32,15 +32,15 @@ struct talarm_s
     time_t expire;              /* when to fire the alarm       */
     talarm_cb_t cb;             /* alarm callback               */
     void *arg;                  /* cb opaque argument           */
+    pid_t owner;                /* process that set the alarm   */
 };
 
 struct timerm_s
 {
-    talarm_list_t alist;         /* alarm list                   */
-
+    talarm_list_t alist;        /* alarm list                   */
+    time_t next;                /* next timestamp               */
 #ifdef OS_WIN
     CRITICAL_SECTION cs;
-    time_t next;                /* next timestamp               */
     HANDLE hthread;             /* thread handle                */
     DWORD tid;                  /* thread id                    */
 #endif
@@ -51,15 +51,15 @@ static timerm_t *timer = NULL;
 
 static int timerm_set_alarm(int timeout)
 {
+    time_t n = time(0) + timeout;
+
+    if(timeout && (timer->next == 0 || n < timer->next))
+    {
+        timer->next = n;
 #ifdef OS_UNIX
-    /* if timeout == 0 disable the alarm */
-    alarm(timeout);
-#else
-    if(timeout > 0)
-        timer->next = time(0) + timeout;
-    else
-        timer->next = NULL;
+        alarm(timeout);
 #endif
+    } 
 
     return 0;
 }
@@ -69,9 +69,7 @@ static int timerm_set_next(void)
     talarm_t *al = NULL;
     time_t now = time(0);
 
-    if((al = TAILQ_FIRST(&timer->alist)) == NULL)
-        timerm_set_alarm(0);   /* disable the alarm */
-    else
+    if((al = TAILQ_FIRST(&timer->alist)) != NULL)
         timerm_set_alarm(MAX(1, al->expire - now));
 
     return 0;
@@ -81,10 +79,14 @@ void timerm_sigalrm(int sigalrm)
 {
     talarm_t *al = NULL, *next = NULL;
     int expire;
+    pid_t pid = getpid();
+    time_t now = time(0);
 
     u_unused_args(sigalrm);
 
     dbg_err_if(timer == NULL);
+
+    timer->next = 0;
 
     for(;;)
     {
@@ -92,19 +94,21 @@ void timerm_sigalrm(int sigalrm)
         al = TAILQ_FIRST(&timer->alist);
         nop_err_if(al == NULL);
 
-        expire = al->expire;
+        if(al->owner != pid)
+        {
+            /* this alert has been inherited from the parent, we cannot
+             * timerm_del() it because the user may have a reference to it
+             * somewhere so we just ignore it */
+            continue;
+        }
 
+        if(al->expire > now)
+            break;
+        
         TAILQ_REMOVE(&timer->alist, al, np);
 
         /* call the callback function */
         al->cb(al, al->arg);
-
-        /* handle alarms with the same expiration date */
-        next = TAILQ_FIRST(&timer->alist);
-        if(next && next->expire == expire)
-            continue;
-
-        break;
     }
 
     /* prepare for the next alarm */
@@ -210,6 +214,7 @@ int timerm_add(int secs, talarm_cb_t cb, void *arg, talarm_t **pa)
     talarm_t *al = NULL;
     talarm_t *item = NULL;
     time_t now = time(0);
+    pid_t pid = getpid();
 
     dbg_return_if (cb == NULL, ~0);
     dbg_return_if (pa == NULL, ~0);
@@ -229,12 +234,13 @@ int timerm_add(int secs, talarm_cb_t cb, void *arg, talarm_t **pa)
     al->cb = cb;
     al->arg = arg;
     al->expire = now + secs;
+    al->owner = pid;
 
     dbg_err_if(timerm_block_alarms());
 
     /* insert al ordered by the expire field (smaller first) */
     TAILQ_FOREACH(item, &timer->alist, np)
-        if(al->expire <= item->expire)
+        if(al->expire < item->expire)
             break;
 
     if(item)
@@ -243,7 +249,7 @@ int timerm_add(int secs, talarm_cb_t cb, void *arg, talarm_t **pa)
         TAILQ_INSERT_TAIL(&timer->alist, al, np);
 
     /* set the timer for the earliest alarm */
-    timerm_set_next();
+    timerm_set_next(); 
 
     dbg_err_if(timerm_unblock_alarms());
 

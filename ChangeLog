@@ -13,6 +13,7 @@ KLone X.Y.Z:
 	  common '_dyp_args' :)
 	- fix error page configuration failure on uris with arguments
 	- new emb_list (and emb_list_free) interface to list embfs resources
+	- not-firing timers fix
 
 KLone 2.2.1:
 	- fix "can't shift that many" build error on Ubuntu 9 and NetBSD
