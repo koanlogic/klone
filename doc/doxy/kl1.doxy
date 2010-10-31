@@ -23,7 +23,7 @@ PROJECT_NAME           = KLone
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = 
+PROJECT_NUMBER         = 2.2.2
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
@@ -653,7 +653,7 @@ HTML_FOOTER            = src/kl_footer.html
 # the style sheet file to the HTML output directory, so don't put your own 
 # stylesheet in the HTML output directory as well, or it will be erased!
 
-HTML_STYLESHEET        = src/kl.css
+#HTML_STYLESHEET        = src/kl.css
 
 # If the HTML_ALIGN_MEMBERS tag is set to YES, the members of classes, 
 # files or namespaces will be aligned in HTML using tables. If set to 
@@ -1230,3 +1230,6 @@ DOT_CLEANUP            = YES
 # used. If set to NO the values of all tags below this one will be ignored.
 
 SEARCHENGINE           = NO
+
+# custom layout
+LAYOUT_FILE = DoxygenLayout.xml

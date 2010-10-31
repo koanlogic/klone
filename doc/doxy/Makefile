@@ -3,33 +3,30 @@
 include common.mk
 include ../../Makefile.conf
 
+DOXYDEST = $(DESTDIR)/doc/klone/
+
 ifdef HAVE_DOXYGEN 
 
-all: img
-	doxygen kl1.doxy
-
-img:
+all:
+	$(PATH_DOXYGEN) kl1.doxy
 	mkdir -p html/images
 	cp -r images html
 
 ifdef INSTALL_DAEMON_ONLY
 install:
-else
+else    # !INSTALL_DAEMON_ONLY
 install: all
-	mkdir -p ${DESTDIR}/doc/klone/ && \
-        cp -r html ${DESTDIR}/doc/klone/
-endif
+	$(MKINSTALLDIRS) -p $(DOXYDEST)
+	cp -r html $(DOXYDEST)
+endif   # INSTALL_DAEMON_ONLY
 
-uninstall:
-	rm -rf ${DESTDIR}/doc/klone/
+uninstall:  ; rm -rf $(DOXYDEST)
+clean:      ; rm -rf html/
 
-clean:
-	rm -rf html/
-
-else
+else    # !HAVE_DOXYGEN
 
 all clean install uninstall:
 
-endif
+endif   # HAVE_DOXYGEN
 
 depend cleandepend:
