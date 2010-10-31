@@ -5,7 +5,7 @@
  Below is a quick reference list of essential variables and functions used by
  all KLone applications. 
 
- A more complete list is available following the links above.
+ A more complete list is available following the above tabs.
 
  
 \section essvars Essential variables
