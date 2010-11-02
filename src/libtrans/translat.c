@@ -31,9 +31,9 @@
 #define tr_err(...)             \
     do  { con_p_ctx(p); con_err(__VA_ARGS__); } while(0)
 #define tr_err_if(expr)          \
-    do { if( (expr) ) { con_p_ctx(p); con("%s", #expr); goto err; } } while(0)
+    do { if( (expr) ) { con_p_ctx(p); u_con("%s", #expr); goto err; } } while(0)
 #define tr_err_ifm(expr, ...)    \
-    do { if( (expr) ) { con_p_ctx(p); con(__VA_ARGS__); goto err; } } while(0)
+    do { if( (expr) ) { con_p_ctx(p); u_con(__VA_ARGS__); goto err; } } while(0)
 
 
 typedef struct block_s
@@ -443,7 +443,7 @@ static int process_directive_block(parser_t *p, const char *name)
         if(ppc->cur == ppc->top)
         {
             /* top-level block */
-            con("[%s:%d] warning: extending a block (%s) that does not exist "
+            u_con("[%s:%d] warning: extending a block (%s) that does not exist "
                 "in the base templates, ignoring", file, p->code_line, name);
 
             /* attach it to a dead tree (i.e. a tree that doesn't get printed)*/
@@ -672,7 +672,7 @@ static int cb_pre_html_block(parser_t *p, void *arg, const char *buf, size_t sz)
             if(!isspace(buf[i]))
             {
                 dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
-                con("[%s:%d] warning: text out of blocks is not allowed in "
+                u_con("[%s:%d] warning: text out of blocks is not allowed in "
                     "child templates, ignoring", file, ln);
                 break;
             }
@@ -736,7 +736,7 @@ static int cb_pre_code_block(parser_t *p, int cmd, void *arg, const char *buf,
         if(ppc->cur == ppc->top && ppc->extending)
         {
             dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
-            con("[%s:%d] warning: code out of blocks is not allowed in child "
+            u_con("[%s:%d] warning: code out of blocks is not allowed in child "
                 "templates, ignoring", file, p->code_line);
 
             /* attach it to a dead tree (i.e. a tree that doesn't get printed)*/
@@ -933,7 +933,7 @@ int translate(trans_info_t *pti)
     return 0;
 err:
     if(pti && strlen(pti->emsg))
-        con("%s", pti->emsg);
+        u_con("%s", pti->emsg);
     if(gzip)
         codec_free(gzip);
     if(tmp)

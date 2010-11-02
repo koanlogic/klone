@@ -103,7 +103,7 @@ DISTFILES += $(wildcard libu/srcs/toolbox/*.c)
 DISTFILES += $(wildcard libu/doc/man/*.3) libu/doc/man/Makefile
 
 # doxy bits
-DISTREMAP += libu/doc/doxy/src/kl.css libu/doc/html/kl.css
+#DISTREMAP += libu/doc/doxy/src/kl.css libu/doc/html/kl.css
 DISTREMAP += libu/pkg/Makefile.doc libu/doc/Makefile
 DISTREMAP += libu/pkg/Makefile.doxy.doc libu/doc/html/Makefile
 DISTREMAP += $(foreach f, $(notdir $(wildcard libu/doc/doxy/html/*.html)), \
@@ -149,19 +149,19 @@ DISTFILES += $(wildcard makl/shlib/*.mk) makl/shlib/README
 DISTFILES += makl/tc/Makefile makl/shlib/Makefile
 
 # testing
-DISTFILES += makl/test/configure makl/test/Makefile makl/test/Makefile.subdir 
-DISTFILES += $(wildcard makl/test/party/*.c) makl/test/party/party.tar.gz \
+#DISTFILES += makl/test/configure makl/test/Makefile makl/test/Makefile.subdir 
+#DISTFILES += $(wildcard makl/test/party/*.c) makl/test/party/party.tar.gz \
                 makl/test/party/Makefile
-DISTFILES += makl/test/partyplain/proggie-1.0.0.tar.gz \
+#DISTFILES += makl/test/partyplain/proggie-1.0.0.tar.gz \
     makl/test/partyplain/Makefile
-DISTFILES += $(wildcard makl/test/prog/*.c) makl/test/prog/Makefile
-DISTFILES += makl/test/autoprog/Makefile
-DISTFILES += $(wildcard makl/test/lib/*.c*) makl/test/lib/Makefile
-DISTFILES += $(wildcard makl/test/include/*.h) makl/test/include/Makefile
-DISTFILES += $(wildcard makl/test/man/*.[13]) makl/test/man/Makefile
+#DISTFILES += $(wildcard makl/test/prog/*.c) makl/test/prog/Makefile
+#DISTFILES += makl/test/autoprog/Makefile
+#DISTFILES += $(wildcard makl/test/lib/*.c*) makl/test/lib/Makefile
+#DISTFILES += $(wildcard makl/test/include/*.h) makl/test/include/Makefile
+#DISTFILES += $(wildcard makl/test/man/*.[13]) makl/test/man/Makefile
 
 # filter-out CVS dirs 
-DISTFILES := $(filter-out %/CVS %/CVS/,$(DISTFILES))
+#DISTFILES := $(filter-out %/CVS %/CVS/,$(DISTFILES))
 
 dist-hook-pre:
 	@echo "Creating KLone HTML documentation..." && cd doc/doxy && make

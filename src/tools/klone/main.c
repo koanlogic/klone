@@ -289,7 +289,7 @@ static int command_trans(void)
     klone_die_if(!ctx->uri, "translated page URI required (-u uri)");
 
     if(ctx->verbose)
-        con("translating %s to %s (uri: %s)", ctx->file_in, ctx->file_out, 
+        u_con("translating %s to %s (uri: %s)", ctx->file_in, ctx->file_out, 
             ctx->uri);
 
     /* input file */
@@ -358,7 +358,7 @@ static int command_trans(void)
 err:
     /* delete output file on error */
     u_remove(ti.file_out);
-    con(" ");
+    u_con(" ");
     return ~0;
 }
 
@@ -409,7 +409,7 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
     if(!pm_is_empty(ctx->excl_patt) && pm_match(ctx->excl_patt, uri))
     {
         if(ctx->verbose)
-            con("%s skipped", uri);
+            u_con("%s skipped", uri);
 
         ctx->nexcl++;
 
@@ -440,10 +440,10 @@ static int cb_file(struct dirent *de, const char *path , void *arg)
 
     /* print out some info */
     if(ctx->verbose == 1)
-        con("%s (encrypted: %s, compressed: %s)", 
+        u_con("%s (encrypted: %s, compressed: %s)", 
             uri, enc ? "yes" : "no", zip ? "yes" : "no");
     else if(ctx->verbose > 1)
-        con("%s -> %s (encrypted: %s, compressed: %s)", 
+        u_con("%s -> %s (encrypted: %s, compressed: %s)", 
             file_in + strlen(prefix), uri, 
             enc ? "yes" : "no", zip ? "yes" : "no");
 
@@ -614,12 +614,12 @@ static int command_import(void)
 
     dbg_err_if(trans_site(root_dir, base_uri));
 
-    con("%lu dirs and %lu files imported, %lu files skipped", 
+    u_con("%lu dirs and %lu files imported, %lu files skipped", 
             ctx->ndir, ctx->nfile, ctx->nexcl);
 
     return 0;
 err:
-    con("import error");
+    u_con("import error");
     return ~0;
 }
 

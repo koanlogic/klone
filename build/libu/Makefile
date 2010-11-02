@@ -11,8 +11,9 @@ PARTY_NO_INSTALL = true
 PARTY_CONF = env MAKL_DIR=${SRCDIR}/makl ./configure
 PARTY_BASE = ../../libu
 PARTY_DEP = ${PARTY_BASE}/src/libu.a
-PARTY_ARGS = --prefix=${DESTDIR} --no_docs --no_array
-PARTY_ARGS += --compat_1X
+PARTY_ARGS = --prefix=${DESTDIR} --no_docs 
+#PARTY_ARGS += --no_array
+#PARTY_ARGS += --compat_1X
 
 ifneq ($(strip ${DEFOWN}),)
 PARTY_ARGS += --defown=${DEFOWN}

@@ -80,19 +80,19 @@ static int stress_test (klog_t *kl, int ntimes)
         }
 
         if (g_verbose)
-            con("number of msgs in memory log: %d", n = klog_countln(kl));
+            u_con("number of msgs in memory log: %d", n = klog_countln(kl));
 
         for (i = 1; i <= n; i++)
         {
             int rc = klog_getln(kl, i, ln);
             if (rc == 0 && g_verbose)
-                con("klog_getln(%d)\t\'%s\'", i, ln);
+                u_con("klog_getln(%d)\t\'%s\'", i, ln);
         }
 
         (void) klog_clear(kl);
 
         if (g_verbose)
-            con("number of msgs in memory log: %d", n = klog_countln(kl));
+            u_con("number of msgs in memory log: %d", n = klog_countln(kl));
     }
 
     return 0;
