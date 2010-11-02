@@ -94,11 +94,11 @@ int emb_lookup(const char *filename, embres_t **pr)
     embres_t *res;
 
     dbg_err_if (init == 0);
-    dbg_err_if (filename == NULL || filename[0] == 0);
+    dbg_err_if (filename == NULL || filename[0] == '\0');
     dbg_err_if (pr == NULL);
 
     res = u_hmap_easy_get(embmap, filename);
-    dbg_err_if (res == NULL);
+    dbg_err_ifm (res == NULL, "%s not found", filename);
 
     *pr = res;
 
@@ -141,15 +141,19 @@ err:
 
 int emb_list (char ***plist)
 {
+    size_t i;
     ssize_t nelems;
     char **list = NULL;
 
-    /* See how many elements are there. */
+    /* See how many elements are registered. */
     dbg_err_if ((nelems = u_hmap_count(embmap)) <= 0);
 
     /* Create the array of strings needed to hold the list. */
-    list = u_zalloc(((size_t) nelems + 1) * sizeof(char *));
+    list = u_malloc(((size_t) nelems + 1) * sizeof(char *));
     dbg_err_sif (list == NULL);
+
+    for (i = 0; i <= (size_t) nelems; i++)
+        list[i] = NULL;
 
     /* Walk through the embfs to collect res names. */
     u_hmap_foreach_arg(embmap, listadd, list);
@@ -184,7 +188,7 @@ static int listadd (const void *val, const void *arg)
 {
     size_t i;
     const char **list = (const char **) arg;
-    embres_t *res = (embres_t *) val;
+    const embres_t *res = (const embres_t *) val;
 
     /* Skip over already filled slots. */
     for (i = 0; list[i] != NULL; i++)
