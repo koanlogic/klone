@@ -132,7 +132,7 @@ int test_htmlencoding_0(void)
 
     for(i = 0; i < 256; ++i)
         if(src[i] != buf1[i])
-            con("%d:  %x   %x", i, src[i], buf1[i]);
+            u_con("%d:  %x   %x", i, src[i], buf1[i]);
 
     con_err_if(memcmp(src, buf1, sizeof(src)));
 

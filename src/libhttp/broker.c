@@ -105,7 +105,7 @@ int broker_serve(broker_t *b, http_t *h, request_t *rq, response_t *rs)
     return 0; /* page successfully served */
 err:
     response_set_status(rs, HTTP_STATUS_NOT_FOUND); 
-    dbg("404, file not found: %s", request_get_filename(rq));
+    u_dbg("404, file not found: %s", request_get_filename(rq));
 
     return HTTP_STATUS_NOT_FOUND; /* page not found */
 }

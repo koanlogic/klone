@@ -128,7 +128,7 @@ static int supemb_static_set_header_fields(request_t *rq, response_t *rs,
         {   /* we can send compressed responses */
             dbg_err_if(response_set_content_encoding(rs, "deflate"));
             dbg_err_if(response_set_content_length(rs, e->size));
-            /*  dbg("sending deflated content"); */
+            /*  u_dbg("sending deflated content"); */
         } 
     }
 
@@ -250,7 +250,7 @@ static int supemb_serve(request_t *rq, response_t *rs)
         return 0;
     }
 
-    /* dbg("serving %s", e->filename); */
+    /* u_dbg("serving %s", e->filename); */
 
     switch(e->type)
     {

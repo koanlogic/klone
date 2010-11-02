@@ -51,7 +51,7 @@ static int test_normalize(void)
     return 0;
 err:
     if(src && exp && buf)
-        con("[%d]: src: [%s]  exp: [%s]   norm: [%s]: FAILED", 
+        u_con("[%d]: src: [%s]  exp: [%s]   norm: [%s]: FAILED", 
                 i, src, exp, buf);
     return ~0;
 }

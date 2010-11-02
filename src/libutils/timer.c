@@ -257,7 +257,7 @@ int timerm_add(int secs, talarm_cb_t cb, void *arg, talarm_t **pa)
 
     return 0;
 err:
-    dbg("[%lu] timerm_add error", getpid());
+    u_dbg("[%lu] timerm_add error", getpid());
     if(timer)
     {
         (void) timerm_free(timer);

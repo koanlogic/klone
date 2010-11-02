@@ -146,7 +146,7 @@ int addr_set_from_sa(kaddr_t *addr, struct sockaddr *sa, size_t sz)
         break;
 #endif  
     default:
-        dbg("bad sockaddr size");
+        u_dbg("bad sockaddr size");
         return ~0;
     }
 

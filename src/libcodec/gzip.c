@@ -70,7 +70,7 @@ static ssize_t gzip_flush(codec_t *codec, char *dst, size_t *dcount)
     return iz->err == Z_STREAM_END && *dcount == 0 ? 
         CODEC_FLUSH_COMPLETE : CODEC_FLUSH_CHUNK;
 err:
-    dbg("%s", zError(iz->err));
+    u_dbg("%s", zError(iz->err));
     return -1;
 }
 
@@ -102,7 +102,7 @@ static ssize_t gzip_transform(codec_t *codec, char *dst, size_t *dcount,
 
     return consumed; /* # of consumed input bytes */
 err:
-    dbg("%s", zError(iz->err));
+    u_dbg("%s", zError(iz->err));
     return -1;
 }
 
@@ -119,7 +119,7 @@ static int gzip_free(codec_t *codec)
 
     return 0;
 err:
-    dbg("%s", zError(err));
+    u_dbg("%s", zError(err));
     return ~0;
 }
 

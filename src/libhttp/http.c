@@ -805,7 +805,7 @@ static int http_set_vhost_list(http_t *http)
 
         dbg_err_if(u_config_get_key(config) == NULL);
 
-        info("configuring virtual host [%s]", u_config_get_key(config));
+        u_info("configuring virtual host [%s]", u_config_get_key(config));
 
         /* inherit top-level values */
         dbg_err_if(config_inherit(config, http->config));

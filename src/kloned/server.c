@@ -370,7 +370,7 @@ static int server_chroot_to(server_t *s, const char *dir)
 
     dbg_err_if(chdir("/"));
 
-    info("chroot'd: %s", dir);
+    u_info("chroot'd: %s", dir);
 
     return 0;
 err:
@@ -417,7 +417,7 @@ static int server_chroot_blind(server_t *s)
 
         /* delete the chroot dir and exit */
         sleep(1); // FIXME use a lock here
-        dbg("[child] removing dir: %s\n", dir);
+        u_dbg("[child] removing dir: %s\n", dir);
         rmdir(dir);
         _exit(0);
     }
@@ -1312,7 +1312,7 @@ int server_create(u_config_t *config, int foreground, server_t **ps)
         i > 0 && sscanf(list, "%[^ \t]", name); 
         i -= 1 + strlen(name), list += 1 + strlen(name), name[0] = 0)
     {
-        dbg("configuring backend: %s", name);
+        u_dbg("configuring backend: %s", name);
 
         /* just SERVER_MAX_BACKENDS supported */
         warn_err_if(s->nbackend == SERVER_MAX_BACKENDS);

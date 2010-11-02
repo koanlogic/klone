@@ -271,7 +271,7 @@ static int cb_vfy (int ok, X509_STORE_CTX *store_ctx)
      * the idea is that here we can catch CRL specific errors and, based 
      * on the value of crl_opts directive, use different accept/reject 
      * policies.  e.g. return ok in case X509_V_ERR_CRL_HAS_EXPIRED, etc. */
-    info("%s; current certificate subject is %s", 
+    u_info("%s; current certificate subject is %s", 
             X509_verify_cert_error_string(e), 
             X509_NAME_oneline(X509_get_subject_name(x), buf, sizeof buf));
 
@@ -291,7 +291,7 @@ int tls_init (void)
     return 0;
 
 err:
-    dbg("%s", tls_get_error()); 
+    u_dbg("%s", tls_get_error()); 
     return ~0;
 }
 
@@ -323,7 +323,7 @@ static int tls_gen_eph_rsa(SSL_CTX *c)
 
     return 0;
 err:
-    dbg("%s", tls_get_error());
+    u_dbg("%s", tls_get_error());
     if (eph_rsa)
         RSA_free(eph_rsa);    
 
@@ -352,7 +352,7 @@ static int tls_gendh_params(SSL_CTX *c, const char *dhfile)
 
     return 0;
 err:
-    dbg("%s", tls_get_error());
+    u_dbg("%s", tls_get_error());
     if (eph_dh)
         DH_free(eph_dh);
 
@@ -375,7 +375,7 @@ static DH *tls_load_dh_param (const char *res_name)
 
     return dh;
 err:
-    dbg("%s", tls_get_error());
+    u_dbg("%s", tls_get_error());
     if (bio) 
         BIO_free(bio);
 

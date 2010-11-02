@@ -51,7 +51,7 @@ int server_ppc_cb_nop(ppc_t *ppc, int fd, unsigned char cmd, char *data,
 {
     u_unused_args(ppc, fd, cmd, data, size, vso);
 
-    dbg("ppc nop cmd callback");
+    u_dbg("ppc nop cmd callback");
     return 0;
 }
 

@@ -966,7 +966,7 @@ static int request_parse_urlencoded_data(request_t *rq)
     rq->query = u_realloc(rq->query, len + qsz + 2);
     dbg_err_if(rq->query == NULL);
 
-    /* dbg("rq->query %x  size %u", rq->query, len+qsz+2); */
+    /* u_dbg("rq->query %x  size %u", rq->query, len+qsz+2); */
 
     rq->query[qsz] = 0; /* must be zero-term for strcat to work */
     if(qsz)
@@ -1793,14 +1793,14 @@ int request_print(request_t *rq)
 {
     dbg_return_if (rq == NULL, ~0);
 
-    dbg("method: %u", rq->method);
-    dbg("uri: %s", rq->uri);
-    dbg("proto: %s", rq->protocol);
-    dbg("filename: %s", rq->filename);
-    dbg("resolved filename: %s", rq->resolved_filename);
-    dbg("path_info: %s", rq->path_info);
-    dbg("resolved path_info: %s", rq->resolved_path_info);
-    dbg("query: %s", rq->query);
+    u_dbg("method: %u", rq->method);
+    u_dbg("uri: %s", rq->uri);
+    u_dbg("proto: %s", rq->protocol);
+    u_dbg("filename: %s", rq->filename);
+    u_dbg("resolved filename: %s", rq->resolved_filename);
+    u_dbg("path_info: %s", rq->path_info);
+    u_dbg("resolved path_info: %s", rq->resolved_path_info);
+    u_dbg("query: %s", rq->query);
 
     return 0;
 }

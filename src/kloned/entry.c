@@ -79,7 +79,7 @@ static int parse_opt(int argc, char **argv)
         case 'f':   /* source a config file */
             ctx->ext_config = u_strdup(optarg);
             dbg_err_if(ctx->ext_config == NULL);
-            dbg("ext config: %s", ctx->ext_config);
+            u_dbg("ext config: %s", ctx->ext_config);
             break;
 
         case 'c':   /* override config from command-line */
@@ -89,7 +89,7 @@ static int parse_opt(int argc, char **argv)
         case 'p':   /* PID file */
             ctx->pid_file = u_strdup(optarg);
             dbg_err_if(ctx->pid_file == NULL);
-            dbg("PID file: %s", ctx->pid_file);
+            u_dbg("PID file: %s", ctx->pid_file);
             break;
 
         case 'd':   /* turn on debugging */
@@ -213,12 +213,12 @@ DWORD WINAPI HandlerEx(DWORD dwControl, DWORD dwEventType,
     switch(dwControl)
     {
     case SERVICE_CONTROL_INTERROGATE:
-        dbg("SERVICE_CONTROL_INTERROGATE" );
+        u_dbg("SERVICE_CONTROL_INTERROGATE" );
         SetServiceStatus(ctx->hServiceStatus, &ctx->status);
         return NO_ERROR;
 
     case SERVICE_CONTROL_STOP:
-        dbg("SERVICE_CONTROL_STOP");
+        u_dbg("SERVICE_CONTROL_STOP");
 
         if(ctx->status.dwCurrentState == SERVICE_STOPPED)
             return NO_ERROR; /* service already stopped */
@@ -233,28 +233,28 @@ DWORD WINAPI HandlerEx(DWORD dwControl, DWORD dwEventType,
         return NO_ERROR;
 
     case SERVICE_CONTROL_PAUSE:
-        dbg("SERVICE_CONTROL_PAUSE");
+        u_dbg("SERVICE_CONTROL_PAUSE");
         break;
 
     case SERVICE_CONTROL_CONTINUE:
-        dbg("SERVICE_CONTROL_CONTINUE");
+        u_dbg("SERVICE_CONTROL_CONTINUE");
         break;
 
     case SERVICE_CONTROL_SHUTDOWN:
-        dbg("SERVICE_CONTROL_SHUTDOWN");
+        u_dbg("SERVICE_CONTROL_SHUTDOWN");
         break;
 
     case SERVICE_CONTROL_PARAMCHANGE:
-        dbg("SERVICE_CONTROL_PARAMCHANGE");
+        u_dbg("SERVICE_CONTROL_PARAMCHANGE");
         break;
 
     default:
-        dbg("SERVICE_CONTROL_UNKNOWN!!!!");
+        u_dbg("SERVICE_CONTROL_UNKNOWN!!!!");
     }
     if(dwControl > 127 && dwControl < 255)
     {
         /* user defined control code */
-        dbg("SERVICE_CONTROL_USER_DEFINED");
+        u_dbg("SERVICE_CONTROL_USER_DEFINED");
     }
 
     return ERROR_CALL_NOT_IMPLEMENTED;
@@ -298,7 +298,7 @@ void WINAPI ServiceMain(DWORD argc, PTSTR *argv)
        mess main.c with win32-only code */
 
     /* notify the end of initialization */
-    dbg("SERVICE_RUNNING");
+    u_dbg("SERVICE_RUNNING");
     ctx->status.dwCurrentState = SERVICE_RUNNING;
     ctx->status.dwCheckPoint = ctx->status.dwWaitHint = 0;    
     dbg_err_if(!SetServiceStatus(ctx->hServiceStatus, &ctx->status));
@@ -356,7 +356,7 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
         else    
             dbg_err_if(RemoveService());
     } else if(ctx->daemon) {
-        dbg("Starting in service mode...");
+        u_dbg("Starting in service mode...");
         /* StartServiceCtrlDispatcher does not return until the service 
            has stopped running...  */
         if(!StartServiceCtrlDispatcher(ServiceTable))

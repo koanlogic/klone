@@ -65,7 +65,7 @@ int server_ppc_cb_fork_child(ppc_t *ppc, int fd, unsigned char cmd, char *data,
     dbg_err_if(server_get_backend_by_id(ctx->server, ppfc->bid, &be) || 
         be == NULL);
 
-    dbg("[parent] ppc spawn child");
+    u_dbg("[parent] ppc spawn child");
 
     /* try to fork now, if we can't (resource limit or max_child exceeded) 
        then try later */

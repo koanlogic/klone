@@ -2,18 +2,18 @@ $Id: ChangeLog,v 1.85 2010/06/01 20:20:51 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
-KLone X.Y.Z:
+KLone 2.3.0:
+	- fix not-firing timers (reported by Mickael Auger)
 	- libu2 merge
 	- embfs uses libu2's new hmap_easy API
 	- added sample RedHat init script
-	- -c command-line argument to override configuration ; 
-	  apply chroot from configuration under OS_WIN
-	- 'make -C makl clean' removed
+	- "-c command-line" argument to override configuration
+	- apply chroot from configuration under OS_WIN
+	- fix minor bug in build
 	- exec_page() argument name switched from 'args' to a slightly less 
-	  common '_dyp_args' :)
-	- fix error page configuration failure on uris with arguments
+	  common '_dyp_args' to avoid clash with user local vars
+	- fix error page configuration failure on URLs with arguments
 	- new emb_list (and emb_list_free) interface to list embfs resources
-	- not-firing timers fix
 
 KLone 2.2.1:
 	- fix "can't shift that many" build error on Ubuntu 9 and NetBSD

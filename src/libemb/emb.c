@@ -37,7 +37,7 @@ int emb_init(void)
         dbg_err_if (u_hmap_easy_new(&hopts, &embmap));
 
         /* call autogen external function (cannot be called more then once!) */
-        dbg("registering embedded resources");
+        u_dbg("registering embedded resources");
         register_pages();
     }
 
@@ -65,10 +65,10 @@ int emb_register(embres_t *res)
     dbg_err_if(init == 0 || res == NULL);
 
     if(res->type == ET_FILE) 
-        dbg("registering %s (%s)", res->filename, 
+        u_dbg("registering %s (%s)", res->filename, 
                 ((embfile_t*)res)->comp ? "compressed" : "uncompressed");
     else 
-        dbg("registering %s", res->filename);
+        u_dbg("registering %s", res->filename);
 
     dbg_err_if (u_hmap_easy_put(embmap, res->filename, (const void *) res));
     

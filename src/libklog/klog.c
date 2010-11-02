@@ -460,7 +460,7 @@ static int klog_args_check (klog_args_t *ka)
     /* do not filter if not specified or if a wrong value has been supplied */
     if (ka->threshold == KLOG_LEVEL_UNKNOWN)
     {
-        dbg("threshold unspecified: assuming lowest possible (DEBUG)");
+        u_dbg("threshold unspecified: assuming lowest possible (DEBUG)");
         ka->threshold = KLOG_DEBUG;
     }
 

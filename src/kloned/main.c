@@ -98,7 +98,7 @@ int app_init(void)
     /* if -f is provided load the external config file */
     if(ctx->ext_config)
     {
-        info("loading external config file: %s", ctx->ext_config);
+        u_info("loading external config file: %s", ctx->ext_config);
 
         con_err_ifm(u_config_load_from_file(ctx->ext_config, &ctx->config),
                     "unable to load the configuration file: %s", 

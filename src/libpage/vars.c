@@ -256,7 +256,7 @@ int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **pv)
         vsz = 1;
     }
 
-    /* dbg("name: [%s]  value: [%s]", name, value); */
+    /* u_dbg("name: [%s]  value: [%s]", name, value); */
 
     dbg_err_if(var_bin_create(name, value, vsz, &var));
 
