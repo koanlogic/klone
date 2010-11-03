@@ -106,7 +106,7 @@ static int __pwd_exdata_idx (void)
     if (idx < 0)
     {
         CRYPTO_w_lock(CRYPTO_LOCK_SSL_CTX);
-        strlcpy(tag, "PSK pwd instance", sizeof tag);
+        (void) u_strlcpy(tag, "PSK pwd instance", sizeof tag);
         idx = SSL_CTX_get_ex_new_index(0, tag, NULL, NULL, NULL);
         CRYPTO_w_unlock(CRYPTO_LOCK_SSL_CTX);
     }

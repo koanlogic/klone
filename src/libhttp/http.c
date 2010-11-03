@@ -108,7 +108,7 @@ static int http_try_resolv(const char *alias, char *dst, const char *uri,
     dbg_err_if(alias == NULL);
 
     /* copy the alias in a buffer, strtok_r modifies it */
-    dbg_err_if(strlcpy(v, alias, sizeof(v)) >= sizeof(v));
+    dbg_err_if(u_strlcpy(v, alias, sizeof(v)));
 
     /* src is the source directory */
     src = strtok_r(v, WP, &pp); 
@@ -156,7 +156,7 @@ vhost_t* http_get_vhost(http_t *h, request_t *rq)
 
     if((host = request_get_field_value(rq, "Host")) != NULL)
     {
-        dbg_err_if(strlcpy(hostcp, host, sizeof(hostcp)) >= sizeof(hostcp));
+        dbg_err_if(u_strlcpy(hostcp, host, sizeof(hostcp)));
 
         /* remove :port part */   
         if((p = strrchr(hostcp, ':')) != NULL)
@@ -303,7 +303,7 @@ static int http_get_config_index(http_t *h, request_t *rq, char *idx, size_t sz)
         return ~0; /* index config key missing */
 
     /* copy the string (u_tokenize will modify it) */
-    dbg_err_if(strlcpy(buf, cindex, sizeof(buf)) >= sizeof(buf));
+    dbg_err_if(u_strlcpy(buf, cindex, sizeof(buf)));
 
     for(src = buf; (tok = strtok_r(src, " \t", &pp)) != NULL; src = NULL)
     {
@@ -312,7 +312,7 @@ static int http_get_config_index(http_t *h, request_t *rq, char *idx, size_t sz)
 
         if(http_is_valid_index(h, rq, tok))
         {
-            dbg_err_if(strlcpy(idx, tok, sz) >= sz);
+            dbg_err_if(u_strlcpy(idx, tok, sz));
             return 0; /* index page found */
         }
     }
@@ -337,7 +337,7 @@ static int http_get_default_index(http_t *h, request_t *rq, char *cindex,
     {
         if(http_is_valid_index(h, rq, *pg))
         {
-            dbg_err_if(strlcpy(cindex, *pg, sz) >= sz);
+            dbg_err_if(u_strlcpy(cindex, *pg, sz));
             return 0; /* index page found */
         }
     }
@@ -610,16 +610,17 @@ static int http_serve(http_t *h, int fd)
     {
         if(!http_set_index_request(h, rq))
         {
-            strlcpy(nuri, request_get_uri(rq), sizeof(nuri));
-            strlcat(nuri, "/", sizeof(nuri));
+            (void) u_strlcpy(nuri, request_get_uri(rq), sizeof(nuri));
+            (void) u_strlcat(nuri, "/", sizeof(nuri));
 
             if(request_get_path_info(rq))
-                strlcat(nuri, request_get_path_info(rq), sizeof(nuri));
+                (void) u_strlcat(nuri, request_get_path_info(rq), sizeof(nuri));
 
             if(request_get_query_string(rq))
             {
-                strlcat(nuri, "?", sizeof(nuri));
-                strlcat(nuri, request_get_query_string(rq), sizeof(nuri));
+                (void) u_strlcat(nuri, "?", sizeof(nuri));
+                (void) u_strlcat(nuri, request_get_query_string(rq), 
+                        sizeof(nuri));
             }
 
             response_redirect(rs, nuri);

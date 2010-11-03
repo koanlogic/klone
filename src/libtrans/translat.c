@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
@@ -295,7 +295,7 @@ int translate_makefile_filepath(const char *filepath, const char *prefix,
             filepath ));
     }
 
-    dbg_err_if(strlcpy(buf, file_in, size) >= size);
+    dbg_err_if(u_strlcpy(buf, file_in, size));
 
     return 0;
 err:
@@ -336,9 +336,9 @@ static int include_file_full_path(parser_t *p, char *inc_file, char *obuf,
     dbg_err_if((pc = strrchr(buf, '/')) == NULL);
     ++pc; *pc = 0;
 
-    dbg_err_if(strlcat(buf, inc_file, U_FILENAME_MAX) >= U_FILENAME_MAX);
+    dbg_err_if(u_strlcat(buf, inc_file, U_FILENAME_MAX));
 
-    dbg_err_if(strlcpy(obuf, buf, size) >= size);
+    dbg_err_if(u_strlcpy(obuf, buf, size));
 
     return 0;
 err:
@@ -653,7 +653,8 @@ static int cb_pre_html_block(parser_t *p, void *arg, const char *buf, size_t sz)
     ppctx_t *ppc = (ppctx_t*)arg;
     block_t *block = NULL;
     char file[U_FILENAME_MAX];
-    int i, ln;
+    int ln;
+    size_t i;
 
     u_unused_args(arg);
 

@@ -693,7 +693,7 @@ int u_tmpfile_open(const char *tmpdir, io_t **pio)
 
     if((f_temp = tempnam(tmpdir, pfx)) != NULL)
     {
-        dbg_err_if (strlcpy(tmp, f_temp, sizeof tmp) >= sizeof tmp); 
+        dbg_err_if (u_strlcpy(tmp, f_temp, sizeof tmp));
         u_free(f_temp), f_temp = NULL;
 
         dbg_err_if(u_file_open(tmp, O_CREAT | O_EXCL | O_RDWR, &io));

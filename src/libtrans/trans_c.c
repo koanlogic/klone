@@ -137,10 +137,8 @@ static void print_header(parser_t *p, lang_c_ctx_t *ctx)
     /* we need a prefix to avoid errors with pages whose filename starts with
        a number (404-handler.kl1) or any other char not allowed by C as the
        first char of function names */
-    strlcpy(dfun, dfun_prefix, strlen(dfun_prefix));
-
-    if(strlcat(dfun, file, URI_BUFSZ) >= URI_BUFSZ)
-        dfun[URI_BUFSZ - 1] = 0;
+    (void) u_strlcpy(dfun, dfun_prefix, URI_BUFSZ);
+    dbg_if (u_strlcat(dfun, file, URI_BUFSZ));
 
     for(i = 0; i < strlen(dfun); ++i)
         if(!isalnum(dfun[i]))
@@ -160,6 +158,7 @@ static void print_header(parser_t *p, lang_c_ctx_t *ctx)
         "static io_t *in = NULL;\n"
         "static io_t *out = NULL;\n");
  
+    return;
 }
 
 static int print_var_definition(parser_t *p, int comp, const char *varname, 
