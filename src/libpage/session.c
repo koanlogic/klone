@@ -278,6 +278,7 @@ static int session_set_filename(session_t *ss)
     switch(addr->type)
     {
     case ADDR_IPV4:
+        u_dbg("client addr: %s", inet_ntoa(addr->sa.sin.sin_addr));
         dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
             U_PATH_SEPARATOR, "%s/klone_sess_%s_%lu", ss->so->path, ss->id, 
             addr->sa.sin.sin_addr));
@@ -298,7 +299,7 @@ static int session_set_filename(session_t *ss)
 
     return 0;
 err:
-    return 0;
+    return ~0;
 }
 
 static int session_gen_id(session_t *ss)
@@ -310,7 +311,7 @@ static int session_gen_id(session_t *ss)
     dbg_err_if (ss == NULL);
 
     /* gen a new one */
-    gettimeofday(&tv, NULL);
+    dbg_err_sif (gettimeofday(&tv, NULL) == -1);
 
     dbg_err_if(u_snprintf(buf, BUFSZ, "%lu%d%lu%d", tv.tv_sec, getpid(), 
         tv.tv_usec, rand()));
@@ -359,24 +360,19 @@ int session_load(session_t *ss)
 
 int session_save(session_t *ss)
 {
-    size_t vcount;
-    dbg_err_if (ss == NULL);
-    dbg_err_if (ss->save == NULL);
+    dbg_return_if (ss == NULL, ~0);
+    dbg_return_if (ss->save == NULL, ~0);
 
-    vcount = vars_count(ss->vars);
+    /* No vars set: if cookie empty it's a no-op, otherwise remove stored
+     * cookies. */
+    if (vars_count(ss->vars) == 0)
+        return (ss->id[0] == '\0') ? 0 : session_remove(ss);
 
-    if(ss->id[0] == 0 && vcount == 0)
-        return 0; /* new user, no vars set -> nothing to save */
-
-    if(ss->id[0] != 0 && vcount == 0)
-        return session_remove(ss); /* old user, all vars removed */
-
-    if(ss->id[0] == 0)
+    /* new user, need to save some vars */
+    if (ss->id[0] == '\0')
     {
-        /* new user, need to save some vars */
-
         /* generate a new SID and set session filename accordingly */
-        dbg_err_if(session_priv_set_id(ss, NULL)); 
+        dbg_err_if (session_priv_set_id(ss, NULL)); 
     }
 
     return ss->save(ss);
@@ -721,7 +717,7 @@ int session_prv_save_to_io(session_t *ss, io_t *out)
     }
 #endif
 
-    /* pass io and session poiters to the callback function */
+    /* pass io and session pointers to the callback function */
     prm.io = out;
     prm.ss = ss;
 
@@ -805,10 +801,10 @@ int session_prv_save_var(var_t *v, void *vp)
 err:
     /* free heap buffers */
     if(uname && uname != sname)
-        U_FREE(uname);
+        u_free(uname);
 
     if(uvalue && uvalue != svalue)
-        U_FREE(uvalue);
+        u_free(uvalue);
 
     return rc;
 }

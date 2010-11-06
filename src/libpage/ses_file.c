@@ -27,7 +27,7 @@ static int session_file_save(session_t *ss)
 {
     io_t *io = NULL;
 
-    dbg_err_if (ss == NULL);
+    dbg_return_if (ss == NULL, ~0);
 
     /* delete old file (we'll rewrite it from scratch) */
     u_remove(ss->filename);
