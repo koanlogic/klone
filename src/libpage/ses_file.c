@@ -54,7 +54,7 @@ static int session_file_load(session_t *ss)
     io_t *io = NULL;
 
     dbg_err_if (ss == NULL);
-    dbg_err_if (ss->filename == NULL || ss->filename[0] == 0);
+    dbg_err_if (ss->filename == NULL || ss->filename[0] == '\0');
 
     /* FIXME may be busy, must retry */
     dbg_err_if(u_file_open(ss->filename, O_RDONLY | O_CREAT, &io));
@@ -99,6 +99,7 @@ int session_file_create(session_opt_t *so, request_t *rq, response_t *rs,
     ss = u_zalloc(sizeof(session_t));
     dbg_err_if(ss == NULL);
 
+    ss->filename[0] = '\0';
     ss->load = session_file_load;
     ss->save = session_file_save;
     ss->remove = session_file_remove;
@@ -107,7 +108,7 @@ int session_file_create(session_opt_t *so, request_t *rq, response_t *rs,
 
     dbg_err_if(session_prv_init(ss, rq, rs));
 
-    if(ss->filename[0] != 0 && stat(ss->filename, &st))
+    if(ss->filename[0] != '\0' && stat(ss->filename, &st))
         ss->mtime = time(0); /* file not found or err */
     else
         ss->mtime = st.st_mtime;
@@ -131,23 +132,21 @@ int session_file_module_init(u_config_t *config, session_opt_t *so)
 {
     const char *v;
 
-    /* config may be NULL */
-    dbg_err_if (so == NULL);
+    /* config can't be NULL */
+    dbg_return_if (so == NULL, ~0);
     
     if(config && (v = u_config_get_subkey_value(config, "file.path")) != NULL)
     {
-        strncpy(so->path, v, U_FILENAME_MAX);
+        (void) u_strlcpy(so->path, v, sizeof so->path);
     } else {
         /* default */
         #ifdef OS_WIN
-        GetTempPath(U_FILENAME_MAX, so->path);
+        GetTempPath(sizeof so->path, so->path);
         #else
-        strncpy(so->path, "/tmp", U_FILENAME_MAX);
+        (void) u_strlcpy(so->path, "/tmp", sizeof so->path);
         #endif
     }
 
     return 0;
-err:
-    return ~0;
 }
 

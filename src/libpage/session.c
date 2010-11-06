@@ -51,6 +51,7 @@ int session_module_term(session_opt_t *so)
 
 int session_module_init(u_config_t *config, session_opt_t **pso)
 {
+    int iv;
     session_opt_t *so = NULL;
     u_config_t *c = NULL;
     const char *v;
@@ -58,8 +59,7 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     dbg_err_if (config == NULL);
     dbg_err_if (pso == NULL);
 
-    so = u_zalloc(sizeof(session_opt_t));
-    dbg_err_if(so == NULL);
+    dbg_err_sif ((so = u_zalloc(sizeof(session_opt_t))) == NULL);
 
     /* defaults values */
     so->type = SESSION_TYPE_FILE;
@@ -68,29 +68,31 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     so->encrypt = 0;
     (void) u_strlcpy(so->name, SID_NAME, sizeof so->name);
 
+    /* In case no 'session' subsection is found, defaults will be used. */
+
     if(!u_config_get_subkey(config, "session", &c))
     {
-        /* no 'session' subsection, defaults will be used */
-
         /* set session type */
         if((v = u_config_get_subkey_value(c, "type")) != NULL)
         {
-            if(!strcasecmp(v, "memory")) {
+            if(!strcasecmp(v, "memory"))
                 so->type = SESSION_TYPE_MEMORY;
-            } else if(!strcasecmp(v, "file")) {
+            else if(!strcasecmp(v, "file"))
                 so->type = SESSION_TYPE_FILE;
 #ifdef HAVE_LIBOPENSSL
-            } else if(!strcasecmp(v, "client")) {
+            else if(!strcasecmp(v, "client"))
                 so->type = SESSION_TYPE_CLIENT;
 #endif
-            } else
-               warn_err("config error: bad session type (typo or missing "
-                        "library)");
+            else
+               warn_err("config error: bad session type \'%s\'", v);
         }
 
         /* set max_age */
         if((v = u_config_get_subkey_value(c, "max_age")) != NULL)
-            so->max_age = MAX(atoi(v) * 60, 60); /* min value: 1 min */
+        {
+            dbg_err_ifm (u_atoi(v, &iv), "config error: bad max_age \'%s\'", v);
+            so->max_age = U_MAX(iv * 60, 60); /* silently uplift to 1 min */
+        }
 
         /* set compression flag */
         dbg_err_if(u_config_get_subkey_value_b(c, "compress", 0,
@@ -147,7 +149,7 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
 
     return 0;
 err:
-    U_FREE(so);
+    u_free(so);
     return ~0;
 }
 
@@ -276,7 +278,7 @@ static int session_set_filename(session_t *ss)
     {
     case ADDR_IPV4:
         dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
-            U_PATH_SEPARATOR, "%s/klone_sess_%s_%lu", ss->so->path, ss->id, 
+            U_PATH_SEPARATOR, "%s/klone_sess_%s_%u", ss->so->path, ss->id, 
             addr->sa.sin.sin_addr));
         break;
     case ADDR_IPV6:
