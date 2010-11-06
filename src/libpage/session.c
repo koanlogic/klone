@@ -247,22 +247,18 @@ err:
     return ~0;
 }
 
+/* Supplied 'id' must be SESSION_ID_LENGTH long and made of hex digits only. */
 static int session_is_good_id(const char *id)
 {
     const char *p;
-    size_t len;
 
     dbg_return_if (id == NULL, 0);
+    dbg_return_if (strlen(id) != SESSION_ID_LENGTH, 0);
 
-    dbg_ifb((len = strlen(id)) != SESSION_ID_LENGTH)
-        return 0; /* wrong length */
-
-    for(p = id; len; --len, ++p)
+    for (p = id; *p != '\0'; ++p)
     {
-        /* if is hex */
-        if(! ((*p >= 'A' && *p <= 'F') || (*p >= 'a' && *p <= 'f') || 
-              (*p >= '0' && *p <= '9')) )
-        return 0; /* not safe */
+        if (!isxdigit(*p))
+            return 0;
     }
 
     return 1; /* good */
@@ -272,13 +268,15 @@ static int session_set_filename(session_t *ss)
 {
     kaddr_t *addr = NULL;
 
-    dbg_err_if(strlen(ss->id) == 0);
+    u_dbg("%s", __func__);
+
+    dbg_return_if (ss->id[0] == '\0', ~0);
 
     dbg_err_if((addr = request_get_addr(ss->rq)) == NULL);
+
     switch(addr->type)
     {
     case ADDR_IPV4:
-        u_dbg("client addr: %s", inet_ntoa(addr->sa.sin.sin_addr));
         dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
             U_PATH_SEPARATOR, "%s/klone_sess_%s_%lu", ss->so->path, ss->id, 
             addr->sa.sin.sin_addr));
@@ -295,7 +293,11 @@ static int session_set_filename(session_t *ss)
             U_PATH_SEPARATOR, "%s/klone_sess_%s", ss->so->path, ss->id));
         break;
 #endif
+    default:
+        dbg_err("unknown address type");
     }
+
+    u_dbg("set session filename to \'%s\'", ss->filename);
 
     return 0;
 err:
@@ -304,28 +306,33 @@ err:
 
 static int session_gen_id(session_t *ss)
 {
-    enum { BUFSZ = 256 };
-    char buf[BUFSZ];
+    char buf[256];
     struct timeval tv;
+
+    u_dbg("%s", __func__);
 
     dbg_err_if (ss == NULL);
 
-    /* gen a new one */
+    /* Initialize sid to empty string. */
+    ss->id[0] = '\0';
+
+    /* SID is MD5(mix(now, process_pid, random)) */
     dbg_err_sif (gettimeofday(&tv, NULL) == -1);
 
-    dbg_err_if(u_snprintf(buf, BUFSZ, "%lu%d%lu%d", tv.tv_sec, getpid(), 
-        tv.tv_usec, rand()));
+    dbg_err_if (u_snprintf(buf, sizeof buf, "%lu%u%lu%d", 
+                tv.tv_sec, getpid(), tv.tv_usec, rand()));
 
-    /* return the md5 (in hex) buf */
-    dbg_err_if(u_md5(buf, strlen(buf), ss->id));
+    dbg_err_if (u_md5(buf, strlen(buf), ss->id));
 
-    /* remove previous sid if any */ 
-    dbg_err_if(response_set_cookie(ss->rs, ss->so->name, NULL, 0, NULL, 
-                NULL, 0));
+    u_dbg("generated session id: %s", ss->id);
 
-    /* set the cookie ID */
-    dbg_err_if(response_set_cookie(ss->rs, ss->so->name, ss->id, 0, NULL, 
-                NULL, 0));
+    /* Remove previous SID, if any. */ 
+    dbg_err_if (response_set_cookie(ss->rs, ss->so->name, NULL, 
+                0, NULL, NULL, 0));
+
+    /* Set the cookie ID. */
+    dbg_err_if (response_set_cookie(ss->rs, ss->so->name, ss->id, 
+                0, NULL, NULL, 0));
 
     return 0;
 err:
@@ -334,16 +341,20 @@ err:
 
 int session_priv_set_id(session_t *ss, const char *sid)
 {
+    u_dbg("%s", __func__);
+
+    dbg_return_if (ss == NULL, ~0);
+
     /* set or generate a session id */
-    if(sid && session_is_good_id(sid))
+    if (sid && session_is_good_id(sid))
     {
-        dbg_err_if(u_snprintf(ss->id, SESSION_ID_BUFSZ, "%s", sid));
-        ss->id[SESSION_ID_BUFSZ-1] = 0;
+        dbg_err_if (u_snprintf(ss->id, sizeof ss->id, "%s", sid));
+//        ss->id[SESSION_ID_BUFSZ-1] = '\0';
     } else
-        dbg_err_if(session_gen_id(ss));
+        dbg_err_if (session_gen_id(ss));
 
     /* set the filename accordingly */
-    dbg_err_if(session_set_filename(ss));
+    dbg_err_if (session_set_filename(ss));
 
     return 0;
 err:
@@ -837,14 +848,14 @@ int session_create(session_opt_t *so, request_t *rq, response_t *rs,
     }
 
     /* may fail if the session does not exist */
-    if(ss->id[0] != 0)
+    if(ss->id[0] != '\0')
     {
-        session_load(ss);
+        (void) session_load(ss);
 
         dbg_ifb(session_age(ss) > so->max_age)
         {
-            session_clean(ss);  /* remove all session variables */
-            session_remove(ss); /* remove the session itself    */
+            (void) session_clean(ss);  /* remove all session variables */
+            (void) session_remove(ss); /* remove the session itself    */
         }
     } 
 
