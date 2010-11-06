@@ -94,7 +94,8 @@ int emb_lookup(const char *filename, embres_t **pr)
     embres_t *res;
 
     dbg_err_if (init == 0);
-    dbg_err_if (filename == NULL || filename[0] == '\0');
+    dbg_err_if (filename == NULL);
+    dbg_err_if (filename[0] == '\0');
     dbg_err_if (pr == NULL);
 
     res = u_hmap_easy_get(embmap, filename);
@@ -104,7 +105,6 @@ int emb_lookup(const char *filename, embres_t **pr)
 
     return 0;
 err:
-    /* not found */
     return ~0;
 }
 

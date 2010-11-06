@@ -325,12 +325,21 @@ err:
 static int http_get_default_index(http_t *h, request_t *rq, char *cindex, 
         size_t sz)
 {
-    static const char *indexes[] = { "/index.klone", "/index.kl1",
-        "/index.klc", "/index.klx", "/index.html", "/index.htm", NULL };
     const char **pg;
+    static const char *indexes[] = 
+    { 
+        "/index.kl1",
+        "/index.html", 
+        "/index.htm", 
+        "/index.klx", 
+        "/index.klone", 
+        "/index.klc", 
+        NULL 
+    };
 
     dbg_err_if (h == NULL);
     dbg_err_if (rq == NULL);
+    dbg_err_if (cindex == NULL);
 
     /* try to find an index page between default index uris */
     for(pg = indexes; *pg; ++pg)

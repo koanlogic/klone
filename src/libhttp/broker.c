@@ -82,7 +82,7 @@ int broker_serve(broker_t *b, http_t *h, request_t *rq, response_t *rs)
                 break;
             }
         }
-        dbg_err_if(sup == NULL);
+        nop_err_if (sup == NULL);
     }
     
     ims = request_get_if_modified_since(rq);

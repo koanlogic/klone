@@ -268,8 +268,6 @@ static int session_set_filename(session_t *ss)
 {
     kaddr_t *addr = NULL;
 
-    u_dbg("%s", __func__);
-
     dbg_return_if (ss->id[0] == '\0', ~0);
 
     dbg_err_if((addr = request_get_addr(ss->rq)) == NULL);
@@ -297,8 +295,6 @@ static int session_set_filename(session_t *ss)
         dbg_err("unknown address type");
     }
 
-    u_dbg("set session filename to \'%s\'", ss->filename);
-
     return 0;
 err:
     return ~0;
@@ -308,8 +304,6 @@ static int session_gen_id(session_t *ss)
 {
     char buf[256];
     struct timeval tv;
-
-    u_dbg("%s", __func__);
 
     dbg_err_if (ss == NULL);
 
@@ -323,8 +317,6 @@ static int session_gen_id(session_t *ss)
                 tv.tv_sec, getpid(), tv.tv_usec, rand()));
 
     dbg_err_if (u_md5(buf, strlen(buf), ss->id));
-
-    u_dbg("generated session id: %s", ss->id);
 
     /* Remove previous SID, if any. */ 
     dbg_err_if (response_set_cookie(ss->rs, ss->so->name, NULL, 
@@ -341,16 +333,12 @@ err:
 
 int session_priv_set_id(session_t *ss, const char *sid)
 {
-    u_dbg("%s", __func__);
-
     dbg_return_if (ss == NULL, ~0);
 
     /* set or generate a session id */
     if (sid && session_is_good_id(sid))
-    {
         dbg_err_if (u_snprintf(ss->id, sizeof ss->id, "%s", sid));
-//        ss->id[SESSION_ID_BUFSZ-1] = '\0';
-    } else
+    else
         dbg_err_if (session_gen_id(ss));
 
     /* set the filename accordingly */
