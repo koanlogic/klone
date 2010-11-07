@@ -279,7 +279,7 @@ static int session_set_filename(session_t *ss)
     case ADDR_IPV4:
         dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
             U_PATH_SEPARATOR, "%s/klone_sess_%s_%u", ss->so->path, ss->id, 
-            addr->sa.sin.sin_addr));
+            addr->sa.sin.sin_addr.s_addr));
         break;
     case ADDR_IPV6:
         /* FIXME: add ipv6 address in session filename */
@@ -316,7 +316,8 @@ static int session_gen_id(session_t *ss)
     dbg_err_sif (gettimeofday(&tv, NULL) == -1);
 
     dbg_err_if (u_snprintf(buf, sizeof buf, "%lu%u%lu%d", 
-                tv.tv_sec, getpid(), tv.tv_usec, rand()));
+                (unsigned long) tv.tv_sec, (unsigned int) getpid(), 
+                (unsigned long) tv.tv_usec, rand()));
 
     dbg_err_if (u_md5(buf, strlen(buf), ss->id));
 

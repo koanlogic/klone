@@ -65,7 +65,8 @@ void* var_get_opaque(var_t *v)
     return v->opaque;
 }
 
-int var_bin_create(const char *name, const char *data, size_t size, var_t **pv)
+int var_bin_create(const char *name, const unsigned char *data, size_t size, 
+        var_t **pv)
 {
     var_t *v = NULL;
 
@@ -94,7 +95,8 @@ int var_create(const char* name, const char *value, var_t**pv)
     dbg_return_if (name == NULL, ~0);
     dbg_return_if (value == NULL, ~0);
 
-    return var_bin_create(name, value, 1 + strlen(value), pv);
+    return var_bin_create(name, (const unsigned char *) value, 
+            1 + strlen(value), pv);
 }
 
 /*
@@ -240,7 +242,8 @@ int var_set_value(var_t *v, const char *value)
     dbg_return_if (value == NULL, ~0);
 
     /* copy the string and the trailing '\0' */
-    return var_set_bin_value(v, value, 1 + strlen(value));
+    return var_set_bin_value(v, (const unsigned char *) value, 
+            1 + strlen(value));
 }
 
 /**
@@ -255,7 +258,7 @@ int var_set_value(var_t *v, const char *value)
  *
  * \return \c 0 if successful, non-zero on error
  */
-int var_set_bin_value(var_t *v, const char *data, size_t size)
+int var_set_bin_value(var_t *v, const unsigned char *data, size_t size)
 {
     dbg_err_if (v == NULL);
     dbg_err_if (data == NULL);
