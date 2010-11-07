@@ -304,7 +304,7 @@ err:
 
 static int session_gen_id(session_t *ss)
 {
-    char buf[256];
+    char buf[256 + 1];  /* handle worst case, i.e. (64bit * 4) + '\0' */
     struct timeval tv;
 
     dbg_err_if (ss == NULL);
@@ -843,8 +843,9 @@ int session_create(session_opt_t *so, request_t *rq, response_t *rs,
     {
         (void) session_load(ss);
 
-        dbg_ifb(session_age(ss) > so->max_age)
+        if (session_age(ss) > so->max_age)
         {
+            u_dbg("session %s expired", ss->id);
             (void) session_clean(ss);  /* remove all session variables */
             (void) session_remove(ss); /* remove the session itself    */
         }

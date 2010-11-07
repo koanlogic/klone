@@ -89,6 +89,7 @@ int session_file_create(session_opt_t *so, request_t *rq, response_t *rs,
         session_t **pss)
 {
     session_t *ss = NULL;
+    time_t now;
     struct stat st;
 
     dbg_err_if (so == NULL);
@@ -108,10 +109,13 @@ int session_file_create(session_opt_t *so, request_t *rq, response_t *rs,
 
     dbg_err_if(session_prv_init(ss, rq, rs));
 
-    if(ss->filename[0] != '\0' && stat(ss->filename, &st))
-        ss->mtime = time(0); /* file not found or err */
-    else
+    if (ss->filename[0] != '\0' && stat(ss->filename, &st) == 0)
         ss->mtime = st.st_mtime;
+    else
+    {
+        dbg_err_if ((now = time(NULL)) == (time_t) -1);
+        ss->mtime = (int) now;
+    }
 
     *pss = ss;
 

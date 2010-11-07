@@ -41,10 +41,9 @@ int server_ppc_cmd_access_log(server_t *s, int bid, int vhostid,
 
     memset(&la, 0, sizeof(ppc_access_log_t));
 
-    la.bid = ctx->backend->id;
+    la.bid = bid;
     la.vhostid = vhostid;
-    strncpy(la.log, str, U_MAX_LOG_LENGTH);
-    la.log[U_MAX_LOG_LENGTH -1] = 0;
+    (void) u_strlcpy(la.log, str, sizeof la.log);
 
     /* send the command request */
     nop_err_if(ppc_write(s->ppc, ctx->pipc, PPC_CMD_ACCESS_LOG, (char*)&la, 

@@ -615,7 +615,8 @@ static int command_import(void)
     dbg_err_if(trans_site(root_dir, base_uri));
 
     u_con("%lu dirs and %lu files imported, %lu files skipped", 
-            ctx->ndir, ctx->nfile, ctx->nexcl);
+            (unsigned long) ctx->ndir, (unsigned long) ctx->nfile, 
+            (unsigned long) ctx->nexcl);
 
     return 0;
 err:

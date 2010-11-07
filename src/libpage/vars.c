@@ -142,13 +142,10 @@ err:
  */
 var_t *vars_getn(vars_t *vs, size_t i)
 {
-    dbg_goto_if (vs == NULL, notfound);
-
-    dbg_goto_if (i >= u_list_count(vs->list), notfound); /* out of bounds */
+    dbg_return_if (vs == NULL, NULL);
+    nop_return_if (i >= u_list_count(vs->list), NULL);
 
     return u_list_get_n(vs->list, i);
-notfound:
-    return NULL;
 }
 
 /**
@@ -216,73 +213,70 @@ int vars_add_urlvar(vars_t *vs, const char *cstr, var_t **pv)
     char *val, *str = NULL, *name = sname, *value = svalue;
     var_t *var = NULL;
     ssize_t vsz;
-    size_t val_len;
+    size_t val_len, nam_len;
 
     dbg_return_if (vs == NULL, ~0);
     dbg_return_if (cstr == NULL, ~0);
-    /* v may be NULL */
+    /* pv may be NULL */
         
     /* dup the string so we can modify it */
-    str = u_strdup(cstr);
-    dbg_err_if(str == NULL);
-
-    val = strchr(str, '=');
-    dbg_err_if(val == NULL);
+    dbg_err_sif ((str = u_strdup(cstr)) == NULL);
 
     /* zero-term the name part and set the value pointer */
-    *val++ = 0; 
+    dbg_err_if ((val = strchr(str, '=')) == NULL);
+    *val++ = '\0'; 
 
     val_len = strlen(val);
+    nam_len = strlen(str);
 
     /* if the buffer on the stack is too small alloc a bigger one */
-    if(strlen(str) >= NAMESZ)
-        dbg_err_if((name = u_zalloc(1 + strlen(str))) == NULL);
+    if (nam_len >= NAMESZ)
+        dbg_err_if ((name = u_zalloc(1 + nam_len)) == NULL);
 
     /* if the buffer on the stack is too small alloc a bigger one */
-    if(val_len >= VALSZ)
-        dbg_err_if((value = u_zalloc(1 + val_len)) == NULL);
+    if (val_len >= VALSZ)
+        dbg_err_if ((value = u_zalloc(1 + val_len)) == NULL);
 
     /* url-decode var name */
-    dbg_err_if(u_urlncpy(name, str, strlen(str), URLCPY_DECODE) <= 0);
+    dbg_err_if (u_urlncpy(name, str, nam_len, URLCPY_DECODE) <= 0);
 
     /* url-decode var value */
-    if(val_len)
+    if (val_len)
+        dbg_err_if ((vsz = u_urlncpy(value, val, val_len, URLCPY_DECODE)) <= 0);
+    else 
     {
-        dbg_err_if((
-            vsz = u_urlncpy(value, val, val_len, URLCPY_DECODE)) <= 0);
-    } else {
         /* an empty value */
-        value[0] = 0;
+        value[0] = '\0';
         vsz = 1;
     }
 
     /* u_dbg("name: [%s]  value: [%s]", name, value); */
 
-    dbg_err_if(var_bin_create(name, value, vsz, &var));
+    dbg_err_if (var_bin_create(name, (unsigned char *) value, vsz, &var));
 
     /* push into the var list */
-    dbg_err_if(vars_add(vs, var));
+    dbg_err_if (vars_add(vs, var));
 
-    if(pv)
+    if (pv)
         *pv = var;
 
     /* if the buffer has been alloc'd on the heap then free it */
-    if(value && value != svalue)
-        U_FREE(value);
+    if (value && value != svalue)
+        u_free(value);
 
-    if(name && name != sname)
-        U_FREE(name);
+    if (name && name != sname)
+        u_free(name);
 
-    U_FREE(str);
+    u_free(str);
 
     return 0;
 err:
-    if(value && value != svalue)
-        U_FREE(value);
-    if(name && name != sname)
-        U_FREE(name);
-    U_FREE(str);
-    if(var)
+    if (value && value != svalue)
+        u_free(value);
+    if (name && name != sname)
+        u_free(name);
+    u_free(str);
+    if (var)
         var_free(var);
     return ~0;
 }

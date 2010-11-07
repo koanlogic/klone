@@ -77,8 +77,7 @@ static int timerm_set_next(void)
 
 void timerm_sigalrm(int sigalrm)
 {
-    talarm_t *al = NULL, *next = NULL;
-    int expire;
+    talarm_t *al = NULL;
     pid_t pid = getpid();
     time_t now = time(0);
 
@@ -257,7 +256,7 @@ int timerm_add(int secs, talarm_cb_t cb, void *arg, talarm_t **pa)
 
     return 0;
 err:
-    u_dbg("[%lu] timerm_add error", getpid());
+    u_dbg("[%lu] timerm_add error", (unsigned long) getpid());
     if(timer)
     {
         (void) timerm_free(timer);

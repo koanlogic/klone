@@ -140,7 +140,7 @@ static void print_header(parser_t *p, lang_c_ctx_t *ctx)
     (void) u_strlcpy(dfun, dfun_prefix, URI_BUFSZ);
     dbg_if (u_strlcat(dfun, file, URI_BUFSZ));
 
-    for(i = 0; i < strlen(dfun); ++i)
+    for(i = 0; i < (int) strlen(dfun); ++i)
         if(!isalnum(dfun[i]))
             dfun[i] = '_'; /* just a-zA-Z0-9 allowed */
 
@@ -270,7 +270,7 @@ static void print_static_page_block(io_t *out, lang_c_ctx_t *ctx)
          /* file_size will be == to size if the file is not compressed */
         ctx->ti->file_size, 
         u_guess_mime_type(ctx->ti->uri), 
-        ctx->ti->mtime, 
+        (unsigned long) ctx->ti->mtime,
         ctx->ti->comp,
         ctx->ti->encrypt);
 }
@@ -409,26 +409,28 @@ static int cb_html_block(parser_t *p, void *arg, const char *buf, size_t sz)
     if(ctx->ti->comp)
     {   /* zip embedded HTML blocks */
         dbg_err_if(u_snprintf(varname, VARNSZ, "klone_html_zblock_%lu", 
-            ctx->html_block_cnt));
+            (unsigned long) ctx->html_block_cnt));
 
         dbg_err_if(print_var_definition(p, 1 /* zip it */, varname, buf, sz));
 
         dbg_err_if(u_snprintf(code, CODESZ, 
             "\ndbg_if(u_io_unzip_copy(out, klone_html_zblock_%lu, "
             "   sizeof(klone_html_zblock_%lu)));\n", 
-            ctx->html_block_cnt, ctx->html_block_cnt));
+            (unsigned long) ctx->html_block_cnt, 
+            (unsigned long) ctx->html_block_cnt));
 
     } else {
         /* embedded HTML blocks will not be zipped */
         dbg_err_if(u_snprintf(varname, VARNSZ, "klone_html_%lu", 
-            ctx->html_block_cnt));
+            (unsigned long) ctx->html_block_cnt));
 
         dbg_err_if(print_var_definition(p, 0, varname, buf, sz));
 
         dbg_err_if(u_snprintf(code, CODESZ, 
             "\ndbg_if(io_write(out, klone_html_%lu, "
             "   sizeof(klone_html_%lu)) < 0);\n", 
-            ctx->html_block_cnt, ctx->html_block_cnt));
+            (unsigned long) ctx->html_block_cnt, 
+            (unsigned long) ctx->html_block_cnt));
     }
 
     dbg_err_if(push_code_block(ctx, p, code, strlen(code)));

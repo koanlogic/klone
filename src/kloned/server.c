@@ -32,6 +32,7 @@
 #include <klone/hook.h>
 #include <klone/hookprv.h>
 #include <klone/server_ppc_cmd.h>
+#include <klone/emb.h>
 #include "server_s.h"
 #include "child.h"
 
@@ -366,7 +367,7 @@ static int server_chroot_to(server_t *s, const char *dir)
 
     u_unused_args(s);
 
-    dbg_err_if(chroot((char*)dir));
+    dbg_err_if(chroot(dir));
 
     dbg_err_if(chdir("/"));
 
@@ -1197,9 +1198,6 @@ int server_foreach_memlog_line(server_t *s,
         cb(line, arg);
 
     return 0;
-err:
-    cb("klog_getln error", arg);
-    return ~0;
 }
 
 

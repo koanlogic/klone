@@ -35,7 +35,7 @@ context_t  *ctx = &c; /* exported */
     int RemoveService();
 #endif
 
-static void usage()
+static void usage (void)
 {
     static const char *us = 
 "Usage: kloned OPTIONS ARGUMENTS                                            \n"

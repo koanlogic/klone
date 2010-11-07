@@ -51,5 +51,6 @@ struct server_s
 
 int server_get_backend_by_id(server_t *s, int id, backend_t **pbe);
 int server_spawn_child(server_t *s, backend_t *be);
+int server_cb_klog_flush(talarm_t *a, void *arg);
 
 #endif

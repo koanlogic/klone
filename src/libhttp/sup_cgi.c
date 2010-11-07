@@ -263,7 +263,7 @@ static int cgi_setenv_clen(cgi_env_t *env, request_t *rq)
 
     if((len = request_get_content_length(rq)) > 0)
     {
-        dbg_err_if(u_snprintf(buf, sizeof(buf), "%ld", len));
+        dbg_err_if(u_snprintf(buf, sizeof(buf), "%ld", (long int) len));
         dbg_err_if(cgi_setenv(env, "CONTENT_LENGTH", buf));
     }
 

@@ -110,9 +110,8 @@ ssize_t ppc_read(ppc_t *ppc, int fd, unsigned char *pcmd, char *data,
         return n;
 
     /* buffer too small or cmd bigger then max allowed size */
-    if(h.size > size || h.size > PPC_MAX_DATA_SIZE)
-        u_dbg("ppc error h.cmd: %d   h.size: %lu", h.cmd, h.size);
-    dbg_return_if(h.size > size || h.size > PPC_MAX_DATA_SIZE, -1); 
+    dbg_return_ifm (h.size > size || h.size > PPC_MAX_DATA_SIZE, -1,
+            "ppc error h.cmd: %d, h.size: %lu", h.cmd, (unsigned long) h.size); 
 
     n = ppc_do_read(fd, data, h.size);
     if(n <= 0) /* error or eof */

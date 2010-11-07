@@ -80,6 +80,7 @@ static int session_client_save(session_t *ss)
     char hmac[HMAC_HEX_SIZE], ebuf[BUF_SIZE], mtime[MTIME_SIZE];
     char *buf = NULL, cipher_iv_hex[CIPHER_IV_SIZE * 2 + 1];
     size_t sz;
+    time_t now;
 
     dbg_err_if (ss == NULL);
 
@@ -110,10 +111,10 @@ static int session_client_save(session_t *ss)
         NULL, 0));
 
     /* set mtime cookie */
-    ss->mtime = time(0);
-    dbg_err_if(u_snprintf(mtime, MTIME_SIZE, "%lu", ss->mtime));
-    dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_MTIME, mtime, 0, NULL, 
-        NULL, 0));
+    dbg_err_sif ((now = time(NULL)) == (time_t) -1);
+    dbg_err_if (u_snprintf(mtime, sizeof mtime, "%d", (ss->mtime = (int) now)));
+    dbg_err_if (response_set_cookie(ss->rs, KL1_CLISES_MTIME, mtime, 0, NULL,
+                NULL, 0));
 
     /* calc the HMAC */
     dbg_err_if(session_client_hmac(&so->hmac_ctx, hmac, HMAC_HEX_SIZE, 
