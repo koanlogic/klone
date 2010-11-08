@@ -1,8 +1,3 @@
 # $Id: README.dist,v 1.9 2009/12/29 10:27:08 tho Exp $
 
-$ cvs co KL/{klone,makl}
-$ cvs co -r LIBU_1_5_MAINT_BRANCH KL/libu
-$ cd KL/klone
-$ [ -L libu ] || ln -s ../libu
-$ [ -L makl ] || ln -s ../makl
-$ cd skin/default && make -f Makefile.dist 
+$ cd skin/default && ./pack.sh

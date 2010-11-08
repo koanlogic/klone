@@ -1,7 +1,5 @@
 #!/bin/sh
 
-KLONE_VER="`cat VERSION`"
-
 E ()
 {
     echo "\033[1;37m\033[42m $@ \033[0m"
@@ -23,6 +21,21 @@ wrap ()
 
     E "$ "$cmd""
     eval ${cmd} 2>/dev/null || err $msg
+}
+
+yesno ()
+{
+    /bin/echo -n "$1 ([yY] or [nN]) "
+    
+    while [ true ] 
+    do 
+        read answer
+        case ${answer} in
+            [Yy]) return 0 ;;
+            [nN]) return 1 ;;
+            *) /bin/echo -n "please say [yY] or [nN]: " ;; 
+        esac
+    done 
 }
 
 DISTDIR="/tmp/klone-2.3.0-dist"
@@ -54,11 +67,16 @@ wrap "moving to dist directory" \
 wrap "launching dist make instance" \
     make -f Makefile.dist
 
-echo
+TARBALL="${DISTDIR}/klone/skin/default/klone-`cat VERSION`.tar.gz"
+
 E "============================================================================"
 E "klone tarball ready:                                                        "
-E "     ${DISTDIR}/klone/skin/default/klone-${KLONE_VER}.tar.gz"
+E "     ${TARBALL}"
 E "============================================================================"
-echo
+
+yesno "===> upload tarball to kl.com ?" || exit 0
+
+wrap "uploading klone tarball"  \
+    scp ${TARBALL} root@koanlogic.com:/var/www-anemic/www/download/klone/
 
 exit 0
