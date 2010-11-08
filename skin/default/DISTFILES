@@ -58,9 +58,6 @@ build/makl/etc/args.cf
 build/makl/etc/funcs.cf
 build/makl/etc/Makefile
 build/makl/etc/map.mk
-build/makl/etc/shlib.mk
-build/makl/etc/toolchain.cf
-build/makl/etc/toolchain.mk
 build/makl/etc/vars.cf
 build/makl/helpers/lorder
 build/makl/helpers/Makefile
