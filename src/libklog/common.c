@@ -25,7 +25,7 @@ int klog_new (int type, int threshold, const char *ident, klog_t **pkl)
     dbg_err_if (kl == NULL);
 
     kl->threshold = threshold;
-    u_sstrncpy(kl->ident, ident ? ident : "", KLOG_ID_SZ);
+    u_strlcpy(kl->ident, ident ? ident : "", sizeof kl->ident);
 
     /* check the supplied type */
     switch (type)

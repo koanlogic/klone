@@ -236,9 +236,8 @@ int u_httpdate_to_tt(const char *str, time_t *tp)
  * - \c 0   successful
  * - \c ~0  failure
  */
-int u_tt_to_rfc822(char dst[], time_t ts)
+int u_tt_to_rfc822(char dst[RFC822_DATE_BUFSZ], time_t ts)
 {
-    enum { RFC822_DATE_BUFSZ = 32 };
     char buf[RFC822_DATE_BUFSZ];
     struct tm tm;
 
@@ -253,14 +252,14 @@ int u_tt_to_rfc822(char dst[], time_t ts)
     dbg_err_if(tm.tm_wday > 6 || tm.tm_wday < 0);
     dbg_err_if(tm.tm_mon > 11 || tm.tm_mon < 0);
 
-    dbg_err_if(u_snprintf(buf, RFC822_DATE_BUFSZ, 
+    dbg_err_if(u_snprintf(buf, sizeof buf, 
                 "%s, %02u %s %02u %02u:%02u:%02u GMT",
                 days3[tm.tm_wday], 
                 tm.tm_mday, months[tm.tm_mon], tm.tm_year + 1900, 
                 tm.tm_hour, tm.tm_min, tm.tm_sec));
 
     /* copy out */
-    u_sstrncpy(dst, buf, RFC822_DATE_BUFSZ - 1);
+    u_strlcpy(dst, buf, RFC822_DATE_BUFSZ);
 
     return 0;
 err:

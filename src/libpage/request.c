@@ -784,7 +784,7 @@ static int request_parse_cookie(request_t *rq, field_t *field)
     dbg_err_if(field_get_value(field) == NULL);
 
     /* save a copy to tokenize it */
-    strncpy(buf, field_get_value(field), BUFSZ);
+    u_strlcpy(buf, field_get_value(field), sizeof buf);
 
     /* foreach name=value pair... */
     for(src = buf; (tok = strtok_r(src, " ;", &pp)) != NULL; src = NULL)
@@ -1018,7 +1018,7 @@ static int request_get_fieldparam(request_t *rq, const char *field_name,
     dbg_err_if(*param_value++ != '=');
 
     /* a param value ends on the first ';', space or at the end of string */
-    for(p = param_value; ;++p)
+    for(p = param_value; ; ++p)
         if(*p == '\0' || *p == ';' || isspace(*p))
             break; /* end of param value */
 
@@ -1026,11 +1026,10 @@ static int request_get_fieldparam(request_t *rq, const char *field_name,
     pv_len = p - param_value;
 
     /* boundary check */
-    dbg_err_if(pv_len > size - 1); 
+    dbg_err_if(pv_len + 1 > size); 
 
     /* copy out the param value */
-    strncpy(buf, param_value, pv_len);
-    buf[MIN(pv_len, size - 1)] = 0;
+    (void) u_strlcpy(buf, param_value, pv_len + 1);
 
     return 0;
 err:
@@ -1089,10 +1088,10 @@ static int parse_content_disposition(header_t *h, char *name, char *filename,
     /* must start with form-data */
     dbg_err_if(strncmp(cd, "form-data", strlen("form-data")));
 
-    name[0] = filename[0] = 0;
+    name[0] = filename[0] = '\0';
 
     /* save a copy to tokenize it */
-    strncpy(buf, cd, BUFSZ);
+    u_strlcpy(buf, cd, sizeof buf);
 
     /* shortcut */
     n_len = strlen("name=");
@@ -1106,8 +1105,11 @@ static int parse_content_disposition(header_t *h, char *name, char *filename,
             ++tok;
 
         if(strncmp(tok, "form-data", strlen("form-data")) == 0)
+        {
             continue;   /* skip */
-        else if(strncmp(tok, "name=", n_len) == 0) {
+        }
+        else if(strncmp(tok, "name=", n_len) == 0) 
+        {
             /* skip the name part */
             tok += n_len;
 
@@ -1115,10 +1117,12 @@ static int parse_content_disposition(header_t *h, char *name, char *filename,
             if((q = is_quote(tok[0])) != 0)
                 ++tok;
             if(strlen(tok) && tok[strlen(tok) - 1] == q)
-                tok[strlen(tok) - 1] = 0;
+                tok[strlen(tok) - 1] = '\0';
 
-            strncpy(name, tok, prmsz);
-        } else if(strncmp(tok, "filename=", fn_len) == 0) {
+            dbg_if (u_strlcpy(name, tok, prmsz));
+        } 
+        else if(strncmp(tok, "filename=", fn_len) == 0) 
+        {
             /* skip the filename part */
             tok += fn_len;
 
@@ -1126,9 +1130,9 @@ static int parse_content_disposition(header_t *h, char *name, char *filename,
             if((q = is_quote(tok[0])) != 0)
                 ++tok;
             if(strlen(tok) && tok[strlen(tok) - 1] == q)
-                tok[strlen(tok) - 1] = 0;
+                tok[strlen(tok) - 1] = '\0';
 
-            strncpy(filename, tok, prmsz);
+            dbg_if (u_strlcpy(filename, tok, prmsz));
         } 
         /* else ignore unknown fields */
     }
@@ -1190,7 +1194,7 @@ static ssize_t read_until(io_t *io, const char *stop_at, char *obuf,
 
         while((c = obuf[i]) != stop_at[t]) 
         {
-            i += MAX(sa_len - t, shift[c]);
+            i += U_MAX(sa_len - t, shift[c]);
 
             SETUP_BUF_ACCESS_AT(i);
 
@@ -1305,9 +1309,9 @@ static int request_get_uploaded_filev(request_t *rq, var_t *v,
     dbg_err_if(tmp_fqn == NULL);
 
     /* copy out return values */
-    strncpy(local_filename, tmp_fqn, U_FILENAME_MAX);
-    strncpy(mime_type, info->mime_type, MIME_TYPE_BUFSZ);
-    strncpy(client_filename, info->filename, U_FILENAME_MAX);
+    u_strlcpy(local_filename, tmp_fqn, U_FILENAME_MAX);
+    u_strlcpy(mime_type, info->mime_type, MIME_TYPE_BUFSZ);
+    u_strlcpy(client_filename, info->filename, U_FILENAME_MAX);
     *file_size = info->size;
 
     return 0;
@@ -1827,15 +1831,15 @@ static int request_load_config(request_t *rq)
 
     /* idle timeout */
     if((v = u_config_get_subkey_value(c, "idle_timeout")) != NULL)
-        rq->idle_timeout = MAX(1, atoi(v));
+        rq->idle_timeout = U_MAX(1, atoi(v));
 
     /* post timeout */
     if((v = u_config_get_subkey_value(c, "post_timeout")) != NULL)
-        rq->post_timeout = MAX(5, atoi(v));
+        rq->post_timeout = U_MAX(5, atoi(v));
 
     /* post maxsize */
     if((v = u_config_get_subkey_value(c, "post_maxsize")) != NULL)
-        rq->post_maxsize = MAX(1024, atoi(v));
+        rq->post_maxsize = U_MAX(1024, atoi(v));
 
     /* temp dir to use on file upload.  when 'NULL' use system default */
     rq->temp_dir = u_config_get_subkey_value(c, "temp_dir");

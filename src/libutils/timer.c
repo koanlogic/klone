@@ -70,7 +70,7 @@ static int timerm_set_next(void)
     time_t now = time(0);
 
     if((al = TAILQ_FIRST(&timer->alist)) != NULL)
-        timerm_set_alarm(MAX(1, al->expire - now));
+        timerm_set_alarm(U_MAX(1, al->expire - now));
 
     return 0;
 }

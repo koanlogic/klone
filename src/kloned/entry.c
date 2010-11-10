@@ -345,11 +345,11 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
         /* set up service name and description reading from the config file */
         name = u_config_get_subkey_value(ctx->config, "daemon.name");
         if(name)
-            strncpy(ss_name, name, SS_NAME_BUFSZ);
+            u_strlcpy(ss_name, name, sizeof ss_name);
 
         desc = u_config_get_subkey_value(ctx->config, "daemon.description");
         if(desc)
-            strncpy(ss_desc, desc, SS_DESC_BUFSZ);
+            u_strlcpy(ss_desc, desc, sizeof ss_desc);
 
         if(ctx->serv_op == SERV_INSTALL)
             dbg_err_if(InstallService());

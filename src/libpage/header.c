@@ -222,7 +222,6 @@ int header_add_field(header_t *h, field_t *f)
 static int header_process_line(header_t *h, u_string_t *line, int mode)
 {
     field_t *ex, *f = NULL;
-    const char *p;
 
     dbg_err_if (h == NULL);
     dbg_err_if (line == NULL);
@@ -287,8 +286,7 @@ int header_load_from_cgienv(header_t *h)
             memset(buf, 0, sizeof(buf));
 
             /* make a copy of e so we can modify it */
-            strncpy(buf, e + 5, MIN(BUFSZ, strlen(e + 5)));
-            buf[BUFSZ-1] = 0;
+            u_strlcpy(buf, e + 5, sizeof buf);
 
             eq = strchr(buf, '=');
             if(eq == NULL)
@@ -306,8 +304,6 @@ int header_load_from_cgienv(header_t *h)
     }
 
     return 0;
-err:
-    return ~0;
 }
 
 int header_load_ex(header_t *h , io_t *io, int mode)

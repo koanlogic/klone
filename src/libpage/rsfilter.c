@@ -175,7 +175,7 @@ static ssize_t rf_transform(codec_t *codec,
     }
 
     /* copyout the next data block */
-    max = MIN(*dcount, src_sz);
+    max = U_MIN(*dcount, src_sz);
     memcpy(dst, src, max);
     *dcount = max;
     return max;

@@ -57,8 +57,7 @@ int server_ppc_cmd_log_get(server_t *s, size_t i, char *line)
     nop_err_if(plg.i < 0); /* error or eof */
 
     /* copy-out the line */
-    strncpy(line, plg.line, KLOG_LN_SZ);
-    line[KLOG_LN_SZ - 1] = 0;
+    u_strlcpy(line, plg.line, sizeof line);
 
     return 0;
 err:

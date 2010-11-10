@@ -60,7 +60,7 @@ static ssize_t io_mem_read(io_mem_t *im, char *buf, size_t size)
     dbg_return_if (im == NULL, -1);
     dbg_return_if (buf == NULL, -1);
 
-    sz = MIN(size, im->size - im->off);
+    sz = U_MIN(size, im->size - im->off);
     if(sz)
     {
         ptr = im->buf + im->off; 
@@ -79,7 +79,7 @@ static ssize_t io_mem_write(io_mem_t *im, const char *buf, size_t size)
     dbg_return_if (im == NULL, -1);
     dbg_return_if (buf == NULL, -1);
 
-    sz = MIN(size, im->size - im->off);
+    sz = U_MIN(size, im->size - im->off);
     if(sz)
     {
         ptr = im->buf + im->off; 

@@ -301,8 +301,7 @@ ssize_t u_sqlncpy(char *d, const char *s, size_t slen, int flags)
     case SQLCPY_DECODE:
         return u_sqlncpy_decode(d, s, slen);
     default:
-        strncpy(d, s, slen);
-        d[slen] = 0;
+        u_strlcpy(d, s, slen + 1);
         return slen;
     }
 
@@ -400,8 +399,7 @@ ssize_t u_urlncpy(char *d, const char *s, size_t slen, int flags)
     case URLCPY_DECODE:
         return u_urlncpy_decode(d, s, slen);
     default:
-        strncpy(d, s, slen);
-        d[slen] = 0; /* zero-term the string */
+        u_strlcpy(d, s, slen + 1);
         return slen;
     }
 
@@ -504,8 +502,7 @@ ssize_t u_hexncpy(char *d, const char *s, size_t slen, int flags)
     case HEXCPY_DECODE:
         return u_hexncpy_decode(d, s, slen);
     default:
-        strncpy(d, s, slen);
-        d[slen] = 0; /* zero-term the string */
+        u_strlcpy(d, s, slen + 1);
         return slen;
     }
 
@@ -558,8 +555,7 @@ static ssize_t u_htmlncpy_decode(char *d, const char *s, size_t slen)
     dbg_return_if (d == NULL, -1);
     dbg_return_if (s == NULL, -1);
 
-    strncpy(d, s, slen);
-    d[slen] = 0;
+    u_strlcpy(d, s, slen + 1);
 
     for(p = entities; p->s_char; ++p)
     {
@@ -602,8 +598,7 @@ ssize_t u_htmlncpy(char *d, const char *s, size_t slen, int flags)
     case HTMLCPY_DECODE:
         return u_htmlncpy_decode(d, s, slen);
     default:
-        strncpy(d, s, slen);
-        d[slen] = 0; /* zero-term */
+        u_strlcpy(d, s, slen + 1);
         return slen;
     }
 err:

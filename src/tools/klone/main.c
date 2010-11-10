@@ -293,17 +293,17 @@ static int command_trans(void)
             ctx->uri);
 
     /* input file */
-    strncpy(ti.file_in, ctx->file_in, U_FILENAME_MAX);
+    u_strlcpy(ti.file_in, ctx->file_in, sizeof ti.file_in);
 
     /* output file */
-    strncpy(ti.file_out, ctx->file_out, U_FILENAME_MAX);
+    u_strlcpy(ti.file_out, ctx->file_out, sizeof ti.file_out);
 
     /* kld depend file */
     if(ctx->depend_out)
-        strncpy(ti.depend_out, ctx->depend_out, U_FILENAME_MAX);
+        u_strlcpy(ti.depend_out, ctx->depend_out, sizeof ti.depend_out);
 
     /* uri */
-    strncpy(ti.uri, ctx->uri, URI_BUFSZ);
+    u_strlcpy(ti.uri, ctx->uri, sizeof ti.uri);
 
     /* zero out the key (some byte could not be overwritten with small keys) */
     memset(ti.key, 0, CODEC_CIPHER_KEY_SIZE);
@@ -316,7 +316,7 @@ static int command_trans(void)
     if(key_env && strlen(key_env))
     {
         key_found = 1;
-        strncpy(ti.key, key_env, CODEC_CIPHER_KEY_SIZE);
+        u_strlcpy(ti.key, key_env, sizeof ti.key);
     }
 
     /* if -k has been used the overwrite KLONE_CIPHER_KEY env var (if present)*/
@@ -337,9 +337,10 @@ static int command_trans(void)
 
     /* set MIME type */
     if((mm = u_get_mime_map(ctx->file_in)) != NULL)
-        strncpy(ti.mime_type, mm->mime_type, MIME_BUFSZ);
+        u_strlcpy(ti.mime_type, mm->mime_type, sizeof ti.mime_type);
     else
-        strncpy(ti.mime_type, "application/octet-stream", MIME_BUFSZ);
+        u_strlcpy(ti.mime_type, "application/octet-stream", 
+                sizeof ti.mime_type);
 
     /* compress if requested and the file is compressable (by MIME type) */
     if(ctx->compress)

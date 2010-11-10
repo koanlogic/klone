@@ -301,7 +301,7 @@ static void server_watch_fd(server_t *s, int fd, unsigned int mode)
     if(mode & WATCH_FD_EXCP)
         FD_SET(fd, &s->exfds);
 
-    s->hfd = MAX(s->hfd, fd);
+    s->hfd = U_MAX(s->hfd, fd);
 }
 
 static void server_close_fd(server_t *s, int fd)

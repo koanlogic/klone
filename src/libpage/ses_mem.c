@@ -256,7 +256,7 @@ static int session_cmd_get(ppc_t *ppc, int fd, unsigned char cmd, char *data,
         
     /* fill the enc_ses_mem_t struct */
     esm->mtime = (time_t)atom->arg;
-    strncpy(esm->filename, data, SESSION_FILENAME_MAX_LENGTH);
+    u_strlcpy(esm->filename, data, sizeof esm->filename);
     esm->size = atom->size;
     memcpy(esm->data, atom->data, atom->size);
 
@@ -302,7 +302,7 @@ static int session_mem_add(session_opt_t *so, const char *filename, char *buf,
         esm->mtime = time(0);
         esm->size = size;
         dbg_err_if(strlen(filename) > SESSION_FILENAME_MAX_LENGTH); 
-        strncpy(esm->filename, filename, SESSION_FILENAME_MAX_LENGTH);
+        u_strlcpy(esm->filename, filename, sizeof esm->filename);
         memcpy(esm->data, buf, size);
 
         /* send the command request */

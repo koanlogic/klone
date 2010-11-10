@@ -30,14 +30,6 @@
 extern "C" {
 #endif
 
-#ifndef MIN
-#define MIN(a,b)    (a < b ? a : b)
-#endif
-
-#ifndef MAX
-#define MAX(a,b)    (a > b ? a : b)
-#endif
-
 #define KLONE_FREE(p) do {if (p) { free(p); p = NULL; }} while (0)
 
 #define klone_die(...) do { u_con(__VA_ARGS__); exit(EXIT_FAILURE); } while(0)
@@ -98,7 +90,9 @@ const mime_map_t* u_get_mime_map(const char *file_name);
 int u_match_ext(const char *filename, const char *extension);
 
 /* date time conversion funcs */
-int u_tt_to_rfc822(char dst[], time_t ts);
+#define RFC822_DATE_BUFSZ   32
+
+int u_tt_to_rfc822(char dst[RFC822_DATE_BUFSZ], time_t ts);
 int u_httpdate_to_tt(const char *str, time_t *tp);
 int u_rfc822_to_tt(const char *str, time_t *tp);
 int u_rfc850_to_tt(const char *str, time_t *tp);

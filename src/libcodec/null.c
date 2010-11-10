@@ -41,7 +41,7 @@ static ssize_t null_transform(codec_t *cn, char *dst, size_t *dcount,
 
     u_unused_args(cn);
 
-    wr = MIN(src_sz, *dcount); 
+    wr = U_MIN(src_sz, *dcount); 
     memcpy(dst, src, wr);
     *dcount = wr;
 

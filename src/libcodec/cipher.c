@@ -38,7 +38,7 @@ static void codec_cbufcpy(codec_cipher_t *cc, char *dst, size_t *dcount)
 {
     size_t count;
 
-    count = MIN(*dcount, cc->ccount);
+    count = U_MIN(*dcount, cc->ccount);
 
     memcpy(dst, cc->cbuf + cc->coff, count);
     cc->ccount -= count;
@@ -115,7 +115,7 @@ static ssize_t cipher_transform(codec_t *codec, char *dst, size_t *dcount,
         /* the cbuf must be empty because we need the whole buffer to be sure to
            have enough output space for EVP_{Encrypt,Decrypt}Update */
 
-        c = MIN(src_sz, CODEC_CIPHER_MAX_INPUT);
+        c = U_MIN(src_sz, CODEC_CIPHER_MAX_INPUT);
 
         wr = -1; /* just used to return an int value */
         dbg_err_if(!cc->update(&cc->cipher_ctx, cc->cbuf, &wr, src, c));

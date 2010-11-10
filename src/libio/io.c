@@ -141,7 +141,7 @@ ssize_t io_copy(io_t *out, io_t *in, size_t size)
 
     while(rem)
     {
-        c = io_read(in, buf, MIN(BUFSZ, rem));
+        c = io_read(in, buf, U_MIN(BUFSZ, rem));
         dbg_err_if(c < 0);
         if(c == 0)
             break; /* eof */
@@ -330,7 +330,7 @@ static inline ssize_t io_transfer(io_t *io, char *dst, size_t *dcount,
         return io_transform(io, TAILQ_FIRST(&io->codec_chain), 
             dst, dcount, src, sz); 
     } else {
-        ssize_t wr = MIN(sz, *dcount); 
+        ssize_t wr = U_MIN(sz, *dcount); 
         memcpy(dst, src, wr);
         *dcount = wr;
         return wr;
@@ -413,7 +413,7 @@ static int io_chain_flush(io_t *io)
             if(IO_WBUF_FULL(io))
                 dbg_err_if(io_flush(io));
 
-            sz = MIN(count, IO_WBUF_AVAIL(io));
+            sz = U_MIN(count, IO_WBUF_AVAIL(io));
             memcpy(io->wbuf + io->wcount, ptr, sz);
 
             count -= sz;
@@ -590,7 +590,7 @@ ssize_t io_read(io_t *io, char *buf, size_t size)
                 break;
         }
         /* copy out data */
-        wr = MIN(io->rcount, size); 
+        wr = U_MIN(io->rcount, size); 
         memcpy(out, io->rbuf + io->roff, wr);
         io->rcount -= wr;
         io->roff += wr;
@@ -873,7 +873,7 @@ ssize_t io_get_until(io_t *io, char stop_at, char *buf, size_t size)
         if((p = io_strnchr(io->rbuf + io->roff, io->rcount, stop_at)) != NULL)
         {
             p++; /* jump over 'stop_at' char*/
-            wr = MIN(p - (io->rbuf + io->roff), size);
+            wr = U_MIN(p - (io->rbuf + io->roff), size);
             memcpy(buf, io->rbuf + io->roff, wr);
             buf[wr] = 0;
             io->rcount -= wr;
@@ -1050,7 +1050,7 @@ int io_name_get(io_t *io, char *name, size_t sz)
     dbg_err_if (name == NULL);
     dbg_err_if (sz < 2);
 
-    min = MIN(sz-1, strlen(io->name));
+    min = U_MIN(sz-1, strlen(io->name));
 
     memcpy(name, io->name, min);
     name[min] = 0;

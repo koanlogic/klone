@@ -253,7 +253,7 @@ static int klog_file_head_new (const char *base, size_t npages, size_t nlines,
     klf = u_zalloc(sizeof(klog_file_t));
     dbg_err_if (klf == NULL);
 
-    u_sstrncpy(klf->basename, base, U_FILENAME_MAX - 1);
+    u_strlcpy(klf->basename, base, sizeof klf->basename);
     klf->npages = npages;
     klf->nlines = nlines;
     klf->wpageid = wpageid;
