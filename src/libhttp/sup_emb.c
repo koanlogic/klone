@@ -33,11 +33,11 @@ static int supemb_is_valid_uri(http_t *h, request_t *rq, const char *uri,
 
     dbg_err_if (uri == NULL);
     dbg_err_if (mtime == NULL);
-    dbg_err_if (len >= sizeof filename);
+    dbg_err_if (len + 1 > sizeof filename);
 
     u_unused_args(h, rq);
 
-    u_strlcpy(filename, uri, len);
+    u_strlcpy(filename, uri, len + 1);
 
     if(emb_lookup(filename, &e) == 0)
     {   /* resource found */

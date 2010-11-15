@@ -182,16 +182,16 @@ static int cgi_is_valid_uri(http_t *h, request_t *rq, const char *uri,
 
     dbg_return_if (uri == NULL, 0);
     dbg_return_if (mtime == NULL, 0);
-    dbg_return_if (len >= U_FILENAME_MAX, 0);
+    dbg_return_if (len + 1 > U_FILENAME_MAX, 0);
 
     memcpy(fqn, uri, len);
-    fqn[len] = 0;
+    fqn[len] = '\0';
 
     /* fqn must be already normalized */
     if(strstr(fqn, ".."))
         return 0; 
     
-    if( stat(fqn, &st) == 0 && S_ISREG(st.st_mode))
+    if(stat(fqn, &st) == 0 && S_ISREG(st.st_mode))
     {
         /* if it's not a cgi given its extension of uri then exit */
         if(!cgi_ext(h, rq, fqn, NULL) && !cgi_script(h, rq, fqn))

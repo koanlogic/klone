@@ -84,11 +84,11 @@ static int kilt_is_valid_uri(http_t *h, request_t *rq, const char *uri,
 
     dbg_return_if (uri == NULL, 0);
     dbg_return_if (mtime == NULL, 0);
-    dbg_return_if (len >= U_FILENAME_MAX, 0);
+    dbg_return_if (len + 1 > U_FILENAME_MAX, 0);
     dbg_return_if (url_to_ku == NULL, 0);
 
     memcpy(url, uri, len);
-    url[len] = 0;
+    url[len] = '\0';
 
     for(i = 0; i < kilt_nurls; ++i)
     {
