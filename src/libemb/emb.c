@@ -25,16 +25,17 @@ static int listadd (const void *val, const void *arg);
 
 int emb_init(void)
 {
-    u_hmap_opts_t hopts;
+    u_hmap_opts_t *hopts = NULL;
 
     if(init++ == 0)
     {
-        u_hmap_opts_init(&hopts);
+        dbg_err_if (u_hmap_opts_new(&hopts));
 
         /* no free function needed for static values */
-        dbg_err_if (u_hmap_opts_set_val_freefunc(&hopts, NULL));
+        dbg_err_if (u_hmap_opts_set_val_freefunc(hopts, NULL));
 
-        dbg_err_if (u_hmap_easy_new(&hopts, &embmap));
+        dbg_err_if (u_hmap_easy_new(hopts, &embmap));
+        hopts = NULL;
 
         /* call autogen external function (cannot be called more then once!) */
         u_dbg("registering embedded resources");
@@ -44,6 +45,9 @@ int emb_init(void)
     return 0;
  
 err:
+    if (hopts)
+        u_hmap_opts_free(hopts);
+
     return ~0;
 }
 
