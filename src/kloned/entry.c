@@ -44,6 +44,7 @@ static void usage (void)
 "\n"
 "    -d          turn on debugging (forces iterative mode)                  \n"
 "    -f file     load an external config file                               \n"
+"    -c          override configuration lines via standard input            \n"
 "    -p file     save daemon PID to file                                    \n"
 "    -F          run in foreground                                          \n"
 "    -h          display this help                                          \n"
