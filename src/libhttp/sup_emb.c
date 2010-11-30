@@ -29,15 +29,14 @@ static int supemb_is_valid_uri(http_t *h, request_t *rq, const char *uri,
         size_t len, void **handle, time_t *mtime)
 {
     embres_t *e;
-    char filename[U_FILENAME_MAX] = { '\0' };
+    char filename[U_FILENAME_MAX];
 
     dbg_err_if (uri == NULL);
     dbg_err_if (mtime == NULL);
-    dbg_err_if (len + 1 > sizeof filename);
 
     u_unused_args(h, rq);
 
-    u_strlcpy(filename, uri, len + 1);
+    dbg_err_if (u_strlcpy(filename, uri, sizeof filename));
 
     if(emb_lookup(filename, &e) == 0)
     {   /* resource found */

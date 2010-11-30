@@ -225,19 +225,15 @@ static int http_is_valid_uri(request_t *rq, const char *buf, size_t len)
     dbg_err_if (rq == NULL);
     dbg_err_if (buf == NULL);
 
-    dbg_err_if (len + 1 > sizeof uri);
-
-    h = request_get_http(rq);
-    dbg_err_if (h == NULL);
+    dbg_err_if ((h = request_get_http(rq)) == NULL);
+    dbg_err_if (u_strlcpy(uri, buf, sizeof uri));
     
-    u_strlcpy(uri, buf, len + 1);
-
     /* try the url itself */
     if(broker_is_valid_uri(h->broker, h, rq, uri, strlen(uri)))
         return 1;
 
     /* try the path-resolved url */
-    dbg_err_if(http_alias_resolv(h, rq, resolved, uri, U_FILENAME_MAX));
+    dbg_err_if(http_alias_resolv(h, rq, resolved, uri, sizeof resolved));
 
     return broker_is_valid_uri(h->broker, h, rq, resolved, strlen(resolved));
 err:
