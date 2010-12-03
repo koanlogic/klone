@@ -676,34 +676,50 @@ err:
  * - \c 0   successful
  * - \c ~0  error
  */
-int u_tmpfile_open(const char *tmpdir, io_t **pio)
+int u_tmpfile_open (const char *tmpdir, io_t **pio)
 {
+    int fd = -1;
+    unsigned int i;
+    char tmpf[U_FILENAME_MAX];
     const char *pfx = "kloned_tmp_";
-    char *f_temp = NULL;
-    char tmp[U_FILENAME_MAX];
-    io_t *io = NULL;
+    /* Mimic tempnam(3) directory search for backwards compatibility. */
+    const char *dirs[] = {
+        tmpdir,
+        getenv("TMPDIR"),
+        P_tmpdir,
+        "/tmp",
+        "."
+    };
 
     dbg_return_if (pio == NULL, ~0);
 
-    if((f_temp = tempnam(tmpdir, pfx)) != NULL)
+    for (i = 0; i < (sizeof(dirs) / sizeof(char *)); i++)
     {
-        dbg_err_if (u_strlcpy(tmp, f_temp, sizeof tmp));
-        u_free(f_temp), f_temp = NULL;
+        if (dirs[i])
+        {
+            /* Do the template for the temporary file name. */
+            if (u_path_snprintf(tmpf, sizeof tmpf, U_PATH_SEPARATOR, 
+                        "%s/%sXXXXXXXXXX", dirs[i], pfx))
+                continue;
 
-        dbg_err_if(u_file_open(tmp, O_CREAT | O_EXCL | O_RDWR, &io));
+            /* Try to create it in the file system. */
+            if ((fd = mkstemps(tmpf, 0)) == -1)
+                continue;
 
-        dbg_err_if(io_name_set(io, tmp));
+            /* Abort on any error subsequent to file creation. */
+            dbg_err_if (io_fd_create(fd, IO_FD_CLOSE, pio));
+            dbg_err_if (io_name_set(*pio, tmpf));
 
-        *pio = io;
-
-        return 0;
+            return 0;
+        }
     }
 
+    /* Loop exhausted, bail out. */
+
 err:
-    if(io)
-        io_free(io);
-    if (f_temp)
-        u_free(f_temp);
+    if (fd != -1)
+        (void) close(fd);
+
     return ~0;
 }
 
