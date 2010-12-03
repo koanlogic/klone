@@ -394,8 +394,10 @@ static int klog_logopt (const char *options)
             logopt |= LOG_CONS;
         else if (!strcasecmp(optv[i], "LOG_NDELAY"))
             logopt |= LOG_NDELAY;
+#ifdef HAVE_LOG_PERROR
         else if (!strcasecmp(optv[i], "LOG_PERROR"))
             logopt |= LOG_PERROR;
+#endif  /* HAVE_LOG_PERROR */
         else if (!strcasecmp(optv[i], "LOG_PID"))
             logopt |= LOG_PID;
         else

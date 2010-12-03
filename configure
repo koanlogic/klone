@@ -111,6 +111,11 @@ case `makl_target_name` in
         makl_append_var_mk  "POST_LDADD"      "-lc"
         ;;                                                    
 
+    sunos*)
+        makl_set_var    "OS_UNIX"
+        makl_add_var_mk "LDFLAGS" "-lsocket -lnsl"
+        ;;
+
     *)
         makl_set_var        "OS_UNIX"
         ;;
@@ -132,9 +137,10 @@ makl_checkheader        0   "sys_dir"       "<sys/dir.h>"
 
 makl_checkheader        0   "sys_socket"    "<sys/socket.h>"
  
+makl_checksymbol        0   "LOG_PERROR"    "<syslog.h>"
 makl_checksymbol        0   "SA_RESTART"    "<signal.h>"
 makl_checksymbol        0   "TCP_NODELAY"   "<sys/types.h>" \
-                                             "<netinet/tcp.h>"
+                                            "<netinet/tcp.h>"
 
 # Library dependencies
 makl_optional           1   "lib"   "openssl"       ""  "-lssl -lcrypto"
@@ -161,7 +167,7 @@ makl_checkfunc          0   "localtime_r" "" ""
 
 makl_checkinline        0
 if [ $? -ne 0 ]; then
-    makl_append_var_mk "CFLAGS" "-Dinline=\"\""
+    makl_append_var_mk "CFLAGS" "-Dinline="
 fi
 
 # Binary dependencies

@@ -3,6 +3,7 @@ $Id: ChangeLog,v 1.85 2010/06/01 20:20:51 tho Exp $
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone 2.3.0:
+	- OpenSolaris+SunStudioExpress port
 	- fix a 64-bit platform problem about correct identification of file based
 	  sessions
 	- fix not-firing timers (reported by Mickael Auger)

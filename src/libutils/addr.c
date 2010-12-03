@@ -142,7 +142,7 @@ int addr_set_from_sa(kaddr_t *addr, struct sockaddr *sa, size_t sz)
 #ifndef NO_UNIXSOCK
     case sizeof(struct sockaddr_un):
         addr->type = ADDR_UNIX;
-        memcpy(&addr->sa.sun, sa, sz);
+        memcpy(&addr->sa.sunx, sa, sz);
         break;
 #endif  
     default:

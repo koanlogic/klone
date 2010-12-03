@@ -29,7 +29,7 @@ typedef struct kaddr_s
         struct sockaddr_in6 sin6;
 #endif
 #ifndef NO_UNIXSOCK
-        struct sockaddr_un  sun;
+        struct sockaddr_un  sunx;
 #endif
     } sa;
 } kaddr_t;
