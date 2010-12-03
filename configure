@@ -116,6 +116,11 @@ case `makl_target_name` in
         makl_add_var_mk "LDFLAGS" "-lsocket -lnsl"
         ;;
 
+    minix*)
+        makl_set_var        "OS_UNIX"
+        makl_append_var_mk  "CFLAGS" "-D_POSIX_SOURCE"
+        ;;
+
     *)
         makl_set_var        "OS_UNIX"
         ;;

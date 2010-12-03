@@ -11,7 +11,6 @@
 #include "klone_conf.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <signal.h>
 #include <time.h>
 #include <string.h>
 #include <ctype.h>

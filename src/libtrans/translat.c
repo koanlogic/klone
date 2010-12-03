@@ -36,20 +36,20 @@
     do { if( (expr) ) { con_p_ctx(p); u_con(__VA_ARGS__); goto err; } } while(0)
 
 
-typedef struct block_s
+typedef struct kblock_s
 {
     char *name;                 /* block name (is NULL for unnamed blocks) */
     u_buf_t *ubuf;              /* block content */
-    struct block_s *parent;     /* the parent block in the block tree */
-    struct block_s *ancestor;   /* the ancestor block this block overrides */
+    struct kblock_s *parent;     /* the parent block in the block tree */
+    struct kblock_s *ancestor;   /* the ancestor block this block overrides */
     u_list_t *children;         /* list of children blocks */
-} block_t;
+} kblock_t;
 
 typedef struct ppctx_s
 {
-    block_t *cur;       /* currently selected block */
-    block_t *top;       /* top block in the tree */
-    block_t *dead;      /* tree for dead blocks */
+    kblock_t *cur;       /* currently selected block */
+    kblock_t *top;       /* top block in the tree */
+    kblock_t *dead;      /* tree for dead blocks */
     int lev;            /* blocks nesting level */
     int extending;      /* nesting level from the extended block */
     u_list_t *depend;   /* list of depends (path+filename) */
@@ -57,19 +57,19 @@ typedef struct ppctx_s
 
 static int preprocess(io_t *in, io_t *out, ppctx_t*);
 
-static int block_free(block_t *block)
+static int kblock_free(kblock_t *block)
 {
-    block_t *child;
+    kblock_t *child;
     int i;
 
     dbg_err_if(block == NULL);
 
     /* free children first */
     for(i = 0; (child = u_list_get_n(block->children, i)) != NULL; ++i)
-        block_free(child);
+        kblock_free(child);
 
     if(block->ancestor)
-        block_free(block->ancestor);
+        kblock_free(block->ancestor);
 
     if(block->name)
         u_free(block->name);
@@ -84,7 +84,7 @@ err:
     return ~0;
 }
 
-static int block_push_child(block_t *parent, block_t *child)
+static int kblock_push_child(kblock_t *parent, kblock_t *child)
 {
     dbg_err_if(u_list_add(parent->children, child));
 
@@ -95,12 +95,12 @@ err:
     return ~0;
 }
 
-static int block_create(const char *name, const char *buf, size_t size, 
-            block_t **pblock)
+static int kblock_create(const char *name, const char *buf, size_t size, 
+            kblock_t **pblock)
 {
-    block_t *b = NULL;
+    kblock_t *b = NULL;
 
-    b = u_zalloc(sizeof(block_t));
+    b = u_zalloc(sizeof(kblock_t));
     dbg_err_if(b == NULL);
 
     dbg_err_if(u_buf_create(&b->ubuf));
@@ -121,13 +121,13 @@ static int block_create(const char *name, const char *buf, size_t size,
     return 0;
 err:
     if(b)
-        block_free(b);
+        kblock_free(b);
     return ~0;
 }
 
-static int ppctx_print_block(block_t *block, io_t *out)
+static int ppctx_print_kblock(kblock_t *block, io_t *out)
 {
-    block_t *b;
+    kblock_t *b;
     size_t i;
 
     if(block->name == NULL)
@@ -138,7 +138,7 @@ static int ppctx_print_block(block_t *block, io_t *out)
     } else {
         /* named block */
         for(i = 0; (b = u_list_get_n(block->children, i)) != NULL; ++i)
-            dbg_err_if(ppctx_print_block(b, out));
+            dbg_err_if(ppctx_print_kblock(b, out));
     }
 
     return 0;
@@ -200,14 +200,14 @@ err:
 
 static int ppctx_print(ppctx_t *ppc, io_t *out)
 {
-    block_t *b;
+    kblock_t *b;
     size_t i;
 
     dbg_err_if(ppc == NULL);
     dbg_err_if(out == NULL);
 
     for(i = 0; (b = u_list_get_n(ppc->top->children, i)) != NULL; ++i)
-        dbg_err_if(ppctx_print_block(b, out));
+        dbg_err_if(ppctx_print_kblock(b, out));
 
     return 0;
 err:
@@ -221,10 +221,10 @@ static int ppctx_free(ppctx_t *ppc)
     size_t i;
 
     if(ppc->top)
-        block_free(ppc->top);
+        kblock_free(ppc->top);
 
     if(ppc->dead)
-        block_free(ppc->dead);
+        kblock_free(ppc->dead);
 
     if(ppc->depend)
     {
@@ -246,8 +246,8 @@ static int ppctx_create(ppctx_t **pppc)
     ppc = u_zalloc(sizeof(ppctx_t));
     dbg_err_if(ppc == NULL);
 
-    dbg_err_if(block_create(NULL, NULL, 0, &ppc->top));
-    dbg_err_if(block_create(NULL, NULL, 0, &ppc->dead));
+    dbg_err_if(kblock_create(NULL, NULL, 0, &ppc->top));
+    dbg_err_if(kblock_create(NULL, NULL, 0, &ppc->dead));
 
     dbg_err_if(u_list_create(&ppc->depend));
 
@@ -380,10 +380,10 @@ err:
     return ~0;
 }
 
-static int block_get_by_name(block_t *parent, const char *name, 
-    block_t **pfound, size_t *pidx)
+static int kblock_get_by_name(kblock_t *parent, const char *name, 
+    kblock_t **pfound, size_t *pidx)
 {
-    block_t *b;
+    kblock_t *b;
     size_t i;
 
     dbg_err_if(parent == NULL);
@@ -396,7 +396,7 @@ static int block_get_by_name(block_t *parent, const char *name,
             *pidx = i;
             return 0;
         }
-        if(block_get_by_name(b, name, pfound, pidx) == 0)
+        if(kblock_get_by_name(b, name, pfound, pidx) == 0)
             return 0;
     }
         
@@ -406,7 +406,7 @@ err:
 
 static int process_directive_block(parser_t *p, const char *name)
 {
-    block_t *block = NULL, *old;
+    kblock_t *block = NULL, *old;
     ppctx_t *ppc;
     char file[U_FILENAME_MAX];
     size_t idx;
@@ -414,7 +414,7 @@ static int process_directive_block(parser_t *p, const char *name)
     dbg_err_if((ppc = parser_get_cb_arg(p)) == NULL);
 
     /* create a named block */
-    dbg_err_if(block_create(name, NULL, 0, &block));
+    dbg_err_if(kblock_create(name, NULL, 0, &block));
 
     dbg_err_if(io_name_get(p->in, file, U_FILENAME_MAX));
 
@@ -422,12 +422,12 @@ static int process_directive_block(parser_t *p, const char *name)
 
     if(!ppc->extending)
     {
-        con_err_ifm(!block_get_by_name(ppc->top, name, &old, &idx),
+        con_err_ifm(!kblock_get_by_name(ppc->top, name, &old, &idx),
             "[%s:%d] error: block named %s already exists", file, p->code_line,
             name);
 
         /* new block -> append to the block list */
-        dbg_err_if(block_push_child(ppc->cur, block));
+        dbg_err_if(kblock_push_child(ppc->cur, block));
 
         ppc->cur = block;
 
@@ -438,7 +438,7 @@ static int process_directive_block(parser_t *p, const char *name)
 
     /* we're extending a base template... */
      
-    if(block_get_by_name(ppc->top, name, &old, &idx))
+    if(kblock_get_by_name(ppc->top, name, &old, &idx))
     {
         if(ppc->cur == ppc->top)
         {
@@ -447,14 +447,14 @@ static int process_directive_block(parser_t *p, const char *name)
                 "in the base templates, ignoring", file, p->code_line, name);
 
             /* attach it to a dead tree (i.e. a tree that doesn't get printed)*/
-            dbg_err_if(block_push_child(ppc->dead, block));
+            dbg_err_if(kblock_push_child(ppc->dead, block));
 
         } else {
 
             if(ppc->lev)
             {
                 /* nested block */
-                dbg_err_if(block_push_child(ppc->cur, block));
+                dbg_err_if(kblock_push_child(ppc->cur, block));
             }
         }
 
@@ -482,7 +482,7 @@ static int process_directive_block(parser_t *p, const char *name)
     return 0;
 err:
     if(block)
-        block_free(block);
+        kblock_free(block);
     return ~0;
 }
 
@@ -519,7 +519,7 @@ err:
 static int process_directive_inherit(parser_t *p)
 {
     ppctx_t *ppc;
-    block_t *anc, *b;
+    kblock_t *anc, *b;
     int i;
 
     dbg_err_if((ppc = parser_get_cb_arg(p)) == NULL);
@@ -533,7 +533,7 @@ static int process_directive_inherit(parser_t *p)
     /* move all ancestor children to the current block (that's the block whom
      * is extending the ancestor */
     for(i = 0; (b = u_list_get_n(anc->children, i)) != NULL; ++i)
-        dbg_err_if(block_push_child(ppc->cur, b));
+        dbg_err_if(kblock_push_child(ppc->cur, b));
 
     /* remove all elems */
     while(u_list_count(anc->children))
@@ -651,7 +651,7 @@ err:
 static int cb_pre_html_block(parser_t *p, void *arg, const char *buf, size_t sz)
 {
     ppctx_t *ppc = (ppctx_t*)arg;
-    block_t *block = NULL;
+    kblock_t *block = NULL;
     char file[U_FILENAME_MAX];
     int ln;
     size_t i;
@@ -662,7 +662,7 @@ static int cb_pre_html_block(parser_t *p, void *arg, const char *buf, size_t sz)
     dbg_err_if (ppc == NULL);
 
     /* create and append un unnamed */
-    dbg_err_if(block_create(NULL, buf, sz, &block));
+    dbg_err_if(kblock_create(NULL, buf, sz, &block));
 
     if(ppc->cur == ppc->top && ppc->extending)
     {
@@ -680,11 +680,11 @@ static int cb_pre_html_block(parser_t *p, void *arg, const char *buf, size_t sz)
         }
 
         /* attach it to a dead tree (i.e. a tree that doesn't get printed)*/
-        dbg_err_if(block_push_child(ppc->dead, block));
+        dbg_err_if(kblock_push_child(ppc->dead, block));
     } else {
 
         /* append the text block to the block list */
-        dbg_err_if(block_push_child(ppc->cur, block));
+        dbg_err_if(kblock_push_child(ppc->cur, block));
     }
 
     return 0;
@@ -696,7 +696,7 @@ static int cb_pre_code_block(parser_t *p, int cmd, void *arg, const char *buf,
         size_t sz)
 {
     u_string_t *ustr = NULL;
-    block_t *block = NULL;
+    kblock_t *block = NULL;
     ppctx_t *ppc;
     char file[U_FILENAME_MAX];
 
@@ -731,7 +731,7 @@ static int cb_pre_code_block(parser_t *p, int cmd, void *arg, const char *buf,
         dbg_err_if(u_string_aprintf(ustr, "<%%%c #line 0 __PG_FILE_C__ \n%%>", 
                     (cmd == '!' && cmd != 0 ? cmd : ' ')));
 
-        dbg_err_if(block_create(NULL, u_string_c(ustr), u_string_len(ustr), 
+        dbg_err_if(kblock_create(NULL, u_string_c(ustr), u_string_len(ustr), 
                     &block));
 
         if(ppc->cur == ppc->top && ppc->extending)
@@ -741,10 +741,10 @@ static int cb_pre_code_block(parser_t *p, int cmd, void *arg, const char *buf,
                 "templates, ignoring", file, p->code_line);
 
             /* attach it to a dead tree (i.e. a tree that doesn't get printed)*/
-            dbg_err_if(block_push_child(ppc->dead, block));
+            dbg_err_if(kblock_push_child(ppc->dead, block));
         } else {
 
-            dbg_err_if(block_push_child(ppc->cur, block));
+            dbg_err_if(kblock_push_child(ppc->cur, block));
         }
 
         dbg_err_if(u_string_free(ustr));
@@ -756,7 +756,7 @@ err:
     if(ustr)
         u_string_free(ustr);
     if(block)
-        block_free(block);
+        kblock_free(block);
     return ~0;
 }
 
