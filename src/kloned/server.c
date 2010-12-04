@@ -785,11 +785,12 @@ static int server_set_socket_opts(server_t *s, int sock)
 
     dbg_err_if (sock < 0);
 
-#ifdef HAVE_TCP_NODELAY
-    /* disable Nagle algorithm */
+#if defined(HAVE_TCP_NODELAY) && !defined(__minix)
+    /* Disable Nagle algorithm.  Note that Minix has the TCP_NODELAY symbol 
+     * but not its implementation. */
     warn_err_sif(setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, 
         (void*) &on, sizeof(int)) < 0);
-#endif
+#endif  /* HAVE_TCP_NODELAY && !__minix */
 
     return 0;
 err:
