@@ -132,7 +132,7 @@ build/makl/tc/netbsd.tc
 build/makl/tc/openbsd.tc
 build/makl/tc/opensolaris-gnu.tc
 build/makl/tc/opensolaris-sunstudio.tc
-build/makl/tc/qnx-armbe.tc
+build/makl/tc/qnx-armv7.tc
 build/makl/tc/qnx-armle.tc
 build/makl/tc/qnx-mipsbe.tc
 build/makl/tc/qnx-mipsle.tc
