@@ -816,7 +816,7 @@ static int fix_line_decl(trans_info_t *pti)
             io_printf(tmp, "%s", buf);
             ln++; /* line number */
         } else
-            io_printf(tmp, "#line %d \"%s\"", ln + 2, pti->file_out);
+            io_printf(tmp, "#line %d \"%s\"\n", ln + 2, pti->file_out);
     }
 
     /* get the filename of the temporary io_t */
