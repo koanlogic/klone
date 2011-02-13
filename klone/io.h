@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005, 2011 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
@@ -15,10 +15,10 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdarg.h>
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#endif /* HAVE_LIBOPENSSL */
+#endif
 #include <klone/codec.h>
 
 #ifdef __cplusplus
@@ -32,7 +32,7 @@ enum io_type_e
 {
     IO_TYPE_FD,
     IO_TYPE_MEM,
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
     IO_TYPE_SSL
 #endif
 };
@@ -49,7 +49,7 @@ enum io_mem_flags {
 
 int io_fd_create(int fd, int flags, io_t **pio);
 int io_mem_create(char *buf, size_t size, int flags, io_t **pio);
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
 int io_ssl_create(int fd, int flags, int client_mode, 
         SSL_CTX *ssl_tx, io_t **pio);
 int io_ssl_get_SSL(io_t *io_ssl, SSL **pssl);

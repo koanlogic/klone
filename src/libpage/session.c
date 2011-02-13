@@ -1,11 +1,9 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005-2011 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
- *
- * $Id: session.c,v 1.46 2009/10/23 14:08:28 tho Exp $
  */
 
 #include "klone_conf.h"
@@ -14,14 +12,15 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <time.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <fcntl.h>
-#ifdef HAVE_LIBOPENSSL
-#include <openssl/hmac.h>
+#ifdef SSL_ON
 #include <openssl/evp.h>
+#include <openssl/hmac.h>
 #include <openssl/rand.h>
 #include <klone/ccipher.h>
-#endif /* HAVE_LIBOPENSSL */
+#endif 
 #include <u/libu.h>
 #include <klone/session.h>
 #include <klone/request.h>
@@ -33,6 +32,7 @@
 
 enum { DEFAULT_SESSION_EXPIRATION = 60*20 }; /* 20 minutes */
 static const char SID_NAME[] = "klone_sid";
+
 
 struct save_cb_params_s
 {
@@ -79,7 +79,7 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
                 so->type = SESSION_TYPE_MEMORY;
             else if(!strcasecmp(v, "file"))
                 so->type = SESSION_TYPE_FILE;
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
             else if(!strcasecmp(v, "client"))
                 so->type = SESSION_TYPE_CLIENT;
 #endif
@@ -111,23 +111,39 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
                      "linked");
 #endif
 
-#ifndef HAVE_LIBOPENSSL
+#ifndef SSL_ON
         if(so->encrypt)
-            warn_err("config error: encryption is enabled but OpenSSL is not "
-                     "linked");
+            warn_err("config error: encryption is enabled but no SSL "
+                     "lib is linked");
 #else
+
+#ifdef SSL_OPENSSL
         /* init cipher EVP algo, the random key and IV */
         so->cipher = EVP_aes_256_cbc(); /* use AES-256 in CBC mode */
 
         EVP_add_cipher(so->cipher);
 
         /* key and iv for client-side session */
-        dbg_err_if(!RAND_bytes(so->cipher_key, CIPHER_KEY_SIZE));
-        dbg_err_if(!RAND_pseudo_bytes(so->cipher_iv, CIPHER_IV_SIZE));
+        dbg_err_if(!RAND_bytes(so->cipher_key, CIPHER_KEY_LEN));
+        dbg_err_if(!RAND_pseudo_bytes(so->cipher_iv, CIPHER_IV_LEN));
 
-        /* create a random key and iv to crypt the KLONE_CIPHER_KEY variable */
-        dbg_err_if(!RAND_bytes(so->session_key, CIPHER_KEY_SIZE));
-        dbg_err_if(!RAND_pseudo_bytes(so->session_iv, CIPHER_IV_SIZE));
+        /* create a random key and iv to crypt the SESSION_KEY_VAR variable */
+        dbg_err_if(!RAND_bytes(so->session_key, CIPHER_KEY_LEN));
+        dbg_err_if(!RAND_pseudo_bytes(so->session_iv, CIPHER_IV_LEN));
+#endif
+
+#ifdef SSL_CYASSL
+        /* init cipher EVP algo, the random key and IV */
+        so->cipher = EVP_aes_256_cbc(); /* use AES-256 in CBC mode */
+
+        /* key and iv for client-side session */
+        dbg_err_if(!RAND_bytes(so->cipher_key, CIPHER_KEY_LEN));
+        dbg_err_if(!RAND_bytes(so->cipher_iv, CIPHER_IV_LEN));
+
+        /* create a random key and iv to crypt the SESSION_KEY_VAR variable */
+        dbg_err_if(!RAND_bytes(so->session_key, CIPHER_KEY_LEN));
+        dbg_err_if(!RAND_bytes(so->session_iv, CIPHER_IV_LEN));
+#endif
 
 #endif
     } /* if "session" exists */
@@ -139,7 +155,7 @@ int session_module_init(u_config_t *config, session_opt_t **pso)
     else if(so->type == SESSION_TYPE_FILE)
         warn_err_ifm(session_file_module_init(c, so), 
             "file session engine init error");
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
     else if(so->type == SESSION_TYPE_CLIENT)
         warn_err_ifm(session_client_module_init(c, so),
             "client-side session engine init error");
@@ -162,10 +178,10 @@ int session_prv_calc_maxsize(var_t *v, void *p)
     dbg_err_if (var_get_name(v) == NULL);
     dbg_err_if (psz == NULL);
 
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
     if(*psz == 0)
-    {   /* first time here */
-        *psz = CODEC_CIPHER_BLOCK_SIZE;
+    {   /* a block plus the padding block */
+        *psz = CODEC_CIPHER_BLOCK_LEN * 2;
     }
 #endif
 
@@ -334,7 +350,7 @@ err:
     return ~0;
 }
 
-int session_priv_set_id(session_t *ss, const char *sid)
+int session_prv_set_id(session_t *ss, const char *sid)
 {
     dbg_return_if (ss == NULL, ~0);
 
@@ -350,6 +366,11 @@ int session_priv_set_id(session_t *ss, const char *sid)
     return 0;
 err:
     return ~0;
+}
+
+int session_priv_set_id(session_t *ss, const char *sid)
+{
+    return session_prv_set_id(ss, sid); /* backward compatibility */
 }
 
 int session_load(session_t *ss)
@@ -374,7 +395,7 @@ int session_save(session_t *ss)
     if (ss->id[0] == '\0')
     {
         /* generate a new SID and set session filename accordingly */
-        dbg_err_if (session_priv_set_id(ss, NULL)); 
+        dbg_err_if (session_prv_set_id(ss, NULL)); 
     }
 
     return ss->save(ss);
@@ -411,7 +432,7 @@ int session_prv_init(session_t *ss, request_t *rq, response_t *rs)
     /* if the client has a SID set and it's a good one then use it */
     sid = request_get_cookie(ss->rq, ss->so->name);
     if(sid)
-        dbg_err_if(session_priv_set_id(ss, sid));
+        dbg_err_if(session_prv_set_id(ss, sid));
 
     return 0;
 err:
@@ -423,13 +444,13 @@ int session_prv_load_from_io(session_t *ss, io_t *io)
     u_string_t *line = NULL;
     var_t *v = NULL;
     codec_t *unzip = NULL, *decrypt = NULL;
-    unsigned char key[CODEC_CIPHER_KEY_SIZE];
+    unsigned char key[CODEC_CIPHER_KEY_BUFSZ];
     size_t ksz;
 
     dbg_return_if (ss == NULL, ~0);
     dbg_return_if (io == NULL, ~0);
 
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
     if(ss->so->encrypt)
     {
         dbg_err_if(codec_cipher_create(CIPHER_DECRYPT, ss->so->cipher, 
@@ -458,21 +479,23 @@ int session_prv_load_from_io(session_t *ss, io_t *io)
         {
             dbg_err_if(vars_add_urlvar(ss->vars, u_string_c(line), &v));
 
-#ifdef HAVE_LIBOPENSSL
-            if(!strcmp(var_get_name(v), "KLONE_CIPHER_KEY"))
+#ifdef SSL_ON
+            if(!strcmp(var_get_name(v), SESSION_KEY_VAR))
             {
                 /* decrypt key and save it to key */
                 memset(key, 0, sizeof(key));
+				ksz = sizeof(key);
                 dbg_ifb(u_cipher_decrypt(EVP_aes_256_cbc(), ss->so->session_key,
                     ss->so->session_iv, key, &ksz, 
                     var_get_value(v), var_get_value_size(v)))
                 {
-                    v = vars_get(ss->vars, "KLONE_CIPHER_KEY");
+                    v = vars_get(ss->vars, SESSION_KEY_VAR);
                     vars_del(ss->vars, v);
                 } else {
                     /* save it to the var list */
                     dbg_err_if(var_set_bin_value(v, key, ksz));
                 }
+
             }
 #endif
         }
@@ -692,6 +715,103 @@ err:
     return ~0;
 }
 
+#ifdef SSL_ON
+/**
+ * \ingroup session
+ * \brief   Set the key used to decrypt encrypted embedded content resources
+ *  
+ * The provided key will be stored in the user session and it will be used to
+ * decrypt all embedded encrypted content.
+ *
+ * The server will return HTTP status 430 to notify the client that a key is
+ * needed. Use "error.430" in the config file to create a page the user will
+ * use to provide the key.
+ *
+ * \param ss    session object
+ * \param data  key binary buffer
+ * \param sz    key size
+ *  
+ * \return
+ *  - \c 0  if successful
+ *  - \c ~0 on error
+ */
+int session_set_cipher_key(session_t *ss, const char *data, size_t sz)
+{
+    var_t *v = NULL;
+
+    dbg_err_if(ss == NULL);
+    dbg_err_if(ss->vars == NULL);
+    dbg_err_if(data == NULL);
+    dbg_err_if(sz == 0);
+
+    /* remove the old key if it has been set */
+    if((v = vars_get(ss->vars, SESSION_KEY_VAR)) != NULL)
+    {
+        dbg_err_if(vars_del(ss->vars, v));
+        v = NULL;
+    }
+
+    /* may contain \0 values; treat it as opaque binary data */
+    dbg_err_if(var_bin_create(SESSION_KEY_VAR, data, sz, &v));
+
+    dbg_err_if(vars_add(ss->vars, v));
+    v = NULL;
+
+    return 0;
+err:
+    if(v)
+        var_free(v);
+    return ~0;
+}
+
+/**
+ * \ingroup session
+ * \brief   Return the key used to decrypt encrypted embedded content resources
+ *  
+ * Copies the key set with session_set_cipher_key to the given buffer.
+ *
+ * \p psz is a value-result and must be set to the size of the buffer before
+ * calling the function; on return will contain the size of the key copied to
+ * \p buf.
+ *
+ * \param ss    session object
+ * \param buf   output buffer
+ * \param psz   value-result; contains the size if \p buf on entrance and the written bytes on exit
+ *  
+ * \return
+ *  - \c 0  if successful
+ *  - \c ~0 on error
+ */
+int session_get_cipher_key(session_t *ss, char *buf, size_t *psz)
+{
+    var_t *v = NULL;
+    size_t vsize;
+
+    dbg_err_if(ss == NULL);
+    dbg_err_if(ss->vars == NULL);
+    dbg_err_if(buf == NULL);
+    dbg_err_if(psz == 0);
+    dbg_err_if(*psz == 0);
+
+    nop_err_if((v = vars_get(ss->vars, SESSION_KEY_VAR)) == NULL);
+
+    vsize = var_get_value_size(v);
+
+    dbg_err_if(vsize >= *psz);
+
+    memcpy(buf, var_get_value(v), vsize);
+
+    *psz = vsize;
+
+    return 0;
+err:
+    if(v)
+        var_free(v);
+    return ~0;
+}
+
+#endif
+
 int session_prv_save_to_io(session_t *ss, io_t *out)
 {
     save_cb_params_t prm; 
@@ -709,7 +829,7 @@ int session_prv_save_to_io(session_t *ss, io_t *out)
     }
 #endif
 
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
     if(ss->so->encrypt)
     {
         dbg_err_if(codec_cipher_create(CIPHER_ENCRYPT, ss->so->cipher, 
@@ -747,20 +867,24 @@ int session_prv_save_var(var_t *v, void *vp)
     char *uname = sname, *uvalue = svalue;
     save_cb_params_t *pprm = (save_cb_params_t*)vp;
     /* encrypted key buffer */
-    unsigned char ekey[CODEC_CIPHER_KEY_SIZE + CODEC_CIPHER_BLOCK_SIZE + 1]; 
-    size_t eksz, nsz, vsz;
+    unsigned char ekey[CODEC_CIPHER_KEY_BUFSZ]; /* key + padding block */
+    unsigned char pkey[CODEC_CIPHER_KEY_BUFSZ];
+    size_t nsz, vsz, eksz, pksz;
     int rc = ~0;
 
     dbg_err_if (v == NULL);
     /* dbg_err_if (vp == NULL); */
 
+	bzero(sname, NAMESZ);
+    bzero(svalue, VALSZ);
+
     /* buffers must be at least three times the src data to URL-encode  */
     nsz = 1 + 3 * strlen(var_get_name(v));  /* name buffer size  */
     vsz = 1 + 3 * var_get_value_size(v);    /* value buffer size */
 
-#ifdef HAVE_LIBOPENSSL
-    vsz += CODEC_CIPHER_BLOCK_SIZE; /* encryption may enlarge the content up 
-                                       to CODEC_CIPHER_BLOCK_SIZE -1         */
+#ifdef SSL_ON
+    vsz += CODEC_CIPHER_BLOCK_LEN; /* encryption may enlarge the content up 
+                                       to CODEC_CIPHER_BLOCK_LEN -1         */
 #else
     u_unused_args(ekey, eksz);
 #endif
@@ -779,13 +903,28 @@ int session_prv_save_var(var_t *v, void *vp)
         if(VALSZ <= vsz)
             dbg_err_if((uvalue = u_zalloc(vsz)) == NULL);
 
-#ifdef HAVE_LIBOPENSSL
-        if(!strcmp(var_get_name(v), "KLONE_CIPHER_KEY"))
+#ifdef SSL_ON
+        if(!strcmp(var_get_name(v), SESSION_KEY_VAR))
         {
-            /* encrypt key and save it to ekey */
+			memset(pkey, 0, sizeof(pkey)); /* plain text key */
+			memset(ekey, 0, sizeof(ekey)); /* encrypted text key */
+
+			/* copy the actual key to a zero-ed buffer of size key (i.e. if the
+			 * key is shorted then the buffer the trailing bytes will be 0s */
+			pksz = var_get_value_size(v);
+
+            err_err_ifm(pksz != CODEC_CIPHER_KEY_LEN,
+                    "bad encryption key; it must be %u bytes long",
+                    CODEC_CIPHER_KEY_LEN);
+
+			memcpy(pkey, var_get_value(v), pksz);
+
+			eksz = sizeof(ekey);;
+
+            /* encrypt the key and save it to ekey */
             dbg_err_if(u_cipher_encrypt(EVP_aes_256_cbc(), 
                 pprm->ss->so->session_key, pprm->ss->so->session_iv, 
-                ekey, &eksz, var_get_value(v), var_get_value_size(v)));
+                ekey, &eksz, pkey, pksz));
 
             /* save it to the var list */
             dbg_err_if(var_set_bin_value(v, ekey, eksz));
@@ -829,7 +968,7 @@ int session_create(session_opt_t *so, request_t *rq, response_t *rs,
     case SESSION_TYPE_MEMORY:
         dbg_err_if(session_mem_create(so, rq, rs, &ss));
         break;
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
     case SESSION_TYPE_CLIENT:
         dbg_err_if(session_client_create(so, rq, rs, &ss));
         break;
@@ -859,3 +998,4 @@ err:
         session_free(ss);
     return ~0;
 }
+

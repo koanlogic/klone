@@ -48,7 +48,7 @@ static void usage()
 {
     fprintf(stderr, 
         "Usage: iocat [-"
-        #ifdef HAVE_LIBOPENSSL
+        #ifdef SSL_ON
         "c"
         #endif
         "d"
@@ -57,8 +57,8 @@ static void usage()
         "z"
         #endif
         "] [infile [outfile]]  \n"
-        #ifdef HAVE_LIBOPENSSL
-        "           -c    use OpenSSL AES256 codec  \n"
+        #ifdef SSL_ON
+        "           -c    use AES256 codec  \n"
         #endif
         "           -d    decode                    \n"
         "           -h    print this help and exit  \n"
@@ -128,8 +128,8 @@ int main(int argc, char **argv)
     codec_t *unzip = NULL;
     codec_t *encrypt = NULL;
     codec_t *decrypt = NULL;
-    unsigned char key[CODEC_CIPHER_KEY_SIZE];
-    unsigned char iv[CODEC_CIPHER_IV_SIZE];
+    unsigned char key[CODEC_CIPHER_KEY_BUFSZ];
+    unsigned char iv[CODEC_CIPHER_IV_LEN];
     
     memset(ctx, 0, sizeof(context_t));
 
@@ -170,7 +170,7 @@ int main(int argc, char **argv)
     #endif
 
     /* aes256 */
-    #ifdef HAVE_LIBOPENSSL
+    #ifdef SSL_ON
     memset(key, 0, sizeof(key));
     memset(iv, 0, sizeof(iv));
     strcpy(key, "pwd");

@@ -37,6 +37,11 @@ int session_load(session_t *ss);
 int session_save(session_t *ss);
 int session_save_to_io(session_t*, const char*);
 
+#ifdef SSL_ON
+int session_set_cipher_key(session_t*, const char*, size_t);
+int session_get_cipher_key(session_t*, char*, size_t*);
+#endif
+
 #ifdef __cplusplus
 }
 #endif 

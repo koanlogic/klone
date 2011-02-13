@@ -9,7 +9,7 @@
  */
 
 #include "klone_conf.h"
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_OPENSSL
 #ifndef HEADER_DH_H
 #include <openssl/dh.h>
 #endif

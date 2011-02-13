@@ -1,0 +1,27 @@
+
+CyaSSL:
+
+    env CFLAGS=-DNO_FILESYSTEM ./configure --enable-opensslExtra  \
+        --enable-singleThreaded
+    make
+    make install
+
+KLone:
+
+	export LD_LIBRARY_PATH=/usr/local/cyassl/lib/
+
+    ./configure --lib-cyassl=/usr/local/cyassl/ --enable_cyassl ...
+    makl
+
+Run a sample HTTPS application:
+
+    cd site
+    ../src/tools/klone/klone -c import ../doc/example-site/
+    cd ..
+    makl
+    ./src/kloned/kloned
+
+    go to https://localhost:4443/
+
+
+

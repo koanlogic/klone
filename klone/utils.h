@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005, 2011 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
@@ -25,6 +25,9 @@
 #include <klone/md5.h>
 #include <klone/os.h>
 #include <klone/mime_map.h>
+#ifdef SSL_ON
+#include <openssl/evp.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -106,7 +109,7 @@ int u_path_where_art_thou(const char *fqn, int *where);
 int u_pwd_init_agnostic (const char *fqn, int hashed, int in_memory, 
         u_pwd_t **ppwd);
 
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
 int u_cipher_encrypt(const EVP_CIPHER *cipher, unsigned char *key, 
     unsigned char *iv, char *dst, size_t *dcount, const char *src, size_t ssz);
 int u_cipher_decrypt(const EVP_CIPHER *cipher, unsigned char *key, 

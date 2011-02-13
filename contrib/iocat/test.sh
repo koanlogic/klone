@@ -1,6 +1,6 @@
 #!/bin/sh
 
-IOCAT=/Users/tat/work/KL/klone/contrib/iocat/iocat
+IOCAT=iocat
 CODECS="-z -c"
 
 export FQN="$1"

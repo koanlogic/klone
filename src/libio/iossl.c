@@ -1,11 +1,9 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005-2011 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
- *
- * $Id: iossl.c,v 1.20 2008/04/21 17:04:18 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -127,9 +125,11 @@ static int io_ssl_connect(io_ssl_t *io_ssl)
     /* accept a SSL connection */
     while((rc = SSL_connect(io_ssl->ssl)) <= 0)
     {
+        #ifdef SSL_OPENSSL
         /* will return 1 if accept has been blocked by a signal or async IO */
         if(BIO_sock_should_retry(rc))
             continue;
+        #endif
 
         if(SSL_get_error(io_ssl->ssl, rc) == SSL_ERROR_WANT_READ)
             break; 
@@ -149,9 +149,11 @@ static int io_ssl_accept(io_ssl_t *io_ssl)
     /* accept a SSL connection */
     while((rc = SSL_accept(io_ssl->ssl)) <= 0)
     {
+        #ifdef SSL_OPENSSL
         /* will return 1 if accept has been blocked by a signal or async IO */
         if(BIO_sock_should_retry(rc))
             continue;
+        #endif
 
         if(SSL_get_error(io_ssl->ssl, rc) == SSL_ERROR_WANT_READ)
             break; 
@@ -208,11 +210,16 @@ int io_ssl_create(int fd, int flags, int client_mode,
 err:
     if(io_ssl && io_ssl->ssl)
     {
+        #ifdef SSL_OPENSSL
         /* print a warning message for bad client certificates */
         if((vfy = SSL_get_verify_result(io_ssl->ssl)) != X509_V_OK)
             warn("SSL client cert verify error: %s", 
                 X509_verify_cert_error_string(vfy));
         SSL_set_shutdown(io_ssl->ssl, SSL_SENT_SHUTDOWN|SSL_RECEIVED_SHUTDOWN);
+        #endif
+        #ifdef SSL_CYASSL
+        warn("SSL %s error", client_mode ? "connect" : "accept");
+        #endif
     }
     if(io_ssl)
         io_free((io_t *)io_ssl);

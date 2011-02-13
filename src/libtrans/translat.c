@@ -15,9 +15,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
-#ifdef HAVE_LIBOPENSSL
-#include <openssl/evp.h>
-#endif /* HAVE_LIBOPENSSL */
 #include <u/libu.h>
 #include <klone/os.h>
 #include <klone/translat.h>
@@ -907,7 +904,7 @@ int translate(trans_info_t *pti)
             gzip = NULL;
         }
 #endif
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
         /* check if encryption is requested */
         if(pti->encrypt)
         {

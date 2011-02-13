@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005, 2011 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
@@ -12,11 +12,11 @@
 #define _KLONE_SESPRV_H_
 
 #include "klone_conf.h"
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_OPENSSL
 #include <openssl/hmac.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
-#endif /* HAVE_LIBOPENSSL */
+#endif
 #include <u/libu.h>
 #include <klone/session.h>
 #include <klone/request.h>
@@ -25,10 +25,18 @@
 #include <klone/http.h>
 #include <klone/atom.h>
 #include <klone/md5.h>
+#ifdef SSL_CYASSL
+#include <config.h>
+#include <types.h>
+#include <ctc_hmac.h>
+#include <openssl/evp.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define SESSION_KEY_VAR      "KLONE_CIPHER_KEY"
 
 typedef int (*session_load_t)(session_t*);
 typedef int (*session_save_t)(session_t*);
@@ -50,14 +58,19 @@ enum {
 
 /* hmac and cipher key size */
 enum { 
-    HMAC_KEY_SIZE = 64, 
-    #ifdef HAVE_LIBOPENSSL
-    CIPHER_KEY_SIZE = EVP_MAX_KEY_LENGTH, 
-    CIPHER_IV_SIZE = EVP_MAX_IV_LENGTH
+    HMAC_KEY_LEN = 64, 
+    #ifdef SSL_OPENSSL
+    CIPHER_KEY_LEN = EVP_MAX_KEY_LENGTH, 
+    CIPHER_KEY_BUFSZ = 2* EVP_MAX_KEY_LENGTH,  /* key + padding */
+    CIPHER_IV_LEN = EVP_MAX_IV_LENGTH
     #else
-    CIPHER_KEY_SIZE = 64, CIPHER_IV_SIZE = 64
+    CIPHER_KEY_LEN = 32, CIPHER_KEY_BUFSZ = 64, CIPHER_IV_LEN = 16
     #endif
  };
+
+#ifdef SSL_CYASSL
+typedef Hmac HMAC_CTX;
+#endif
 
 /* session runtime parameters */
 typedef struct session_opt_s
@@ -68,27 +81,26 @@ typedef struct session_opt_s
     int encrypt;    /* >0 when client-side session encryption is on  */
     int compress;   /* >0 when client-side session compression is on */
     char name[128]; /* cookie name                                   */
-    #ifdef HAVE_LIBOPENSSL
-    const EVP_CIPHER *cipher; /* encryption cipher algorithm         */
-    unsigned char cipher_key[CIPHER_KEY_SIZE]; /* cipher secret key  */
-    unsigned char cipher_iv[CIPHER_IV_SIZE];   /* cipher Init Vector */
-    #endif
 
     /* file session options/struct                                   */
     char path[U_FILENAME_MAX]; /* session save path                  */
-    unsigned char session_key[CIPHER_KEY_SIZE]; /* session secret key*/
-    unsigned char session_iv[CIPHER_IV_SIZE];   /* session init vect */
+    unsigned char session_key[CIPHER_KEY_BUFSZ]; /* session secret key */
+    unsigned char session_iv[CIPHER_IV_LEN];   /* session init vect */
 
     /* in-memory session options/struct                              */
     atoms_t *atoms; /* atom list used to store in-memory sessions    */
     size_t max_count;   /* max # of in-memory sessions               */
     size_t mem_limit;   /* max (total) size of in-memory sessions    */
 
+    #ifdef SSL_ON
+    char keyvar[128]; /* name of the session variable w/ the description key */
+    const EVP_CIPHER *cipher; /* encryption cipher algorithm         */
+    unsigned char cipher_key[CIPHER_KEY_BUFSZ]; /* cipher secret key  */
+    unsigned char cipher_iv[CIPHER_IV_LEN];   /* cipher Init Vector */
     /* client-side options/structs                                   */
-    #ifdef HAVE_LIBOPENSSL
     HMAC_CTX hmac_ctx;  /* openssl HMAC context                      */
     const EVP_MD *hash; /* client-side session HMAC hash algorithm   */
-    char hmac_key[HMAC_KEY_SIZE]; /* session HMAC secret key         */
+    char hmac_key[HMAC_KEY_LEN]; /* session HMAC secret key         */
     #endif
 } session_opt_t;
 
@@ -125,6 +137,7 @@ int session_prv_calc_maxsize(var_t *v, void *p);
 int session_prv_save_to_buf(session_t *ss, char **pbuf, size_t *psz);
 int session_prv_load_from_buf(session_t *ss, char *buf, size_t size);
 int session_prv_set_id(session_t *ss, const char *sid);
+int session_priv_set_id(session_t *ss, const char *sid); /* backward comp. */
 
 /* init/term funcs */
 int session_module_init(u_config_t *config, session_opt_t **pso);

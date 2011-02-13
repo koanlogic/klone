@@ -10,7 +10,7 @@ ZIPEXT = gz
 # top level
 DISTFILES += Makefile LICENSE README VERSION configure \
              configure.help ChangeLog LICENSE.OpenSSL \
-			 BSDmakefile THANKS
+			 BSDmakefile THANKS README.CyaSSL
 
 # MaKL build test
 DISTFILES += $(wildcard build/*.c)

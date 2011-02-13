@@ -1,11 +1,9 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005-2011 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
  * in the LICENSE file which you have received as part of this distribution.
- *
- * $Id: ses_client.c,v 1.30 2007/08/20 16:06:08 tat Exp $
  */
 
 #include "klone_conf.h"
@@ -15,9 +13,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <openssl/hmac.h>
-#include <openssl/evp.h>
-#include <openssl/rand.h>
 #include <u/libu.h>
 #include <klone/session.h>
 #include <klone/request.h>
@@ -27,6 +22,17 @@
 #include <klone/emb.h>
 #include <klone/ses_prv.h>
 #include <klone/codecs.h>
+#ifdef SSL_ON
+#include <openssl/hmac.h>
+#include <openssl/rand.h>
+#endif
+#ifdef SSL_CYASSL
+#include <config.h>
+#include <types.h>
+#include <ctc_hmac.h>
+#include <ctc_aes.h>
+#define EVP_MAX_MD_SIZE 64
+#endif
 
 #define KL1_CLISES_DATA     "KL1_CLISES_DATA"
 #define KL1_CLISES_MTIME    "KL1_CLISES_MTIME"
@@ -49,6 +55,7 @@ static int session_client_hmac(HMAC_CTX *ctx, char *hmac, size_t hmac_sz,
     dbg_err_if (mtime == NULL);
     /* hex_iv may be NULL */
     
+#if SSL_OPENSSL
     /* hmac must be at least 'EVP_MAX_MD_SIZE*2 + 1' (it will be hex encoded) */
     dbg_err_if(hmac_sz < EVP_MAX_MD_SIZE*2 + 1);
 
@@ -60,6 +67,23 @@ static int session_client_hmac(HMAC_CTX *ctx, char *hmac, size_t hmac_sz,
     if(hex_iv)
         HMAC_Update(ctx, hex_iv, strlen(hex_iv));
     HMAC_Final(ctx, mac, &mac_len);
+#endif
+
+#ifdef SSL_CYASSL
+    HmacUpdate(ctx, (const byte*)data, strlen(data));
+    HmacUpdate(ctx, (const byte*)sid, strlen(sid));
+    HmacUpdate(ctx, (const byte*)mtime, strlen(mtime));
+    if(hex_iv)
+        HmacUpdate(ctx, (const byte*)hex_iv, strlen(hex_iv));
+    HmacFinal(ctx, (byte*)mac);
+
+    if (ctx->macType == MD5)
+        mac_len = MD5_DIGEST_SIZE;
+    else if (ctx->macType == SHA)
+        mac_len = SHA_DIGEST_SIZE;
+    else
+        crit_err("unknown hash");
+#endif
 
     /* encode the hash */
     dbg_err_if(u_hexncpy(hmac, mac, mac_len, HEXCPY_ENCODE) <= 0);
@@ -78,20 +102,26 @@ static int session_client_save(session_t *ss)
     };
     session_opt_t *so = ss->so;
     char hmac[HMAC_HEX_SIZE], ebuf[BUF_SIZE], mtime[MTIME_SIZE];
-    char *buf = NULL, cipher_iv_hex[CIPHER_IV_SIZE * 2 + 1];
+    char *buf = NULL, cipher_iv_hex[CIPHER_IV_LEN * 2 + 1];
     size_t sz;
     time_t now;
 
     dbg_err_if (ss == NULL);
 
-    #ifdef HAVE_LIBOPENSSL
+    #ifdef SSL_ON
     if(ss->so->encrypt)
     {
         /* generate a new IV for each session */
-        dbg_err_if(!RAND_pseudo_bytes(ss->so->cipher_iv, CIPHER_IV_SIZE));
+        #ifdef SSL_OPENSSL
+        dbg_err_if(!RAND_pseudo_bytes(ss->so->cipher_iv, CIPHER_IV_LEN));
+        #endif
+
+        #ifdef SSL_CYASSL
+        dbg_err_if(!RAND_bytes(ss->so->cipher_iv, CIPHER_IV_LEN));
+        #endif
 
         /* hex encode the IV and save it in a cookie */
-        dbg_err_if(u_hexncpy(cipher_iv_hex, ss->so->cipher_iv, CIPHER_IV_SIZE,
+        dbg_err_if(u_hexncpy(cipher_iv_hex, ss->so->cipher_iv, CIPHER_IV_LEN,
             HEXCPY_ENCODE) <= 0);
         dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_IV, cipher_iv_hex, 
             0, NULL, NULL, 0));
@@ -124,8 +154,12 @@ static int session_client_save(session_t *ss)
     dbg_err_if(response_set_cookie(ss->rs, KL1_CLISES_HMAC, hmac, 0, NULL, 
         NULL, 0));
 
+    u_free(buf);
+
     return 0;
 err:
+    if(buf)
+        u_free(buf);
     return ~0;
 }
 
@@ -144,7 +178,8 @@ static int session_client_load(session_t *ss)
     cli_hmac = request_get_cookie(ss->rq, KL1_CLISES_HMAC);
     cli_iv = request_get_cookie(ss->rq, KL1_CLISES_IV);
 
-    nop_err_if(cli_ebuf == NULL || cli_mtime == NULL || cli_hmac == NULL);
+    //nop_err_if(cli_ebuf == NULL || cli_mtime == NULL || cli_hmac == NULL);
+    dbg_err_if(cli_ebuf == NULL || cli_mtime == NULL || cli_hmac == NULL);
     /* cli_iv may be NULL */
 
     /* calc the HMAC */
@@ -262,21 +297,35 @@ int session_client_module_init(u_config_t *config, session_opt_t *so)
                 so->hash = EVP_md5();
             else if(!strcasecmp(v, "sha1"))
                 so->hash = EVP_sha1();
+#ifdef SSL_OPENSSL
             else if(!strcasecmp(v, "ripemd160"))
                 so->hash = EVP_ripemd160();
+#endif
             else
                 warn_err("config error: bad hash_function");
         } 
     }
 
+#ifdef SSL_OPENSSL
     /* initialize OpenSSL HMAC stuff */
     HMAC_CTX_init(&so->hmac_ctx);
 
     /* gen HMAC key */
-    dbg_err_if(!RAND_bytes(so->hmac_key, HMAC_KEY_SIZE));
+    dbg_err_if(!RAND_bytes(so->hmac_key, HMAC_KEY_LEN));
 
     /* init HMAC with our key and chose hash algorithm */
-    HMAC_Init_ex(&so->hmac_ctx, so->hmac_key, HMAC_KEY_SIZE, so->hash, NULL);
+    HMAC_Init_ex(&so->hmac_ctx, so->hmac_key, HMAC_KEY_LEN, so->hash, NULL);
+#endif
+
+#ifdef SSL_CYASSL
+    /* gen HMAC key */
+    dbg_err_if(!RAND_bytes(so->hmac_key, HMAC_KEY_LEN));
+
+    if(strcmp(so->hash, "MD5") == 0)
+        HmacSetKey(&so->hmac_ctx, MD5, so->hmac_key, HMAC_KEY_LEN);
+    else if(strcmp(so->hash, "SHA") == 0)
+        HmacSetKey(&so->hmac_ctx, SHA, so->hmac_key, HMAC_KEY_LEN);
+#endif
 
     return 0;
 err:

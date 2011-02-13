@@ -10,8 +10,8 @@ ifdef INSTALL_DAEMON_ONLY
 NO_INSTALL = true
 endif
 
-CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
-LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
+CFLAGS += ${SSL_CFLAGS} ${LIBZ_CFLAGS}
+LDFLAGS += ${SSL_LDFLAGS} ${LIBZ_LDFLAGS}
 
 LDADD += ../../libtrans/libtrans.a  \
          ../../libcodec/libcodec.a  \
@@ -20,5 +20,6 @@ LDADD += ../../libtrans/libtrans.a  \
          ../../libcodec/libcodec.a
 
 LDADD += ../../../libu/srcs/libu.a
+
 
 include prog.mk

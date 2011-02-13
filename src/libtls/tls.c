@@ -13,11 +13,13 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <strings.h>
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
 #include <openssl/ssl.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
+#ifdef SSL_OPENSSL
 #include <openssl/x509_vfy.h>
+#endif
 #include <u/libu.h>
 #include <klone/tls.h>
 #include <klone/utils.h>
@@ -29,11 +31,13 @@ static int tls_inited = 0;
 /* private methods */
 static int tls_context (SSL_CTX **);
 static int tls_load_x509_creds (SSL_CTX *, tls_ctx_args_t *);
-static int tls_gendh_params (SSL_CTX *, const char *);
-static int tls_gen_eph_rsa (SSL_CTX *);
 static void tls_rand_seed (void);
 static int tls_sid_context (SSL_CTX *, int *);
+#ifdef SSL_OPENSSL
+static int tls_gen_eph_rsa (SSL_CTX *);
+static int tls_gendh_params (SSL_CTX *, const char *);
 static DH *tls_load_dh_param (const char *);
+#endif
 static int tls_no_passphrase_cb (char *, int, int, void *);
 static int tls_init_ctx_args (tls_ctx_args_t *);
 static int tls_set_ctx_vdepth (u_config_t *, tls_ctx_args_t *);
@@ -44,7 +48,7 @@ static void tls_free_ctx_args (tls_ctx_args_t *cargs);
 static int tls_load_ctx_args (u_config_t *cfg, tls_ctx_args_t **cargs);
 static SSL_CTX *tls_init_ctx (tls_ctx_args_t *cargs);
 static int cb_vfy (int ok, X509_STORE_CTX *store_ctx);
-#ifdef HAVE_LIBOPENSSL_PSK
+#ifdef SSL_OPENSSL_PSK
 static int tls_set_ctx_psk_hash (u_config_t *, tls_ctx_args_t *);
 #endif
 
@@ -88,7 +92,7 @@ static int tls_load_ctx_args (u_config_t *cfg, tls_ctx_args_t **pcargs)
     cargs->ca = u_config_get_subkey_value(cfg, "ca_file");
     cargs->dh = u_config_get_subkey_value(cfg, "dh_file");
     cargs->crl = u_config_get_subkey_value(cfg, "crl_file");
-#ifdef HAVE_LIBOPENSSL_PSK
+#ifdef SSL_OPENSSL_PSK
     /* handle 'pskdb_file', 'psk_hint' and 'psk_hash' keywords */
     cargs->pskdb = u_config_get_subkey_value(cfg, "pskdb_file");
     cargs->psk_hint = u_config_get_subkey_value(cfg, "psk_hint");
@@ -136,17 +140,19 @@ static SSL_CTX *tls_init_ctx (tls_ctx_args_t *cargs)
         /* set key and certs against the SSL context */
         dbg_err_if (tls_load_x509_creds(c, cargs));
 
-#ifdef HAVE_LIBOPENSSL_PSK
+#ifdef SSL_OPENSSL_PSK
     if (cargs->pskdb)
         /* load psk DB and set psk callback */
         dbg_err_if (tls_psk_init(c, cargs));
 #endif
 
+#ifdef SSL_OPENSSL
     /* generate RSA ephemeral parameters and load into SSL_CTX */
     dbg_err_if (tls_gen_eph_rsa(c));
 
     /* (possibly) generate DH parameters and load into SSL_CTX */
     dbg_err_if (tls_gendh_params(c, cargs->dh));
+#endif
 
     /* set the session id context */
     dbg_err_if (tls_sid_context(c, &tls_sid));
@@ -215,9 +221,11 @@ static int tls_load_x509_creds (SSL_CTX *c, tls_ctx_args_t *cargs)
         crit_err_ifm(tls_load_verify_locations(c, cargs->ca),
                 "error loading CA certificate from %s", cargs->ca);
 
+#ifdef SSL_OPENSSL
     /* explicitly set the list of CAs for which we accept certificates */
     if (cargs->ca && cargs->vmode != SSL_VERIFY_NONE)
         SSL_CTX_set_client_CA_list(c, tls_load_client_CA_file(cargs->ca));
+#endif
 
     /* load server certificate */
     crit_err_ifm (tls_use_certificate_file(c, cargs->cert, 
@@ -248,7 +256,13 @@ static int tls_load_x509_creds (SSL_CTX *c, tls_ctx_args_t *cargs)
 
     /* set verification depth */
     if (cargs->depth > 0)
+    {
+#ifdef SSL_OPENSSL
         SSL_CTX_set_verify_depth(c, cargs->depth);
+#else
+        warn("certificate verification depth not supported");
+#endif
+    }
 
     return 0;
 err:
@@ -297,6 +311,7 @@ err:
 
 static void tls_rand_seed (void)
 {
+#ifdef SSL_OPENSSL
     struct timeval tv;
     tls_rand_seed_t seed;
 
@@ -308,8 +323,10 @@ static void tls_rand_seed (void)
     seed.stack = (void *) &seed;
 
     RAND_seed((const void *) &seed, sizeof seed);
+#endif
 }
 
+#ifdef SSL_OPENSSL
 /* generate RSA ephemeral parameters and load'em into SSL_CTX */
 static int tls_gen_eph_rsa(SSL_CTX *c)
 {
@@ -329,7 +346,9 @@ err:
 
     return ~0;
 }
+#endif
 
+#ifdef SSL_OPENSSL
 /* generate DH ephemeral parameters and load'em into SSL_CTX */
 static int tls_gendh_params(SSL_CTX *c, const char *dhfile)
 {
@@ -381,6 +400,7 @@ err:
 
     return NULL;
 }
+#endif
 
 static int tls_no_passphrase_cb (char *buf, int num, int w, void *arg)
 {
@@ -398,7 +418,7 @@ static int tls_init_ctx_args (tls_ctx_args_t *cargs)
     cargs->ca = NULL;
     cargs->dh = NULL;
     cargs->crl = NULL;
-#ifdef HAVE_LIBOPENSSL_PSK
+#ifdef SSL_OPENSSL_PSK
     cargs->pskdb = NULL;
 #endif
     cargs->crlopts = 0;
@@ -420,7 +440,7 @@ static int tls_set_ctx_vdepth (u_config_t *cfg, tls_ctx_args_t *cargs)
     return 0;
 }
 
-#ifdef HAVE_LIBOPENSSL_PSK
+#ifdef SSL_OPENSSL_PSK
 static int tls_set_ctx_psk_hash (u_config_t *cfg, tls_ctx_args_t *cargs)
 {
     int rc; 
@@ -451,10 +471,14 @@ static int tls_set_ctx_crlopts (u_config_t *cfg, tls_ctx_args_t *cargs)
         return 0;
     }
 
+#ifdef SSL_OPENSSL
     if (!strcasecmp(v, "check_all"))
         cargs->crlopts = X509_V_FLAG_CRL_CHECK | X509_V_FLAG_CRL_CHECK_ALL;
     else
         warn_err("unknown value %s for 'crl_opts' directive", v);
+#else
+    warn_err("CRLs not supported");
+#endif
 
     return 0;
 err:
@@ -492,7 +516,7 @@ static int tls_check_ctx (tls_ctx_args_t *cargs)
 {
     dbg_return_if (cargs == NULL, ~0);
 
-#ifdef HAVE_LIBOPENSSL_PSK
+#ifdef SSL_OPENSSL_PSK
     /* if no PSK password file is set check for certificate/key */
     if (cargs->pskdb == NULL)
     {
@@ -510,14 +534,16 @@ static int tls_check_ctx (tls_ctx_args_t *cargs)
             crit_err_ifm (cargs->ca == NULL, 
                 "SSL verify is required but CA certificate file is missing");
 
-#ifdef HAVE_LIBOPENSSL_PSK
+#ifdef SSL_OPENSSL_PSK
     }
 #endif
 
+#ifdef SSL_OPENSSL
     /* if 'crl_file' was given, set crlopts at least to verify the client
      * certificate against the supplied CRL */
     if (cargs->crl && cargs->crlopts == 0)
         cargs->crlopts = X509_V_FLAG_CRL_CHECK;
+#endif
 
     return 0;
 err:
@@ -530,4 +556,4 @@ static void tls_free_ctx_args (tls_ctx_args_t *cargs)
     KLONE_FREE(cargs);
     return;
 }
-#endif /* HAVE_LIBOPENSSL */
+#endif /* SSL_ON */

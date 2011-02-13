@@ -7,8 +7,8 @@ PROG = test
 SRCS = main.c
 
 CFLAGS += -g
-CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
-LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
+CFLAGS += ${SSL_CFLAGS} ${LIBZ_CFLAGS}
+LDFLAGS += ${SSL_LDFLAGS} ${LIBZ_LDFLAGS}
 LDFLAGS += ../../../libu/srcs/libu.a
 
 LDADD += ../libklog.a               \

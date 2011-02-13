@@ -12,7 +12,7 @@ INCS = addr.h atom.h backend.h broker.h caes.h cgi.h codec.h                 \
        server.h ses_prv.h session.h supplier.h timer.h tls.h tlsprv.h        \
        translat.h utils.h va.h var.h varprv.h vars.h version.h dypage.h
 
-ifdef HAVE_LIBOPENSSL
+ifdef SSL_ON
 INCS += ccipher.h
 endif
 

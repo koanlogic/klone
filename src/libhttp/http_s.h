@@ -16,7 +16,7 @@
 #include <klone/broker.h>
 #include <klone/ses_prv.h>
 
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #endif 
@@ -26,7 +26,7 @@ struct http_s
     u_config_t *config;     /* server config                                 */
     broker_t *broker;       /* pages broker                                  */
     int ssl;                /* >0 when SSL is enabled                        */
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
     SSL_CTX* ssl_ctx;       /* OpenSSL context                               */
 #endif
     /* session options struct                        */

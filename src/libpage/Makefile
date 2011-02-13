@@ -16,7 +16,8 @@ SRCS =          \
     var.c       \
     vars.c  
 
-ifdef HAVE_LIBOPENSSL
+ifdef SSL_ON
+CFLAGS := $(SSL_CFLAGS) $(CFLAGS)
 SRCS += ses_client.c
 endif
 

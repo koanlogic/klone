@@ -8,8 +8,8 @@ SRCS = iocat.c
 
 NO_INSTALL = true
 
-CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
-LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
+CFLAGS += ${SSL_CFLAGS} ${LIBZ_CFLAGS}
+LDFLAGS += ${SSL_LDFLAGS} ${LIBZ_LDFLAGS}
 
 LDADD += ../../src/libhttp/libhttp.a        \
          ../../src/libutils/libutils.a      \

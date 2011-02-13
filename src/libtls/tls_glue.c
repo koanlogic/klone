@@ -22,12 +22,11 @@
 #include <klone/emb.h>
 #include <klone/tlsprv.h>
 
-#ifndef HAVE_LIBOPENSSL
+#ifndef SSL_OPENSSL
 int tls_dummy_decl_stub = 0;
-#else /* HAVE_LIBOPENSSL */
+#else
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
-
 
 /* map an emb resource to a OpenSSL memory BIO */
 BIO *bio_from_emb (const char *res_name)
@@ -346,4 +345,4 @@ err:
     return -1;
 }
 
-#endif /* HAVE_LIBOPENSSL */
+#endif /* SSL_OPENSSL */

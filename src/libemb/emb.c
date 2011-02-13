@@ -103,7 +103,8 @@ int emb_lookup(const char *filename, embres_t **pr)
     dbg_err_if (pr == NULL);
 
     res = u_hmap_easy_get(embmap, filename);
-    dbg_err_ifm (res == NULL, "%s not found", filename);
+    /* dbg_err_ifm (res == NULL, "%s not found", filename); */
+    nop_err_if (res == NULL);
 
     *pr = res;
 
@@ -187,6 +188,46 @@ void emb_list_free (char **list)
     return;
 }
 
+int emb_to_ubuf(const char *res_name, u_buf_t **pubuf)
+{
+    int c;
+    char buf[1024];
+    io_t *tmp = NULL;
+    u_buf_t *ubuf = NULL;
+
+    dbg_err_if(res_name == NULL);
+    dbg_err_if(pubuf == NULL);
+
+    dbg_err_if(emb_open(res_name, &tmp));
+
+    dbg_err_if(u_buf_create(&ubuf));
+
+    for (;;)
+    {
+        c = io_read(tmp, buf, sizeof(buf));
+
+        if (c == 0)     /* EOF */
+            break;
+        else if (c < 0) /* read error */
+            goto err;
+
+        dbg_err_if (u_buf_append(ubuf, buf, c));
+    }
+
+    io_free(tmp); tmp = NULL;
+
+    *pubuf = ubuf;
+
+    return 0;
+err:
+    if (tmp) 
+        io_free(tmp);
+    if (ubuf)  
+        u_buf_free(ubuf);
+
+    return ~0;
+}
+
 /* Here 'val' is an embres_t object and 'arg' the res names' list. */
 static int listadd (const void *val, const void *arg)
 {
@@ -205,3 +246,4 @@ static int listadd (const void *val, const void *arg)
 err:
     return ~0;
 }
+

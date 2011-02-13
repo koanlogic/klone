@@ -6,7 +6,7 @@ include ../../Makefile.conf
 LIB = io
 SRCS = io.c iofd.c iomem.c
 
-ifdef HAVE_LIBOPENSSL
+ifdef SSL_ON
 SRCS += iossl.c
 endif
 

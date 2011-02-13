@@ -72,7 +72,7 @@ int emb_open(const char *file, io_t **pio);
 
 int emb_list (char ***plist);
 void emb_list_free (char **list);
-
+int emb_to_ubuf(const char *res_name, u_buf_t **pubuf);
 
 #ifdef __cplusplus
 }

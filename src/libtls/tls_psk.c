@@ -14,9 +14,9 @@
 #include <unistd.h>
 #include <strings.h>
 
-#ifndef HAVE_LIBOPENSSL_PSK
+#ifndef SSL_OPENSSL_PSK
 int tls_psk_dummy_decl_stub = 0;
-#else /* HAVE_LIBOPENSSL_PSK */
+#else /* SSL_OPENSSL_PSK */
 #include <openssl/ssl.h>
 #include <u/libu.h>
 #include <klone/tls.h>
@@ -114,4 +114,4 @@ static int __pwd_exdata_idx (void)
     return idx;
 }
 
-#endif  /* !HAVE_LIBOPENSSL_PSK */
+#endif  /* SSL_OPENSSL_PSK */

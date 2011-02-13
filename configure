@@ -42,6 +42,7 @@ makl_args_def   "install_daemon_only"  "" ""  "install just Klone daemon file"
 makl_args_def   "daemon_name"  "=NAME" ""   "set the name of Klone daemon"
 makl_args_def   "enable_hooks"  "" ""   "call user-provided hooks_setup() to register hooks"
 makl_args_def   "disable_stack_protector"      "" ""   "disable stack smashing protection (gcc 4.x)"
+makl_args_def   "enable_cyassl"      "" ""   "enables CyaSSL library"
 
 
 # ... and their handlers
@@ -75,6 +76,9 @@ __makl_enable_warns ()
 }
 __makl_disable_stack_protector()       { 
     makl_set_var_mk        "DISABLE_STACK_PROTECTOR"    "1";   
+}
+__makl_enable_cyassl()      { 
+    makl_set_var_mk         "ENABLE_CYASSL"
 }
 
 # General settings
@@ -151,6 +155,7 @@ makl_checksymbol        0   "TCP_NODELAY"   "<sys/types.h>" \
 makl_optional           1   "lib"   "openssl"       ""  "-lssl -lcrypto"
 makl_optional           1   "lib"   "openssl_psk"   ""  "-lssl -lcrypto"
 makl_optional           1   "lib"   "z"
+makl_optional           1   "lib"   "cyassl"    "-DNO_FILESYSTEM"  "-lcyassl"
 
 # Function dependencies
 makl_checktype          0   "pid_t"         "<sys/types.h>" 
@@ -182,7 +187,7 @@ makl_optional           1    "featx"   "doxygen"
 makl_args_handle "$@"
 
 # Add include dirs into top-level CFLAGS
-makl_add_var_mk "CFLAGS" "\$(LIBOPENSSL_CFLAGS)"
+# makl_add_var_mk "CFLAGS" "\$(LIBOPENSSL_CFLAGS)"
 makl_add_var_mk "CFLAGS" "\$(LIBZ_CFLAGS)"
 
 # if debug is not enabled add optimization flags
@@ -201,6 +206,29 @@ if [ "`makl_get_var_mk "ENABLE_SUP_CGI"`" -a "`makl_get_var_mk "OS_WIN"`" ];
 then
     echo ; echo "    ### Error: CGI is not supported on Windows ###"; echo;
     exit 1;
+fi
+
+
+if [ "`makl_get_var_mk "HAVE_LIBCYASSL"`" -a "`makl_get_var_mk "ENABLE_CYASSL"`" ]; 
+then
+    makl_set_var        "SSL_ON" 
+    makl_set_var        "SSL_CYASSL" 
+    makl_set_var_mk     "SSL_CFLAGS"    "\$(LIBCYASSL_CFLAGS)"
+    makl_set_var_mk     "SSL_LDFLAGS"   "\$(LIBCYASSL_LDFLAGS)"
+    makl_set_var_mk     "SSL_LDADD"     "\$(LIBCYASSL_LDADD)"
+else
+    if [ "`makl_get_var_mk "HAVE_LIBOPENSSL"`" ]; 
+    then
+        makl_set_var        "SSL_ON"
+        makl_set_var        "SSL_OPENSSL"
+        makl_set_var_mk     "SSL_CFLAGS"    "\$(LIBOPENSSL_CFLAGS)"
+        makl_set_var_mk     "SSL_LDFLAGS"   "\$(LIBOPENSSL_LDFLAGS)"
+        makl_set_var_mk     "SSL_LDADD"     "\$(LIBOPENSSL_LDADD)"
+    fi
+    if [ "`makl_get_var_mk "HAVE_LIBOPENSSL_PSK"`" ];  
+    then
+        makl_set_var        "SSL_OPENSSL_PSK"
+    fi
 fi
 
 if [ -d skin/default ]; then

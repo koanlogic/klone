@@ -14,8 +14,8 @@ INCS = main.h server_s.h server_ppc_cmd.h child.h
 SRCS = server.c main.c entry.c ppc.c atom.c ppc_log_add.c ppc_log_get.c \
     ppc_nop.c child.c ppc_access_log.c
 
-CFLAGS += ${LIBOPENSSL_CFLAGS} ${LIBZ_CFLAGS}
-LDFLAGS += ${LIBOPENSSL_LDFLAGS} ${LIBZ_LDFLAGS}
+CFLAGS += ${SSL_CFLAGS} ${LIBZ_CFLAGS}
+LDFLAGS += ${SSL_LDFLAGS} ${LIBZ_LDFLAGS}
 
 LDFLAGS += ${WEBAPP_LDFLAGS}
 

@@ -29,6 +29,7 @@ static int supemb_is_valid_uri(http_t *h, request_t *rq, const char *uri,
         size_t len, void **handle, time_t *mtime)
 {
     embres_t *e;
+    embfile_t *ef;
     char filename[U_FILENAME_MAX];
 
     dbg_err_if (uri == NULL);
@@ -41,10 +42,14 @@ static int supemb_is_valid_uri(http_t *h, request_t *rq, const char *uri,
     if(emb_lookup(filename, &e) == 0)
     {   /* resource found */
 
+        *mtime = 0; /* don't cache */
         if(e->type == ET_FILE)
-            *mtime = ((embfile_t*)e)->mtime;
-        else
-            *mtime = 0; /* dynamic pages cannot be cached */
+        {
+            ef = (embfile_t*)e;  
+
+            if(ef->encrypted == 0)
+                *mtime = ef->mtime;
+        } 
 
         *handle = NULL;
 
@@ -79,7 +84,7 @@ static int supemb_get_cipher_key(request_t *rq, response_t *rs, char *key,
     vars = session_get_vars(ss);
     dbg_err_if(vars == NULL);
 
-    v = vars_geti(vars,"KLONE_CIPHER_KEY", 0); 
+    v = vars_geti(vars, SESSION_KEY_VAR, 0); 
     dbg_err_if(v == NULL); /* no such variable */
 
     dbg_err_if(var_get_value_size(v) > keysz);
@@ -139,14 +144,14 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
 {
     codec_t *gzip = NULL, *decrypt = NULL;
     int sai = 0; /* send as is */
-    int decrypting = 0;
-    char key[CODEC_CIPHER_KEY_SIZE];
+    int decrypting = 0, ec = ~0;
+    char key[CODEC_CIPHER_KEY_BUFSZ];
     codec_t *rsf = NULL;
 
     dbg_return_if (rq == NULL, ~0);
     dbg_return_if (rs == NULL, ~0);
     dbg_return_if (e == NULL, 0);
-    
+
     /* create a response filter and attach it to the response io */
     dbg_err_if(response_filter_create(rq, rs, NULL, &rsf));
     dbg_err_if(io_codec_add_tail(response_io(rs), rsf));
@@ -165,20 +170,29 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
         dbg_err_if(codec_gzip_create(GZIP_UNCOMPRESS, &gzip));
 #endif
 
-#ifdef HAVE_LIBOPENSSL
-    /* if the resource is encrypted unencrypt using the key stored in 
-       KLONE_CIPHER_KEY session variable */
+#ifdef SSL_ON
+    /* if the resource is encrypted unencrypt it using the key stored in 
+       SESSION_KEY_VAR session variable */
     if(e->encrypted)
     {
-        if(supemb_get_cipher_key(rq, rs, key, CODEC_CIPHER_KEY_SIZE))
-        {   /* if the content is encrypted and there's no key then exit */
-            dbg_err_if(response_set_status(rs, 401));
+        /* if the content is encrypted and there's no key then exit */
+        if(supemb_get_cipher_key(rq, rs, key, sizeof(key)))
+        {   
+            dbg_err_if(response_set_status(rs, HTTP_STATUS_EXT_KEY_NEEDED));
+
+            /* clean up and exit with no error to propagate the status code */
+            ec = 0;
+
             dbg_err("cipher key not found, aborting");
         }
+
+        /* do not cache encrypted content */
+        response_disable_caching(rs);
+
         dbg_err_if(codec_cipher_create(CIPHER_DECRYPT, EVP_aes_256_cbc(),
                     key, NULL, &decrypt));
         /* delete the key from the stack */
-        memset(key, 0, CODEC_CIPHER_KEY_SIZE);
+        memset(key, 0, CODEC_CIPHER_KEY_BUFSZ);
     } 
 #endif
 
@@ -200,20 +214,23 @@ static int supemb_serve_static(request_t *rq, response_t *rs, embfile_t *e)
     dbg_err_if(io_write(response_io(rs), (const char*)e->data, e->size) 
         < e->size);
 
-    /* remove and free the gzip codec (if it has been set) */
+    /* remove and free the gzip/decrypt codecs (if they have been set) */
     dbg_err_if(io_codecs_remove(response_io(rs))); 
 
     return 0;
 err:
-    if(decrypting)
-        dbg_if(response_set_status(rs, 401)); /* usually wrong key given */
+    if(decrypting) /* usually wrong key given */
+    {
+        dbg_if(response_set_status(rs, HTTP_STATUS_EXT_KEY_NEEDED)); 
+        ec = 0;
+    }
     /* remove codecs and rs filter */
     dbg_if(io_codecs_remove(response_io(rs))); 
     if(decrypt)
         codec_free(decrypt);
     if(gzip)
         codec_free(gzip);
-    return ~0;
+    return ec;
 }
 
 static int supemb_serve_dynamic(request_t *rq, response_t *rs, embpage_t *e)

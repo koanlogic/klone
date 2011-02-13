@@ -119,6 +119,14 @@ int app_init(void)
     if(ctx->debug)
         u_config_print(ctx->config, 0);
 
+#ifdef SSL_CYASSL
+    if(ctx->debug)
+    {
+        /* works if CyaSSL has been compiled with --enable-debug */
+        CyaSSL_Debugging_ON();
+    }
+#endif
+
     return 0;
 err:
     if(io)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005, 2011 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
@@ -12,7 +12,7 @@
 #define _KLONE_TLS_PRV_H_
 
 #include "klone_conf.h"
-#ifdef  HAVE_LIBOPENSSL
+#ifdef SSL_ON
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +41,7 @@ struct tls_ctx_args_s
     const char *ca;         /* Client Certification Authorities file (PEM) */
     const char *crl;        /* Certificate Revocation List (PEM) */
     const char *dh;         /* Diffie-Hellman parameters (PEM) */
-#ifdef HAVE_LIBOPENSSL_PSK
+#ifdef SSL_OPENSSL_PSK
     const char *pskdb;      /* Pre Shared Keys password file */
     int psk_is_hashed;      /* !0 if password is hashed (MD5), 0 if cleartext */
     const char *psk_hint;   /* PSK global hint (may be overridden locally) */
@@ -54,19 +54,21 @@ struct tls_ctx_args_s
 typedef struct tls_ctx_args_s tls_ctx_args_t;
 
 /* used by tls.c */
+#ifdef SSL_OPENSSL
 DH *get_dh1024 (void);
 BIO *bio_from_emb (const char *);
+BIO *tls_get_file_bio(const char *res_name);
+STACK_OF(X509_NAME) *tls_load_client_CA_file(const char *);
+#endif
 int tls_load_verify_locations(SSL_CTX *, const char *);
 int tls_use_certificate_file(SSL_CTX *, const char *, int);
 int tls_use_PrivateKey_file(SSL_CTX *, const char *, int);
 int tls_use_certificate_chain(SSL_CTX *, const char *, int, 
         int (*)(char *, int, int, void *));
 int tls_use_crls (SSL_CTX *ctx, tls_ctx_args_t *cargs);
-BIO *tls_get_file_bio(const char *res_name);
-STACK_OF(X509_NAME) *tls_load_client_CA_file(const char *);
 int tls_verify_cb (int ok, X509_STORE_CTX *ctx);
 char *tls_get_error (void);
-#ifdef HAVE_LIBOPENSSL_PSK
+#ifdef SSL_OPENSSL_PSK
 int tls_psk_init (SSL_CTX *c, tls_ctx_args_t *cargs);
 #endif
 
@@ -74,5 +76,5 @@ int tls_psk_init (SSL_CTX *c, tls_ctx_args_t *cargs);
 }
 #endif 
 
-#endif /* HAVE_LIBOPENSSL */
+#endif /* SSL_ON */
 #endif /* _KLONE_TLS_PRV_H_ */

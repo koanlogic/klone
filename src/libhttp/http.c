@@ -12,10 +12,10 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <unistd.h>
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#endif  /* HAVE_LIBOPENSSL */
+#endif 
 #include <u/libu.h>
 #include <klone/utils.h>
 #include <klone/os.h>
@@ -56,6 +56,7 @@ struct http_status_map_s
     { HTTP_STATUS_FORBIDDEN             , "Forbidden"               },
     { HTTP_STATUS_LENGTH_REQUIRED       , "Content-Length required" },
     { HTTP_STATUS_REQUEST_TOO_LARGE     , "Request data too big"    },
+    { HTTP_STATUS_EXT_KEY_NEEDED        , "Key needed"              },
     { HTTP_STATUS_NOT_IMPLEMENTED       , "Not Implemented"         },
     { HTTP_STATUS_BAD_GATEWAY           , "Bad Gateway"             },
     { HTTP_STATUS_SERVICE_UNAVAILABLE   , "Service Unavailable"     },
@@ -538,7 +539,7 @@ static int http_serve(http_t *h, int fd)
     addr_free(addr);
     addr = NULL;
 
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
     /* create input io buffer */
     if(h->ssl && !cgi)
         dbg_err_if(io_ssl_create(fd, IO_FD_CLOSE, 0, h->ssl_ctx, &in));
@@ -915,7 +916,7 @@ err:
     return ~0;
 }
 
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
 static int https_backend_init(struct backend_s *be)
 {
     http_t *https;
@@ -963,7 +964,7 @@ backend_t be_https =
         https_backend_init, 
         http_backend_serve, 
         https_backend_term );
-#endif /* HAVE_LIBOPENSSL */
+#endif /* SSL_ON */
 
 backend_t be_http =
     BACKEND_STATIC_INITIALIZER( "http", 

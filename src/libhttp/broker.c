@@ -62,6 +62,7 @@ int broker_serve(broker_t *b, http_t *h, request_t *rq, response_t *rs)
     void *handle;
     time_t mtime, ims;
     int i;
+    int http_status;
 
     dbg_err_if (b == NULL);
     dbg_err_if (rq == NULL);
@@ -84,22 +85,27 @@ int broker_serve(broker_t *b, http_t *h, request_t *rq, response_t *rs)
         }
         nop_err_if (sup == NULL);
     }
-    
+
     ims = request_get_if_modified_since(rq);
-    if(ims && ims >= mtime)
+    if(ims && mtime && ims >= mtime)
     {
         response_set_status(rs, HTTP_STATUS_NOT_MODIFIED); 
         dbg_err_if(response_print_header(rs));
     } else {
         dbg_err_if(sup->serve(rq, rs));
 
-        /* if the user explicitly set the status from a kl1 return 0 */
-        if(response_get_status(rs) >= 400 && sup != &sup_emb 
+        http_status = response_get_status(rs);
+
+        if(http_status == HTTP_STATUS_EXT_KEY_NEEDED)
+            return http_status;
+
+        /* if the user explicitly set the status from a kl1 then return 0 */
+        if(http_status >= 400 && sup != &sup_emb 
                     #ifdef ENABLE_SUP_KILT
                     && sup!= &sup_kilt
                     #endif
                     )
-            return response_get_status(rs);
+            return http_status;
     }
 
     return 0; /* page successfully served */

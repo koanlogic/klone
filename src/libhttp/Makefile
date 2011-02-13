@@ -10,6 +10,10 @@ ifdef ENABLE_SUP_FS
 SRCS += sup_fs.c
 endif
 
+ifdef SSL_ON
+CFLAGS := $(SSL_CFLAGS) $(CFLAGS)
+endif
+
 ifndef OS_WIN
 ifdef ENABLE_SUP_CGI
 SRCS += sup_cgi.c

@@ -27,7 +27,7 @@ typedef struct trans_info_s
     char depend_out[U_FILENAME_MAX];
     char uri[URI_BUFSZ], mime_type[MIME_BUFSZ];
     char dfun[URI_BUFSZ];
-    char key[CODEC_CIPHER_KEY_SIZE];
+    char key[CODEC_CIPHER_KEY_BUFSZ];
     char emsg[EMSG_BUFSZ];
     int comp;
     int encrypt;

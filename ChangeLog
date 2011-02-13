@@ -3,6 +3,9 @@ $Id: ChangeLog,v 1.85 2010/06/01 20:20:51 tho Exp $
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone X.Y.Z:
+	- max size estimate of encrypted sessions fixed (session_prv_calc_maxsize)
+	- CyaSSL support (HTTPS, resource encryption and client-side sessions)
+	- session_set_cipher_key added
 	- fix warning caused by missing newline in generated source (reported and fixed by Mickael Auger)
 	- configure: removed redundant parameter from featx doxygen
 

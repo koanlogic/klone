@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005, 2011 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
@@ -13,7 +13,7 @@
 
 #include "klone_conf.h"
 #include <u/libu.h>
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
 #include <openssl/ssl.h>
 
 #ifdef __cplusplus
@@ -27,6 +27,6 @@ SSL_CTX *tls_load_init_ctx (u_config_t *);
 }
 #endif 
 
-#endif /* HAVE_LIBOPENSSL */
+#endif /* SSL_ON */
 
 #endif /* !_KLONE_TLS_H */

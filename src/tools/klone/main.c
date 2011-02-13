@@ -94,9 +94,10 @@ static void usage(void)
 "       import OPTIONS dir\n"
 "         -b URI      base URI\n"
 "         -x pattern  exclude all files whose URI match the given pattern (*)\n"
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
 "         -e pattern  encrypt all files whose URI match the given pattern (*)\n"
 "         -k key_file encryption key filename\n"
+"                     (KLONE_CIPHER_KEY environ var is used if not provided)\n"
 #endif
 #ifdef HAVE_LIBZ
 "         -z          compress all compressable content (based on MIME types)\n"
@@ -107,16 +108,15 @@ static void usage(void)
 "         (*) may be used more then once\n"
 "\n"
 "       translate OPTIONS\n"
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
 "         -E          encrypt file content\n"
 #endif
 "         -i file     input file\n"
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
 "         -k key_file encryption key filename\n"
 #endif
 "         -o file     output file\n"
 "         -u URI      URI of translated page\n"
-"                     (KLONE_CIPHER_KEY environ var is used if not provided)\n"
 #ifdef HAVE_LIBZ
 "         -z          compress file content\n"
 #endif
@@ -150,7 +150,7 @@ static int parse_opt(int argc, char **argv)
     strcpy(opts, "hvVx:b:i:o:u:c:d:");
 
     /* encryption switches */
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
     strcat(opts, "k:e:E");
 #endif
 
@@ -170,7 +170,7 @@ static int parse_opt(int argc, char **argv)
             u_print_version_and_exit();
             break;
 
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
         case 'E': /* encryption on */
             ctx->encrypt = 1;
             break;
@@ -262,7 +262,7 @@ static int set_key_from_file(trans_info_t *pti, const char *key_file)
     
     dbg_err_if(u_file_open(key_file, O_RDONLY, &io));
 
-    dbg_err_if(io_read(io, pti->key, CODEC_CIPHER_KEY_SIZE) <= 0);
+    dbg_err_if(io_read(io, pti->key, CODEC_CIPHER_KEY_LEN) <= 0);
     
     io_free(io);
 
@@ -306,7 +306,7 @@ static int command_trans(void)
     u_strlcpy(ti.uri, ctx->uri, sizeof ti.uri);
 
     /* zero out the key (some byte could not be overwritten with small keys) */
-    memset(ti.key, 0, CODEC_CIPHER_KEY_SIZE);
+    memset(ti.key, 0, CODEC_CIPHER_KEY_BUFSZ);
 
     /* sanity checks */
     con_err_ifm(ctx->key_file && !ctx->encrypt, "-k used but -E is missing");
@@ -315,8 +315,12 @@ static int command_trans(void)
     key_env = getenv("KLONE_CIPHER_KEY");
     if(key_env && strlen(key_env))
     {
+        con_err_ifm(strlen(key_env) != CODEC_CIPHER_KEY_LEN,
+                "wrong key length; the encryption key must be %d bytes long",
+                CODEC_CIPHER_KEY_LEN);
+
         key_found = 1;
-        u_strlcpy(ti.key, key_env, sizeof ti.key);
+		memcpy(ti.key, key_env, strlen(key_env));
     }
 
     /* if -k has been used the overwrite KLONE_CIPHER_KEY env var (if present)*/

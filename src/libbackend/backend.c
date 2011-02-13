@@ -18,13 +18,13 @@
 
 extern backend_t be_http;
 
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
 extern backend_t be_https;
 #endif
 
 backend_t *backend_list[] = { 
     &be_http, 
-#ifdef HAVE_LIBOPENSSL
+#ifdef SSL_ON
     &be_https, 
 #endif
     0 };

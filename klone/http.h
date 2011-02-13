@@ -50,6 +50,8 @@ enum {
     HTTP_STATUS_LENGTH_REQUIRED           = 411,
     /**< missing Content-Length header field */
     HTTP_STATUS_REQUEST_TOO_LARGE         = 413,
+    /**< decryption key is needed - KLone extension */
+    HTTP_STATUS_EXT_KEY_NEEDED            = 430,
     /**< request PDU too big */
     HTTP_STATUS_INTERNAL_SERVER_ERROR     = 500,
     /**< unexpected condition caused an error */
