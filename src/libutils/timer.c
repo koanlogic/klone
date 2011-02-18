@@ -97,7 +97,8 @@ void timerm_sigalrm(int sigalrm)
         {
             /* this alert has been inherited from the parent, we cannot
              * timerm_del() it because the user may have a reference to it
-             * somewhere so we just ignore it */
+             * somewhere so we just remove it from the list of timers */
+            TAILQ_REMOVE(&timer->alist, al, np);
             continue;
         }
 
