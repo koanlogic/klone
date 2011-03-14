@@ -4,6 +4,7 @@ ChangeLog file of KLone - http://koanlogic.com
 
 KLone X.Y.Z:
 	- fix warning caused by missing newline in generated source (reported and fixed by Mickael Auger)
+	- configure: removed redundant parameter from featx doxygen
 
 KLone 2.3.0:
 	- Minix 3.8.1 port

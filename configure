@@ -176,7 +176,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Binary dependencies
-makl_optional           1    "featx"   "doxygen"    "PATH_DOXYGEN"
+makl_optional           1    "featx"   "doxygen"
 
 # Handle command-line arguments
 makl_args_handle "$@"
