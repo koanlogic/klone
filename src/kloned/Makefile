@@ -25,10 +25,15 @@ endif
 
 LDADD += ../libhttp/libhttp.a ../libutils/libutils.a ../libpage/libpage.a   \
          ../libbackend/libbackend.a ../libemb/libemb.a ../libio/libio.a     \
-         ../libtls/libtls.a ../../site/libsite.a ../libcodec/libcodec.a     \
+
+ifdef SSL_ON
+LDADD += ../libtls/libtls.a
+endif
+
+LDADD += ../../site/libsite.a ../libcodec/libcodec.a \
          ../libklog/libklog.a ../../webapp/libwebapp.a ../libhttp/libhttp.a \
          ../libpage/libpage.a ../libutils/libutils.a ../libio/libio.a       \
-         ../libtls/libtls.a ../libcodec/libcodec.a ../libpage/libpage.a     \
+         ../libcodec/libcodec.a ../libpage/libpage.a     \
          ../libhook/libhook.a ${WEBAPP_LDADD}
 
 # add libu flags

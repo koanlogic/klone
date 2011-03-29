@@ -1,5 +1,7 @@
 # $Id: Makefile,v 1.8 2007/09/04 12:15:16 tat Exp $
 
+include ../Makefile.conf
+
 SUBDIR  = libutils
 SUBDIR += libbackend
 SUBDIR += libcodec
