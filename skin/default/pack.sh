@@ -38,7 +38,7 @@ yesno ()
     done 
 }
 
-DISTDIR="/tmp/klone-2.3.0-dist"
+DISTDIR="/tmp/klone-dist"
 
 wrap "deleting dist directory $DISTDIR" \
     rm -rf $DISTDIR
