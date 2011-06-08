@@ -35,12 +35,14 @@ static int backend_set_model(backend_t *be, const char *v)
     dbg_return_if (v == NULL, ~0);
     dbg_return_if (be == NULL, ~0);
 
-    if(!strcasecmp(v, "fork"))
-        be->model = SERVER_MODEL_FORK;
-    else if(!strcasecmp(v, "iterative"))
+    if(!strcasecmp(v, "iterative"))
         be->model = SERVER_MODEL_ITERATIVE;
+#ifdef HAVE_FORK
+    else if(!strcasecmp(v, "fork"))
+        be->model = SERVER_MODEL_FORK;
     else if(!strcasecmp(v, "prefork"))
         be->model = SERVER_MODEL_PREFORK;
+#endif  /* HAVE_FORK */
     else
         warn_err("unknown server model [%s]", v);
 
@@ -72,11 +74,11 @@ int backend_create(const char *proto, u_config_t *config, backend_t **pbe)
     memcpy(be, *pp, sizeof(backend_t));
 
     be->config = config;
-    #ifdef OS_WIN
+#if defined(OS_WIN) || !defined(HAVE_FORK)
     be->model = SERVER_MODEL_ITERATIVE;  /* default */
-    #else
+#else
     be->model = SERVER_MODEL_PREFORK;  /* default */
-    #endif
+#endif
 
     if((v = u_config_get_subkey_value(config, "model")) != NULL)
         dbg_err_if(backend_set_model(be, v));

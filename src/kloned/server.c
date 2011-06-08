@@ -392,6 +392,7 @@ static int server_foreach_cb(struct dirent *d, const char *path, void *arg)
 
 static int server_chroot_blind(server_t *s)
 {
+#ifdef HAVE_FORK
     enum { BLIND_DIR_MODE = 0100 }; /* blind dir mode must be 0100 */
     char dir[U_PATH_MAX];
     struct stat st;
@@ -454,6 +455,11 @@ err:
         close(fd_dir);
     warn_strerror(errno);
     return ~0;
+#else   /* !HAVE_FORK */
+    u_unused_args(s);
+    err("Blind chroot could not be honoured since fork(2) unavailable");
+    return ~0;
+#endif  /* HAVE_FORK */
 }
 
 static int server_chroot(server_t *s)
@@ -508,6 +514,7 @@ err:
 
 static int server_fork_child(server_t *s, backend_t *be)
 {
+#ifdef HAVE_FORK
     backend_t *obe; /* other backed */
     pid_t child;
     int socks[2];
@@ -568,6 +575,11 @@ static int server_fork_child(server_t *s, backend_t *be)
 err:
     warn_strerror(errno);
     return -1;
+#else   /* !HAVE_FORK */
+    u_unused_args(s, be);
+    warn("Only iterative mode is supported (fork(2) unavailable on target OS)");
+    return -1;
+#endif  /* HAVE_FORK */
 }
 
 static int server_child_serve(server_t *s, backend_t *be, int ad)
@@ -637,7 +649,7 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
     
     switch(be->model)
     {
-#ifdef OS_UNIX
+#if defined(OS_UNIX) && defined(HAVE_FORK)
     case SERVER_MODEL_FORK:
         /* spawn a child to handle the request */
         dbg_err_if(server_child_serve(s, be, ad));
@@ -654,7 +666,7 @@ static int server_be_serve(server_t *s, backend_t *be, int ad)
         /* remove and free the alarm */
         timerm_del(al); /* prefork */
         break;
-#endif
+#endif  /* OS_UNIX && HAVE_FORK */
 
     case SERVER_MODEL_ITERATIVE:
         /* serve the page */
