@@ -2,6 +2,9 @@ $Id: ChangeLog,v 1.85 2010/06/01 20:20:51 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
+KLone X.Y.Z:
+	- fix build when fork(2) is missing, as in uClinux
+
 KLone 2.4.0:
 	- max size estimate of encrypted sessions fixed (session_prv_calc_maxsize)
 	- CyaSSL support (HTTPS, resource encryption and client-side sessions)
