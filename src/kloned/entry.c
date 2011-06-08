@@ -411,9 +411,11 @@ int main(int argc, char **argv)
     /* load config and initialize */
     warn_err_ifm(app_init(), "kloned init error (more info in the log file)");
 
+#ifdef HAVE_FORK
     /* daemonize if not -F */
     if(ctx->daemon && !ctx->cgi)
         con_err_ifm(daemon(ctx->nochdir, 0), "daemon error");
+#endif  /* HAVE_FORK */
 
     /* save the PID in a file */
     if(ctx->pid_file)
