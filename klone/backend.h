@@ -34,7 +34,7 @@ struct backend_s
     /* runtime values */
     struct server_s *server;
     u_config_t *config;
-    struct kaddr_s *addr; 
+    u_net_addr_t *na;
     int model;
     int ld;
     void *arg;

@@ -479,14 +479,15 @@ static int http_serve(http_t *h, int fd)
     request_t *rq = NULL;
     response_t *rs = NULL;
     io_t *in = NULL, *out = NULL;
-    int cgi = 0, port, rc = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+    int cgi = 0, rc = HTTP_STATUS_INTERNAL_SERVER_ERROR;
     const char *gwi = NULL, *cstr;
     talarm_t *al = NULL;
-    kaddr_t *addr;
+    char addr[128] = { '\0' };
     vhost_t *vhost;
-    struct sockaddr sa;
-    socklen_t sasz;
+    struct sockaddr_storage ss;
+    socklen_t slen;
     char *uri, nuri[URI_MAX];
+    const char *port;
     supplier_t *sup;
 
     u_unused_args(al);
@@ -502,42 +503,40 @@ static int http_serve(http_t *h, int fd)
     request_set_cgi(rq, cgi);
 
     /* save local and peer address into the request object */
-    dbg_err_if(addr_create(&addr));
-
     if(cgi)
     {
         if(getenv("REMOTE_ADDR") && getenv("REMOTE_PORT"))
         {
-            port = atoi(getenv("REMOTE_PORT"));
-            dbg_err_if(addr_set(addr, getenv("REMOTE_ADDR"), port));
+            /* XXX Should be made less brutal (i.e. tell IPv4 from IPv6 from
+             * XXX UNIX.) */
+            (void) u_snprintf(addr, sizeof addr, "%s:%s",
+                    getenv("REMOTE_ADDR"), getenv("REMOTE_PORT"));
             dbg_err_if(request_set_addr(rq, addr));
         }
 
         if(getenv("SERVER_ADDR"))
         {
-            if(getenv("SERVER_PORT"))
-                port = atoi(getenv("SERVER_PORT"));
-            else
-                port = 80;
-            dbg_err_if(addr_set(addr, getenv("SERVER_ADDR"), port));
+            if ((port = getenv("SERVER_PORT")) == NULL)
+                port = "80";
+            (void) u_snprintf(addr, sizeof addr, "%s:%s",
+                    getenv("REMOTE_ADDR"), port);
             dbg_err_if(request_set_peer_addr(rq, addr));
         }
-    } else {
+    } 
+    else 
+    {
+        slen = sizeof ss;
+
         /* set local addr */
-        sasz = sizeof(struct sockaddr);
-        dbg_err_if(getsockname(fd, &sa, &sasz));
-        dbg_err_if(addr_set_from_sa(addr, &sa, sasz));
-        dbg_err_if(request_set_addr(rq, addr));
+        dbg_err_if(getsockname(fd, (struct sockaddr *) &ss, &slen) == -1);
+        dbg_err_if(request_set_addr(rq, 
+                    u_sa_ntop((struct sockaddr *) &ss, addr, sizeof addr)));
 
         /* set peer addr */
-        sasz = sizeof(struct sockaddr);
-        dbg_err_if(getpeername(fd, &sa, &sasz));
-        dbg_err_if(addr_set_from_sa(addr, &sa, sasz));
-        dbg_err_if(request_set_peer_addr(rq, addr));
+        dbg_err_if(getpeername(fd, (struct sockaddr *) &ss, &slen) == -1);
+        dbg_err_if(request_set_peer_addr(rq, 
+                    u_sa_ntop((struct sockaddr *) &ss, addr, sizeof addr)));
     }
-
-    addr_free(addr);
-    addr = NULL;
 
 #ifdef SSL_ON
     /* create input io buffer */

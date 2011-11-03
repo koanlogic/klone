@@ -49,7 +49,8 @@ struct request_s
     char *content_encoding;     /* 7bit/8bit/base64/qp, etc                 */
 	size_t content_length;      /* content-length http header field         */
     time_t if_modified_since;   /* time_t IMS header                        */
-    kaddr_t local_addr, peer_addr; /* local and perr address                 */
+    char local_addr[256];       /* local address                            */
+    char peer_addr[256];        /* peer address                             */
     int cgi;                    /* if running in cgi mode                   */
     size_t idle_timeout;        /* max # of secs to wait for the request    */
     size_t post_timeout;        /* max # of secs for reading POSTed data    */
@@ -1975,60 +1976,56 @@ int request_free(request_t *rq)
     return 0;
 }
 
-/* save the local address struct (ip and port) in the request obj */
-int request_set_addr(request_t *rq, kaddr_t *addr)
+/* save the local connected address in the request obj */
+int request_set_addr(request_t *rq, const char *addr)
 {
     dbg_return_if (rq == NULL, ~0);
     dbg_return_if (addr == NULL, ~0);
 
-    memcpy(&rq->local_addr, addr, sizeof(kaddr_t));
-
-    return 0;
+    return u_strlcpy(rq->local_addr, addr, sizeof rq->local_addr);
 }
 
-/* save the peer address struct (ip and port) in the request obj */
-int request_set_peer_addr(request_t *rq, kaddr_t *addr)
+/* save the address of the connected peer in the request obj */
+int request_set_peer_addr(request_t *rq, const char *addr)
 {
     dbg_return_if (rq == NULL, ~0);
     dbg_return_if (addr == NULL, ~0);
 
-    memcpy(&rq->peer_addr, addr, sizeof(kaddr_t));
-
-    return 0;
+    return u_strlcpy(rq->peer_addr, addr, sizeof rq->peer_addr);
 }
 
 /** 
  * \ingroup request
  * \brief   Return the local address
  *  
- * Return the IP address and port of the server end of the socket
+ * Return a string containing the address of the accepted the socket
  *
  * \param rq    request object
  *  
- * \return      a pointer to an kaddr_t type
+ * \return      the address string 
  */
-kaddr_t* request_get_addr(request_t *rq)
+const char *request_get_addr(request_t *rq)
 {
     dbg_return_if (rq == NULL, NULL);
 
-    return &rq->local_addr;
+    return rq->local_addr;
 }
 
 /** 
  * \ingroup request
  * \brief   Return the peer address
  *  
- * Return the IP address and port of the client connected to the web server
+ * Return a string containing the address of the connected peer
  *
  * \param rq    request object
  *  
- * \return      a pointer to an kaddr_t type
+ * \return      the address string
  */
-kaddr_t* request_get_peer_addr(request_t *rq)
+const char *request_get_peer_addr(request_t *rq)
 {
     dbg_return_if (rq == NULL, NULL);
 
-    return &rq->peer_addr;
+    return rq->peer_addr;
 }
 
 /** 

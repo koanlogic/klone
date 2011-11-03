@@ -38,10 +38,10 @@ struct klog_args_s
     int type;           /* one of KLOG_TYPEs */
     char *ident;        /* string prepended to each log msg */
     int threshold;      /* filter log msgs lower than this level */
-    size_t mlimit;      /* max number of log messages (memory) */
+    int mlimit;         /* max number of log messages (memory) */
     char *fbasename;    /* basename of log files (postfix varies) */
-    size_t fsplits;     /* number of split files (file) */
-    size_t flimit;      /* number of log msgs per file (file) */
+    int fsplits;        /* number of split files (file) */
+    int flimit;         /* number of log msgs per file (file) */
     int soptions;       /* log options (syslog) */
     int sfacility;      /* default facility (syslog's LOG_LOCAL[0-7]) */
 #define KLOG_FACILITY_UNKNOWN   -1

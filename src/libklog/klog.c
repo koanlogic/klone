@@ -54,16 +54,25 @@ int klog_args (u_config_t *ls, klog_args_t **pka)
     ka->threshold = klog_threshold(u_config_get_subkey_value(ls, "threshold"));
 
     if ((cs = u_config_get_subkey_value(ls, "memory.limit")) != NULL)
-        ka->mlimit = atoi(cs);
+    {
+        dbg_err_ifm (u_atoi(cs, &ka->mlimit), 
+                "'memory.limit' bad value: %s", cs);
+    }
 
     if ((cs = u_config_get_subkey_value(ls, "file.basename")) != NULL) 
         ka->fbasename = u_strdup(cs);
 
     if ((cs = u_config_get_subkey_value(ls, "file.limit")) != NULL)
-        ka->flimit = atoi(cs);
+    {
+        dbg_err_ifm (u_atoi(cs, &ka->flimit), 
+                "'file.limit' bad value: %s", cs);
+    }
 
     if ((cs = u_config_get_subkey_value(ls, "file.splits")) != NULL)
-        ka->fsplits = atoi(cs);
+    {
+        dbg_err_ifm (u_atoi(cs, &ka->fsplits),
+                "'file.splits' bad value: %s", cs);
+    }
 
     #ifdef HAVE_SYSLOG
     ka->sfacility = 
@@ -314,26 +323,6 @@ int klog_flush (klog_t *kl)
         return kl->cb_flush(kl);
 
     return 0;
-}
-
-
-/* just for testing */
-void klog_args_print (FILE *fp, klog_args_t *ka)
-{
-    dbg_ifb (ka == NULL) return;
-    dbg_ifb (fp == NULL) return;
-
-    fprintf(fp, "ka->type: \t %d\n", ka->type);
-    fprintf(fp, "ka->ident: \t %s\n", ka->ident);
-    fprintf(fp, "ka->threshold: \t %d\n", ka->threshold);
-    fprintf(fp, "ka->mlimit: \t %zd\n", ka->mlimit);
-    fprintf(fp, "ka->fbasename: \t %s\n", ka->fbasename);
-    fprintf(fp, "ka->fsplits: \t %zd\n", ka->fsplits);
-    fprintf(fp, "ka->flimit: \t %zd\n", ka->flimit);
-    fprintf(fp, "ka->soptions: \t %d\n", ka->soptions);
-    fprintf(fp, "ka->sfacility: \t %d\n", ka->sfacility);
-
-    return;
 }
 
 void klog_args_free (klog_args_t *ka)
