@@ -1146,12 +1146,45 @@ err:
  * Read from io until obuf is full or until stop_at string is found.
  *
  * Boyer-Moore algorithm is used for efficiency. 
+ * XXX temporarily disabled (was causing hangs upon intensive consecutive
+ * uploads)
  *
  * Returns the number of bytes written to obuf 
  */
 static ssize_t read_until(io_t *io, const char *stop_at, char *obuf, 
     size_t size, int *found)
 {
+    int rc;
+    int bidx;
+    int sidx;
+    int ssz = strlen(stop_at);
+
+    *found = 0;
+
+    for (bidx = 0, sidx = 0;
+            (bidx < size) && (rc = io_read(io, &obuf[bidx], 1));
+            bidx++) {
+
+        if (obuf[bidx] == stop_at[sidx]) {
+
+            if (sidx == (ssz - 1)) {
+                *found = 1;
+                return (bidx + 1);
+            }
+
+            sidx++;
+
+        } else {
+
+            sidx = 0;
+        }
+
+    }
+    dbg_err_if (rc < 0);
+
+    return (bidx);
+
+#if 0
     /* use this macro before accessing obuf[idx] elem. the macro will load from
        the given io enough bytes to access the required byte. if the buffer
        is too small (i.e. less then idx bytes long) the function will return */
@@ -1206,6 +1239,7 @@ static ssize_t read_until(io_t *io, const char *stop_at, char *obuf,
 
     /* found; obuf[i] is where the matching string is */
     return wtot;
+#endif
 err:
     return -1;
 }
