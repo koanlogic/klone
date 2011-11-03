@@ -18,7 +18,6 @@
 #include <klone/io.h>
 #include <klone/http.h>
 #include <klone/vars.h>
-#include <klone/addr.h>
 #include <klone/vhost.h>
 
 #ifdef __cplusplus

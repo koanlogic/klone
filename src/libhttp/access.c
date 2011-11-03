@@ -35,11 +35,10 @@ int access_log(http_t *h, u_config_t *config, request_t *rq, response_t *rs)
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };
     static const char default_prefix[] = "[access]";
-    const char *ip,  *fn, *value, *prefix;
+    const char *fn, *value, *prefix;
     char buf[U_MAX_LOG_LENGTH];
     u_config_t *sub;
     vhost_t *vhost;
-    kaddr_t *addr;
     struct timeval tv;
     struct tm tm;
     time_t now;
@@ -94,9 +93,6 @@ int access_log(http_t *h, u_config_t *config, request_t *rq, response_t *rs)
 
     gettimeofday(&tv, NULL);
 
-    addr = request_get_peer_addr(rq);
-    ip = inet_ntoa(addr->sa.sin.sin_addr);
-
     now = tv.tv_sec;
 #ifdef HAVE_LOCALTIME_R
     localtime_r(&now, &tm);
@@ -116,7 +112,7 @@ int access_log(http_t *h, u_config_t *config, request_t *rq, response_t *rs)
             "%s %s - - [%02d/%s/%4d:%02d:%02d:%02d %ld]"
             " \"%s\" %d %s \"%s\" \"%s\" \"-\"", 
             prefix,
-            value_or_dash(ip),
+            value_or_dash(request_get_peer_addr(rq)),
             /* date */ 
             tm.tm_mday, months[tm.tm_mon], tm.tm_year,
             /* time */ 

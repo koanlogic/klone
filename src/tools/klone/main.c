@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005-2011 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
@@ -75,7 +75,7 @@ static void usage(void)
 {
     static const char * us = 
 "Usage: klone [-hvV] -c COMMAND OPTIONS ARGUMENTS\n"
-"Version: %s - Copyright (c) 2005-2008 KoanLogic s.r.l.\n"
+"Version: %s - Copyright (c) 2005-2011 KoanLogic s.r.l.\n"
 "All rights reserved.\n"
 "\n"
 "       -h            display this help\n"

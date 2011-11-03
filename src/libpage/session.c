@@ -284,34 +284,14 @@ static int session_is_good_id(const char *id)
 
 static int session_set_filename(session_t *ss)
 {
-    kaddr_t *addr = NULL;
+    const char *a = NULL;
 
     dbg_return_if (ss->id[0] == '\0', ~0);
 
-    dbg_err_if((addr = request_get_addr(ss->rq)) == NULL);
+    dbg_err_if((a = request_get_addr(ss->rq)) == NULL);
 
-    switch(addr->type)
-    {
-    case ADDR_IPV4:
-        dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
-            U_PATH_SEPARATOR, "%s/klone_sess_%s_%u", ss->so->path, ss->id, 
-            addr->sa.sin.sin_addr.s_addr));
-        break;
-    case ADDR_IPV6:
-        /* FIXME: add ipv6 address in session filename */
-        dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
-            U_PATH_SEPARATOR, "%s/klone_sess_%s", ss->so->path, ss->id));
-        break;
-#ifdef OS_UNIX
-    case ADDR_UNIX:
-        /* FIXME: add unix address in session filename */
-        dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
-            U_PATH_SEPARATOR, "%s/klone_sess_%s", ss->so->path, ss->id));
-        break;
-#endif
-    default:
-        dbg_err("unknown address type");
-    }
+    dbg_err_if(u_path_snprintf(ss->filename, U_FILENAME_MAX, 
+            U_PATH_SEPARATOR, "%s/klone_sess_%s_%s", ss->so->path, ss->id, a));
 
     return 0;
 err:

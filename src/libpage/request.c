@@ -20,7 +20,6 @@
 #include <klone/io.h>
 #include <klone/ioprv.h>
 #include <klone/http.h>
-#include <klone/addr.h>
 #include <klone/vars.h>
 #include <klone/timer.h>
 #include <klone/vhost.h>

@@ -5,7 +5,7 @@ include ../Makefile.conf
 
 INCDIR := $(INCDIR)/klone/
 
-INCS = addr.h atom.h backend.h broker.h caes.h cgi.h codec.h                 \
+INCS = atom.h backend.h broker.h caes.h cgi.h codec.h                        \
        codecs.h context.h cgzip.h cnull.h emb.h embpage.h field.h header.h   \
        http.h io.h ioprv.h klone.h klog.h klogprv.h md5.h mime_map.h os.h    \
        page.h parser.h ppc.h ppc_cmd.h request.h response.h rsfilter.h run.h \

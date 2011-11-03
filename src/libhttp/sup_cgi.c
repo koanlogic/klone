@@ -204,8 +204,9 @@ static int cgi_is_valid_uri(http_t *h, request_t *rq, const char *uri,
         return 0;
 }
 
-static const char *cgi_addr_to_ip(kaddr_t *addr, char *buf, size_t bufsz)
+static const char *cgi_addr_to_ip(const char *addr, char *buf, size_t bufsz)
 {
+#if TODO
     const char *cstr;
 
 #ifndef NO_IPV6
@@ -216,18 +217,20 @@ static const char *cgi_addr_to_ip(kaddr_t *addr, char *buf, size_t bufsz)
                  buf, bufsz);
 #else
     cstr = inet_ntoa(addr->sa.sin.sin_addr);
-#endif
+#endif  /* !NO_IPV6 */
 
     dbg_err_if(cstr == NULL);
 
     return cstr;
 err:
+#endif  /* TODO */
     return NULL;
 }
 
-static int cgi_setenv_addr(cgi_env_t *env, kaddr_t *addr, 
+static int cgi_setenv_addr(cgi_env_t *env, const char *addr, 
         const char *label_addr, const char *label_port)
 {
+#if TODO
     const char *cstr;
     char buf[128];
 
@@ -238,10 +241,8 @@ static int cgi_setenv_addr(cgi_env_t *env, kaddr_t *addr,
 
     u_snprintf(buf, sizeof(buf), "%u", ntohs(addr->sa.sin.sin_port));
     dbg_err_if(cgi_setenv(env, label_port, buf));
-
+#endif  /* TODO */
     return 0;
-err:
-    return ~0;
 }
 
 static int cgi_setenv_ctype(cgi_env_t *env, request_t *rq)
@@ -287,10 +288,9 @@ err:
 
 static int cgi_makeenv(request_t *rq, response_t *rs, cgi_env_t *env)
 {
-    kaddr_t *addr;
+    const char *addr;
     header_t *h;
     field_t *field;
-    const char *cstr;
     char *p, buf[1024];
     int i;
 

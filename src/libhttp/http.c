@@ -508,7 +508,8 @@ static int http_serve(http_t *h, int fd)
         if(getenv("REMOTE_ADDR") && getenv("REMOTE_PORT"))
         {
             /* XXX Should be made less brutal (i.e. tell IPv4 from IPv6 from
-             * XXX UNIX.) */
+             * XXX UNIX.  Note that the rq->addr string is used in session
+             * XXX file name generation. */
             (void) u_snprintf(addr, sizeof addr, "%s:%s",
                     getenv("REMOTE_ADDR"), getenv("REMOTE_PORT"));
             dbg_err_if(request_set_addr(rq, addr));

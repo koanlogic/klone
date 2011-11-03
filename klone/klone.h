@@ -21,7 +21,6 @@
 #include <klone/codecs.h>
 #include <klone/utils.h>
 #include <klone/hook.h>
-#include <klone/addr.h>
 #include <klone/vars.h>
 #include <klone/uc.h>
 #include <klone/field.h>

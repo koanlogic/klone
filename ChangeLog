@@ -2,7 +2,15 @@ $Id: ChangeLog,v 1.85 2010/06/01 20:20:51 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
-KLone X.Y.Z:
+KLone 3.Y.Z:
+	- add IPv6, SCTP, and UNIX IPC support via libu/net.  This change breaks
+	  the four following interfaces: request_[gs]et_{local,peer}_addr() which
+	  now take and return a constant string instead of a kaddr_t.  Further,
+	  the 'addr' directive value syntax has changed in non retro compatible
+	  way -- it's now based on libu/net URIs syntax; the 'addr.port' and
+	  'addr.type' directives are now suppressed, being absorbed by the 'addr';
+	  and the 'backlog' directive is temporarily suspended (needs an interface
+	  shift in libu/net).
 	- temporarily disable Boyer-Moore algorithm which results in occasional
 	  hangs during file upload
 	- fix build when fork(2) is missing, as in uClinux
