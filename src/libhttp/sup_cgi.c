@@ -31,7 +31,6 @@ typedef struct cgi_env_s
 
 static int cgi_get_config(http_t *h, request_t *rq, u_config_t **pc)
 {
-    u_config_t *config = NULL;
     vhost_t *vhost;
 
     dbg_err_if(h == NULL);
@@ -94,15 +93,14 @@ static int cgi_ext(http_t *h, request_t *rq, const char *fqn,
 {
     u_config_t *config, *base;
     char buf[U_FILENAME_MAX];
-    char *ext = NULL;
-    const char *handler;
+    const char *handler, *ext = NULL;
 
     if(fqn == NULL)
         return 0;
 
     for(ext = NULL; *fqn; ++fqn) 
         if(*fqn == '.')
-            ext = (char*)fqn;
+            ext = fqn;
 
     if(ext == NULL)
         return 0; /* file with no extension */
@@ -204,45 +202,20 @@ static int cgi_is_valid_uri(http_t *h, request_t *rq, const char *uri,
         return 0;
 }
 
-static const char *cgi_addr_to_ip(const char *addr, char *buf, size_t bufsz)
-{
-#if TODO
-    const char *cstr;
-
-#ifndef NO_IPV6
-    cstr = inet_ntop( addr->type == ADDR_IPV4 ? AF_INET : AF_INET6,
-                (addr->type == ADDR_IPV4 ?  
-                    (const void*)&(addr->sa.sin.sin_addr) : 
-                    (const void*)&(addr->sa.sin6.sin6_addr)),
-                 buf, bufsz);
-#else
-    cstr = inet_ntoa(addr->sa.sin.sin_addr);
-#endif  /* !NO_IPV6 */
-
-    dbg_err_if(cstr == NULL);
-
-    return cstr;
-err:
-#endif  /* TODO */
-    return NULL;
-}
-
 static int cgi_setenv_addr(cgi_env_t *env, const char *addr, 
         const char *label_addr, const char *label_port)
 {
-#if TODO
-    const char *cstr;
     char buf[128];
+    
+    if (u_addr_get_ip(addr, buf, sizeof buf) != NULL)
+        dbg_err_if (cgi_setenv(env, label_addr, buf));
 
-    dbg_return_if(addr->type == ADDR_UNIX, 0);
+    if (u_addr_get_port(addr, buf, sizeof buf) != NULL)
+        dbg_err_if (cgi_setenv(env, label_port, buf));
 
-    if((cstr = cgi_addr_to_ip(addr, buf, sizeof(buf))) != NULL)
-        dbg_err_if(cgi_setenv(env, label_addr, cstr));
-
-    u_snprintf(buf, sizeof(buf), "%u", ntohs(addr->sa.sin.sin_port));
-    dbg_err_if(cgi_setenv(env, label_port, buf));
-#endif  /* TODO */
     return 0;
+err:
+    return ~0;
 }
 
 static int cgi_setenv_ctype(cgi_env_t *env, request_t *rq)
@@ -288,11 +261,11 @@ err:
 
 static int cgi_makeenv(request_t *rq, response_t *rs, cgi_env_t *env)
 {
-    const char *addr;
+    const char *addr, *cstr;
     header_t *h;
     field_t *field;
     char *p, buf[1024];
-    int i;
+    unsigned int i;
 
     u_unused_args(rs);
 
@@ -302,15 +275,16 @@ static int cgi_makeenv(request_t *rq, response_t *rs, cgi_env_t *env)
     dbg_err_if(cgi_setenv(env, "REDIRECT_STATUS", "200"));
 
     /* klone server address */
-    if((addr = request_get_addr(rq)) != NULL) 
+    if ((addr = request_get_addr(rq)) != NULL)
     {
         dbg_err_if(cgi_setenv_addr(env, addr, "SERVER_ADDR", "SERVER_PORT"));
-        if((cstr = cgi_addr_to_ip(addr, buf, sizeof(buf))) != NULL)
-            dbg_err_if(cgi_setenv(env, "SERVER_NAME", cstr));
+
+        if ((u_addr_get_ip(addr, buf, sizeof(buf))) != NULL)
+            dbg_err_if(cgi_setenv(env, "SERVER_NAME", buf));
     }
 
     /* client address */
-    if((addr = request_get_peer_addr(rq)) != NULL) 
+    if ((addr = request_get_peer_addr(rq)) != NULL)
         dbg_err_if(cgi_setenv_addr(env, addr, "REMOTE_ADDR", "REMOTE_PORT"));
 
     /* method */
@@ -319,8 +293,7 @@ static int cgi_makeenv(request_t *rq, response_t *rs, cgi_env_t *env)
     case HM_GET:    cstr = "GET"; break;
     case HM_HEAD:   cstr = "HEAD"; break;
     case HM_POST:   cstr = "POST"; break;
-    default:
-        cstr = "UNKNOWN";
+    default:        cstr = "UNKNOWN"; break;
     }
     dbg_err_if(cgi_setenv(env, "REQUEST_METHOD", cstr));
 

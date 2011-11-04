@@ -503,27 +503,26 @@ static int http_serve(http_t *h, int fd)
     request_set_cgi(rq, cgi);
 
     /* save local and peer address into the request object */
-    if(cgi)
+    if (cgi)
     {
-        if(getenv("REMOTE_ADDR") && getenv("REMOTE_PORT"))
+        if (getenv("REMOTE_ADDR") && getenv("REMOTE_PORT"))
         {
-            /* XXX Should be made less brutal (i.e. tell IPv4 from IPv6 from
-             * XXX UNIX.  Note that the rq->addr string is used in session
-             * XXX file name generation. */
-            (void) u_snprintf(addr, sizeof addr, "%s:%s",
-                    getenv("REMOTE_ADDR"), getenv("REMOTE_PORT"));
+            (void) u_addr_fmt(getenv("REMOTE_ADDR"), getenv("REMOTE_PORT"), 
+                    addr, sizeof addr);
+
             dbg_err_if(request_set_addr(rq, addr));
         }
 
-        if(getenv("SERVER_ADDR"))
+        if (getenv("SERVER_ADDR"))
         {
             if ((port = getenv("SERVER_PORT")) == NULL)
                 port = "80";
-            (void) u_snprintf(addr, sizeof addr, "%s:%s",
-                    getenv("REMOTE_ADDR"), port);
+
+            (void) u_addr_fmt(getenv("SERVER_ADDR"), port, addr, sizeof addr);
+
             dbg_err_if(request_set_peer_addr(rq, addr));
         }
-    } 
+    }
     else 
     {
         slen = sizeof ss;

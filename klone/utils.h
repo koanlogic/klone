@@ -41,6 +41,10 @@ extern "C" {
 
 enum { U_PATH_NOT_FOUND, U_PATH_IN_EMBFS, U_PATH_IN_FS };
 
+const char *u_addr_get_ip (const char *a, char *d, size_t dlen);
+const char *u_addr_get_port (const char *a, char *d, size_t dlen);
+const char *u_addr_fmt (const char *ip, const char *port, char *d, size_t dlen);
+
 int u_file_exists(const char*);
 int u_write_debug_message(const char*, const char*, int, const char*, 
     const char*, ...);

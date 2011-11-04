@@ -14,7 +14,7 @@ is the configuration file for the
 daemon, i.e. it contains its runtime configuration information. The complete description of the file format and possibile parameters therein, is provided for reference in the following sections.
 .SH "FILE FORMAT"
 .PP
-The file consists of sections and parameters. A section begins with the name of the section, is followed by a '{' and continues until the corresponding '}' is found. Sections can contain subsections or parameter assignements of the form:
+The file consists of sections and parameters. A section begins with the name of the section, is followed by a '{' (which must be on a line by itself) and continues until the corresponding '}' is found. Sections can contain subsections or parameter assignements of the form:
 \fIname\fR \fIvalue\fR.
 .PP
 The file is line\-based \- that is, each newline\-terminated line represents either a comment, a section name or a parameter.
@@ -58,25 +58,33 @@ ONLY).
 Service description (Windows(TM)
 ONLY).
 .TP
-\fBaddr.type\fR
-The protocol family (\fIIPv4\fR,
-\fIIPv6\fR,
-\fIUNIX\fR) of the interface socket. At present
-\fIIPv4\fR
-is the only value supported.
-.TP
-\fBaddr.ip\fR
-The IPv4 address at which this instance is accepting connections. The default value is
-\fBINADDR_ANY\fR.
-.TP
-\fBaddr.port\fR
-The TCP port at which this instance is accepting connections. The default value is the standard HTTP server port,
-\fI80\fR.
+\fBaddr\fR
+The listening socket address expressed in LibU URI syntax.  E.g.
+\fI
+tcp6://[*]:http
+\fR
+for IPv6 wildcard listening socket on usual HTTP port 80;
+\fI
+tcp4://*:8080
+\fR
+for IPv4 wildcard listening socket on alternate HTTP port 8080;
+\fI
+sctp6://[::1]:80
+\fR
+for SCTP/IPv6 socket listening on loopback interface on port 80 (provided that SCTP and IPv6 are implemented on the target operating system, e.g. FreeBSD.)
+For further information on LibU URI syntax, see:
+\fI
+http://www.koanlogic.com/libu/api/html/group__net.html
+\fR
 .TP
 \fBbacklog\fR
 Defines the maximum length the queue of pending connections may grow to, it is passed verbatim to the
 \fBlisten\fR(2)
-call on this instance's socket.
+call on this instance's socket. 
+\fI
+NOTE
+\fR
+at present this directive is inhibited, and a default of 300 is assumed.
 .TP
 \fBidle_timeout\fR
 Set the maximum number of seconds the server waits for an HTTP request on an already connected socket. The default value is 10 seconds.

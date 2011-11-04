@@ -79,6 +79,107 @@ err:
 #endif /* OS_UNIX */
 
 
+/* Get address from addr+port combo string.  UNIX IPC paths are returned 
+ * AS-IS. */
+const char *u_addr_get_ip (const char *a, char *d, size_t dlen)
+{
+    char *e;
+    const char *b;
+
+    dbg_return_if (a == NULL, NULL);
+    dbg_return_if (d == NULL, NULL);
+    dbg_return_if (dlen == 0, NULL);
+
+    switch (a[0])
+    {
+        case '/':   /* UNIX path is returned as-is. */
+            dbg_if (u_strlcpy(d, a, dlen));
+            return d;
+        case '[':   /* Handle IPv6. */
+            e = strchr(a, ']');
+            b = a + 1;
+            break;
+        default:    /* Assume IPv4. */
+            e = strchr(a, ':');
+            b = a;
+            break;
+    }
+
+    if (e != NULL)
+    {
+        dbg_if (u_strlcpy(d, b, U_MIN((size_t) (e - b + 1), dlen)) + 1);
+        return d;
+    }
+
+    u_warn("unable to get an IP from '%s'", a);
+    return NULL;
+}
+
+/* Get port from addr+port combo string.  UNIX IPC paths return the empty
+ * string. */
+const char *u_addr_get_port (const char *a, char *d, size_t dlen)
+{
+    char *e, *p;
+
+    dbg_return_if (a == NULL, NULL);
+    dbg_return_if (d == NULL, NULL);
+    dbg_return_if (dlen == 0, NULL);
+
+    /* Empty port returned on UNIX path. */
+    if (a[0] == '/')
+    {
+        d[0] = '\0';
+        return d;
+    }
+
+    /* Extra check. */
+    dbg_return_if ((e = strchr(a, '\0')) == NULL, NULL);
+
+    /* Go backwards until the addr/port separator is found. */
+    for (p = e; *p != ':' && p > a; --p)
+        ;
+
+    dbg_if (u_strlcpy(d, (p > a) ? p + 1 : "", dlen));
+        
+    return d;
+}
+
+/* Format address string to be used in request->{peer,local}_addr fields.
+ * Basically this function tries to emulate u_sa_ntop() + UNIX IPC paths 
+ * handling. */
+const char *u_addr_fmt (const char *ip, const char *port, char *d, size_t dlen)
+{
+    int isv6 = 1;
+
+    dbg_return_if (d == NULL, NULL);
+    dbg_return_if (dlen == 0, NULL);
+
+    /* At least 'ip' must be there. */
+    if (!ip || ip[0] == '\0')
+    {
+        d[0] = '\0';
+        return d;
+    }
+
+    /* Handle UNIX IPC endpoints: make verbatim copy of the 'ip' parameter,
+     * and ignore 'port' altogether. */
+    if (ip[0] == '/')
+    {
+        dbg_if (u_strlcpy(d, ip, dlen));
+        return d;
+    }
+
+    /* Tell v4 from v6 -- this test may be made less silly :-) */
+    if (strchr(ip, '.'))
+        isv6 = 0;
+
+    /* In case 'port' is NULL, a fake '0' port is added anyway. */
+    dbg_if (u_snprintf(d, dlen, "%s%s%s:%s", 
+                isv6 ? "[" : "", ip, isv6 ? "]" : "", port ? port : "0"));
+
+    return d;
+}
+
 /**
  * \ingroup ut
  * \brief   Locate a substring in another string

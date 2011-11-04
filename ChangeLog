@@ -2,24 +2,26 @@ $Id: ChangeLog,v 1.85 2010/06/01 20:20:51 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
-KLone 3.Y.Z:
-	- add IPv6, SCTP, and UNIX IPC support via libu/net.  This change breaks
+KLone 3.0.0:
+	- Add IPv6, SCTP, and UNIX IPC support via libu/net.  This change breaks
 	  the four following interfaces: request_[gs]et_{local,peer}_addr() which
 	  now take and return a constant string instead of a kaddr_t.  Further,
-	  the 'addr' directive value syntax has changed in non retro compatible
-	  way -- it's now based on libu/net URIs syntax; the 'addr.port' and
-	  'addr.type' directives are now suppressed, being absorbed by the 'addr';
-	  and the 'backlog' directive is temporarily suspended (needs an interface
-	  shift in libu/net).
-	- temporarily disable Boyer-Moore algorithm which results in occasional
-	  hangs during file upload
-	- fix build when fork(2) is missing, as in uClinux
+	  the 'addr' directive value syntax has changed in non retro-compatible
+	  way -- it's now based on libu/net URIs syntax, e.g.: tcp6://[::1]:8080; 
+	  the 'addr.port' and 'addr.type' directives are now suppressed, since 
+	  they've been absorbed by the 'addr'; and the 'backlog' directive is 
+	  temporarily inhibited (it needs an interface shift in libu/net) and
+	  is internally fixed to U_NET_BACKLOG, defaulting to 300.
+	- Temporarily disable Boyer-Moore algorithm for MIME multipart boundary
+	  detection, which results in occasional hangs during file upload.
+	- Fix build when fork(2) is missing, as in uClinux.
 
 KLone 2.4.0:
 	- max size estimate of encrypted sessions fixed (session_prv_calc_maxsize)
 	- CyaSSL support (HTTPS, resource encryption and client-side sessions)
 	- session_set_cipher_key added
-	- fix warning caused by missing newline in generated source (reported and fixed by Mickael Auger)
+	- fix warning caused by missing newline in generated source (reported and 
+	  fixed by Mickael Auger)
 	- configure: removed redundant parameter from featx doxygen
 
 KLone 2.3.0:
