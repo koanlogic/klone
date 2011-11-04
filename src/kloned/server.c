@@ -751,26 +751,6 @@ err:
     return ~0;
 }
 
-static int server_set_socket_opts(server_t *s, int sock)
-{
-    int on = 1; 
-
-    u_unused_args(s);
-
-    dbg_err_if (sock < 0);
-
-#if defined(HAVE_TCP_NODELAY) && !defined(__minix)
-    /* Disable Nagle algorithm.  Note that Minix has the TCP_NODELAY symbol 
-     * but not its implementation. */
-    warn_err_sif(setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, 
-        (void*) &on, sizeof(int)) < 0);
-#endif  /* HAVE_TCP_NODELAY && !__minix */
-
-    return 0;
-err:
-    return ~0;
-}
-
 static int server_dispatch(server_t *s, int fd)
 {
     backend_t *be;
@@ -789,8 +769,9 @@ static int server_dispatch(server_t *s, int fd)
     /* accept the pending connection */
     dbg_err_if(server_be_accept(s, be, &ad));
 
-    /* set socket options on accepted socket */
-    dbg_err_if(server_set_socket_opts(s, ad));
+    /* Disable Nagle on the socket. Note that this may fail if the socket is 
+     * in the UNIX family or it is using the SCTP transport instead of TCP. */
+    (void) u_net_nagle_off(ad);
 
     /* serve the page */
     dbg_err_if(server_be_serve(s, be, ad));
