@@ -7,6 +7,10 @@ include ../webapp/Makefile-webapp
 LIB = site
 SRCS = register.c
 
+ifdef SSL_ON
+CFLAGS := $(SSL_CFLAGS) $(CFLAGS)
+endif
+
 ifdef INSTALL_DAEMON_ONLY
 NO_INSTALL = true
 endif

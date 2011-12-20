@@ -7,7 +7,12 @@ include Makefile-webapp
 LIB = webapp
 
 SRCS = ${WEBAPP_SRCS}
+
 CFLAGS += ${WEBAPP_CFLAGS}
+ifdef SSL_ON
+CFLAGS := $(SSL_CFLAGS) $(CFLAGS)
+endif
+
 LDADD += ${WEBAPP_LDADD}
 
 ifdef INSTALL_DAEMON_ONLY

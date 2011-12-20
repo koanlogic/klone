@@ -7,6 +7,7 @@ LIB = io
 SRCS = io.c iofd.c iomem.c
 
 ifdef SSL_ON
+CFLAGS := $(SSL_CFLAGS) $(CFLAGS)
 SRCS += iossl.c
 endif
 

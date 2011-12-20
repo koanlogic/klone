@@ -6,7 +6,7 @@ include ../../Makefile.conf
 LIB = utils
 SRCS = utils.c md5.c mime_map.c timer.c date.c version.c path.c pwd.c
 
-ifdef SSL_CYASSL
+ifdef SSL_ON
 CFLAGS := $(SSL_CFLAGS) $(CFLAGS)
 endif
 

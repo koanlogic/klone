@@ -6,6 +6,10 @@ include ../../Makefile.conf
 LIB = hook
 SRCS = hook.c server_nfy.c child_nfy.c req.c
 
+ifdef SSL_ON
+CFLAGS := $(SSL_CFLAGS) $(CFLAGS)
+endif
+
 ifdef INSTALL_DAEMON_ONLY
 NO_INSTALL = true
 endif

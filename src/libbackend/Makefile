@@ -6,6 +6,10 @@ include ../../Makefile.conf
 LIB = backend
 SRCS = backend.c
 
+ifdef SSL_ON
+CFLAGS := $(SSL_CFLAGS) $(CFLAGS)
+endif
+
 ifdef INSTALL_DAEMON_ONLY
 NO_INSTALL = true
 endif

@@ -10,12 +10,15 @@ ifdef HAVE_LIBZ
 SRCS += gzip.c
 endif
 
+ifdef SSL_ON
+CFLAGS := $(SSL_CFLAGS) $(CFLAGS)
+endif
+
 ifdef SSL_OPENSSL
 SRCS += cipher.c
 endif
 
 ifdef SSL_CYASSL
-CFLAGS := $(SSL_CFLAGS) $(CFLAGS)
 SRCS += cipher_cyassl.c
 endif
 
