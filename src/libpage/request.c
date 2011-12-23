@@ -1559,8 +1559,12 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
 err:
     if(ubuf)
         u_buf_free(ubuf);
-    if(tmpio)
+    if(tmpio) {
+        /* free space occupied by partial uploads */
+        dbg_if(io_name_get(tmpio, buf, BUFSZ));
+        u_remove(buf);
         io_free(tmpio);
+    }
     if(h)
         header_free(h);
     return ~0;

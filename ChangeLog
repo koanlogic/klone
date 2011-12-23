@@ -18,6 +18,7 @@ KLone 3.0.0:
 	- Fix bug in memory session configuration that prevented use of default
 	  values (reported and fixed by Davide Berra)
 	- Fix SSL compilation flags missing during cross-compilation
+	- Fix partially uploaded files not cleaned up
 
 KLone 2.4.0:
 	- max size estimate of encrypted sessions fixed (session_prv_calc_maxsize)
