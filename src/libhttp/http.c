@@ -225,9 +225,12 @@ static int http_is_valid_uri(request_t *rq, const char *buf, size_t len)
 
     dbg_err_if (rq == NULL);
     dbg_err_if (buf == NULL);
+    dbg_err_if (len + 1 > URI_MAX);
 
     dbg_err_if ((h = request_get_http(rq)) == NULL);
-    dbg_err_if (u_strlcpy(uri, buf, sizeof uri));
+
+    memcpy(uri, buf, len);
+    uri[len] = '\0';
     
     /* try the url itself */
     if(broker_is_valid_uri(h->broker, h, rq, uri, strlen(uri)))
