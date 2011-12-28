@@ -61,6 +61,7 @@ struct request_s
     supplier_t *si_sup;
     void *si_handle;
     time_t si_mtime;
+    size_t body_off;
 };
 
 typedef struct upload_info_s    /* uploaded file info struct         */
@@ -1145,101 +1146,45 @@ err:
 /* 
  * Read from io until obuf is full or until stop_at string is found.
  *
- * Boyer-Moore algorithm is used for efficiency. 
- * XXX temporarily disabled (was causing hangs upon intensive consecutive
- * uploads)
- *
  * Returns the number of bytes written to obuf 
  */
 static ssize_t read_until(io_t *io, const char *stop_at, char *obuf, 
     size_t size, int *found)
 {
+    char *dst = obuf;
+    const char *ptr = stop_at, *end = stop_at + strlen(stop_at);
     int rc;
-    int bidx;
-    int sidx;
-    int ssz = strlen(stop_at);
+    size_t slen = strlen(stop_at);
 
-    *found = 0;
+    dbg_err_if(size < slen); /* stop_at can't be bigger then the output buf */
 
-    for (bidx = 0, sidx = 0;
-            (bidx < size) && (rc = io_read(io, &obuf[bidx], 1));
-            bidx++) {
-
-        if (obuf[bidx] == stop_at[sidx]) {
-
-            if (sidx == (ssz - 1)) {
-                *found = 1;
-                return (bidx + 1);
-            }
-
-            sidx++;
-
-        } else {
-
-            sidx = 0;
-        }
-
-    }
-    dbg_err_if (rc < 0);
-
-    return (bidx);
-
-#if 0
-    /* use this macro before accessing obuf[idx] elem. the macro will load from
-       the given io enough bytes to access the required byte. if the buffer
-       is too small (i.e. less then idx bytes long) the function will return */
-    #define SETUP_BUF_ACCESS_AT(idx)                                        \
-        if(idx >= wtot) {                                                   \
-            if(idx >= size)                                                 \
-                return wtot; /* the output buffer is full */                \
-                                                                            \
-            /* we need to fetch some more bytes to access obuf[i] */        \
-            dbg_err_if((rc = io_read(io, wbuf, idx + 1 - wtot)) < 0);       \
-            if(rc == 0 || rc < idx + 1 - wtot)                              \
-                return wtot + rc; /* eof or short count */                  \
-            wbuf += rc;                                                     \
-            wtot += rc;                                                     \
-        }
-
-    int sa_len = strlen(stop_at);
-    int i, t, shift[256], rc;
-    unsigned char c;
-    size_t wtot = 0;
-    char *wbuf = obuf;
-
-    dbg_err_if (io == NULL);
-    dbg_err_if (stop_at == NULL);
-    dbg_err_if (obuf == NULL);
-    /* size may be 0 */
-    dbg_err_if (found == NULL);
-
-    for(i = 0; i < 256; ++i)  
-        shift[i] = sa_len;
-
-    for(i = 0; i < sa_len; ++i)
-        shift[ (int)stop_at[i] ] = sa_len - i - 1;
-
-    *found = 0;
-
-    for(i = t = sa_len-1; t >= 0; --i, --t)
+    for(*found = 0; *found == 0; )
     {
-        SETUP_BUF_ACCESS_AT(i);
+        /* at all times the output buffer must be big enough to contain the 
+         * boundary string so everytime we meet the first char of the boundary 
+         * we check the avail size of the output buffer and return if the 
+         * whole boundary doesn't fit into it (read_until will be called 
+         * again with an empty output buffer) */
+        if(ptr == stop_at && size < slen + 1)
+            break;
 
-        while((c = obuf[i]) != stop_at[t]) 
-        {
-            i += U_MAX(sa_len - t, shift[c]);
+        rc = io_read(io, dst, 1);
+        dbg_err_if(rc < 0);
 
-            SETUP_BUF_ACCESS_AT(i);
+        if(rc == 0)
+            break; /* eof */
 
-            t = sa_len - 1;
-        }
+        if(*ptr != *dst)
+            ptr = stop_at;
+
+        if(*ptr == *dst && ++ptr == end)
+            *found = 1;
+
+        dst++;
+        size--;
     }
 
-    *found = 1;
-
-    /* found; obuf[i] is where the matching string is */
-    return wtot;
-#endif
+    return dst - obuf;
 err:
     return -1;
 }
@@ -1419,7 +1364,7 @@ static ssize_t request_read_until_boundary(request_t *rq, io_t *io,
         /* write all but the last bound_len + 2 (\r\n) bytes */
         if(found)
         {
-            rc -= (bound_len + 2);
+            rc -= bound_len;
             dbg_err_if(rc < 0);
 
             /* zero-term the buffer (removing the boundary) */
@@ -1440,8 +1385,10 @@ static ssize_t request_read_until_boundary(request_t *rq, io_t *io,
 
         warn_err_ifm(trb > rq->post_maxsize, "POST data exceed post_maxsize");
 
-        /* if we're using the buf on the heap then append read data */
-        if(ubuf)
+        /* if we're using the buf on the heap then append read data; rc will
+         * be zero if the last read returned just the boundary (that it's  not
+         * going to be written to the output buffer) */
+        if(ubuf && rc)
             dbg_err_if(u_buf_append(ubuf, buf, rc));
     }
 
@@ -1464,7 +1411,7 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
     var_t *v = NULL;
     u_buf_t *ubuf = NULL;
     char name[PRMSZ], filename[PRMSZ], buf[BUFSZ];
-    size_t bound_len;
+    size_t bound_len, rall;
     int found;
     ssize_t rc;
 
@@ -1498,10 +1445,10 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
             rc = read_until(io, boundary, buf, BUFSZ, &found);
             dbg_err_if(rc <= 0); /* on error or eof exit */
 
-            /* write all but the last bound_len + 2 (\r\n) bytes */
+            /* write all but the last bound_len bytes (i.e. the boundary) */
             if(found)
             {
-                rc -= (bound_len + 2);
+                rc -= bound_len;
                 dbg_err_if(rc < 0);
             }
 
@@ -1518,12 +1465,6 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
         /* add this file to the uploaded file list */
         dbg_err_if(request_add_uploaded_file(rq, name, filename, buf, 
             header_get_field_value(h, "Content-Type")));
-
-        /* could be "\r\n" for not-ending boundaries or "--\r\n" */
-        dbg_err_if(io_gets(io, buf, BUFSZ) <= 0);
-
-        if(strncmp(buf, "--", 2) == 0)
-            *eof = 1; /* end of MIME stuff */
 
     } else {
         /* read data before the boundary into the buffer. if the buffer is too 
@@ -1542,12 +1483,23 @@ static int request_parse_multipart_chunk(request_t *rq, io_t *io,
 
         /* also add it to the post array */
         dbg_if(vars_add(rq->args_post, v));
+    }
 
-        /* could be "\r\n" for not-ending boundaries or "--\r\n" */
-        dbg_err_if(io_gets(io, buf, BUFSZ) <= 0);
+    /* will read "\r\n" for not-ending boundaries, "--" otherwise */
+    dbg_err_if(io_read(io, buf, 2) <= 0);
 
-        if(strncmp(buf, "--", 2) == 0)
-            *eof = 1; /* end of MIME stuff */
+    if(strncmp(buf, "--", 2) == 0)
+    {
+        *eof = 1; /* end of MIME stuff */
+
+        rall = rq->content_length + rq->body_off;
+
+        /* read and ignore the epilogue (if any) */
+        while(io->rtot < rall)
+        {
+            if(io_read(io, buf, U_MIN(rall - io->rtot, sizeof(buf))) <= 0)
+                break;
+        }
     }
 
     if(ubuf)
@@ -1561,8 +1513,8 @@ err:
         u_buf_free(ubuf);
     if(tmpio) {
         /* free space occupied by partial uploads */
-        dbg_if(io_name_get(tmpio, buf, BUFSZ));
-        u_remove(buf);
+        if(io_name_get(tmpio, buf, BUFSZ) == 0)
+            u_remove(buf);
         io_free(tmpio);
     }
     if(h)
@@ -1573,10 +1525,10 @@ err:
 static int request_parse_multipart_data(request_t *rq)
 {
     enum { BOUNDARY_BUFSZ = 128, BUFSZ = 1024 }; 
-    char boundary[BOUNDARY_BUFSZ], buf[BUFSZ];
-    int eof;
+    char boundary[BOUNDARY_BUFSZ], nl_boundary[BOUNDARY_BUFSZ], buf[BUFSZ], *nl;
+    int eof, rc;
 
-    /* boundaries always start with -- */
+    /* boundary lines must start with -- */
     strcpy(boundary, "--");
 
     dbg_err_if(request_get_fieldparam(rq, "Content-Type", "boundary",
@@ -1587,14 +1539,18 @@ static int request_parse_multipart_data(request_t *rq)
     /* skip the MIME preamble (usually not used in HTTP) */
     for(;;)
     {
-        dbg_err_if(io_gets(rq->io, buf, BUFSZ) <= 0);
+        dbg_err_if((rc = io_gets(rq->io, buf, BUFSZ)) <= 0);
         if(!strncmp(buf, boundary, strlen(boundary)))
             break; /* boundary found */
     }
 
+    /* nl_boundary will contain: "\r\n--" + boundary */
+    strcpy(nl_boundary, "\r\n");
+    dbg_err_if(u_strlcat(nl_boundary, boundary, sizeof(nl_boundary)));
+
     /* cycle on each MIME part */
     for(eof = 0; eof == 0; )
-        dbg_err_if(request_parse_multipart_chunk(rq, rq->io, boundary, &eof));
+        dbg_err_if(request_parse_multipart_chunk(rq, rq->io, nl_boundary,&eof));
 
     return 0;
 err:
@@ -1618,6 +1574,7 @@ static int request_cb_close_socket(talarm_t *al, void *arg)
 int request_parse_data(request_t *rq)
 {
     talarm_t *al = NULL;
+    io_t *io = request_io(rq);
     int rc = HTTP_STATUS_BAD_REQUEST;
 
     if(rq->method == HM_POST)
@@ -1631,6 +1588,10 @@ int request_parse_data(request_t *rq)
 
         if(rq->content_length == 0)
             return 0; /* no data posted */
+
+        /* bytes read so far; will be used to know how many bytes we can read
+         * from the client based on "Content-Length" value */
+        rq->body_off = io->rtot;
 
         /* set a timeout to abort POST if it takes too long ... */
         dbg_err_if(timerm_add(rq->post_timeout, request_cb_close_socket, 
