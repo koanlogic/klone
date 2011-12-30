@@ -12,15 +12,14 @@ KLone 3.0.0:
 	  they've been absorbed by the 'addr'; and the 'backlog' directive is 
 	  temporarily inhibited (it needs an interface shift in libu/net) and
 	  is internally fixed to U_NET_BACKLOG, defaulting to 300.
-	- Temporarily disable Boyer-Moore algorithm for MIME multipart boundary
-	  detection, which results in occasional hangs during file upload.
 	- Fix build when fork(2) is missing, as in uClinux.
 	- Fix bug in memory session configuration that prevented use of default
-	  values (reported and fixed by Davide Berra)
-	- Fix SSL compilation flags missing during cross-compilation
-	- Fix partially uploaded files not cleaned up
+	  values (reported and fixed by Davide Berra).
+	- Fix SSL compilation flags missing during cross-compilation.
+	- Fix partially uploaded files not cleaned up.
 	- Fix bad buffer length in {http,supemb}_is_valid_uri() (reported by
-	  Senén de Diego)
+	  Senén de Diego).
+	- Multipart/form-data fixes.
 
 KLone 2.4.0:
 	- max size estimate of encrypted sessions fixed (session_prv_calc_maxsize)
