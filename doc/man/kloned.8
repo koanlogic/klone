@@ -40,13 +40,13 @@ values contained in default and custom configuration files. For example:
     $ cat << EOF | ./kloned -c
     > app_http
     > {
-    > addr.port 8081
+    > addr      tcp4://*:8081
     > dir_root  /www2
     > }
     > EOF
 .fi
 .sp
-will override the default port and root directory values for a previously defined backend "app_http".
+will override the default address and root directory values for a previously defined backend "app_http".
 .TP
 \-F
 If specified, this parameter causes the main
