@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2006, 2006 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005-2012 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
@@ -46,7 +46,7 @@ typedef struct lang_c_ctx_s lang_c_ctx_t;
 
 static const char copyright_hdr[] =
     "/*                                                                     \n"
-    " * Copyright (c) 2005-2010 by KoanLogic s.r.l. <http://koanlogic.com>  \n"
+    " * Copyright (c) 2005-2012 by KoanLogic s.r.l. <http://koanlogic.com>  \n"
     " * All rights reserved.                                                \n"
     " *                                                                     \n"
     " * This file is part of KLone, and as such it is subject to the license\n"

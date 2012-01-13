@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2011 by KoanLogic s.r.l. <http://www.koanlogic.com>
+ * Copyright (c) 2005-2012 by KoanLogic s.r.l. <http://www.koanlogic.com>
  * All rights reserved.
  *
  * This file is part of KLone, and as such it is subject to the license stated
@@ -533,7 +533,7 @@ static int u_hex2ch(char c)
 void u_print_version_and_exit(void)
 {
     static const char *vv = 
-    "KLone %s - Copyright (c) 2005-2008 KoanLogic s.r.l. - "
+    "KLone %s - Copyright (c) 2005-2012 KoanLogic s.r.l. - "
     "All rights reserved. \n\n";
 
     fprintf(stderr, vv, klone_version());
