@@ -29,14 +29,12 @@ esempio:
 server.list web0 web1
 
 server.web0.type            http
-server.web0.addr.type       IPv4
-server.web0.addr.port       80
+server.web0.addr            tcp4://*:80
 server.web0.dir_root        /web0/www
 server.web0.server_sig      web0 http server
 
 server.web1.type            http
-server.web1.addr.type       IPv4
-server.web1.addr.port       8080
+server.web1.addr            tcp4://*:8080
 server.web1.dir_root        /web1/www
 server.web1.server_sig      web1 http server
 ==============

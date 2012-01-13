@@ -10,7 +10,6 @@ log
 my_http
 {
     type            http
-    addr.type       IPv4
-    addr.port       8080
+    addr            tcp4://*:8080
     dir_root        /www            # store your pages in /www into embfs
 }
