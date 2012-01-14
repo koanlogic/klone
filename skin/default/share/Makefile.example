@@ -4,7 +4,13 @@
 TOP = $(shell pwd)
 
 # which klone version?
-KLONE_VERSION ?= 2.0.0
+KLONE_VERSION ?= 2.4.0
+
+# set the following as needed (wget should be ok on most platforms)
+#export FETCH_CMD = curl -O
+#export FETCH_CMD = ftp
+#export FETCH_CMD = fetch
+export FETCH_CMD = wget
 
 # set the name of the daemon program (otherwise "kloned" will be used)
 # KLONE_DAEMON_NAME = myapp
@@ -33,5 +39,4 @@ WEBAPP_DIR = $(TOP)/webapp
 
 include klapp.mk
 
-klapp.mk:
-	wget -O $@ -c http://koanlogic.com/klone/klapp-2.0.0.mk
+klapp.mk: ; $(FETCH_CMD) http://koanlogic.com/klone/klapp.mk
