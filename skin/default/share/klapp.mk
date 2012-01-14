@@ -45,6 +45,8 @@ ifdef KLONE_HOST_PATCH_URI
 export KLONE_HOST_PATCH_URI
 endif
 
+FETCH_CMD ?= wget
+
 .PHONY: klone-src help import-help configure-help makefile-help
 
 KLONE_DIR = $(CURDIR)/klone-$(KLONE_VERSION)
@@ -104,7 +106,7 @@ $(KLONE_TGZ):
 	@if [ -f "$(KLONE_CACHE_DIR)/$(KLONE_TGZ)" ]; then \
 	    cp "$(KLONE_CACHE_DIR)/$(KLONE_TGZ)" . ; \
 	else \
-	    wget -c http://koanlogic.com/download/klone/$(KLONE_TGZ) && \
+	    $(FETCH_CMD) http://koanlogic.com/download/klone/$(KLONE_TGZ) && \
         if [ -n "$(KLONE_CACHE_DIR)" ]; then \
             mkdir -p "$(KLONE_CACHE_DIR)" ; \
 	        cp $(KLONE_TGZ) "$(KLONE_CACHE_DIR)" ; \
