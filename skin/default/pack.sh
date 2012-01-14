@@ -77,6 +77,6 @@ E "============================================================================"
 yesno "===> upload tarball to kl.com ?" || exit 0
 
 wrap "uploading klone tarball"  \
-    scp ${TARBALL} root@koanlogic.com:/var/www-anemic/www/download/klone/
+    scp ${TARBALL}* root@koanlogic.com:/var/www-anemic/www/download/klone/
 
 exit 0
