@@ -98,6 +98,8 @@ $(KLONE_DIR)/Makefile: Makefile
 
 klone-src: $(KLONE_TGZ)
 	tar zxvf $(KLONE_TGZ)
+	find . -exec touch {} \;    # avoid errors due to stale files caused by
+	                            # unsynced clocks (e.g. missing embfs files)
 
 $(WEBAPP_DIR):
 	cp -r $(KLONE_DIR)/webapp $@
