@@ -95,6 +95,7 @@ int field_set_from_line(field_t *f, const char *ln)
 
     return 0;
 err:
+    u_dbg("failed setting field from line: %s", ln);
     U_FREE(name);
     return ~0;
 }
