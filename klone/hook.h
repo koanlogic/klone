@@ -39,6 +39,10 @@ int hook_child_term( hook_child_term_t );
 typedef int (*hook_request_t)(request_t *, response_t *);
 int hook_request( hook_request_t );
 
+/* server loop hook */
+typedef int (*hook_server_loop_t)(void);
+int hook_server_loop( hook_server_loop_t );
+
 /* hooks container object */
 int hook_create( hook_t **phook);
 int hook_free( hook_t *hook);

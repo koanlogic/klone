@@ -924,20 +924,28 @@ int server_loop(server_t *s)
             server_waitpid(s);
 #endif
 
-        /* call klog_flush if flush timeout has expired and select() timeouts */
-        if(s->klog_flush && ctx->pipc == 0)
+        /* parent only */
+        if(ctx->pipc == 0)
         {
-            /* flush the log buffer */
-            klog_flush(s->klog);
+            /* call klog_flush if flush timeout has expired and select() timeouts */
+            if(s->klog_flush)
+            {
+                /* flush the log buffer */
+                klog_flush(s->klog);
 
-            /* reset the flag */
-            s->klog_flush = 0; 
+                /* reset the flag */
+                s->klog_flush = 0;
 
-            U_FREE(s->al_klog_flush);
+                U_FREE(s->al_klog_flush);
 
-            /* re-set the timer */
-            dbg_err_if(timerm_add(SERVER_LOG_FLUSH_TIMEOUT, 
-                server_cb_klog_flush, s, &s->al_klog_flush));
+                /* re-set the timer */
+                dbg_err_if(timerm_add(SERVER_LOG_FLUSH_TIMEOUT,
+                    server_cb_klog_flush, s, &s->al_klog_flush));
+            }
+
+            /* server loop hook - trigger only upon timeout and not upon client request */
+            if(rc == 0)
+                hook_call(server_loop);
         }
 
         /* for each signaled listening descriptor */
