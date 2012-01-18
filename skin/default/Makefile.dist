@@ -44,3 +44,6 @@ VERSION:
 
 build/makl:
 	cd build && ln -sf $(BASE)/makl
+
+clean:
+	rm -f $(KLONE_CORE_TARBALL) $(TARBALL) $(TARBALL).md5
