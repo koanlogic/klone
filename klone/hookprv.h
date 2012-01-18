@@ -16,14 +16,13 @@
 extern "C" {
 #endif 
 
-#ifdef ENABLE_HOOKS
+#ifndef ENABLE_HOOKS
+    #define hook_call( func, ... )
+#else
     #define hook_call( func, ... ) \
         do { if(ctx && ctx->hook && ctx->hook->func) \
                 ctx->hook->func( __VA_ARGS__ ); \
         } while(0)
-#else
-    #define hook_call( func, ... )
-#endif
 
 struct hook_s
 {
@@ -41,6 +40,8 @@ struct hook_s
     /* server loop hook */
     hook_server_loop_t server_loop;
 };
+
+#endif  /* ENABLE_HOOKS */
 
 #ifdef __cplusplus
 }

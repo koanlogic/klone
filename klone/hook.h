@@ -21,6 +21,12 @@ typedef struct hook_s hook_t;
 extern "C" {
 #endif 
 
+#ifndef ENABLE_HOOKS
+    #include <ctype.h>
+    #define hook_create(hook) isspace(0)  /* nop */
+    #define hook_free(hook) isspace(0)    /* nop */
+#else
+
 /* server init/term hooks */
 typedef int (*hook_server_init_t)(void);
 typedef int (*hook_server_term_t)(void);
@@ -47,10 +53,10 @@ int hook_server_loop( hook_server_loop_t );
 int hook_create( hook_t **phook);
 int hook_free( hook_t *hook);
 
-#ifdef ENABLE_HOOKS
 /* user-provided function used to register hooks */
 void hooks_setup(void);
-#endif
+
+#endif  /* ENABLE_HOOKS */
 
 #ifdef __cplusplus
 }

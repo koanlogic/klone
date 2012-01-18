@@ -13,6 +13,7 @@ KLone 3.0.0:
 	  temporarily inhibited (it needs an interface shift in libu/net) and
 	  is internally fixed to U_NET_BACKLOG, defaulting to 300.
 	- New server loop hook (patch provided by Mickael Auger)
+	- Conditional compilation and linking of hooks
 	- Fix build when fork(2) is missing, as in uClinux.
 	- Fix bug in memory session configuration that prevented use of default
 	  values (reported and fixed by Davide Berra).

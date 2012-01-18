@@ -14,7 +14,9 @@ SUBDIR += libtls
 endif
 SUBDIR += libtrans
 SUBDIR += libklog
+ifdef ENABLE_HOOKS
 SUBDIR += libhook
+endif
 SUBDIR += tools
 SUBDIR += kloned
 

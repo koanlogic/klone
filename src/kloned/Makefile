@@ -24,7 +24,7 @@ SRCS += ppc_fork_child.c
 endif
 
 LDADD += ../libhttp/libhttp.a ../libutils/libutils.a ../libpage/libpage.a   \
-         ../libbackend/libbackend.a ../libemb/libemb.a ../libio/libio.a     \
+         ../libbackend/libbackend.a ../libemb/libemb.a ../libio/libio.a
 
 ifdef SSL_ON
 LDADD += ../libtls/libtls.a
@@ -33,8 +33,13 @@ endif
 LDADD += ../../site/libsite.a ../libcodec/libcodec.a \
          ../libklog/libklog.a ../../webapp/libwebapp.a ../libhttp/libhttp.a \
          ../libpage/libpage.a ../libutils/libutils.a ../libio/libio.a       \
-         ../libcodec/libcodec.a ../libpage/libpage.a     \
-         ../libhook/libhook.a ${WEBAPP_LDADD}
+         ../libcodec/libcodec.a ../libpage/libpage.a
+
+ifdef ENABLE_HOOKS
+LDADD += ../libhook/libhook.a
+endif
+
+LDADD += ${WEBAPP_LDADD}
 
 # add libu flags
 CFLAGS += -I../../libu/include
