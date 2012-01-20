@@ -855,8 +855,8 @@ int session_prv_save_var(var_t *v, void *vp)
     dbg_err_if (v == NULL);
     /* dbg_err_if (vp == NULL); */
 
-	bzero(sname, NAMESZ);
-    bzero(svalue, VALSZ);
+    memset(sname, 0, NAMESZ);
+    memset(svalue, 0, VALSZ);
 
     /* buffers must be at least three times the src data to URL-encode  */
     nsz = 1 + 3 * strlen(var_get_name(v));  /* name buffer size  */
