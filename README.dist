@@ -1,3 +1,7 @@
 # $Id: README.dist,v 1.9 2009/12/29 10:27:08 tho Exp $
 
 $ cd skin/default && ./pack.sh
+
+# for releases: after testing etc
+$ git tag -f $(TAGNAME)
+$ git push origin master --tags
