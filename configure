@@ -237,7 +237,9 @@ if [ -d skin/default ]; then
 fi
 
 # apply other substitutions
-makl_file_sub "doc/doxy/kl1.doxy"
+if [ -r "doc/doxy/kl1.doxy.in" ]; then
+    makl_file_sub "doc/doxy/kl1.doxy"
+fi
 
 # check if --libs were supplied: in case forward its value to libu build
 __libs=`makl_get "__libs__"`
