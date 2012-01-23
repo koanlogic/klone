@@ -58,8 +58,13 @@ DISTFILES += $(wildcard doc/doxy/src/kl*)
 DISTFILES += $(wildcard doc/doxy/src/toc.txt)
 
 # doxy bits
-DISTREMAP += doc/doxy/src/kl.css doc/html/kl.css
 DISTREMAP += $(foreach f, $(notdir $(wildcard doc/doxy/html/*.html)), \
+                       doc/doxy/html/$f doc/html/$f)
+DISTREMAP += $(foreach f, $(notdir $(wildcard doc/doxy/html/*.css)), \
+                       doc/doxy/html/$f doc/html/$f)
+DISTREMAP += $(foreach f, $(notdir $(wildcard doc/doxy/html/*.gif)), \
+                       doc/doxy/html/$f doc/html/$f)
+DISTREMAP += $(foreach f, $(notdir $(wildcard doc/doxy/html/*)), \
                        doc/doxy/html/$f doc/html/$f)
 DISTREMAP += pkg/Makefile.doc doc/Makefile
 DISTREMAP += pkg/Makefile.doxy.doc doc/html/Makefile
