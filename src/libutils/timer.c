@@ -39,6 +39,7 @@ struct timerm_s
 {
     talarm_list_t alist;        /* alarm list                   */
     time_t next;                /* next timestamp               */
+    int cb_running;             /* set when timer callback is running */
 #ifdef OS_WIN
     CRITICAL_SECTION cs;
     HANDLE hthread;             /* thread handle                */
@@ -107,8 +108,13 @@ void timerm_sigalrm(int sigalrm)
         
         TAILQ_REMOVE(&timer->alist, al, np);
 
+        /* use to serialize callbacks nd avoid handler recursive */
+        timer->cb_running = 1;
+
         /* call the callback function */
         al->cb(al, al->arg);
+
+        timer->cb_running = 0;
     }
 
     /* prepare for the next alarm */
@@ -122,6 +128,8 @@ err:
 static int timerm_block_alarms(void)
 {
 #ifdef OS_UNIX
+    if(timer->cb_running)
+        return 0;
     dbg_err_if(u_sig_block(SIGALRM));
 #endif
 
@@ -137,6 +145,8 @@ err:
 static int timerm_unblock_alarms(void)
 {
 #ifdef OS_UNIX
+    if(timer->cb_running)
+        return 0;
     dbg_err_if(u_sig_unblock(SIGALRM));
 #endif
 
@@ -209,6 +219,42 @@ err:
     return ~0;
 }
 
+/* use this function if you need to re-set the alarm in the signal
+ * handler (don't timerm_del() on the alarm) */
+int timerm_reschedule(talarm_t *al, int secs, talarm_cb_t cb, void *arg)
+{
+    talarm_t *item = NULL;
+    time_t now = time(0);
+
+    dbg_return_if (cb == NULL, ~0);
+    dbg_return_if (al == NULL, ~0);
+
+    al->cb = cb;
+    al->arg = arg;
+    al->expire = now + secs;
+
+    dbg_err_if(timerm_block_alarms());
+
+    /* insert al ordered by the expire field (smaller first) */
+    TAILQ_FOREACH(item, &timer->alist, np)
+        if(al->expire < item->expire)
+            break; 
+    
+    if(item)
+        TAILQ_INSERT_BEFORE(item, al, np);
+    else
+        TAILQ_INSERT_TAIL(&timer->alist, al, np);
+
+    /* set the timer for the earliest alarm */
+    timerm_set_next();
+                                                              
+    dbg_err_if(timerm_unblock_alarms());                      
+                                                              
+    return 0;                                                 
+err:                                                          
+    return ~0;                                                
+}      
+
 int timerm_add(int secs, talarm_cb_t cb, void *arg, talarm_t **pa)
 {
     talarm_t *al = NULL;
@@ -231,27 +277,9 @@ int timerm_add(int secs, talarm_cb_t cb, void *arg, talarm_t **pa)
     dbg_err_if(al == NULL);
 
     al->timer = timer;
-    al->cb = cb;
-    al->arg = arg;
-    al->expire = now + secs;
     al->owner = pid;
 
-    dbg_err_if(timerm_block_alarms());
-
-    /* insert al ordered by the expire field (smaller first) */
-    TAILQ_FOREACH(item, &timer->alist, np)
-        if(al->expire < item->expire)
-            break;
-
-    if(item)
-        TAILQ_INSERT_BEFORE(item, al, np);
-    else
-        TAILQ_INSERT_TAIL(&timer->alist, al, np);
-
-    /* set the timer for the earliest alarm */
-    timerm_set_next(); 
-
-    dbg_err_if(timerm_unblock_alarms());
+    dbg_err_if(timerm_reschedule(al, secs, cb, arg));
 
     *pa = al;
 

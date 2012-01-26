@@ -25,6 +25,7 @@ typedef int (*talarm_cb_t)(talarm_t *, void *arg);
 
 int timerm_add(int secs, talarm_cb_t cb, void *arg, talarm_t **pa);
 int timerm_del(talarm_t *a);
+int timerm_reschedule(talarm_t *a, int secs, talarm_cb_t cb, void *arg);
 
 #ifdef __cplusplus
 }
