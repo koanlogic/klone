@@ -2,6 +2,9 @@ $Id: ChangeLog,v 1.85 2010/06/01 20:20:51 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
+KLone X.Y.Z:
+	- Fix timeout initialisation upon select() errors.
+
 KLone 3.0.0:
 	- Add IPv6, SCTP, and UNIX IPC support via libu/net.  This change breaks
 	  the four following interfaces: request_[gs]et_{local,peer}_addr() which

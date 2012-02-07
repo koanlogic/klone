@@ -910,10 +910,10 @@ int server_loop(server_t *s)
         memcpy(&wrfds, &s->wrfds, sizeof(fd_set));
         memcpy(&exfds, &s->exfds, sizeof(fd_set));
 
+    again:
         /* wake up every second */
         tv.tv_sec = 1; tv.tv_usec = 0;
 
-    again:
         rc = select(1 + s->hfd, &rdfds, &wrfds, &exfds, &tv); 
         if(rc == -1 && errno == EINTR)
             goto again; /* interrupted */
