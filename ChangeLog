@@ -5,6 +5,7 @@ ChangeLog file of KLone - http://koanlogic.com
 KLone 3.1.0:
 	- *BSD license*
 	- Fix timeout initialisation upon select() errors.
+	- timerm_reschedule() to reset alarm in signal handler.
 
 KLone 3.0.0:
 	- Add IPv6, SCTP, and UNIX IPC support via libu/net.  This change breaks
