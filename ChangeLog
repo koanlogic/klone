@@ -2,7 +2,8 @@ $Id: ChangeLog,v 1.85 2010/06/01 20:20:51 tho Exp $
 
 ChangeLog file of KLone - http://koanlogic.com
 
-KLone X.Y.Z:
+KLone 3.1.0:
+	- *BSD license*
 	- Fix timeout initialisation upon select() errors.
 
 KLone 3.0.0:
