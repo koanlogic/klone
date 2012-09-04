@@ -10,6 +10,8 @@ makl
 src/kloned/kloned
 contrib/iocat/iocat
 contrib/iowc/iowc
+doc/doxy/kl1.doxy
+doc/doxy/html
 Makefile.conf
 autogen.*
 site/register.c
