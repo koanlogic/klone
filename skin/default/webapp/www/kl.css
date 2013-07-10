@@ -1,6 +1,7 @@
 body {
-  background:white url(images/kl_bg.png) repeat-y top left;
-  background-position:95px 30px;
+  background:white url(images/kl_bg.png) no-repeat left;
+  background-size:600px;
+  background-position:150px 10px;
   margin:10px 5px;
   width:700px;
   font:Georgia,Serif;
