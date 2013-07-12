@@ -164,3 +164,4 @@ configure
 webapp/etc/kloned.conf
 webapp/www/index.kl1
 webapp/www/kl.css
+webapp/www/images/kl_bg.png
