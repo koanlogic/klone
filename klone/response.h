@@ -59,6 +59,7 @@ int response_set_content_length(response_t *rs, size_t sz);
 int response_set_content_encoding(response_t *rs, const char *encoding);
 int response_set_last_modified(response_t *rs, time_t mtime);
 int response_set_date(response_t *rs, time_t now);
+int response_del_field(response_t *rs, const char *name);
 
 int response_set_cookie(response_t *rs, const char *name, const char *value,
     time_t expire, const char *path, const char *domain, int secure);

@@ -4,6 +4,8 @@ ChangeLog file of KLone - http://koanlogic.com
 
 KLone X.Y.Z:
 	- webapp: fix background and update copyright
+	- reponse: missing response_del_field() declaration in header (patch
+	  provided by Mickael Auger)
 
 KLone 3.1.0:
 	- *BSD license*
