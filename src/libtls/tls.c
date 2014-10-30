@@ -188,7 +188,7 @@ static int tls_context (SSL_CTX **pc)
 
     dbg_return_if (pc == NULL, ~0);
 
-    c = SSL_CTX_new(SSLv23_server_method());
+    c = SSL_CTX_new(TLSv1_server_method());
     dbg_err_ifm (c == NULL, "error creating SSL CTX: %s", tls_get_error());
 
     *pc = c;

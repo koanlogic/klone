@@ -3,6 +3,7 @@ $Id: ChangeLog,v 1.85 2010/06/01 20:20:51 tho Exp $
 ChangeLog file of KLone - http://koanlogic.com
 
 KLone X.Y.Z:
+	- tls: force usage of TLSv1+ [CVE-2014-3566 POODLE]
 	- webapp: fix background and update copyright
 	- reponse: missing response_del_field() declaration in header (patch
 	  provided by Mickael Auger)
