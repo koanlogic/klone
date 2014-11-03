@@ -149,6 +149,13 @@ int InstallService(void)
     SERVICE_DESCRIPTION sd = { ss_desc };
     int rc;
 
+    ////
+    //Added to be able to load a external config file every time the service is starting
+    char szModulePathnameWithArgs[_MAX_PATH], szFileToLoad[_MAX_PATH];
+    char *ptrToExtension;
+    int indexToExtension;
+    ////
+
     // Open the SCM on this machine.
     hSCM = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
 
@@ -157,11 +164,44 @@ int InstallService(void)
     dbg_err_if(GetModuleFileName(GetModuleHandle(NULL), szModulePathname, 
         _MAX_PATH) == 0 );
 
+    ////
+    /*  The configuration file will be named kloned.cfg, so we just have to replace the last 3 letters
+        in szModulePathname
+    */
+    strcpy(szFileToLoad, szModulePathname);
+    //We look for the last '.' character
+    ptrToExtension = strrchr(szFileToLoad, '.');
+	indexToExtension = ptrToExtension - szFileToLoad;
+    We now can transform 'exe' into 'cfg'
+	szFileToLoad[indexToExtension + 1] = 'c';
+	szFileToLoad[indexToExtension + 2] = 'f';
+	szFileToLoad[indexToExtension + 3] = 'g';
+
+    //We now build the command line that will start the service
+    // -f is used to load a external config file in Klone
+    //So every time this command line will be executed klone will start loading the kloned.cfg file present in the same
+    // directory
+    sprintf(szModulePathnameWithArgs, "%s -f %s", szModulePathname, szFileToLoad);
+    ////
+
     /* add this service to the SCM's database */
+    /*
     hService = CreateService(hSCM, ss_name, ss_name,
         SERVICE_CHANGE_CONFIG, SERVICE_WIN32_OWN_PROCESS, 
         SERVICE_DEMAND_START, SERVICE_ERROR_IGNORE,
         szModulePathname, NULL, NULL, NULL, NULL, NULL);
+    */
+    ////
+    /*
+        szModulePathname became szModulePathnameWithArgs to be able to load kloned.cfg
+        SERVICE_DEMAND_START became SERVICE_AUTO_START
+        
+        Now the service will start at computer startup, the final user doesn't have anything to do.
+    */
+    hService = CreateService(hSCM, ss_name, ss_name,
+        SERVICE_CHANGE_CONFIG, SERVICE_WIN32_OWN_PROCESS, 
+        SERVICE_AUTO_START, SERVICE_ERROR_IGNORE,
+        szModulePathnameWithArgs, NULL, NULL, NULL, NULL, NULL);
 
     dbg_err_if(hService == NULL);
 
